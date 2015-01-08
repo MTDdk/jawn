@@ -10,6 +10,8 @@ public class AppBootstrap extends Bootstrap {
     }
 }
 ```
+Everything in the `AppContext` can then be retrieved from every controller:
+
 ```java
 public class IndexController extends AppController {
     public void index(){
@@ -18,6 +20,11 @@ public class IndexController extends AppController {
 }
 ```
 
-The `AppContext` is mostly
+The `AppContext` is mostly just a `Map`, but it has some extra methods, most notable:
 
-context.setEncoding("UTF-8");
+```java
+/*
+ * Sets the encoding of every generated content
+ */
+context.setEncoding("UTF-8"); // this is the standard encoding
+```

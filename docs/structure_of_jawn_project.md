@@ -36,17 +36,19 @@
 ```
 ## Configuration
 
-## [Controllers](docs/controllers.md)
+
+
+## [Controllers](controllers.md)
 Always located in the package structure `app.controllers`.
 
-
-
+The naming convention is to always end a controller with **Controller** and extending `AppController`.
+This is what the framework is looking for.
 
 ## Models
 Normally placed in the `app.models` but is not bound to this location.
 Contrary to the *configuration* and *controllers*, the placement of *models* are not dictated by the framework.
 
-## [Views](docs/views.md)
+## [Views](views.md)
 Ordered in subfolders within the `WEB-INF/views` folder named as their respective controllers.
 
 

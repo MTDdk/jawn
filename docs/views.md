@@ -37,3 +37,7 @@ webapp/views/WEB-INF/some/index.html.st
 ```
 
 A layout should always contain a `$content$` where the controller template will be injected.
+
+## site.json
+Place declaration of scripts and stylesheets in one place.
+> elaborate

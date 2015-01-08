@@ -1,0 +1,7 @@
+bin/
+.project
+.gradle/
+.README.md.html
+.classpath
+build/
+gradle.properties
