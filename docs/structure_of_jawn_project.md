@@ -4,35 +4,35 @@
 
 ## Typical structure of a jawn project
 ```
-\- src
-|  \- main
-|     \- java
-|        \- app
-|           \- config
-|           |  |- AppBootstrap.java (required)
-|           |  |- AppControllerConfig.java
-|           |  |- RouteConfig.java
-|           \- controllers
-|           |  |- ArticleController.java
-|           |  |- IndexController.java (standard)
-|           |  |- SomeController.java
-|           \- models
-|              |- Article.java
-\- webapp
-   \- css
-   \- images
-   \- js
-   |- favico.ico
-   \- WEB-INF
-      \- views
-         \- article
-         |  |- index.st
-         \- index
-         |  |- index.st
-         \- some
-         |  |- index.st
-         |  |- example.st (possible to reference other templates)
-         |- index.html.st (default layout)
++-- src
+|   \-- main
+|       \-- java
+|           \-- app
+|               +-- config
+|               |   +-- AppBootstrap.java (required)
+|               |   +-- AppControllerConfig.java
+|               |   \-- RouteConfig.java
+|               +-- controllers
+|               |   +-- ArticleController.java
+|               |   +-- IndexController.java (standard)
+|               |   \-- SomeController.java
+|               \-- models
+|                   \-- Article.java
+\-- webapp
+    +-- css
+    +-- images
+    +-- js
+    +-- favico.ico
+    \-- WEB-INF
+        \-- views
+            +-- article
+            |   \-- index.st
+            +-- index
+            |   \-- index.st
+            +-- some
+            |   +-- index.st
+            |   \-- example.st (possible to reference other templates)
+            \-- index.html.st (default layout)
 ```
 ## Configuration
 

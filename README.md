@@ -16,7 +16,6 @@ that you can do it almost do it your sleep.
 ## Get it
 
 ### Maven
-> Not yet deployed on Maven
 ```xml
 <dependency>
   <groupId>net.javapla.jawn</groupId>
@@ -26,7 +25,6 @@ that you can do it almost do it your sleep.
 ```
 
 ### Gradle
-> Not yet deployed on Maven
 ```groovy
 compile 'net.javapla.jawn:jawn:0.1.0'
 ```
