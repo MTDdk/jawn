@@ -1,6 +1,6 @@
 # JavaWebPlanet
 
-This is the repository of **JavaWebPlanet**, a simple web MVC.
+**JavaWebPlanet** strives to be a simple library for web MVC development. 
 
 It is abbreviated "**jawn**", which is a homophone of "yawn", as this project is supposed to be so simple to use
 that you can do it almost do it your sleep.
@@ -21,14 +21,14 @@ that you can do it almost do it your sleep.
 <dependency>
   <groupId>net.javapla.jawn</groupId>
   <artifactId>jawn</artifactId>
-  <version>--  --</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
 ### Gradle
 > Not yet deployed on Maven
 ```groovy
-compile 'net.javapla.jawn:jawn:----'
+compile 'net.javapla.jawn:jawn:0.1.0'
 ```
 
 
