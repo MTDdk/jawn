@@ -5,13 +5,16 @@
 It is abbreviated "**jawn**", which is a homophone of "yawn", as this project is supposed to be so simple to use
 that you can do it almost do it your sleep.
 
-## Documentation
-* [Getting started](docs/getting_started.md)
-* [Structure of a JavaWebPlanet project](docs/structure_of_jawn_project.md)
-* [Controllers](docs/controllers.md)
+## Principles
 
-* [Environments](docs/environments.md)
-* [Application wide context](docs/appcontext.md)
+## Documentation
+* [Getting started](docs/getting_started)
+* [Structure of a JavaWebPlanet project](docs/structure_of_jawn_project)
+* [Controllers](docs/controllers)
+
+* [Image manipulation](docs/imagemanipulation)
+* [Environments](docs/environments)
+* [Application wide context](docs/appcontext)
 
 ## Get it
 

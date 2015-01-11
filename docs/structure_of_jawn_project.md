@@ -1,7 +1,5 @@
 # Structure of a JavaWebPlanet project
 
-*To be finished*
-
 ## Typical structure of a jawn project
 ```
 +-- src
@@ -35,10 +33,16 @@
             \-- index.html.st (default layout)
 ```
 ## Configuration
+All configuration is done in code located in `app.config`.
+The `AppBootstrap.java` is the only required as this is where the most vital configuration is set.
+Even though no configuration is essential, this class still needs to be present for running the framework.
+More in [AppContext](appcontext)
+
+Other configuration classes can be added for controlling URL-routes, database connections, or special behaviour of controllers.
 
 
 
-## [Controllers](controllers.md)
+## [Controllers](controllers)
 Always located in the package structure `app.controllers`.
 
 The naming convention is to always end a controller with **Controller** and extending `AppController`.
@@ -48,8 +52,10 @@ This is what the framework is looking for.
 Normally placed in the `app.models` but is not bound to this location.
 Contrary to the *configuration* and *controllers*, the placement of *models* are not dictated by the framework.
 
-## [Views](views.md)
-Ordered in subfolders within the `WEB-INF/views` folder named as their respective controllers.
+## [Views](views)
+Ordered in subfolders within the `WEB-INF/views` named as their respective controllers.
+It is essential for the naming of controllers and their corresponding views to be named identically as the view is looked up
+on basis of the name of the controller.
 
 
 ## Static content - subfolders of `webapp`
