@@ -77,7 +77,7 @@ It contains the following properties:
 Place declaration of scripts and stylesheets in one place.
 It distinguishes between local and full paths
 
-```json
+```java
 { 
 	"title": "Movie headline",
 	
