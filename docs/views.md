@@ -66,7 +66,7 @@ The keyword *site* is reserved in the layouts and will always be overridden if u
 
 It contains the following properties:
 * `$site.content$` - the placeholder of the template. If templates are used in your application, this should always be present in your layout.
-* `$site.language$` - if enabled in [AppContext](appcontext)
+* `$site.language$` - if enabled in [AppContext](appcontext.md)
 * If provided in the **site.json**
   * `$site.title$` - a string to be used in the template.
   * `$site.scripts$` - a compiled list of the javascripts given.

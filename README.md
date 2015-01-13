@@ -3,7 +3,7 @@
 **java-web-planet** strives to be a simple library for web MVC development. 
 
 It is abbreviated "**jawn**", which is a homophone of "yawn", as this project is supposed to be so simple to use
-that you can do it almost do it your sleep.
+that you can do it almost in your sleep.
 
 ## Personal motivation
 I was tired of the limits and troublesome HTML tags of standard JSPs,
@@ -28,13 +28,13 @@ create models, and models are sent to the view.
 
 
 ## Documentation
-* [Getting started](docs/getting_started)
-* [Structure of a jawn project](docs/structure_of_jawn_project)
-* [Controllers](docs/controllers)
-* [Views](docs/views)
-* [Image manipulation](docs/imagemanipulation)
-* [Environments](docs/environments)
-* [Application wide context](docs/appcontext)
+* [Getting started](docs/getting_started.md)
+* [Structure of a jawn project](docs/structure_of_jawn_project.md)
+* [Controllers](docs/controllers.md)
+* [Views](docs/views.md)
+* [Image manipulation](docs/imagemanipulation.md)
+* [Environments](docs/environments.md)
+* [Application wide context](docs/appcontext.md)
 
 ## Get it
 
