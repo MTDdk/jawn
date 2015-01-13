@@ -81,7 +81,7 @@ It distinguishes between local and full paths
 { 
 	"title": "Movie headline",
 	
-	/* it is possible to use comments in this file */
+	// it is possible to use comments in this file
 	
 	"scripts": [
 		"lib/bootstrap/bootstrap.js",
