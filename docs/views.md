@@ -7,14 +7,37 @@ Using [StringTemplate](http://www.stringtemplate.org/) as default.
 
 The framework supports some configuration of the template engine, like [adaptors](https://theantlrguy.atlassian.net/wiki/display/ST4/Model+adaptors) and [renderers](https://theantlrguy.atlassian.net/wiki/display/ST4/Renderers). 
 
-The original usage of [FreeMarker](http://freemarker.org/) is still supported, however.
+The original usage of [FreeMarker](http://freemarker.org/) is still somewhat supported, however.
 
 > How to switch between template engines needs to be documented.
 
 
 
 ## Templates
-`index.st` = standard naming convention of templates.
+All templates are named after their respective action of the controller.
+So `index.st` is used when executing:
+```java
+public void index(){}
+```
+
+
+### An example: 
+```
+http://host:port/movies/newest
+```
+
+Translates to:
+```java
+public class MoviesController extends AppController {
+...
+	public void getNewest() {}
+...
+}
+```
+
+Which uses the view `WEB-INF/views/movies/newest.st`.
+
+
 
 Templates can be nested.
 > Some example
@@ -36,8 +59,43 @@ Like so:
 webapp/views/WEB-INF/some/index.html.st
 ```
 
-A layout should always contain a `$content$` where the controller template will be injected.
+A layout should always contain a `$site.content$` where the controller template will be injected.
+
+## Reserved keyword
+The keyword *site* is reserved in the layouts and will always be overridden if used by the user.
+
+It contains the following properties:
+* `$site.content$` - the placeholder of the template. If templates are used in your application, this should always be present in your layout.
+* `$site.language$` - if enabled in [AppContext](appcontext)
+* If provided in the **site.json**
+  * `$site.title$` - a string to be used in the template.
+  * `$site.scripts$` - a compiled list of the javascripts given.
+  * `$site.styles$` - a compiled list of the given stylesheets.
+
 
 ## site.json
 Place declaration of scripts and stylesheets in one place.
+It distinguishes between local and full paths
+
+```json
+{ 
+	"title": "Movie headline",
+	
+	/* it is possible to use comments in this file */
+	
+	"scripts": [
+		"lib/bootstrap/bootstrap.js",
+		"http://code.jquery.com/jquery-2.1.3.min.js",
+    	"localscript.js"
+	], 
+	
+	"styles": [
+		"lib/bootstrap/bootstrap.css",
+		"localstyle.css"
+	],
+	
+	"overrideDefault" : false
+}
+```
+ 
 > elaborate

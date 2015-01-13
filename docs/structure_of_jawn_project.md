@@ -1,4 +1,4 @@
-# Structure of a JavaWebPlanet project
+# Structure of a jawn project
 
 ## Typical structure of a jawn project
 ```
@@ -43,17 +43,17 @@ Other configuration classes can be added for controlling URL-routes, database co
 
 
 ## [Controllers](controllers)
-Always located in the package structure `app.controllers`.
+The *controller* part of MVC, always located in the package structure `app.controllers`.
 
 The naming convention is to always end a controller with **Controller** and extending `AppController`.
 This is what the framework is looking for.
 
 ## Models
-Normally placed in the `app.models` but is not bound to this location.
+The *model* part of MVC, normally placed in the `app.models` but is not bound to this location.
 Contrary to the *configuration* and *controllers*, the placement of *models* are not dictated by the framework.
 
 ## [Views](views)
-Ordered in subfolders within the `WEB-INF/views` named as their respective controllers.
+The *view* part of MVC, ordered in subfolders within the `WEB-INF/views` named as their respective controllers.
 It is essential for the naming of controllers and their corresponding views to be named identically as the view is looked up
 on basis of the name of the controller.
 

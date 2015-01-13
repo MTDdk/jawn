@@ -1,17 +1,37 @@
-# JavaWebPlanet
+# java-web-planet
 
-**JavaWebPlanet** strives to be a simple library for web MVC development. 
+**java-web-planet** strives to be a simple library for web MVC development. 
 
 It is abbreviated "**jawn**", which is a homophone of "yawn", as this project is supposed to be so simple to use
 that you can do it almost do it your sleep.
 
-## Principles
+## Personal motivation
+I was tired of the limits and troublesome HTML tags of standard JSPs,
+and not satisfied with existing frameworks, so I set down in the endeavour of 
+combining technologies to get close to a full stack web development 
+platform with all the features I thought a web framework should have:
+
+* **Fewer extensive XML files for configuration**. Preferring to get as much into the code as possible.
+* **Keep close to Java standards**. The framework is useless if it is just another language you have to learn,
+and is not something you can use in an existing environment/container.
+* **Commonly needed functionality in one place**. I often have the need for image manipulation, JSON marshalling, AJAX, and many other things.
+* **Extremely close to full stack web development**. The development has to be seamless, and should possible to 
+deploy the service either as a self-contained service or as a part of a container.
+
+
+## Introduction
+jawn utilises the typical MVC structure, where all logic is handled in the controllers, controllers
+create models, and models are sent to the view.
+
+
+
+
 
 ## Documentation
 * [Getting started](docs/getting_started)
-* [Structure of a JavaWebPlanet project](docs/structure_of_jawn_project)
+* [Structure of a jawn project](docs/structure_of_jawn_project)
 * [Controllers](docs/controllers)
-
+* [Views](docs/views)
 * [Image manipulation](docs/imagemanipulation)
 * [Environments](docs/environments)
 * [Application wide context](docs/appcontext)
@@ -23,13 +43,13 @@ that you can do it almost do it your sleep.
 <dependency>
   <groupId>net.javapla.jawn</groupId>
   <artifactId>jawn</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
 </dependency>
 ```
 
 ### Gradle
 ```groovy
-compile 'net.javapla.jawn:jawn:0.1.0'
+compile 'net.javapla.jawn:jawn:0.1.1'
 ```
 
 

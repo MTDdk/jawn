@@ -20,11 +20,31 @@ public class IndexController extends AppController {
 }
 ```
 
-The `AppContext` is mostly just a `Map`, but it has some extra methods, most notable:
+The `AppContext` is mostly just a `Map`, but it has some extra methods. Most notable:
 
 ```java
 /*
  * Sets the encoding of every generated content
  */
 context.setEncoding("UTF-8"); // this is the standard encoding
+
+/*
+ * Enables the application to be language sensitive.
+ * 
+ * First element is the default language, which is used,
+ * when no language is defined
+ */
+context.setSupportedLanguages("en", "de", "fr");
 ```
+
+Setting the supported languages enables the notion of localisation of webpages.
+The strings can, in principle, be of any language format, but the given strings are used directly in the URL,
+so it might not be sensible to have them in a format too hard for the users to remember.
+
+```
+http://host:port/movies (same as 'en')
+http://host:port/en/movies
+http://host:port/de/movies
+http://host:port/fr/movies
+```
+These URLs becomes allowed and will set the `language()` available in the *Controller*, and if no language is set in the URL, it will default to the first stated language.
