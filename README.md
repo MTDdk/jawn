@@ -12,6 +12,7 @@ combining technologies to get close to a full stack web development
 platform with all the features I thought a web framework should have:
 
 * **Fewer extensive XML files for configuration**. Preferring to get as much into the code as possible.
+* **Exert convention over configuration**. Whenever the framework needs guidance it ought to be by convention - hopefully this will increase readability.
 * **Keep close to Java standards**. The framework is useless if it is just another language you have to learn,
 and is not something you can use in an existing environment/container.
 * **Commonly needed functionality in one place**. I often have the need for image manipulation, JSON marshalling, AJAX, and many other things.

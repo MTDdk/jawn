@@ -38,8 +38,8 @@ context.setSupportedLanguages("en", "de", "fr");
 ```
 
 Setting the supported languages enables the notion of localisation of webpages.
-The strings can, in principle, be of any language format, but the given strings are used directly in the URL,
-so it might not be sensible to have them in a format too hard for the users to remember.
+The strings can, in principle, be of any language format, but given the strings are used directly in the URL,
+it might not be sensible to have them in a format too hard for the users to remember or type correctly.
 
 ```
 http://host:port/movies (same as 'en')

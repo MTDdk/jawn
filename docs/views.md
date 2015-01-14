@@ -97,7 +97,6 @@ So `index.st` is used when executing:
 public void index(){}
 ```
 
-
 ### An example: 
 ```
 http://host:port/movies/newest
@@ -146,17 +145,17 @@ For more information, refer to the [template guide](https://theantlrguy.atlassia
 ## Layouts
 Generally used to outline the structure of the HTML generated as a result of any controller action.
 
+Whereas templates are named after their respective controller action, the layouts have a reserved name: `index.html.st`.
+ 
+The layout located in the root of `WEB-INF/views` serves as base for all controller templates to generate HTML. This is the *main layout*.
 
-`index.html.st` = main layout. This is located in the root of `WEB-INF/views` folder
-and base for all controller templates to generate HTML.
-
-Is the `index.html.st` layout present within a view subfolder as illustrated in the [example structure](structure_of_jawn_project.md), then this layout overrides the default layout for that view.
-Like so:
+Is the `index.html.st` layout present within a view subfolder, then this layout overrides the default layout for that controller.
+For example:
 ```
 webapp/views/WEB-INF/some/index.html.st
 ```
 
-A layout should always contain a `$site.content$` where the controller template will be injected.
+A layout should most often contain a `$site.content$` where the controller template will be injected.
 
 
 ## Reserved keyword
