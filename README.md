@@ -18,11 +18,11 @@ and is not something you can use in an existing environment/container.
 * **Extremely close to full stack web development**. The development has to be seamless, and should possible to 
 deploy the service either as a self-contained service or as a part of a container.
 
+This framework combines a series of other tools in the attempt to reach these goals.
 
 ## Introduction
-jawn utilises the typical MVC structure, where all logic is handled in the controllers, controllers
+**jawn** utilises the typical MVC structure, where all logic is handled in the controllers, controllers
 create models, and models are sent to the view.
-
 
 
 
@@ -33,6 +33,7 @@ create models, and models are sent to the view.
 * [Controllers](docs/controllers.md)
 * [Views](docs/views.md)
 * [Image manipulation](docs/imagemanipulation.md)
+* [Configuration](docs/configuration.md)
 * [Environments](docs/environments.md)
 * [Application wide context](docs/appcontext.md)
 
