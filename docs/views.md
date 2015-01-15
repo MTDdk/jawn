@@ -134,6 +134,11 @@ You could instead pick a different template from a different folder if desired:
 render("/common/mail"); // renders template of a chosen folder
 ```
 
+Lastly, it is possible to just render a template without the layout. This might come in handy when generating an email template or the like.
+```java
+render().noLayout();
+```
+
 
 Templates can be nested.
 > Some example
