@@ -16,7 +16,7 @@ The framework exposes some of the possible configurations of the template engine
 Read more of the configuration in [Configuration](configuration.md)
 
 The original usage of [FreeMarker](http://freemarker.org/) is still somewhat supported, however, it has to be enabled.
-(This is not yes tested or documented)
+(This has not yet been tested or documented)
 
 ### StringTemplate
 The syntax of the renderer used in **jawn** is using dollar signs `$` around keywords.
@@ -157,7 +157,7 @@ The layout located in the root of `WEB-INF/views` serves as base for all control
 Is the `index.html.st` layout present within a view subfolder, then this layout overrides the default layout for that controller.
 For example:
 ```
-webapp/views/WEB-INF/some/index.html.st
+webapp/WEB-INF/views/some/index.html.st
 ```
 
 A layout should most often contain a `$site.content$` where the controller template will be injected.
