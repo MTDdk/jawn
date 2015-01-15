@@ -14,3 +14,16 @@ public class HelloController extends AppController{
 
 
 ## HTTP methods
+
+
+## File handling
+
+### Upload files
+
+### Send files
+
+## Session
+
+## Cookies
+
+## Logging

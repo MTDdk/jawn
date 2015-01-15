@@ -62,5 +62,5 @@ but it has moved pretty far away from the original way of thinking of ActiveWeb
 when it comes to handling URLs, writing controllers and the inner workings.
 Also the notion of setting a controller to be RESTful has been removed.
 
-When this is said, however, much of the usage is the same, so is should be
+When this is said, however, much of the usage is the same, so is ought to be somewhat
 seamless to migrate from one to the other.
