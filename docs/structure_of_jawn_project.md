@@ -8,8 +8,7 @@
 |           \-- app
 |               +-- config
 |               |   +-- AppBootstrap.java (required)
-|               |   +-- AppControllerConfig.java
-|               |   \-- RouteConfig.java
+|               |   \-- AppControllerConfig.java
 |               +-- controllers
 |               |   +-- IndexController.java (standard)
 |               |   +-- MovieController.java
@@ -24,12 +23,12 @@
     \-- WEB-INF
         \-- views
             +-- index
-            |   \-- index.st
-            +-- movie
-            |   \-- index.st
-            +-- some
             |   +-- index.st
-            |   \-- example.st (possible to reference other templates)
+            |   \-- redirect.st (referenced by action)
+            +-- movie
+            |   \-- list.st 
+            +-- some
+            |   \-- index.st
             \-- index.html.st (default layout)
 ```
 ## Configuration

@@ -1,5 +1,3 @@
 # Getting started
 
-A repository with minimum configuration will be created
-
-*To be finished*
+A repository with minimum configuration has been created as [jawn-simple](https://github.com/MTDdk/jawn-simple)
