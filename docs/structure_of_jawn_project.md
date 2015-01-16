@@ -11,11 +11,11 @@
 |               |   +-- AppControllerConfig.java
 |               |   \-- RouteConfig.java
 |               +-- controllers
-|               |   +-- ArticleController.java
 |               |   +-- IndexController.java (standard)
+|               |   +-- MovieController.java
 |               |   \-- SomeController.java
 |               \-- models
-|                   \-- Article.java
+|                   \-- Movie.java
 \-- webapp
     +-- css
     +-- images
@@ -23,9 +23,9 @@
     +-- favico.ico
     \-- WEB-INF
         \-- views
-            +-- article
-            |   \-- index.st
             +-- index
+            |   \-- index.st
+            +-- movie
             |   \-- index.st
             +-- some
             |   +-- index.st
