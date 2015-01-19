@@ -62,15 +62,19 @@ package app.controllers.sub;
 public class HelloController extends AppController {} => http://host:port/sub/hello
 ```
 
-Furthermore, the *CamelCase* naming of a controller is translated to *underscore_case* in the URL:
+Furthermore, the *CamelCase* naming of a controller is interchangeable translated to *underscore_case* **or** *hyphen-case* in the URL:
 ```java
 package app.controllers;
-public class WhatIsUpController extends AppController {} => http://host:port/what_is_up
+public class WhatIsUpController extends AppController {} 
 ```
+`=> http://host:port/what_is_up` *or* `http://host:port/what-is-up`
+
+Another example:
 ```java
 package app.controllers.danish;
-public class LocalMoviesController extends AppController {} => http://host:port/danish/local_movies
+public class LocalMoviesController extends AppController {}
 ```
+`=> http://host:port/danish/local_movies` *or* `http://host:port/danish/local-movies`
 
 ## Views
 Much on how controller actions are mapped to views can be studied in the [views documentation](views.md#action-to-template-mapping).
