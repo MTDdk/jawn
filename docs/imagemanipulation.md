@@ -50,4 +50,8 @@ String pathToThumb = image(serverPath)
 All images are always saved in `Configuration.imageUploadFolder`, which by default is: `webapp/WEB-INF/uploads/images`. If another folder is wanted for upload, this can be changed in the *Configuration*.
 
 * `folder(string)` - State a folder the file should be saved in. The stated folder will be put inside the `imageUploadFolder`.
-* `save()` - Write the file onto disk. If a file already is present with the exact same name, a versioning scheme will be applied, that appends *_1v*, *_2v* and so on. 
+* `save()` - Write the file onto disk. If a file already is present with the exact same name, a versioning scheme will be applied, that appends *_1v*, *_2v* and so on.
+
+
+## Send / respond
+* `send()` - Respond the image directly to the browser with the content type set appropriately for the type of image.
