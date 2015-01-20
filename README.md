@@ -32,6 +32,7 @@ create models, and models are sent to the view.
 * [Getting started](docs/getting_started.md)
 * [Structure of a jawn project](docs/structure_of_jawn_project.md)
 * [Controllers](docs/controllers.md)
+* [Dependency injection](docs/dependency_injection.md)
 * [Views](docs/views.md)
 * [Image manipulation](docs/imagemanipulation.md)
 * [Configuration](docs/configuration.md)
@@ -51,7 +52,7 @@ create models, and models are sent to the view.
 
 ### Gradle
 ```groovy
-compile 'net.javapla.jawn:jawn:0.1.2'
+compile 'net.javapla.jawn:jawn:0.1.3'
 ```
 
 
