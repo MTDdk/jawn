@@ -294,7 +294,7 @@ public class MovieController extends AppController {
 	}
 }
 ```
-Not every possible status code is implemented like this, so you also have the option to specify the code your likings:
+Not every possible status code is implemented like this, so you also have the option to specify the code of your likings:
 ```java
 respond().json(object).status(statusCode);
 ```
