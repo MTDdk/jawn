@@ -20,6 +20,7 @@ public class IndexController extends AppController {
 }
 ```
 
+
 The `AppContext` is mostly just a `Map`, but it has some extra methods. Most notable:
 
 ```java
@@ -37,6 +38,7 @@ context.setEncoding("UTF-8"); // this is the standard encoding
 context.setSupportedLanguages("en", "de", "fr");
 ```
 
+## Localisation
 Setting the supported languages enables the notion of localisation of webpages.
 The strings can, in principle, be of any language format, but given the strings are used directly in the URL,
 it might not be sensible to have them in a format too hard for the users to remember or type correctly.
