@@ -93,21 +93,6 @@ public class RouteBuilder {
         return this;
     }
     
-    /**
-     * Name of action to which a route is mapped.
-     *
-     * @param action name of action.
-     * @return instance of {@link RouteBuilder}.
-     */
-    
-    //TODO consider to implement the action as a part of the to() - by doing this it should be possible to do a 
-    /*public NewRouteBuilder action(String action) {
-        if (controller != null) {
-            
-        }
-        this.action = action;
-        return this;
-    }*/
     
     /**
      * Build the route
