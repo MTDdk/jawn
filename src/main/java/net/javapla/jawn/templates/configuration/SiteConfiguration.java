@@ -1,9 +1,9 @@
-package net.javapla.jawn.templatemanagers.stringtemplate;
+package net.javapla.jawn.templates.configuration;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class SiteConfiguration {
+public class SiteConfiguration {
 
     public String title;
     public List<String> scripts;

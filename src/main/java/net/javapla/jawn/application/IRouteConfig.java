@@ -1,9 +1,9 @@
 package net.javapla.jawn.application;
 
-import net.javapla.jawn.NewRouter;
+import net.javapla.jawn.Router;
 
 public interface IRouteConfig {
 
-    public void init(NewRouter router);
+    public void init(Router router);
     
 }

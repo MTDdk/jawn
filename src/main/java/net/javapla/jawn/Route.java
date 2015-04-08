@@ -11,7 +11,7 @@ import net.javapla.jawn.util.StringUtil;
  *  
  * @author MTD
  */
-public class NewRoute extends InternalRoute {
+public class Route extends InternalRoute {
     public static final String ROOT_CONTROLLER_NAME = "index";//README could be set in filter.init()
     public static final String DEFAULT_ACTION_NAME = "index";
     
@@ -22,7 +22,7 @@ public class NewRoute extends InternalRoute {
     private final String actionName;//without httpMethod
     
     
-    public NewRoute(String uri, HttpMethod method, AppController controller, String action) {
+    public Route(String uri, HttpMethod method, AppController controller, String action) {
         super(uri);
         this.httpMethod = method;
         this.controller = controller;

@@ -1,4 +1,4 @@
-package net.javapla.jawn.templatemanagers.stringtemplate;
+package net.javapla.jawn.templates.configuration;
 
 //TODO make package private
 public class Template {

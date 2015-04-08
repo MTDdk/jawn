@@ -9,11 +9,12 @@ import java.util.stream.Collectors;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.exceptions.MediaTypeException;
 import net.javapla.jawn.exceptions.ParsableException;
-import net.javapla.jawn.parsers.JsonParser;
+import net.javapla.jawn.parsers.ParserEngine;
+import net.javapla.jawn.parsers.ParserEngineManager;
+import net.javapla.jawn.util.HttpHeaderUtil;
 
 /**
  * Represents a request from the client and can be used to convert the request into useful representations
@@ -22,33 +23,60 @@ import net.javapla.jawn.parsers.JsonParser;
  */
 class RequestImpl implements Request.Impl {
     private final HttpServletRequest request;
-    RequestImpl(HttpServletRequest request) {
+    private final ParserEngineManager parserEngineManager;
+    RequestImpl(HttpServletRequest request, ParserEngineManager parserEngineManager) {
         this.request = request;
+        this.parserEngineManager = parserEngineManager;
     }
     
-    /**
-     * Converts the request input into an object of the specified class in case of <code>application/json</code> request.
-     *  
-     * @param clazz A representation of the expected JSON
-     * @return The object of the converted JSON, or <code>throws</code> if the JSON could not be correctly deserialized,
-     *         or the media type was incorrect. 
-     * @throws ParsableException If the parsing from JSON to class failed
-     * @throws MediaTypeException If the mediatype of the request was not "application/json"
-     * @author MTD
-     */
-    @Override
-    public <T> T fromJson(Class<T> clazz) throws ParsableException, MediaTypeException {
+//    /**
+//     * Converts the request input into an object of the specified class in case of <code>application/json</code> request.
+//     *  
+//     * @param clazz A representation of the expected JSON
+//     * @return The object of the converted JSON, or <code>throws</code> if the JSON could not be correctly deserialized,
+//     *         or the media type was incorrect. 
+//     * @throws ParsableException If the parsing from JSON to class failed
+//     * @throws MediaTypeException If the mediatype of the request was not "application/json"
+//     * @author MTD
+//     */
+//    @Override
+//    public <T> T fromJson(Class<T> clazz) throws ParsableException, MediaTypeException {
+//        String contentType = request.getContentType();
+//        
+//        if (!MediaType.APPLICATION_JSON.equals(contentType))
+//            throw new MediaTypeException("Media type was not: " + MediaType.APPLICATION_JSON);
+//        
+//        try (InputStream stream = request.getInputStream()) {
+//            return JsonParserEngine.parseObject(stream, clazz);
+//        } catch (IOException e) {
+//            throw new ParsableException(clazz);
+//        }
+//    }
+    
+    public <T> T parseBody(Class<T> clazz) throws ParsableException, MediaTypeException {
         String contentType = request.getContentType();
         
-        if (!MediaType.APPLICATION_JSON.equals(contentType))
-            throw new MediaTypeException("Media type was not: " + MediaType.APPLICATION_JSON);
+        // if the content type header was not provided, we throw
+        if (contentType == null || contentType.isEmpty()) {
+            throw new MediaTypeException("Missing media type header");
+        }
         
-        try (InputStream stream = request.getInputStream()) {
-            return JsonParser.parseObject(stream, clazz);
+        // extract the actual content type in case charset is also a part of the string
+        contentType = HttpHeaderUtil.getContentTypeFromContentTypeAndCharacterSetting(contentType);
+        
+        ParserEngine engine = parserEngineManager.getParserEngineForContentType(contentType);
+        
+        if (engine == null) {
+            throw new MediaTypeException("An engine for media type ("+contentType+") was not found");
+        }
+        
+        try {
+            return engine.invoke(request.getInputStream(), clazz);
         } catch (IOException e) {
-            throw new ParsableException(clazz);
+            throw new ParsableException(e);
         }
     }
+    
     
     /**
      * Conveniently converts any input in the request into a string

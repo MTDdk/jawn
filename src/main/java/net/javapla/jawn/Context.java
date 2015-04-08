@@ -40,6 +40,8 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import net.javapla.jawn.exceptions.ControllerException;
+import net.javapla.jawn.parsers.ParserEngineManager;
+import net.javapla.jawn.session.SessionFacade;
 import net.javapla.jawn.util.Constants;
 import net.javapla.jawn.util.MultiList;
 
@@ -55,11 +57,11 @@ public class Context {
     private final HttpServletRequest request;
     private final HttpServletResponse response;
     private final PropertiesImpl properties;
+    private final ParserEngineManager parserManager;
     
-//    private ControllerResponse controllerResponse;
-    private NewControllerResponse newControllerResponse;
+    private ControllerResponse newControllerResponse;
     
-    private NewRoute route;
+    private Route route;
     private String format, language;
     /**
      * Holds the actual routed path used in this (request)context.
@@ -69,17 +71,18 @@ public class Context {
     
     // servletcontext, appcontext (what the hell is the difference?)
     // requestcontext - the hell, man??
-    public Context(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response, PropertiesImpl properties) {
+    public Context(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response, PropertiesImpl properties, ParserEngineManager parserManager) {
         this.servletContext = servletContext;
         this.request = request;//new RequestImpl(request);
         this.response = response;
         this.properties = properties;
+        this.parserManager = parserManager;
         
-//        this.viewValues = new HashMap<>();
-        this.newControllerResponse = NewControllerResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
+        // Standard behaviour is to look for HTML template
+        this.newControllerResponse = ControllerResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
     }
     
-    public void init(NewRoute route/*, RequestContext requestContext*/, String format, String language, String routedPath) {
+    public void init(Route route/*, RequestContext requestContext*/, String format, String language, String routedPath) {
         if (route == null)
             throw new IllegalArgumentException("Route could not be null");
 
@@ -91,25 +94,18 @@ public class Context {
     }
     
     
-    void setNewControllerResponse(NewControllerResponse response) {
+    void setControllerResponse(ControllerResponse response) {
         newControllerResponse = response;
     }
-//    void setControllerResponse(ControllerResponse response) {
-//        //TODO perhaps some copying of viewvalues when setting a new response (just in case) 
-//        controllerResponse = response;
-//    }
-    NewControllerResponse getNewControllerResponse() {
+    ControllerResponse getNewControllerResponse() {
         return newControllerResponse;
     }
-//    ControllerResponse getControllerResponse() {
-//        return controllerResponse;
-//    }
     
     /**
      * @return An instance of the Request interface
      */
     public Request createRequest() {
-        return new RequestImpl(request);
+        return new RequestImpl(request, parserManager);
     }
     
     public SessionFacade getSession() {
@@ -136,10 +132,11 @@ public class Context {
      *
      * @return instance of {@link Route}
      */
-    public NewRoute getRoute() {
+    public Route getRoute() {
         return route;
     }
     public String getRouteParam(String name) {
+        if (route == null) return null;
         return route.getPathParametersEncoded(routedPath).get(name);
     }
     /**
@@ -640,7 +637,7 @@ public class Context {
     
 /* ****** */
 
-    public ResponseStream finalize(NewControllerResponse controllerResponse) {
+    public ResponseStream finalize(ControllerResponse controllerResponse) {
         // status
         response.setStatus(controllerResponse.status());
         

@@ -3,8 +3,6 @@ package net.javapla.jawn;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
@@ -21,7 +19,7 @@ public class ImageHandlerBuilder {
     private final Context context;
     
     //TODO actually this is up to the user to figure out. There should not be a default folder
-    private final String uploadPath = "uploads/images";//Configuration.imageUploadFolder();
+//    private final String uploadPath;// = "uploads/images";//Configuration.imageUploadFolder();
     private BufferedImage image;
     private final FileName fn = new FileName();
 
@@ -30,6 +28,9 @@ public class ImageHandlerBuilder {
         try {
             this.image = ImageIO.read(item.getInputStream());
             fn.updateNameAndExtension(item.getFileName());
+            
+            if (this.image == null)
+                throw new ControllerException("The extension '" + fn.extension() + "' could not be read");
         } catch (IOException e) {
             throw new ControllerException(e);
         }
@@ -38,15 +39,16 @@ public class ImageHandlerBuilder {
         this.context = context;
         try {
             this.image = ImageIO.read(file);
-            String fullpath = file.getPath();
-            folder(fullpath);
-            name(fullpath);
+//            String fullpath = file.getPath();
+//            folder(fullpath);
+//            name(fullpath);
+            fn.updateNameAndExtension(file.getName());
+            
+            if (this.image == null)
+                throw new ControllerException("The extension '" + fn.extension() + "' could not be read");
         } catch (IOException e) {
             throw new ControllerException(e);
         }
-        
-        //  M-dd-yy
-        // [h:mm:ss]
     }
 
     /**
@@ -63,13 +65,13 @@ public class ImageHandlerBuilder {
      }
 
      /**
-      * Assumes, that the <code>folder</code> is relative to "uploads/images"
+      * Assumes, that the <code>folder</code> is relative to "uploadPath"
       * @param folder
       * @return
       */
      public ImageHandlerBuilder folder(String folder) {
-         if (folder.contains(uploadPath)) 
-             folder = folder.substring( folder.indexOf(uploadPath) + uploadPath.length() +1 );
+         if (folder.contains("uploads/images")) 
+             folder = folder.substring( folder.indexOf("uploads/images") + "uploads/images".length() +1 );
          fn.updatePath(folder);
          return this;
      }
@@ -114,18 +116,17 @@ public class ImageHandlerBuilder {
       */
      public void send() throws ControllerException, MediaTypeException {
          String extension = fn.extension();
-         if (!Arrays.asList(ImageIO.getWriterFileSuffixes()).contains(extension))
-             throw new MediaTypeException(MessageFormat.format("An image writer could not be found for the extension {}", extension));
+//         if (!Arrays.asList(ImageIO.getWriterFileSuffixes()).contains(extension))
+//             throw new MediaTypeException(MessageFormat.format("An image writer could not be found for the extension {}", extension));
 
-         try {
+//         try {
              int status = 200;
              String contentType = "image/"+extension;
-             context.setNewControllerResponse(NewControllerResponseBuilder.noContent().contentType(contentType).status(status));
-//             context.setControllerResponse(new NopResponse(context, contentType, status));
-             ImageIO.write(this.image, extension, context.responseOutputStream());//outputStream(contentType, null, status));
-         } catch (IOException e) {
-             throw new ControllerException(e);
-         }
+             context.setControllerResponse(ControllerResponseBuilder.ok().contentType(contentType).status(status).addSupportedContentType("image/*").renderable(this.image));
+//             ImageIO.write(this.image, extension, context.responseOutputStream());//outputStream(contentType, null, status));
+//         } catch (IOException e) {
+//             throw new ControllerException(e);
+//         }
      }
 
      /**
@@ -135,8 +136,8 @@ public class ImageHandlerBuilder {
       * @return The server path to the saved file.
       * @throws ControllerException If anything goes wrong during write to disk.
       */
-     public String save() throws ControllerException {
-         String realPath = context.getRealPath(uploadPath);
+     public String save(String uploadFolder) throws ControllerException {
+         String realPath = context.getRealPath(uploadFolder);
 
          // sanitise
          fn.apply((s) -> s.replace(' ', '_'));
@@ -148,7 +149,7 @@ public class ImageHandlerBuilder {
          } catch (IOException e) {
              throw new ControllerException(e);
          }
-         return uploadPath + File.separatorChar + imagename;
+         return uploadFolder + File.separatorChar + imagename;
      }
 
      /**
@@ -161,7 +162,6 @@ public class ImageHandlerBuilder {
       */
      String uniqueImagename(String folder, String filename) {
          String buildFileName = filename;//.replace(' ', '_');
-         //            Filename fn = new Filename(buildFileName);
 
          while ( (new File(folder , buildFileName)).exists())
              buildFileName = fn.increment();

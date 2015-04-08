@@ -175,4 +175,15 @@ public class StringUtil {
     public static final boolean contains(String s, char c) {
         return s.indexOf(c) > -1;
     }
+    
+    public static final String padEnd(String string, int minLength, char padChar) {
+        
+        StringBuilder bob = new StringBuilder(minLength);
+        bob.append(string);
+        for (int i = string.length(); i < minLength; i++) {
+            bob.append(padChar);
+        }
+        
+        return bob.toString();
+    }
 }

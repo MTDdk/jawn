@@ -55,7 +55,7 @@ public class ControllerRegistry {
     private boolean filtersInjected = false;
 
 
-    protected ControllerRegistry(ServletContext context) {
+    protected ControllerRegistry(/*ServletContext context*/) {
 //        controllerPackages = ControllerPackageLocator.locateControllerPackages(context);
         modules = new ArrayList<>();
     }

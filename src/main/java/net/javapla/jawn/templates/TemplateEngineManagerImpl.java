@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import net.javapla.jawn.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,22 +27,24 @@ public class TemplateEngineManagerImpl implements TemplateEngineManager {
                                      Provider<XmlTemplateEngine>            xml,
                                      Provider<TextTemplateEngine>           text,
                                      Provider<StreamTemplateEngine>         stream,
+                                     Provider<ImageTemplateEngine>          image,
                                      Provider<StringTemplateTemplateEngine> html) {
         
         Map<String, Provider<? extends TemplateEngine>> map = 
                                         new HashMap<String, Provider<? extends TemplateEngine>>();
         
         // Map built in content type bindings
-        map.put(json.get().getContentType(), json);
-        map.put(xml.get().getContentType(), xml);
-        map.put(text.get().getContentType(), text);
-        map.put(stream.get().getContentType(), stream);
-        map.put(html.get().getContentType(), html);
+        mapEngine(map, json);
+        mapEngine(map, xml);
+        mapEngine(map, text);
+        mapEngine(map, stream);
+        mapEngine(map, image);
+        mapEngine(map, html);
         
         
         this.contentTypeToTemplateEngineMap = map; //README probably some immutable
         
-        //TODO log we have been initiated
+        logEngines();
     }
     
     @Override
@@ -54,11 +58,56 @@ public class TemplateEngineManagerImpl implements TemplateEngineManager {
                                             contentTypeToTemplateEngineMap.get(contentType);
 
         if (provider != null) {
-            log.info("Found template engine for type: {}", contentType);
             return provider.get();
         } else {
             log.warn("Did not find any engine for type: {}", contentType);
             return null;
+        }
+    }
+    
+    /**
+     * Map the engine to all the content types it supports.
+     * If any kind of overlap exists, a race condition occurs
+     * @param map
+     * @param engine
+     */
+    private void mapEngine(Map<String, Provider<? extends TemplateEngine>> map, Provider<? extends TemplateEngine> engine) {
+        for (String type : engine.get().getContentType()) {
+            map.put(type, engine);
+        }
+    }
+    
+    private void logEngines() {
+        Set<String> types = getContentTypes();
+        
+        int maxContentTypeLen = 0;
+        int maxParserEngineLen = 0;
+
+        for (String contentType : types) {
+
+            TemplateEngine engine = getTemplateEngineForContentType(contentType);
+
+            maxContentTypeLen = Math.max(maxContentTypeLen,
+                    contentType.length());
+            maxParserEngineLen = Math.max(maxParserEngineLen,
+                    engine.getClass().getName().length());
+
+        }
+
+        int borderLen = 6 + maxContentTypeLen + maxParserEngineLen;
+        String border = StringUtil.padEnd("", borderLen, '-');
+
+        log.info(border);
+        log.info("Registered template engines");
+        log.info(border);
+
+        for (String contentType : types) {
+
+            TemplateEngine engine = getTemplateEngineForContentType(contentType);
+            log.info("{}  =>  {}",
+                    StringUtil.padEnd(contentType, maxContentTypeLen, ' '),
+                    engine.getClass().getName());
+
         }
     }
 

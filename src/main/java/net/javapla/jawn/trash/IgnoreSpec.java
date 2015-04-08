@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.javapla.jawn.Configuration;
-
 /**
 * Created by igor on 4/29/14.
 */

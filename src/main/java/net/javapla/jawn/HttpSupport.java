@@ -46,6 +46,7 @@ import net.javapla.jawn.exceptions.ControllerException;
 import net.javapla.jawn.exceptions.MediaTypeException;
 import net.javapla.jawn.exceptions.PathNotFoundException;
 import net.javapla.jawn.exceptions.WebException;
+import net.javapla.jawn.session.SessionFacade;
 import net.javapla.jawn.templates.TemplateEngine;
 import net.javapla.jawn.templates.TemplateEngineManager;
 import net.javapla.jawn.util.CollectionUtil;
@@ -190,157 +191,15 @@ class HttpSupport {
     }
     //TODO make sure, flash actually works
     
-//    @Deprecated
-//    protected class ResponseBuilder {
-        
-        /**
-         * This method will send the text to a client verbatim. It will not use any layouts. Use it to build app.services
-         * and to support AJAX.
-         *
-         * @param text text of response.
-         * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
-         */
-//        public HttpBuilder text(String text) {
-//            DirectResponse resp = new DirectResponse(context, text);
-////            context.setControllerResponse(resp);
-//            
-//            //----------
-//            NewControllerResponse r = new NewControllerResponse(200);
-//            r.renderable(text);
-//            r.contentType(MediaType.TEXT_PLAIN);
-//            context.setNewControllerResponse(r);
-//            return new HttpBuilder(resp);
-//        }
-        
-        /**
-         * This method will send the text to a client verbatim. It will not use any layouts. Use it to build app.services
-         * and to support AJAX.
-         * 
-         * @param text A string containing &quot;{index}&quot;, like so: &quot;Message: {0}, error: {1}&quot;
-         * @param objects A varargs of objects to be put into the <code>text</code>
-         * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
-         * @see MessageFormat#format
-         */
-//        public HttpBuilder text(String text, Object...objects) {
-//            return text(MessageFormat.format(text, objects));
-//        }
-        
-        /**
-         * This method will send a JSON response to the client.
-         * It will not use any layouts.
-         * Use it to build app.services and to support AJAX.
-         * 
-         * @author MTD
-         * 
-         * @param obj
-         * @return {@link HttpSupport.HttpBuilder}, to accept additional information. The builder is automatically
-         * has its content type set to "application/json"
-         */
-//        public HttpBuilder json(Object obj) {
-//            JsonResponse resp = new JsonResponse(context, obj);
-////            context.setControllerResponse(resp);
-//            return new HttpBuilder(resp);
-//        }
-        
-        
-        /**
-         * This method will send a XML response to the client.
-         * It will not use any layouts.
-         * Use it to build app.services.
-         * 
-         * @author MTD
-         * 
-         * @param obj
-         * @return {@link HttpSupport.HttpBuilder}, to accept additional information. The builder is automatically
-         * has its content type set to "application/xml"
-         */
-//        public HttpBuilder xml(Object obj) {
-//            XmlResponse resp = new XmlResponse(context, obj);
-////            context.setControllerResponse(resp);
-//            return new HttpBuilder(resp);
-//        }
-        
-        /**
-         * This method will send just a status code 
-         * @author MTD
-         * @return {@link StatusWrapper}, to accept additional information.
-         */
-//        public StatusWrapper status() {
-//            NopResponse resp = new NopResponse(context);
-//            context.setControllerResponse(resp);
-//            return new HttpBuilder(resp).status();
-//        }
-        /**
-         * This method will send just a status code 
-         * @author MTD
-         * @return {@link HttpSupport.HttpBuilder}, to accept additional information
-         */
-//        public HttpBuilder status(int code) {
-//            NopResponse resp = new NopResponse(context, code);
-////            context.setControllerResponse(resp);
-//            return new HttpBuilder(resp);
-//        }
-//    }
 
-//    protected ResponseBuilder respond() {
-//        return new ResponseBuilder();
-//    }
-    protected NewControllerResponseBuilder respond() {
-        return new NewControllerResponseBuilder(context);
+    protected ControllerResponseBuilder respond() {
+        return new ControllerResponseBuilder(context);
     }
 
-//    @Deprecated
-//    protected class RenderBuilder extends HttpBuilder {
-//
-//
-//        private RenderBuilder(RenderTemplateResponse response){
-//            super(response);
-//        }
-//
-//        /**
-//         * Use this method to override a default layout configured.
-//         *
-//         * @param layout name of another layout.
-//         * @return instance of RenderBuilder
-//         */
-//        public RenderBuilder layout(String layout){
-//            getRenderTemplateResponse().setLayout(layout);
-//            return this;
-//        }
-//
-//        protected RenderTemplateResponse getRenderTemplateResponse(){
-//            return (RenderTemplateResponse)controllerResponse;//(RenderTemplateResponse)getControllerResponse();
-//        }
-//
-//        /**
-//         * Call this method to turn off all layouts. The view will be rendered raw - no layouts.
-//         * @return instance of RenderBuilder
-//         */
-//        public RenderBuilder noLayout(){
-//            getRenderTemplateResponse().setLayout(null);
-//            return this;
-//        }
-//
-//        /**
-//         * Sets a format for the current request. This is a intermediate extension for the template file. For instance,
-//         * if the name of template file is document.xml.ftl, then the "xml" part is set with this method, the
-//         * "document" is a template name, and "ftl" extension is assumed in case you use FreeMarker template manager.
-//         *
-//         * @param format template format
-//         * @return instance of RenderBuilder
-//         */
-//        public RenderBuilder format(String format){
-////            ControllerResponse response = Context.getControllerResponse();
-//            if(controllerResponse instanceof RenderTemplateResponse){
-//                ((RenderTemplateResponse)controllerResponse).setFormat(format);
-//            }
-//            return this;
-//        }
-//    }
     
     protected class NewRenderBuilder {
-        private final NewControllerResponse response;
-        NewRenderBuilder(NewControllerResponse response) {
+        private final ControllerResponse response;
+        NewRenderBuilder(ControllerResponse response) {
             this.response = response;
         }
         
@@ -363,14 +222,6 @@ class HttpSupport {
      * @return 
      * @return instance of {@link RenderBuilder}, which is used to provide additional parameters.
      */
-//    protected RenderBuilder render(String template, Map<String, Object> values) {
-//        RenderTemplateResponse resp = new RenderTemplateResponse(context, values, template/*, context.getFormat()*/);
-//        context.setControllerResponse(resp);
-//        //README replaced with #view(Map<String, Object>) + #render(String)
-////        NewControllerResponse r = new NewControllerResponse(200);
-//        context.getNewControllerResponse().template(template);
-//        return new RenderBuilder(resp);
-//    }
     protected NewRenderBuilder render(String template, Map<String, Object> values) {
         view(values);
         return render(template);
@@ -381,63 +232,6 @@ class HttpSupport {
     }
 
 
-//    @Deprecated
-//    protected class HttpBuilder {
-//        ControllerResponse controllerResponse;
-//        private HttpBuilder(ControllerResponse controllerResponse){
-//            this.controllerResponse = controllerResponse;
-//        }
-//    
-//        protected ControllerResponse getControllerResponse() {
-//            return controllerResponse;
-//        }
-//    
-//        /**
-//         * Sets content type of response.
-//         * These can be "text/html". Value "text/html" is set by default.
-//         *
-//         * @param contentType content type value.
-//         * @return this
-//         */
-////        public HttpBuilder contentType(String contentType) {
-////            controllerResponse.setContentType(contentType);
-////            return this;
-////        }
-//        
-//        /**
-//         * Sets a HTTP header on response.
-//         *
-//         * @param name name of header.
-//         * @param value value of header.
-//         * @return this
-//         */
-////        public HttpBuilder header(String name, String value){
-////            context.setResponseHeader(name, value); //TODO this ought to be a part of the "Controller"Response
-////            return this;
-////        }
-//    
-//        /**
-//         * Overrides HTTP status with a different value.
-//         * For values and more information, look here:
-//         * <a href='http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html'>HTTP Status Codes</a>.
-//         *
-//         * By default, the status is set to 200, OK.
-//         *
-//         * @param code HTTP status code.
-//         * @return this
-//         */
-////        public HttpBuilder status(int code){
-////            controllerResponse.setStatus(code);
-////            return this;
-////        }
-////        /**
-////         * Conveniently wraps status codes into simple method calls 
-////         * @return wrapper methods
-////         */
-////        public StatusWrapper status() {
-////            return new StatusWrapper(this);
-////        }
-//    }
 
     /**
      * Redirects to a an action of this controller, or an action of a different controller.
@@ -446,14 +240,10 @@ class HttpSupport {
      * @param path - expected to be a path within the application.
      * @return instance of {@link HttpSupport.HttpBuilder} to accept additional information.
      */
-    protected /*HttpBuilder*/void redirect(String path) {
-//        RedirectResponse resp = new RedirectResponse(context, path);
-//        context.setControllerResponse(resp);
-//        return new HttpBuilder(resp);
-        //-----
+    protected void redirect(String path) {
         try {
             context.responseSendRedirect(path);
-            context.setNewControllerResponse(null);
+            context.setControllerResponse(null);
         } catch (IOException e) {
             throw new ControllerException(e);
         }
@@ -465,11 +255,7 @@ class HttpSupport {
      * @param url absolute URL: <code>http://domain/path...</code>.
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected /*HttpBuilder*/void redirect(URL url) {
-//        RedirectResponse resp = new RedirectResponse(context, url);
-//        context.setControllerResponse(resp);
-//        return new HttpBuilder(resp);
-        //-----
+    protected void redirect(URL url) {
         redirect(url.toString());
     }
 
@@ -482,13 +268,9 @@ class HttpSupport {
      * the request does not provide a "Referrer" header.
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected /*HttpBuilder*/void redirectToReferrer(String defaultReference) {
+    protected void redirectToReferrer(String defaultReference) {
         String referrer = context.requestHeader("Referer");
         referrer = referrer == null? defaultReference: referrer;
-//        RedirectResponse resp = new RedirectResponse(context, referrer);
-//        context.setControllerResponse(resp);
-//        return new HttpBuilder(resp);
-        //-----
         redirect(referrer);
     }
 
@@ -499,13 +281,9 @@ class HttpSupport {
      *
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected /*HttpBuilder*/void redirectToReferrer() {
+    protected void redirectToReferrer() {
         String referrer = context.requestHeader("Referer");
         referrer = referrer == null? context.contextPath(): referrer;
-//        RedirectResponse resp = new RedirectResponse(context, referrer);
-//        context.setControllerResponse(resp);
-//        return new HttpBuilder(resp);
-        //-----
         redirect(referrer);
     }
 
@@ -519,8 +297,8 @@ class HttpSupport {
      * @param id id to redirect to.
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected <T extends AppController> /*HttpBuilder*/void redirect(Class<T> controllerClass, String action, Object id){
-        /*return */redirect(controllerClass, CollectionUtil.map("action", action, "id", id));
+    protected <T extends AppController> void redirect(Class<T> controllerClass, String action, Object id){
+        redirect(controllerClass, CollectionUtil.map("action", action, "id", id));
     }
 
     /**
@@ -543,8 +321,8 @@ class HttpSupport {
      * @param action action to redirect to.
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected <T extends AppController> /*HttpBuilder*/void redirect(Class<T> controllerClass, String action){
-        /*return */redirect(controllerClass, CollectionUtil.map("action", action));
+    protected <T extends AppController> void redirect(Class<T> controllerClass, String action){
+        redirect(controllerClass, CollectionUtil.map("action", action));
     }
 
     /**
@@ -556,8 +334,8 @@ class HttpSupport {
      *
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected /*HttpBuilder*/void redirect() {
-        /*return */redirect(getRoute().getController().getClass());
+    protected void redirect() {
+        redirect(getRoute().getController().getClass());
     }
     
     /**
@@ -567,8 +345,8 @@ class HttpSupport {
      * @return
      * @author MTD
      */
-    protected /*HttpBuilder*/void redirect(Map<String, String> params) {
-        /*return */redirect(getRoute().getController().getClass(), params);
+    protected void redirect(Map<String, String> params) {
+        redirect(getRoute().getController().getClass(), params);
     }
 
     /**
@@ -578,9 +356,8 @@ class HttpSupport {
      * @param <T> class extending {@link AppController}
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected <T extends AppController> /*HttpBuilder*/void redirect(Class<T> controllerClass){
-        /*return */redirect(controllerClass, new HashMap<String, String>());
-
+    protected <T extends AppController> void redirect(Class<T> controllerClass){
+        redirect(controllerClass, new HashMap<String, String>());
     }
 
     /**
@@ -625,7 +402,7 @@ class HttpSupport {
         String id = params.get("id") != null? params.get("id") : null;
 //        boolean restful= AppController.restful(controllerClass);
         params.remove("action");
-        params.remove("id");
+        params.remove("id");//TODO make a damn class to hold "action", "id", etc so we can have some type safety
         
         //MTD
         String lang = language() != null ? "/" + language() : "";
@@ -633,58 +410,9 @@ class HttpSupport {
         params.remove("#");
 
         String uri = contextPath + lang + RouterHelper.generate(controllerPath, action, id, params) + anchor;
-
-//        RedirectResponse resp = new RedirectResponse(context, uri);
-//        context.setControllerResponse(resp);
-//        return new HttpBuilder(resp);
-        //------
         redirect(uri);
     }
     
-    
-
-    /**
-     * This method will send the text to a client verbatim. It will not use any layouts. Use it to build app.services
-     * and to support AJAX.
-     *
-     * @param text text of response.
-     * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
-     */
-    /*protected HttpBuilder respondText(String text){
-        DirectResponse resp = new DirectResponse(text);
-        Context.setControllerResponse(resp);
-        return new HttpBuilder(resp);
-    }*/
-    
-    /**
-     * This method will send a JSON response to the client.
-     * It will not use any layouts.
-     * Use it to build app.services and to support AJAX.
-     * 
-     * @author MTD
-     * 
-     * @param obj
-     * @return {@link HttpSupport.HttpBuilder}, to accept additional information. The builder is automatically
-     * has its content type set to "application/json"
-     */
-    /*protected HttpBuilder respondJson(Object obj) {
-        JsonResponse resp = new JsonResponse(obj);
-        Context.setControllerResponse(resp);
-        return new HttpBuilder(resp);
-    }*/
-    
-    /**
-     * 
-     * @author MTD
-     * 
-     * @return {@link HttpSupport.HttpBuilder}, to accept additional information. The builder is automatically
-     * has its content type set to "application/json"
-     */
-    /*protected HttpBuilder respondStatus(int status) {
-        NopResponse resp = new NopResponse(status);
-        Context.setControllerResponse(resp);
-        return new HttpBuilder(resp);
-    }*/
 
     /**
      * Convenience method for downloading files. This method will force the browser to find a handler(external program)
@@ -695,20 +423,14 @@ class HttpSupport {
      * @return builder instance.
      * @throws PathNotFoundException thrown if file not found.
      */
-    protected /*HttpBuilder*/void sendFile(File file) throws PathNotFoundException {
+    protected void sendFile(File file) throws PathNotFoundException {
         try{
-//            StreamResponse resp = new StreamResponse(context, new FileInputStream(file));
-//            context.setControllerResponse(resp);
-            //TODO finish the god damn method
-//            HttpBuilder builder = new HttpBuilder(resp);
-//            builder.header("Content-Disposition", "attachment; filename=" + file.getName());
-//            return builder;
-            
-            NewControllerResponse r = NewControllerResponseBuilder.ok()
+            //TODO TEST the god damn method 
+            ControllerResponse r = ControllerResponseBuilder.ok()
                     .addHeader("Content-Disposition", "attachment; filename=" + file.getName())
                     .renderable(new FileInputStream(file))
                     .contentType(MediaType.APPLICATION_OCTET_STREAM);
-            context.setNewControllerResponse(r);
+            context.setControllerResponse(r);
         }catch(Exception e){
             throw new PathNotFoundException(e);
         }
@@ -721,7 +443,7 @@ class HttpSupport {
      * @return A Request object with helper methods
      */
     protected Request request() {
-        return context.createRequest();//new RequestImpl(context.getHttpRequest());
+        return context.createRequest();
     }
     
     /**
@@ -1680,10 +1402,10 @@ class HttpSupport {
 //        return new HttpBuilder(resp);
         //TODO finish and TEST the god damn method
         //------------------
-        NewControllerResponse r = NewControllerResponseBuilder.ok()
+        ControllerResponse r = ControllerResponseBuilder.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .renderable(in);
-        context.setNewControllerResponse(r);
+        context.setControllerResponse(r);
     }
 
 
@@ -1741,9 +1463,9 @@ class HttpSupport {
     protected OutputStream outputStream(String contentType, Map<String, String> headers, int status) {
 //        context.setControllerResponse(new NopResponse(context, contentType, status));
         //------
-        NewControllerResponse r = new NewControllerResponse(200);
+        ControllerResponse r = new ControllerResponse(200);
         r.contentType(contentType).status(status);
-        context.setNewControllerResponse(r);
+        context.setControllerResponse(r);
         
         try {
             if (headers != null) {
@@ -1844,7 +1566,7 @@ class HttpSupport {
      *
      * @return instance of {@link Route}
      */
-    protected NewRoute getRoute(){
+    protected Route getRoute(){
         return context.getRoute();
     }
     
@@ -1864,7 +1586,7 @@ class HttpSupport {
         TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
         engine.invoke(
                 context, 
-                NewControllerResponseBuilder.ok().addAllViewObjects(values).template(template), 
+                ControllerResponseBuilder.ok().addAllViewObjects(values).template(template), 
                 new ResponseStream() {
                     @Override
                     public Writer getWriter() throws IOException {

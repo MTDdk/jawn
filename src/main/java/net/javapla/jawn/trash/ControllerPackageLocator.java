@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 */
 
-package net.javapla.jawn;
+package net.javapla.jawn.trash;
 
 import java.io.File;
 import java.io.IOException;

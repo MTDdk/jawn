@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and 
 limitations under the License. 
 */
-package net.javapla.jawn;
+package net.javapla.jawn.trash;
 
 import java.io.File;
 import java.io.InputStream;
@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import net.javapla.jawn.DynamicClassFactory;
 import net.javapla.jawn.db.JdbcDatabaseSpec;
 import net.javapla.jawn.exceptions.ClassLoadException;
 import net.javapla.jawn.exceptions.CompilationException;

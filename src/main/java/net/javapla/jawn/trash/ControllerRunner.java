@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import net.javapla.jawn.AppController;
-import net.javapla.jawn.Configuration;
 import net.javapla.jawn.Context;
 import net.javapla.jawn.ControllerRegistry;
 import net.javapla.jawn.HttpMethod;

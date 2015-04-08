@@ -9,22 +9,19 @@ import java.io.Serializable;
 import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.Context;
-import net.javapla.jawn.NewControllerResponse;
+import net.javapla.jawn.ControllerResponse;
 import net.javapla.jawn.ResponseStream;
 
-import com.google.inject.Singleton;
-
-@Singleton
 class StreamTemplateEngine implements TemplateEngine {
 
     @Override
-    public void invoke(Context context, NewControllerResponse response) {
+    public void invoke(Context context, ControllerResponse response) {
         ResponseStream stream = context.finalize(response);
         invoke(context, response, stream);
     }
     
     @Override
-    public void invoke(Context context, NewControllerResponse response, ResponseStream stream) {
+    public void invoke(Context context, ControllerResponse response, ResponseStream stream) {
         Object object = response.renderable();
         if (object instanceof InputStream) {
             try (   InputStream  in  = (InputStream) object;
@@ -67,8 +64,8 @@ class StreamTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public String getContentType() {
-        return MediaType.APPLICATION_OCTET_STREAM;
+    public String[] getContentType() {
+        return new String[]{MediaType.APPLICATION_OCTET_STREAM};
     }
 
 }

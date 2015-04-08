@@ -10,11 +10,6 @@ public class Lang {
     private final String[] languages;
     private final String default_language;
     
-    /*public Lang(String[] languages) {
-        this.languages = languages;//conf.getStringArray(Constants.SUPPORTED_LANGUAGES);
-        this.default_language = initDefaultLanguage();
-    }*/
-    
     @Inject
     public Lang(PropertiesImpl properties) {
         this.languages = properties.getSupportedLanguages();

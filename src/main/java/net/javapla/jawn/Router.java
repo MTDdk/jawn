@@ -12,9 +12,7 @@ import net.javapla.jawn.exceptions.ControllerException;
 import net.javapla.jawn.exceptions.RouteException;
 import net.javapla.jawn.util.StringUtil;
 
-import com.google.inject.Inject;
-
-public class NewRouter {
+public class Router {
     
     private static final List<InternalRoute> internalRoutes;
     static {
@@ -32,47 +30,46 @@ public class NewRouter {
     }
     
     
-    private final List<NewRouteBuilder> builders;
+    private final List<RouteBuilder> builders;
     
-    private List<NewRoute> routes;
+    private List<Route> routes;
     
-    @Inject
-    public NewRouter() {
+    public Router() {
         builders = new ArrayList<>();
     }
     
-    public NewRouteBuilder GET() {
-        NewRouteBuilder bob = NewRouteBuilder.get();
+    public RouteBuilder GET() {
+        RouteBuilder bob = RouteBuilder.get();
         builders.add(bob);
         return bob;
     }
-    public NewRouteBuilder POST() {
-        NewRouteBuilder bob = NewRouteBuilder.post();
+    public RouteBuilder POST() {
+        RouteBuilder bob = RouteBuilder.post();
         builders.add(bob);
         return bob;
     }
-    public NewRouteBuilder PUT() {
-        NewRouteBuilder bob = NewRouteBuilder.put();
+    public RouteBuilder PUT() {
+        RouteBuilder bob = RouteBuilder.put();
         builders.add(bob);
         return bob;
     }
-    public NewRouteBuilder DELETE() {
-        NewRouteBuilder bob = NewRouteBuilder.delete();
+    public RouteBuilder DELETE() {
+        RouteBuilder bob = RouteBuilder.delete();
         builders.add(bob);
         return bob;
     }
-    public NewRouteBuilder HEAD() {
-        NewRouteBuilder bob = NewRouteBuilder.head();
+    public RouteBuilder HEAD() {
+        RouteBuilder bob = RouteBuilder.head();
         builders.add(bob);
         return bob;
     }
     
     
-    public NewRoute getRoute(HttpMethod httpMethod, String requestUri) {
+    public Route getRoute(HttpMethod httpMethod, String requestUri) {
         if (routes == null) throw new IllegalStateException("Routes have not been compiled");//README could be compiling instead
         
         // go through custom user routes
-        for (NewRoute route : routes) {
+        for (Route route : routes) {
             if (route.matches(httpMethod, requestUri)) {
                 return route;
             }
@@ -80,7 +77,7 @@ public class NewRouter {
         
         // nothing is found - try to deduce a route from controllers
         try {
-            NewRoute route = matchStandard(httpMethod, requestUri);
+            Route route = matchStandard(httpMethod, requestUri);
             return route;
         } catch (ClassLoadException e) {
             // a route could not be deduced
@@ -91,21 +88,21 @@ public class NewRouter {
     
     public void compileRoutes() {
         if (routes != null) throw new IllegalStateException("Routes already compiled");//README could just return without throw
-        List<NewRoute> r = new ArrayList<>();
-        for (NewRouteBuilder builder : builders) {
+        List<Route> r = new ArrayList<>();
+        for (RouteBuilder builder : builders) {
             r.add(builder.build());
         }
         routes = r;//README probably some immutable
     }
     
-    public List<NewRoute> getRoutes() {
+    public List<Route> getRoutes() {
         if (routes == null) throw new IllegalStateException("Routes have not been compiled");//README could be compiling instead
         return routes;
     }
     
     
-    private NewRoute matchStandard(HttpMethod httpMethod, String requestUri) throws ClassLoadException {
-        NewRouteBuilder bob = NewRouteBuilder.method(httpMethod);
+    private Route matchStandard(HttpMethod httpMethod, String requestUri) throws ClassLoadException {
+        RouteBuilder bob = RouteBuilder.method(httpMethod);
         
         // find potential routes
         for (InternalRoute internalRoute : internalRoutes) {
@@ -149,13 +146,13 @@ public class NewRouter {
         }
         public String getController() {
             String p = params.get("controller");
-            if (StringUtil.blank(p)) return NewRoute.ROOT_CONTROLLER_NAME;
+            if (StringUtil.blank(p)) return Route.ROOT_CONTROLLER_NAME;
             return p;
 //            return params.getOrDefault("controller", NewRoute.ROOT_CONTROLLER_NAME);
         }
         public String getAction() {
             String p = params.get("action");
-            if (StringUtil.blank(p)) return NewRoute.DEFAULT_ACTION_NAME;
+            if (StringUtil.blank(p)) return Route.DEFAULT_ACTION_NAME;
             return p;
 //            return params.getOrDefault("action", NewRoute.DEFAULT_ACTION_NAME);
         }

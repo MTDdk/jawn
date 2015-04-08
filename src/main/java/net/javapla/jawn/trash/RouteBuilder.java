@@ -17,8 +17,6 @@ package net.javapla.jawn.trash;
 
 
 import net.javapla.jawn.AppController;
-import net.javapla.jawn.Configuration;
-import net.javapla.jawn.ControllerFactory;
 import net.javapla.jawn.HttpMethod;
 import net.javapla.jawn.RequestContext;
 import net.javapla.jawn.exceptions.ClassLoadException;

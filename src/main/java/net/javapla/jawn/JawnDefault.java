@@ -3,10 +3,10 @@ package net.javapla.jawn;
 public class JawnDefault {
 
     
-    private final NewRouter router;
-    private final ControllerResponseRunner runner;
+    private final Router router;
+    private final ResponseRunner runner;
     
-    public JawnDefault(NewRouter router, ControllerResponseRunner runner) {
+    public JawnDefault(Router router, ResponseRunner runner) {
         this.router = router;
         this.runner = runner;
     }

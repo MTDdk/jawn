@@ -10,7 +10,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.Context;
-import net.javapla.jawn.NewControllerResponse;
+import net.javapla.jawn.ControllerResponse;
 import net.javapla.jawn.ResponseStream;
 
 @Singleton
@@ -24,13 +24,13 @@ class JsonTemplateEngine implements TemplateEngine {
     }
     
     @Override
-    public void invoke(Context context, NewControllerResponse response) {
+    public void invoke(Context context, ControllerResponse response) {
         ResponseStream stream = context.finalize(response);
         invoke(context, response, stream);
     }
     
     @Override
-    public void invoke(Context context, NewControllerResponse response, ResponseStream stream) {
+    public void invoke(Context context, ControllerResponse response, ResponseStream stream) {
         try (OutputStream output = stream.getOutputStream()) {
             
             mapper.writeValue(output, response.renderable());
@@ -47,8 +47,8 @@ class JsonTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public String getContentType() {
-        return MediaType.APPLICATION_JSON;
+    public String[] getContentType() {
+        return new String[]{MediaType.APPLICATION_JSON};
     }
 
     

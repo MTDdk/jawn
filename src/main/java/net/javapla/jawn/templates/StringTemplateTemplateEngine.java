@@ -12,13 +12,14 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.Context;
-import net.javapla.jawn.NewControllerResponse;
+import net.javapla.jawn.ControllerResponse;
 import net.javapla.jawn.ResponseStream;
 import net.javapla.jawn.exceptions.ViewException;
-import net.javapla.jawn.templatemanagers.stringtemplate.ConfigurationReader;
-import net.javapla.jawn.templatemanagers.stringtemplate.Site;
 import net.javapla.jawn.templatemanagers.stringtemplate.StringTemplateConfiguration;
-import net.javapla.jawn.templatemanagers.stringtemplate.Template;
+import net.javapla.jawn.templates.configuration.ConfigurationReader;
+import net.javapla.jawn.templates.configuration.Site;
+import net.javapla.jawn.templates.configuration.SiteConfiguration;
+import net.javapla.jawn.templates.configuration.Template;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,12 +42,13 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     private static final String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "WEB-INF/views/");
     
     private final StringTemplateConfiguration config;
+    private final ConfigurationReader configReader;
     
     private STGroupDir group;
     private ST layoutTemplate;
 
     @Inject
-    public StringTemplateTemplateEngine(StringTemplateTemplateConfigProvider templateConfig) {
+    public StringTemplateTemplateEngine(StringTemplateTemplateConfigProvider templateConfig, ConfigurationReader configReader) {
         STGroupDir.verbose = false;
         Interpreter.trace = false;
         
@@ -54,15 +56,17 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         if (templateConfig.get() != null) {
             templateConfig.get().init(config);
         }
+        
+        this.configReader = configReader;
     }
 
     @Override
-    public void invoke(Context context, NewControllerResponse response) {
+    public void invoke(Context context, ControllerResponse response) {
         invoke(context, response, context.finalize(response));
     }
     
     @Override
-    public void invoke(Context context, NewControllerResponse response, ResponseStream stream) {
+    public void invoke(Context context, ControllerResponse response, ResponseStream stream) {
         Map<String, Object> values = response.getViewObjects();//context.getViewObjects();
 //      Object renderable = response.renderable();
       /*if (renderable == null) {
@@ -130,8 +134,8 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public String getContentType() {
-        return MediaType.TEXT_HTML;
+    public String[] getContentType() {
+        return new String[]{MediaType.TEXT_HTML};
     }
     
     
@@ -184,18 +188,20 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     private void readyLayoutTemplate(Context ctx, StringWriter content, Map<String, Object> values, String controller, String language, ErrorBuffer error) {
         injectTemplateValues(layoutTemplate, values);
         
-        ConfigurationReader conf = new ConfigurationReader(getTemplateFolder(ctx), controller);
+//        ConfigurationReader conf = new ConfigurationReader(getTemplateFolder(ctx), controller);
+        SiteConfiguration conf = configReader.read(getTemplateFolder(ctx), controller);
+        
         Site site = new Site();
         
         //add title
-        site.title = conf.title();
+        site.title = conf.title;
         
         //add language (if any)
         site.language = language;
         
         //add scripts
-        site.scripts = readLinks(Template.SCRIPTS_TEMPLATE, conf.readScripts(), error);
-        site.styles = readLinks(Template.STYLES_TEMPLATE, conf.readStyles(), error);
+        site.scripts = readLinks(Template.SCRIPTS_TEMPLATE, conf.scripts, error);
+        site.styles = readLinks(Template.STYLES_TEMPLATE, conf.styles, error);
         
         // put the rendered content into the main template
         site.content = content.toString();

@@ -15,8 +15,8 @@ limitations under the License.
 */
 package net.javapla.jawn.trash;
 
-import static net.javapla.jawn.ControllerFactory.createControllerInstance;
-import static net.javapla.jawn.ControllerFactory.getControllerClassName;
+import static net.javapla.jawn.trash.ControllerFactory.createControllerInstance;
+import static net.javapla.jawn.trash.ControllerFactory.getControllerClassName;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

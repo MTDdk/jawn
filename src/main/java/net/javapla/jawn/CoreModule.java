@@ -2,9 +2,12 @@ package net.javapla.jawn;
 
 import net.javapla.jawn.i18n.Lang;
 import net.javapla.jawn.parsers.JsonMapperProvider;
+import net.javapla.jawn.parsers.ParserEngineManager;
+import net.javapla.jawn.parsers.ParserEngineManagerImpl;
 import net.javapla.jawn.parsers.XmlMapperProvider;
 import net.javapla.jawn.templates.TemplateEngineManager;
 import net.javapla.jawn.templates.TemplateEngineManagerImpl;
+import net.javapla.jawn.templates.configuration.ConfigurationReader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -21,18 +24,20 @@ public class CoreModule extends AbstractModule {
 
     @Override
     protected void configure() {
+        bind(PropertiesImpl.class).toInstance(properties);
+        bind(Lang.class).in(Singleton.class);
         
         // Marshallers
         bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
         bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
         
+        bind(ConfigurationReader.class).in(Singleton.class);
+        
         bind(TemplateEngineManager.class).to(TemplateEngineManagerImpl.class);
-        bind(ControllerResponseRunner.class);
+        bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class);
+        bind(ResponseRunner.class);
         
-        bind(PropertiesImpl.class).toInstance(properties);
-        bind(Lang.class).in(Singleton.class);
-        
-        bind(NewRouter.class).in(Singleton.class);
+        bind(Router.class).in(Singleton.class);
         
 //        bind(Router.class);
         

@@ -6,7 +6,6 @@ import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.Context;
 import net.javapla.jawn.exceptions.ControllerException;
-import net.javapla.jawn.parsers.XmlParser;
 
 /**
  * 
@@ -27,7 +26,7 @@ public class XmlResponse extends ControllerResponse {
         if (obj == null) return;
         
         try {
-            XmlParser.writeObject(obj, context.responseWriter());
+//            XmlParserEngine.writeObject(obj, context.responseWriter());
             context.responseWriter().flush();
         } catch (IOException e) {
             throw new ControllerException(e);

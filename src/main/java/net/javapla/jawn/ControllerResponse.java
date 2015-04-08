@@ -8,7 +8,7 @@ import java.util.Map;
 import net.javapla.jawn.util.Constants;
 
 //Result
-public class NewControllerResponse {
+public class ControllerResponse {
 
     /**
      * Http status code
@@ -51,7 +51,7 @@ public class NewControllerResponse {
     //defacto layout or not
     private String layout = "index.html.st";//Configuration.getDefaultLayout();
     
-    public NewControllerResponse(int statusCode) {
+    public ControllerResponse(int statusCode) {
         supportedContentTypes = new ArrayList<>();
         headers = new HashMap<>();
         viewObjects = new HashMap<>();
@@ -61,7 +61,7 @@ public class NewControllerResponse {
     }
     
     
-    public NewControllerResponse renderable(Object obj) {
+    public ControllerResponse renderable(Object obj) {
         this.renderable = obj;
         return this;
     }
@@ -70,7 +70,7 @@ public class NewControllerResponse {
     }
     
     
-    public NewControllerResponse contentType(String type) {
+    public ControllerResponse contentType(String type) {
         this.contentType = type;
         return this;
     }
@@ -78,7 +78,7 @@ public class NewControllerResponse {
         return contentType;
     }
     
-    public NewControllerResponse status(int statusCode) {
+    public ControllerResponse status(int statusCode) {
         this.statusCode = statusCode;
         return this;
     }
@@ -86,7 +86,7 @@ public class NewControllerResponse {
         return statusCode;
     }
     
-    public NewControllerResponse charset(String charset) {
+    public ControllerResponse charset(String charset) {
         this.charset = charset;
         return this;
     }
@@ -95,7 +95,7 @@ public class NewControllerResponse {
     }
     
     
-    public NewControllerResponse template(String template) {
+    public ControllerResponse template(String template) {
         this.template = template;
         return this;
     }
@@ -103,7 +103,7 @@ public class NewControllerResponse {
         return template;
     }
     
-    public NewControllerResponse layout(String layout) {
+    public ControllerResponse layout(String layout) {
         this.layout = layout;
         return this;
     }
@@ -114,16 +114,16 @@ public class NewControllerResponse {
     public Map<String, String> headers() {
         return headers;
     }
-    public NewControllerResponse addHeader(String name, String value) {
+    public ControllerResponse addHeader(String name, String value) {
         headers.put(name, value);
         return this;
     }
     
-    public NewControllerResponse addViewObject(String name, Object value) {
+    public ControllerResponse addViewObject(String name, Object value) {
         viewObjects.put(name, value);
         return this;
     }
-    public NewControllerResponse addAllViewObjects(Map<String, Object> values) {
+    public ControllerResponse addAllViewObjects(Map<String, Object> values) {
         viewObjects.putAll(values);
         return this;
     }
@@ -132,12 +132,15 @@ public class NewControllerResponse {
     }
     
     
-    public NewControllerResponse addSupportedContentType(String contentType) {
+    public ControllerResponse addSupportedContentType(String contentType) {
         this.supportedContentTypes.add(contentType);
         return this;
     }
     public boolean supportsContentType(String contentType) {
         return supportedContentTypes.contains(contentType);
+    }
+    public List<String> supportedContentTypes() {
+        return supportedContentTypes;
     }
     
 }

@@ -44,7 +44,6 @@ import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.application.IRouteConfig;
 import net.javapla.jawn.exceptions.ActionNotFoundException;
-import net.javapla.jawn.exceptions.ClassLoadException;
 import net.javapla.jawn.exceptions.CompilationException;
 import net.javapla.jawn.exceptions.ConfigurationException;
 import net.javapla.jawn.exceptions.ControllerException;
@@ -54,7 +53,10 @@ import net.javapla.jawn.exceptions.ViewException;
 import net.javapla.jawn.exceptions.ViewMissingException;
 import net.javapla.jawn.exceptions.WebException;
 import net.javapla.jawn.i18n.Lang;
-import net.javapla.jawn.trash.RenderTemplateResponse;
+import net.javapla.jawn.parsers.ParserEngineManager;
+import net.javapla.jawn.session.SessionHelper;
+import net.javapla.jawn.templates.TemplateEngine;
+import net.javapla.jawn.templates.TemplateEngineManager;
 import net.javapla.jawn.util.CollectionUtil;
 import net.javapla.jawn.util.Constants;
 import net.javapla.jawn.util.StringUtil;
@@ -66,7 +68,7 @@ import com.google.inject.Injector;
 
 /**
  * @author Igor Polevoy
- * @author ALVN
+ * @author MTD
  */
 public class RequestDispatcher implements Filter {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
@@ -78,7 +80,7 @@ public class RequestDispatcher implements Filter {
     private Bootstrap appBootstrap;
 //    private String root_controller;
     
-    private NewRouter router2;
+    private Router router;
 
     private Injector injector;
 
@@ -89,28 +91,20 @@ public class RequestDispatcher implements Filter {
         properties = new PropertiesImpl(ModeHelper.determineModeFromSystem());
         
         this.servletContext = filterConfig.getServletContext();
-        controllerRegistry = new ControllerRegistry(servletContext);
+        controllerRegistry = new ControllerRegistry();
         appContext = new AppContext(servletContext);
         
         // adding user modules to controllerRegistry
         initApp(appContext, controllerRegistry, properties);
-        
-        
-//        Lang lang = new Lang(appContext.getSupportedLanguages());
-        
         
         //-----
         Bootstrapper bootstrapper = new Bootstrapper(properties, controllerRegistry.getModules());
         bootstrapper.boot();
         injector = bootstrapper.getInjector();
         controllerRegistry.setInjector(injector);
-//        runner = new ControllerRunner(injector);
-        router2 = createRouter(); // created at startup, as we have no need for reloading custom routes.
+        router = createRouter(); // created at startup, as we have no need for reloading custom routes.
         //--------
         
-        
-//        Configuration.getTemplateManager().setServletContext(servletContext);
-//        Context.setControllerRegistry(registry);//bootstrap below requires it //README this might not be the case anymore
         servletContext.setAttribute("appContext", appContext);
         
         findExclusionPaths();
@@ -145,60 +139,13 @@ public class RequestDispatcher implements Filter {
                 path = path.substring(0, path.length()-1);// remove the last slash
             exclusions.add(path);
         }
-        
-        /*String exclusionsParam = filterConfig.getInitParameter("exclusions");
-        logger.error("exclusions {}", exclusionsParam);
-        if (exclusionsParam != null) {
-            List<String> list = Arrays.asList(exclusionsParam.split(","));
-            for (String exclusion : list) {
-                String trimmed = exclusion.trim();
-                if (trimmed.charAt(0) != '/')
-                    trimmed = '/' + trimmed;
-                exclusions.add(trimmed);
-            }
-        }*/
     }
 
-    //this exists for testing only
-    /*private AbstractRouteConfig routeConfigTest;
-    private boolean testMode = false;
-    protected void setRouteConfig(AbstractRouteConfig routeConfig) {
-        this.routeConfigTest = routeConfig;
-        testMode = true;
-    }*/
 
     //README is it necessary to dynamically load the Router? 
-    /*private Router getRouter(AppContext context, ControllerRegistry controllerRegistry){
-        Router router = new Router(root_controller, controllerRegistry, injector.getInstance(Lang.class)context.getSupportedLanguages()Configuration.supportedLanguages()filterConfig.getInitParameter("default_language"));
-        
-        String routeConfigClassName = Configuration.getRouteConfigClassName();
-        try {
-            AbstractRouteConfig routeConfigLocal;
-            if(testMode){
-                routeConfigLocal = routeConfigTest;
-            }else{
-                routeConfigLocal = DynamicClassFactory.createInstance(routeConfigClassName, AbstractRouteConfig.class); // handles caching of classes
-            }
-            routeConfigLocal.clear();
-            routeConfigLocal.init(context);
-            router.setRoutes(routeConfigLocal.getRoutes());
-            router.setIgnoreSpecs(routeConfigLocal.getIgnoreSpecs());
-
-            logger.debug("Loaded routes from: " + routeConfigClassName);
-
-        } catch (IllegalArgumentException e) {
-            throw e;
-        }catch(ConfigurationException e){
-            throw  e;
-        } catch (Exception e) {
-            logger.debug("Did not find custom routes. Going with built in defaults: " + getCauseMessage(e));
-        }
-        return router;
-    }*/
-    
     //TODO the router most definitely should be created at startup, as we do not care for looking up custom routes per request
-    private NewRouter createRouter() {
-        NewRouter router = injector.getInstance(NewRouter.class);
+    private Router createRouter() {
+        Router router = injector.getInstance(Router.class);
         
         String routeConfigClassName = "app.config.NewRouteConfig";
         // try to read custom routes provided by user
@@ -251,11 +198,6 @@ public class RequestDispatcher implements Filter {
     }
 
 
-//    protected ControllerRegistry getControllerRegistry() {
-//        return (ControllerRegistry) /*filterConfig.get*/servletContext.getAttribute("controllerRegistry");
-//    }
-    
-
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
         try {
@@ -289,39 +231,27 @@ public class RequestDispatcher implements Filter {
             
             
             //TODO first do this language extraction IF custom route not found
-            //MTD: we first look for a language prefix and strip the URI if it is found
             String language = findLanguagePrefix(uri, injector.getInstance(Lang.class));
+                
+            //MTD: we first look for a language prefix and strip the URI if it is found
             if (!StringUtil.blank(language)) {
                 uri = uri.substring(language.length() +1 );
-                //if (uri.isEmpty()) uri = "/";
+//                if (uri.isEmpty()) uri = "/";
             } else {
                 language = injector.getInstance(Lang.class).getDefaultLanguage();//defaultLanguage;
             }
-
+            
             if (StringUtil.blank(uri)) {
                 uri = "/";//different servlet implementations, damn.
             }
             
             
-            //TODO create Context and send it along the calling chain (remember: there are some 'new Context()'s around) 
-//            NewContext c = new NewContext();
-//            c.init(servletContext, request, response, appContext);
-//            Context.setTLs(request, response, /*servletContext,*/ /*getControllerRegistry(), *//*appContext,*/ new RequestContext(), format);
-            
-//            RequestContext requestContext = new RequestContext();
-            
-//            NewRouter router2 = createRouter();
-            NewRoute route2 = router2.getRoute(HttpMethod.getMethod(request), uri);
-            logger.debug("---- route2 = {}", route2);
-            if (route2 != null) {
-                logger.debug("--------- {}.{}", route2.getController().getClass(), route2.getAction());
-            }
-            
-//            Router router = getRouter(appContext, controllerRegistry);
-//            Route route = router.recognize(uri, HttpMethod.getMethod(request), requestContext);
-//            route.setFormat(format);
+            // Try to look up the route
+            Route route = router.getRoute(HttpMethod.getMethod(request), uri);
+            logger.debug("---- route = {}", route);
 
-            if (route2 != null) {
+            if (route != null) {
+                logger.debug("--------- {}.{}()", route.getController().getClass(), route.getAction());
                 //TODO consider if it should be possible to ignore routes
 //                if(route.ignores(path)) {
 //                    chain.doFilter(request, response); // let someone else handle this
@@ -333,17 +263,11 @@ public class RequestDispatcher implements Filter {
                     logger.info("================ New request: " + new Date() + " ================");
                 }
                 
-                Context context = new Context(servletContext, request, response, injector.getInstance(PropertiesImpl.class));
-                context.init(route2, format, language, uri);
-//                new ControllerRunner(injector.getInstance(PropertiesImpl.class), request, response, controllerRegistry, context).run(route2, true);
-         //-------------------------------
-//                NewControllerResponse resp2 = new NewControllerResponse();
-//                resp2.contentType(MediaType.TEXT_HTML);
-//                resp2.status(200);
-//                resp2.renderable("henning");
-//                context.setNewControllerResponse(resp2);
-                toBePutIntoClass(context, route2);
-                ControllerResponseRunner runner = injector.getInstance(ControllerResponseRunner.class);
+                Context context = new Context(servletContext, request, response, injector.getInstance(PropertiesImpl.class), injector.getInstance(ParserEngineManager.class));
+                context.init(route, format, language, uri);
+                
+                toBePutIntoClass(context, route);
+                ResponseRunner runner = injector.getInstance(ResponseRunner.class);
                 runner.run(context, context.getNewControllerResponse());
             } else {
                 //TODO: theoretically this will never happen, because if the route was not excluded, the router.recognize() would throw some kind
@@ -380,7 +304,7 @@ public class RequestDispatcher implements Filter {
     private void injectControllerWithContext(HttpSupport controller, Context context) {
         controller.init(context, injector);
     }
-    private void toBePutIntoClass(Context context, NewRoute route2) {
+    private void toBePutIntoClass(Context context, Route route2) {
      // if we want to reload the controller, this is a good time to do it
         if (! properties.isProd()) {
             context.getRoute().reloadController();
@@ -514,12 +438,6 @@ public class RequestDispatcher implements Filter {
             start = end;
             end = servletPath.indexOf('/',start+1);
         }
-        
-        /*String[] segments = servletPath.split("/");
-        for (String segment : segments) {
-            if (segment.equals(exclusion))
-                return exclusion;//exclusion.charAt(0) == '/' ? exclusion : '/'+exclusion; <-- this is ensured in the init()
-        }*/
         return null;
     }
     
@@ -556,17 +474,20 @@ public class RequestDispatcher implements Filter {
                     logger.error("Failed to send error response to client", ex);
                 }
             } else {
-                Context c = new Context(servletContext, request, response, injector.getInstance(PropertiesImpl.class));
-                ControllerResponseRunner runner = injector.getInstance(ControllerResponseRunner.class);
-                runner.run(c, c.getNewControllerResponse().layout(layout).contentType("text/html").status(status));
+                Context c = new Context(servletContext, request, response, injector.getInstance(PropertiesImpl.class), injector.getInstance(ParserEngineManager.class));
                 
-//                RenderTemplateResponse resp = new RenderTemplateResponse(, getMapWithExceptionDataAndSession(request, e), template);
-//                resp.setLayout(layout);
-//                resp.setContentType("text/html");
-//                resp.setStatus(status);
-//                resp.setTemplateManager(Configuration.getTemplateManager());
+                TemplateEngineManager manager = injector.getInstance(TemplateEngineManager.class);
+                TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
+                ControllerResponse r = ControllerResponseBuilder
+                        .ok()
+                        .addAllViewObjects(getMapWithExceptionDataAndSession(request, e))
+                        .template(template)
+                        .layout(layout)
+                        .contentType(MediaType.TEXT_HTML)
+                        .status(status);
+                engine.invoke(c, r);
+                
 ////                ParamCopy.copyInto(resp.values(), request, null);
-//                resp.process();
             }
         }catch(Throwable t){
 

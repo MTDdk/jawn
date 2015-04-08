@@ -1,7 +1,7 @@
 package net.javapla.jawn.templates;
 
 import net.javapla.jawn.Context;
-import net.javapla.jawn.NewControllerResponse;
+import net.javapla.jawn.ControllerResponse;
 import net.javapla.jawn.ResponseStream;
 
 public interface TemplateEngine {
@@ -14,7 +14,7 @@ public interface TemplateEngine {
      * @param result
      *            The result to render
      */
-    public void invoke(Context context, NewControllerResponse response/*, Result result*/);
+    public void invoke(Context context, ControllerResponse response/*, Result result*/);
     
     
     /**
@@ -26,7 +26,7 @@ public interface TemplateEngine {
      * @param stream
      *            The stream to render to
      */
-    public void invoke(Context context, NewControllerResponse response, ResponseStream stream);
+    public void invoke(Context context, ControllerResponse response, ResponseStream stream);
 
     /**
      * For instance returns ".ftl.html" Or .ftl.json.
@@ -45,6 +45,6 @@ public interface TemplateEngine {
      * 
      * @return The content type this template engine renders
      */
-    public String getContentType();
+    public String[] getContentType();
 
 }

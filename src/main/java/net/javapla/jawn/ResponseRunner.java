@@ -1,24 +1,31 @@
 package net.javapla.jawn;
 
+import java.text.MessageFormat;
+
 import net.javapla.jawn.exceptions.BadRequestException;
+import net.javapla.jawn.exceptions.MediaTypeException;
 import net.javapla.jawn.templates.TemplateEngine;
 import net.javapla.jawn.templates.TemplateEngineManager;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+/**
+ * Handling the ControllerResponse using a TemplateManager
+ * @author MTD
+ */
 @Singleton
-//ResultHandler
-public class ControllerResponseRunner {
+//perhaps to be called ResponseHandler
+public class ResponseRunner {
 
     private final TemplateEngineManager templateEngineManager;
     
     @Inject
-    public ControllerResponseRunner(TemplateEngineManager templateEngineManager) {
+    public ResponseRunner(TemplateEngineManager templateEngineManager) {
         this.templateEngineManager = templateEngineManager;
     }
     
-    public void run(Context context, NewControllerResponse response) {
+    public void run(Context context, ControllerResponse response) {
         //might already have been handled by the controller
         if (response == null) return;
         
@@ -35,7 +42,7 @@ public class ControllerResponseRunner {
         }
     }
     
-    private void renderWithTemplateEngine(Context context, NewControllerResponse response) throws BadRequestException {
+    private void renderWithTemplateEngine(Context context, ControllerResponse response) throws BadRequestException {
         
         // if the response does not contain a content type, we try to look at the request 'accept' header
         if (response.contentType() == null) {
@@ -51,7 +58,9 @@ public class ControllerResponseRunner {
         if (engine != null) {
             engine.invoke(context, response);
         } else {
-            throw new RuntimeException();//TODO Generic exception holding http method status error
+            throw new MediaTypeException(
+                    MessageFormat.format("Could not find a template engine supporting the content type of the response : {}", response.contentType()));
+            //TODO Generic exception holding http method status error
         }
     }
 }

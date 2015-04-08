@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.Context;
-import net.javapla.jawn.NewControllerResponse;
+import net.javapla.jawn.ControllerResponse;
 import net.javapla.jawn.ResponseStream;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -24,14 +24,14 @@ class XmlTemplateEngine implements TemplateEngine {
     }
     
     @Override
-    public void invoke(Context context, NewControllerResponse response) {
+    public void invoke(Context context, ControllerResponse response) {
         ResponseStream stream = context.finalize(response);
         invoke(context, response, stream);
     }
     
     
     @Override
-    public void invoke(Context context, NewControllerResponse response, ResponseStream stream) {
+    public void invoke(Context context, ControllerResponse response, ResponseStream stream) {
         try (OutputStream output = stream.getOutputStream()) {
             
             mapper.writeValue(output, response.renderable());
@@ -48,8 +48,8 @@ class XmlTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public String getContentType() {
-        return MediaType.APPLICATION_XML;
+    public String[] getContentType() {
+        return new String[]{MediaType.APPLICATION_XML};
     }
 
     

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 */
 
-package net.javapla.jawn;
+package net.javapla.jawn.session;
 
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -26,13 +26,13 @@ import javax.servlet.http.HttpSession;
 /**
  * @author Igor Polevoy
  */
-class SessionHelper {
+public class SessionHelper {
     /**
      * Returns all session attributes in a map.
      *
      * @return all session attributes in a map.
      */
-     protected static Map<String, Object> getSessionAttributes(HttpServletRequest request){
+     public static Map<String, Object> getSessionAttributes(HttpServletRequest request){
         //TODO: cache session attributes map since this method can be called multiple times during a request.
 
         HttpSession session = request.getSession(true);

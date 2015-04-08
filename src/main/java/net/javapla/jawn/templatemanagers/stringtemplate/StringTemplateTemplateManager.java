@@ -11,6 +11,9 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 
 import net.javapla.jawn.templatemanagers.TemplateManager;
+import net.javapla.jawn.templates.configuration.ConfigurationReader;
+import net.javapla.jawn.templates.configuration.Site;
+import net.javapla.jawn.templates.configuration.Template;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,7 +137,7 @@ public class StringTemplateTemplateManager implements TemplateManager {
     private void readyLayoutTemplate(StringWriter content, Map<String, Object> values, String controller, String language, ErrorBuffer error) {
         injectTemplateValues(layoutTemplate, values);
         
-        ConfigurationReader conf = new ConfigurationReader(getTemplateFolder(), controller);
+        /*ConfigurationReader conf = new ConfigurationReader(getTemplateFolder(), controller);
         Site site = new Site();
         
         //add title
@@ -151,7 +154,7 @@ public class StringTemplateTemplateManager implements TemplateManager {
         site.content = content.toString();
         
         // put everything into the reserved keyword
-        layoutTemplate.add("site", site);
+        layoutTemplate.add("site", site);*/
     }
     
     private void injectTemplateValues(ST template, Map<String, Object> values) {

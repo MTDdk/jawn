@@ -13,8 +13,8 @@ public class StatusWrapper {
 //        this.builder = builder;
 //    }
     
-    private final NewControllerResponseBuilder builder;
-    StatusWrapper(NewControllerResponseBuilder builder) {
+    private final ControllerResponseBuilder builder;
+    StatusWrapper(ControllerResponseBuilder builder) {
         this.builder = builder;
     }
     
@@ -24,7 +24,7 @@ public class StatusWrapper {
      * @return 
      * @return The original builder
      */
-    public NewControllerResponseBuilder ok() {
+    public ControllerResponseBuilder ok() {
 //        this.builder.controllerResponse.setStatus(javax.ws.rs.core.Response.Status.OK.getStatusCode());
 //        return builder;
         builder.status(javax.ws.rs.core.Response.Status.OK.getStatusCode());
@@ -34,7 +34,7 @@ public class StatusWrapper {
      * 204 No Content
      * @return The original builder
      */
-    public NewControllerResponseBuilder noContent() {
+    public ControllerResponseBuilder noContent() {
         builder.status(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
         return builder;
     }
@@ -42,7 +42,7 @@ public class StatusWrapper {
      * 400 Bad Request
      * @return The original builder
      */
-    public NewControllerResponseBuilder badRequest() {
+    public ControllerResponseBuilder badRequest() {
         builder.status(javax.ws.rs.core.Response.Status.BAD_REQUEST.getStatusCode());
         return builder;
     }
@@ -50,7 +50,7 @@ public class StatusWrapper {
      * 404 Not Found
      * @return The original builder
      */
-    public NewControllerResponseBuilder notFound() {
+    public ControllerResponseBuilder notFound() {
         builder.status(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
         return builder;
     }
@@ -58,7 +58,7 @@ public class StatusWrapper {
      * 500 Internal Server Error
      * @return The original builder
      */
-    public NewControllerResponseBuilder internalServerError() {
+    public ControllerResponseBuilder internalServerError() {
         builder.status(javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         return builder;
     }

@@ -91,7 +91,7 @@ public class FreeMarkerTemplateManager implements TemplateManager {
 
         try {
 
-            if(net.javapla.jawn.Configuration.getEnv().equals("development")){
+            if(net.javapla.jawn.trash.Configuration.getEnv().equals("development")){
                 config.clearTemplateCache();
             }
             ContentTL.reset();

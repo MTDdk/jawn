@@ -6,7 +6,6 @@ import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.Context;
 import net.javapla.jawn.exceptions.ControllerException;
-import net.javapla.jawn.parsers.JsonParser;
 
 /**
  * 
@@ -34,10 +33,7 @@ public class JsonResponse extends ControllerResponse {
         if (obj == null) return;
         
         try {
-//            if (locale != null)
-//                JsonManager.writeJsonObject(obj, Context.getHttpResponse().getWriter(), locale);
-//            else
-                JsonParser.writeObject(obj, context.responseWriter());
+//                JsonParserEngine.writeObject(obj, context.responseWriter());
                 context.responseWriter().flush();
         } catch (IOException e) {
             throw new ControllerException(e);

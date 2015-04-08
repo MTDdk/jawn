@@ -4,7 +4,7 @@ import java.text.MessageFormat;
 
 import net.javapla.jawn.exceptions.ControllerException;
 
-public class NewRouteBuilder {
+public class RouteBuilder {
 
     private final HttpMethod httpMethod;// = HttpMethod.GET; //defaults
     private String uri;
@@ -12,32 +12,32 @@ public class NewRouteBuilder {
     private String action;
     private Class<? extends AppController> type;
     
-    private NewRouteBuilder(HttpMethod m) {
+    private RouteBuilder(HttpMethod m) {
         httpMethod = m;
     }
     
-    static NewRouteBuilder get() {
-        return new NewRouteBuilder(HttpMethod.GET);
+    static RouteBuilder get() {
+        return new RouteBuilder(HttpMethod.GET);
     }
     
-    static NewRouteBuilder post() {
-        return new NewRouteBuilder(HttpMethod.POST);
+    static RouteBuilder post() {
+        return new RouteBuilder(HttpMethod.POST);
     }
     
-    static NewRouteBuilder put() {
-        return new NewRouteBuilder(HttpMethod.PUT);
+    static RouteBuilder put() {
+        return new RouteBuilder(HttpMethod.PUT);
     }
     
-    static NewRouteBuilder delete() {
-        return new NewRouteBuilder(HttpMethod.DELETE);
+    static RouteBuilder delete() {
+        return new RouteBuilder(HttpMethod.DELETE);
     }
     
-    static NewRouteBuilder head() {
-        return new NewRouteBuilder(HttpMethod.HEAD);
+    static RouteBuilder head() {
+        return new RouteBuilder(HttpMethod.HEAD);
     }
     
-    static NewRouteBuilder method(HttpMethod method) {
-        return new NewRouteBuilder(method);
+    static RouteBuilder method(HttpMethod method) {
+        return new RouteBuilder(method);
     }
     
     
@@ -45,12 +45,12 @@ public class NewRouteBuilder {
      * Used for custom routes
      * @param uri what was specified in the  RouteConfig class
      */
-    public NewRouteBuilder route(String uri) {
+    public RouteBuilder route(String uri) {
         this.uri = uri;
         return this;
     }
     
-    public <T extends AppController> NewRouteBuilder to(Class<T> type) {
+    public <T extends AppController> RouteBuilder to(Class<T> type) {
         this.type = type;
         try {
             this.controller = type.newInstance();
@@ -61,7 +61,7 @@ public class NewRouteBuilder {
         return this;
     }
     
-    public <T extends AppController> NewRouteBuilder to(Class<T> type, String action) /*throws ControllerException*/{
+    public <T extends AppController> RouteBuilder to(Class<T> type, String action) /*throws ControllerException*/{
         try {
             this.controller = type.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
@@ -80,7 +80,7 @@ public class NewRouteBuilder {
         return this;
     }
     
-    public NewRouteBuilder to(AppController controller, String action) /*throws ControllerException*/ {
+    public RouteBuilder to(AppController controller, String action) /*throws ControllerException*/ {
 //        // verify that the controller has the corresponding action
 //        // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
 //        if ( ! controller.isAllowedAction(NewRoute.constructAction(action, httpMethod)) )
@@ -113,11 +113,11 @@ public class NewRouteBuilder {
      * Build the route
      * @return
      */
-    public NewRoute build() throws IllegalStateException, ControllerException {
+    public Route build() throws IllegalStateException, ControllerException {
         if (controller == null) throw new IllegalStateException("Route not with a controller");
         if (uri == null) throw new IllegalStateException("Route is not specified");
         
-        NewRoute route = new NewRoute(uri, httpMethod, controller, action);
+        Route route = new Route(uri, httpMethod, controller, action);
         
         // verify that the controller has the corresponding action
         // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
