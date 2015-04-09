@@ -35,12 +35,12 @@ import net.javapla.jawn.HttpMethod;
 //import net.javapla.jawn.PropertiesImpl;
 //import net.javapla.jawn.RouterHelper;
 //import net.javapla.jawn.ControllerRegistry.FilterList;
-import net.javapla.jawn.controller_filters.ControllerFilter;
 import net.javapla.jawn.exceptions.ActionNotFoundException;
 import net.javapla.jawn.exceptions.ControllerException;
 import net.javapla.jawn.exceptions.FilterException;
 import net.javapla.jawn.exceptions.WebException;
 import net.javapla.jawn.templatemanagers.AbstractTemplateConfig;
+import net.javapla.jawn.trash.controller_filters.ControllerFilter;
 import net.javapla.jawn.util.Constants;
 import net.javapla.jawn.util.StringUtil;
 

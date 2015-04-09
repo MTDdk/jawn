@@ -7,9 +7,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.javapla.jawn.exceptions.ClassLoadException;
-
-//README alternative names: InternalRoute
 class InternalRoute {
     
     protected final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
@@ -66,17 +63,17 @@ class InternalRoute {
         }
         return map;
     }
-    @Deprecated
-    protected Map<String, String> getPathParametersEncoded(Matcher m, List<String> parameters) {
-        Map<String, String> map = new HashMap<>();
-
-        if (m.matches()) {
-            for (int i = 1; i < m.groupCount() + 1; i++) {
-                map.put(parameters.get(i - 1), m.group(i));
-            }
-        }
-        return map;
-    }
+//    @Deprecated
+//    protected Map<String, String> getPathParametersEncoded(Matcher m, List<String> parameters) {
+//        Map<String, String> map = new HashMap<>();
+//
+//        if (m.matches()) {
+//            for (int i = 1; i < m.groupCount() + 1; i++) {
+//                map.put(parameters.get(i - 1), m.group(i));
+//            }
+//        }
+//        return map;
+//    }
     
     protected List<String> parseParameters(String uri) {
         List<String> params = new ArrayList<>();
@@ -136,16 +133,16 @@ class InternalRoute {
         return stringBuffer.toString();
     }
     
-    protected AppController loadController(String controllerClassName) throws ClassLoadException {
-
-        try {
-            return  DynamicClassFactory.createInstance(controllerClassName, AppController.class, false);
-        } catch (ClassLoadException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ClassLoadException(e);
-        }
-    }
+//    protected AppController loadController(String controllerClassName) throws ClassLoadException {
+//
+//        try {
+//            return  DynamicClassFactory.createInstance(controllerClassName, AppController.class, false);
+//        } catch (ClassLoadException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            throw new ClassLoadException(e);
+//        }
+//    }
     
     @Override
     public String toString() {

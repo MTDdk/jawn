@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import net.javapla.jawn.controller_filters.ControllerFilter;
+import net.javapla.jawn.trash.controller_filters.ControllerFilter;
 
 /**
  * This class is to be sub-classed by the application level class called <code>app.config.AppControllerConfig</code>.
@@ -27,7 +27,7 @@ import net.javapla.jawn.controller_filters.ControllerFilter;
  * fine grained.
  *
  * <p>
- * See {@link net.javapla.jawn.controller_filters.ControllerFilter}.
+ * See {@link net.javapla.jawn.trash.controller_filters.ControllerFilter}.
  * </p>
  *
  * <p>
@@ -35,8 +35,8 @@ import net.javapla.jawn.controller_filters.ControllerFilter;
  * </p>
  *
  * <ul>
- *      <li> Adding global filters:{@link #addGlobalFilters(net.javapla.jawn.controller_filters.ControllerFilter...)}
- *      <li> Adding controller filters:{@link #add(net.javapla.jawn.controller_filters.ControllerFilter...)} )}
+ *      <li> Adding global filters:{@link #addGlobalFilters(net.javapla.jawn.trash.controller_filters.ControllerFilter...)}
+ *      <li> Adding controller filters:{@link #add(net.javapla.jawn.trash.controller_filters.ControllerFilter...)} )}
  * </ul>
  * Adding a global filter adds it to all controllers. It makes sense to use this to add timing filters, logging filters,
  * etc.
@@ -57,6 +57,7 @@ import net.javapla.jawn.controller_filters.ControllerFilter;
  * @author Igor Polevoy
  * @author MTD
  */
+@Deprecated
 public abstract class AbstractControllerConfig extends AppConfig {
 
     //exclude some controllers from filters

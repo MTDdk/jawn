@@ -31,12 +31,12 @@ public class RouteBuilderTest {
 
     @Test(expected=ControllerException.class)
     public void should_throw_because_action_not_found() {
-        RouteBuilder.get().route("/").to(KageController.class, "nothing").build();
+        RouteBuilder.get().route("/").to(KageController.class, "nothing").build(new Filters(), null);
     }
     
     @Test
     public void should_return_route() {
-        Route route = RouteBuilder.get().to(KageController.class, "bolle").route("/kage/bolle").build();
+        Route route = RouteBuilder.get().to(KageController.class, "bolle").route("/kage/bolle").build(new Filters(), null);
         
         assertNotNull(route);
         assertEquals("getBolle", route.getAction());

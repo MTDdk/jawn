@@ -12,15 +12,12 @@ import javax.ws.rs.core.Response.Status;
 //Results
 public class ControllerResponseBuilder {
 
-    private final Context context;
-    public ControllerResponseBuilder(Context context) {
-        this.context = context;
+    private final ControllerResponseHolder holder;
+    public ControllerResponseBuilder(ControllerResponseHolder holder) {
+        this.holder = holder;
     }
     
     
-//    public static NewControllerResponse status(int code) {
-//        return new NewControllerResponse().status(code);
-//    }
     public static ControllerResponse ok() {
         return new ControllerResponse(Status.OK.getStatusCode());
     }
@@ -37,7 +34,7 @@ public class ControllerResponseBuilder {
      */
     public ControllerResponse text(String text) {
         ControllerResponse response = ok();
-        context.setControllerResponse(response);
+        holder.setControllerResponse(response);
         response.contentType(MediaType.TEXT_PLAIN).renderable(text);
         return response;
     }
@@ -65,7 +62,7 @@ public class ControllerResponseBuilder {
      */
     public ControllerResponse json(Object obj) {
         ControllerResponse response = ok();
-        context.setControllerResponse(response);
+        holder.setControllerResponse(response);
         response.contentType(MediaType.APPLICATION_JSON).renderable(obj);
         return response;
     }
@@ -81,13 +78,13 @@ public class ControllerResponseBuilder {
      */
     public ControllerResponse xml(Object obj) {
         ControllerResponse response = ok();
-        context.setControllerResponse(response);
+        holder.setControllerResponse(response);
         response.contentType(MediaType.APPLICATION_XML).renderable(obj);
         return response;
     }
     
-    public ControllerResponseBuilder status(int statusCode) {
-        context.setControllerResponse(new ControllerResponse(statusCode));
+    ControllerResponseBuilder status(int statusCode) {
+        holder.setControllerResponse(new ControllerResponse(statusCode));
         return this;
     }
     
@@ -97,5 +94,61 @@ public class ControllerResponseBuilder {
      */
     public StatusWrapper status() {
         return new StatusWrapper(this);
+    }
+    
+    /**
+     * Conveniently wraps status codes into simple method calls
+     * 
+     * @author MTD
+     */
+    public class StatusWrapper {
+        private final ControllerResponseBuilder builder;
+        StatusWrapper(ControllerResponseBuilder builder) {
+            this.builder = builder;
+        }
+        
+        /**
+         * 200 OK
+         * @return 
+         * @return The original builder
+         */
+        public ControllerResponseBuilder ok() {
+//            this.builder.controllerResponse.setStatus(javax.ws.rs.core.Response.Status.OK.getStatusCode());
+//            return builder;
+            builder.status(javax.ws.rs.core.Response.Status.OK.getStatusCode());
+            return builder;
+        }
+        /**
+         * 204 No Content
+         * @return The original builder
+         */
+        public ControllerResponseBuilder noContent() {
+            builder.status(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
+            return builder;
+        }
+        /**
+         * 400 Bad Request
+         * @return The original builder
+         */
+        public ControllerResponseBuilder badRequest() {
+            builder.status(javax.ws.rs.core.Response.Status.BAD_REQUEST.getStatusCode());
+            return builder;
+        }
+        /**
+         * 404 Not Found
+         * @return The original builder
+         */
+        public ControllerResponseBuilder notFound() {
+            builder.status(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
+            return builder;
+        }
+        /**
+         * 500 Internal Server Error
+         * @return The original builder
+         */
+        public ControllerResponseBuilder internalServerError() {
+            builder.status(javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            return builder;
+        }
     }
 }

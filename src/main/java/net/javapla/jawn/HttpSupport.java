@@ -64,15 +64,22 @@ import com.google.inject.Injector;
  * @author Igor Polevoy
  * @author MTD
  */
-class HttpSupport {
+class HttpSupport implements ControllerResponseHolder {
     
-    //TODO inject Context and replace all context
+ // Standard behaviour is to look for HTML template
+    protected ControllerResponse response = ControllerResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
+    public void setControllerResponse(ControllerResponse r) {
+        response = r;
+    }
+    public ControllerResponse getControllerResponse() {
+        return response;
+    }
+    
 //    @Inject
     private Context context;
     private Injector injector;
     
     public void init(Context context, Injector injector) {
-        System.err.println("CONTEXT CONTEXT CONTEXT CONTEXT CONTEXT CONTEXT CONTEXT " + this.getClass());
         this.context = context;
         this.injector = injector;
     }
@@ -92,12 +99,14 @@ class HttpSupport {
     protected void assign(String name, Object value) {
         KeyWords.check(name);
 //        context.addViewObject(name, value);//getValues().put(name, value);
-        context.getNewControllerResponse().addViewObject(name, value);
+//        context.getNewControllerResponse().addViewObject(name, value);
+        response.addViewObject(name, value);
     }
     
     protected Map<String, Object> values() {
 //        return context.getViewObjects();//getValues();
-        return context.getNewControllerResponse().getViewObjects();
+//        return context.getNewControllerResponse().getViewObjects();
+        return response.getViewObjects();
     }
 
     /**
@@ -193,7 +202,7 @@ class HttpSupport {
     
 
     protected ControllerResponseBuilder respond() {
-        return new ControllerResponseBuilder(context);
+        return new ControllerResponseBuilder(this);
     }
 
     
@@ -227,8 +236,9 @@ class HttpSupport {
         return render(template);
     }
     protected NewRenderBuilder render(String template) {
-        context.getNewControllerResponse().template(template);
-        return new NewRenderBuilder(context.getNewControllerResponse());
+//        context.getNewControllerResponse().template(template);
+        response.template(template);
+        return new NewRenderBuilder(response/*context.getNewControllerResponse()*/);
     }
 
 
@@ -243,7 +253,8 @@ class HttpSupport {
     protected void redirect(String path) {
         try {
             context.responseSendRedirect(path);
-            context.setControllerResponse(null);
+//            context.setControllerResponse(null);
+            response = null;
         } catch (IOException e) {
             throw new ControllerException(e);
         }
@@ -335,7 +346,7 @@ class HttpSupport {
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
     protected void redirect() {
-        redirect(getRoute().getController().getClass());
+        redirect(getRoute().getController());
     }
     
     /**
@@ -346,7 +357,7 @@ class HttpSupport {
      * @author MTD
      */
     protected void redirect(Map<String, String> params) {
-        redirect(getRoute().getController().getClass(), params);
+        redirect(getRoute().getController(), params);
     }
 
     /**
@@ -430,7 +441,8 @@ class HttpSupport {
                     .addHeader("Content-Disposition", "attachment; filename=" + file.getName())
                     .renderable(new FileInputStream(file))
                     .contentType(MediaType.APPLICATION_OCTET_STREAM);
-            context.setControllerResponse(r);
+//            context.setControllerResponse(r);
+            response = r;
         }catch(Exception e){
             throw new PathNotFoundException(e);
         }
@@ -863,18 +875,18 @@ class HttpSupport {
      * @return the path to the saved image
      */
     protected ImageHandlerBuilder image(FormItem item) throws ControllerException {
-        return new ImageHandlerBuilder(context, item);
+        return new ImageHandlerBuilder(this, context, item);
     }
     protected ImageHandlerBuilder image(File file) throws PathNotFoundException, ControllerException {
         if (!file.canRead())
             throw new PathNotFoundException(file.getPath());
-        return new ImageHandlerBuilder(context, file);
+        return new ImageHandlerBuilder(this, context, file);
     }
     protected ImageHandlerBuilder image(String name) throws PathNotFoundException, ControllerException {
         File file = new File(getRealPath(name));
         if (!file.canRead())
             throw new PathNotFoundException(file.getPath());
-        return new ImageHandlerBuilder(context, file);
+        return new ImageHandlerBuilder(this, context, file);
     }
     
     
@@ -1405,7 +1417,8 @@ class HttpSupport {
         ControllerResponse r = ControllerResponseBuilder.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .renderable(in);
-        context.setControllerResponse(r);
+//        context.setControllerResponse(r);
+        response = r;
     }
 
 
@@ -1465,7 +1478,8 @@ class HttpSupport {
         //------
         ControllerResponse r = new ControllerResponse(200);
         r.contentType(contentType).status(status);
-        context.setControllerResponse(r);
+//        context.setControllerResponse(r);
+        response = r;
         
         try {
             if (headers != null) {

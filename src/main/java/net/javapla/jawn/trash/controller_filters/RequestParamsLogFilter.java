@@ -14,19 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 */
 
-package net.javapla.jawn.controller_filters;
+package net.javapla.jawn.trash.controller_filters;
 
 import net.javapla.jawn.Context;
-
+import net.javapla.jawn.util.MultiList;
+import net.javapla.jawn.util.StringUtil;
 
 /**
- * Use this filter to log HTTP request properties to a log system.
- * request properties are not submitted parameters, but rather properties of
- * the request itself: HTTP method, URI, etc.
+ * Use this filter to log HTTP request parameters to a log system.
  *
  * @author Igor Polevoy
  */
-public class RequestPropertiesLogFilter extends AbstractLoggingFilter{
+@Deprecated
+public class RequestParamsLogFilter extends AbstractLoggingFilter {
 
     /**
      * Creates a filter with preset log level.
@@ -34,26 +34,26 @@ public class RequestPropertiesLogFilter extends AbstractLoggingFilter{
      * @param level log level
      */
     
-    public RequestPropertiesLogFilter(Level level) {
+    public RequestParamsLogFilter(Level level) {
         super(level);
     }
 
     /**
      * Creates a filter with default "INFO" level.
      */
-    public RequestPropertiesLogFilter() {
+    public RequestParamsLogFilter() {
         super();    
     }
 
     @Override
     protected String getMessage(Context context) {
-        StringBuilder sb = new StringBuilder("\n");
-        sb.append("Request URL: ").append(context.requestUrl()).append("\n");
-        sb.append("ContextPath: ").append(context.contextPath()).append("\n");
-        sb.append("Query String: ").append(context.queryString()).append("\n");
-        sb.append("URI Full Path: ").append(context.requestUri()).append("\n");
-        sb.append("URI Path: ").append(context.path()).append("\n");
-        sb.append("Method: ").append(context.method());
+        StringBuilder sb = new StringBuilder('\n');
+        MultiList<String> params = context.params();
+
+        for (String param : params.keySet()) {
+            sb.append("Param: ").append(param).append("=").append(StringUtil.join(params.list(param), ", ")).append("\n");
+        }
+
         return sb.toString();
     }
 }

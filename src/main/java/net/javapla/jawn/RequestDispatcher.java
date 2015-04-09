@@ -42,6 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
+import net.javapla.jawn.application.IFilterConfig;
 import net.javapla.jawn.application.IRouteConfig;
 import net.javapla.jawn.exceptions.ActionNotFoundException;
 import net.javapla.jawn.exceptions.CompilationException;
@@ -102,7 +103,8 @@ public class RequestDispatcher implements Filter {
         bootstrapper.boot();
         injector = bootstrapper.getInjector();
         controllerRegistry.setInjector(injector);
-        router = createRouter(); // created at startup, as we have no need for reloading custom routes.
+        Filters filters = initFilters();
+        router = createRouter(filters); // created at startup, as we have no need for reloading custom routes.
         //--------
         
         servletContext.setAttribute("appContext", appContext);
@@ -122,10 +124,11 @@ public class RequestDispatcher implements Filter {
     }
 
     protected void initApp(AppContext context, ControllerRegistry registry, PropertiesImpl properties) {
-        initAppConfig(properties.get(Constants.Params.bootstrap.name()) /*Configuration.getBootstrapClassName()*/, context, registry, properties, true);
+        initAppConfig(properties.get(Constants.Params.bootstrap.name()), context, registry, properties, true);
         //these are optional config classes:
-        initAppConfig(properties.get(Constants.Params.controllerConfig.name())/*Configuration.getControllerConfigClassName()*/, context, registry, properties, false);//AppControllerConfig
-        initAppConfig(properties.get(Constants.Params.dbconfig.name())/*Configuration.getDbConfigClassName()*/, context, registry, properties, false);
+        //deprecated
+//        initAppConfig(properties.get(Constants.Params.controllerConfig.name()), context, registry, properties, false);//AppControllerConfig
+        initAppConfig(properties.get(Constants.Params.dbconfig.name()), context, registry, properties, false);
     }
     
     private void findExclusionPaths() {
@@ -144,10 +147,10 @@ public class RequestDispatcher implements Filter {
 
     //README is it necessary to dynamically load the Router? 
     //TODO the router most definitely should be created at startup, as we do not care for looking up custom routes per request
-    private Router createRouter() {
-        Router router = injector.getInstance(Router.class);
+    private Router createRouter(Filters filters) {
+        Router router = new Router(filters, injector);//injector.getInstance(Router.class);
         
-        String routeConfigClassName = "app.config.NewRouteConfig";
+        String routeConfigClassName = "app.config.RouteConfig";
         // try to read custom routes provided by user
         try {
             IRouteConfig localRouteConfig = DynamicClassFactory.createInstance(routeConfigClassName, IRouteConfig.class, false);
@@ -164,6 +167,26 @@ public class RequestDispatcher implements Filter {
         router.compileRoutes();
         
         return router;
+    }
+    
+    private Filters initFilters() {
+        Filters filters = new Filters();
+        
+        String filterConfigClassName = "app.config.FilterConfig";
+        // try to read custom routes provided by user
+        try {
+            IFilterConfig filterConfig = DynamicClassFactory.createInstance(filterConfigClassName, IFilterConfig.class, false);
+            filterConfig.init(filters);
+            logger.debug("Instantiated filters from: " + filterConfigClassName);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch(ConfigurationException e){
+            throw  e;
+        } catch (Exception e) {
+            logger.debug("Did not find any filters: " + getCauseMessage(e));
+        }
+        
+        return filters;
     }
 
     //TODO: refactor to some util class. This is stolen...ehrr... borrowed from Apache ExceptionUtils
@@ -183,7 +206,6 @@ public class RequestDispatcher implements Filter {
             if(appConfig instanceof  Bootstrap){
                 appBootstrap = (Bootstrap) appConfig;
             }
-//            appConfig.init(context);
             appConfig.init(properties);
             appConfig.completeInit(registry);
         }
@@ -248,10 +270,8 @@ public class RequestDispatcher implements Filter {
             
             // Try to look up the route
             Route route = router.getRoute(HttpMethod.getMethod(request), uri);
-            logger.debug("---- route = {}", route);
 
             if (route != null) {
-                logger.debug("--------- {}.{}()", route.getController().getClass(), route.getAction());
                 //TODO consider if it should be possible to ignore routes
 //                if(route.ignores(path)) {
 //                    chain.doFilter(request, response); // let someone else handle this
@@ -259,16 +279,16 @@ public class RequestDispatcher implements Filter {
 //                    return;
 //                }
 
-                if (properties.getBoolean(Constants.LOG_REQUESTS)) {
-                    logger.info("================ New request: " + new Date() + " ================");
-                }
-                
                 Context context = new Context(servletContext, request, response, injector.getInstance(PropertiesImpl.class), injector.getInstance(ParserEngineManager.class));
                 context.init(route, format, language, uri);
                 
-                toBePutIntoClass(context, route);
+                // run filters
+                ControllerResponse controllerResponse = route.getFilterChain().before(context);
+                
                 ResponseRunner runner = injector.getInstance(ResponseRunner.class);
-                runner.run(context, context.getNewControllerResponse());
+                runner.run(context, controllerResponse/*context.getNewControllerResponse()*/);
+                
+                route.getFilterChain().after(context);
             } else {
                 //TODO: theoretically this will never happen, because if the route was not excluded, the router.recognize() would throw some kind
                 // of exception, leading to the a system error page.
@@ -301,51 +321,6 @@ public class RequestDispatcher implements Filter {
     }
     
     
-    private void injectControllerWithContext(HttpSupport controller, Context context) {
-        controller.init(context, injector);
-    }
-    private void toBePutIntoClass(Context context, Route route2) {
-     // if we want to reload the controller, this is a good time to do it
-        if (! properties.isProd()) {
-            context.getRoute().reloadController();
-        }
-        //
-        injectControllerWithContext(route2.getController(), context);
-        
-        //Inject dependencies
-        if (injector != null) {
-            injector.injectMembers(route2.getController());
-        }
-        
-        //Execute action
-        try{
-            
-          //find the method name and run it
-          String methodName = route2.getAction().toLowerCase();
-          for (Method method : route2.getController().getClass().getMethods()) {
-              if (methodName.equals( method.getName().toLowerCase() )) {
-                  method.invoke(route2.getController());
-                  return;
-              }
-          }
-          throw new ControllerException(String.format("Action name (%s) not found in controller (%s)", route2.getAction(), route2.getController().getClass().getSimpleName()));
-          
-//          Method m = controller.getClass().getMethod(actionName);
-//          m.invoke(controller);
-      }catch(InvocationTargetException e){
-          if(e.getCause() != null && e.getCause() instanceof  WebException){
-              throw (WebException)e.getCause();                
-          }else if(e.getCause() != null && e.getCause() instanceof RuntimeException){
-              throw (RuntimeException)e.getCause();
-          }else if(e.getCause() != null){
-              throw new ControllerException(e.getCause());
-          }
-      }catch(WebException e){
-          throw e;
-      }catch(Exception e){
-          throw new ControllerException(e);
-      }
-    }
     
     private boolean redirectUrlEndingWithSlash(String path, HttpServletResponse response) throws IOException {
         if (path.length() > 1 && path.endsWith("/")) { 

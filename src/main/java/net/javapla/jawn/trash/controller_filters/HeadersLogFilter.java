@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 */
 
-package net.javapla.jawn.controller_filters;
+package net.javapla.jawn.trash.controller_filters;
 
 import java.util.Map;
 
@@ -25,6 +25,7 @@ import net.javapla.jawn.Context;
  *
  * @author Igor Polevoy
  */
+@Deprecated
 public class HeadersLogFilter extends AbstractLoggingFilter {
     
     private boolean printResponseHeaders;

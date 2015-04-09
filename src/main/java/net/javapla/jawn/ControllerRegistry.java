@@ -22,9 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletContext;
-
-import net.javapla.jawn.controller_filters.ControllerFilter;
+import net.javapla.jawn.trash.controller_filters.ControllerFilter;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;

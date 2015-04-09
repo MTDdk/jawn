@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.Injector;
+
 import net.javapla.jawn.exceptions.ClassLoadException;
 import net.javapla.jawn.exceptions.CompilationException;
 import net.javapla.jawn.exceptions.ControllerException;
@@ -31,11 +33,15 @@ public class Router {
     
     
     private final List<RouteBuilder> builders;
+    private final Filters filters;
+    private final Injector injector;
     
     private List<Route> routes;
     
-    public Router() {
+    public Router(Filters filters, Injector injector) {
         builders = new ArrayList<>();
+        this.filters = filters;
+        this.injector = injector;
     }
     
     public RouteBuilder GET() {
@@ -86,11 +92,11 @@ public class Router {
         throw new RouteException("Failed to map resource to URI: " + requestUri);
     }
     
-    public void compileRoutes() {
+    void compileRoutes() {
         if (routes != null) throw new IllegalStateException("Routes already compiled");//README could just return without throw
         List<Route> r = new ArrayList<>();
         for (RouteBuilder builder : builders) {
-            r.add(builder.build());
+            r.add(builder.build(filters, injector));
         }
         routes = r;//README probably some immutable
     }
@@ -102,7 +108,6 @@ public class Router {
     
     
     private Route matchStandard(HttpMethod httpMethod, String requestUri) throws ClassLoadException {
-        RouteBuilder bob = RouteBuilder.method(httpMethod);
         
         // find potential routes
         for (InternalRoute internalRoute : internalRoutes) {
@@ -116,9 +121,10 @@ public class Router {
                     String className = c.getControllerClassName();
                     AppController controller = DynamicClassFactory.createInstance(className, AppController.class, false);
 
+                    RouteBuilder bob = RouteBuilder.method(httpMethod);
                     bob.route(internalRoute.uri);
                     bob.to(controller, c.getAction());
-                    return bob.build(); // this might throw if the controller does not have the action
+                    return bob.build(filters, injector); // this might throw if the controller does not have the action
 //                    break; // let's just try this one
                 } catch (ControllerException e) {
                     //to() failed - the controller does not contain the corresponding action
@@ -146,13 +152,13 @@ public class Router {
         }
         public String getController() {
             String p = params.get("controller");
-            if (StringUtil.blank(p)) return Route.ROOT_CONTROLLER_NAME;
+            if (StringUtil.blank(p)) return RouteBuilder.ROOT_CONTROLLER_NAME;
             return p;
 //            return params.getOrDefault("controller", NewRoute.ROOT_CONTROLLER_NAME);
         }
         public String getAction() {
             String p = params.get("action");
-            if (StringUtil.blank(p)) return Route.DEFAULT_ACTION_NAME;
+            if (StringUtil.blank(p)) return RouteBuilder.DEFAULT_ACTION_NAME;
             return p;
 //            return params.getOrDefault("action", NewRoute.DEFAULT_ACTION_NAME);
         }

@@ -15,11 +15,7 @@ limitations under the License.
 */
 package net.javapla.jawn;
 
-import net.javapla.jawn.annotations.*;
-
 import javax.servlet.http.HttpServletRequest;
-
-import java.lang.annotation.Annotation;
 
 /**
  * @author Igor Polevoy
@@ -27,28 +23,6 @@ import java.lang.annotation.Annotation;
 public enum HttpMethod {
     GET, POST, PUT, DELETE, HEAD;
 
-    /**
-     * Detects a method from annotation
-     *
-     * @param annotation class annotation
-     * @return method instance corresponding to the annotation type.
-     */
-    @Deprecated
-    public static HttpMethod method(Annotation annotation){
-        if(annotation instanceof GET){
-            return GET;
-        }else if(annotation instanceof POST){
-            return POST;
-        }else if(annotation instanceof PUT){
-            return PUT;
-        }else if(annotation instanceof DELETE){
-            return DELETE;
-        }else if (annotation instanceof HEAD) {
-            return HEAD;
-        }else{
-            throw new IllegalArgumentException("allowable annotations: @GET, @POST, @PUT, @DELETE, @HEAD, all from 'activeweb.annotations' package.");
-        }
-    }
 
     /**
      * Detects an HTTP method from a request.

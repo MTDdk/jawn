@@ -16,6 +16,7 @@ import org.imgscalr.Scalr;
  * @author MTD
  */
 public class ImageHandlerBuilder {
+    private final ControllerResponseHolder holder;
     private final Context context;
     
     //TODO actually this is up to the user to figure out. There should not be a default folder
@@ -23,8 +24,13 @@ public class ImageHandlerBuilder {
     private BufferedImage image;
     private final FileName fn = new FileName();
 
-    public ImageHandlerBuilder(Context context, FormItem item) throws ControllerException {
+    private ImageHandlerBuilder(ControllerResponseHolder holder, Context context) {
+        this.holder = holder;
         this.context = context;
+    }
+    
+    public ImageHandlerBuilder(ControllerResponseHolder holder, Context context, FormItem item) throws ControllerException {
+        this(holder, context);
         try {
             this.image = ImageIO.read(item.getInputStream());
             fn.updateNameAndExtension(item.getFileName());
@@ -35,8 +41,8 @@ public class ImageHandlerBuilder {
             throw new ControllerException(e);
         }
     }
-    public ImageHandlerBuilder(Context context, File file) throws ControllerException {
-        this.context = context;
+    public ImageHandlerBuilder(ControllerResponseHolder holder, Context context, File file) throws ControllerException {
+        this(holder, context);
         try {
             this.image = ImageIO.read(file);
 //            String fullpath = file.getPath();
@@ -122,7 +128,9 @@ public class ImageHandlerBuilder {
 //         try {
              int status = 200;
              String contentType = "image/"+extension;
-             context.setControllerResponse(ControllerResponseBuilder.ok().contentType(contentType).status(status).addSupportedContentType("image/*").renderable(this.image));
+             ControllerResponse response = ControllerResponseBuilder.ok().contentType(contentType).status(status).addSupportedContentType("image/*").renderable(this.image);
+             holder.setControllerResponse(response);
+//            context.setControllerResponse(response);
 //             ImageIO.write(this.image, extension, context.responseOutputStream());//outputStream(contentType, null, status));
 //         } catch (IOException e) {
 //             throw new ControllerException(e);

@@ -12,22 +12,27 @@ import net.javapla.jawn.util.StringUtil;
  * @author MTD
  */
 public class Route extends InternalRoute {
-    public static final String ROOT_CONTROLLER_NAME = "index";//README could be set in filter.init()
-    public static final String DEFAULT_ACTION_NAME = "index";
+//    public static final String ROOT_CONTROLLER_NAME = "index";//README could be set in filter.init()
+//    public static final String DEFAULT_ACTION_NAME = "index";
     
     
     private final HttpMethod httpMethod;
-    private AppController controller;
+//    private AppController controller; //README see ControllerActionInvoker
+    private final Class<? extends AppController> controller;
     private final String action;
     private final String actionName;//without httpMethod
     
+    private final FilterChain filterChain; // can be null if no filters are assigned
     
-    public Route(String uri, HttpMethod method, AppController controller, String action) {
+    
+    public Route(String uri, HttpMethod method, Class<? extends AppController> controller, String action, String actionName, FilterChain chain) {
         super(uri);
         this.httpMethod = method;
         this.controller = controller;
-        this.action = constructAction(action, method);
-        this.actionName = StringUtil.blank(action) ? DEFAULT_ACTION_NAME : action;
+        this.action = action;//constructAction(action, method);
+        this.actionName = actionName;//StringUtil.blank(action) ? DEFAULT_ACTION_NAME : action;
+        
+        this.filterChain = chain;
     }
     
     public String getUri() {
@@ -36,7 +41,7 @@ public class Route extends InternalRoute {
     public HttpMethod getHttpMethod() {
         return httpMethod;
     }
-    public AppController getController() {
+    public Class<? extends AppController> getController() {
         return controller;
     }
     /**
@@ -50,6 +55,10 @@ public class Route extends InternalRoute {
      */
     public String getActionName() {
         return actionName;
+    }
+    
+    public FilterChain getFilterChain() {
+        return filterChain;
     }
     
     
@@ -67,22 +76,22 @@ public class Route extends InternalRoute {
     }
 
     //README if the Route always would contain the constructed action, this method could be moved into the RouteBuilder along with the static DEFAULT_NAME
-    private String constructAction(String action, HttpMethod method) {
-        if (StringUtil.blank(action)) return DEFAULT_ACTION_NAME;
-        if (DEFAULT_ACTION_NAME.equals(action))
-            return action;
-        return method.name().toLowerCase() + StringUtil.camelize(action.replace('-', '_'), true);
-    }
+//    private String constructAction(String action, HttpMethod method) {
+//        if (StringUtil.blank(action)) return DEFAULT_ACTION_NAME;
+//        if (DEFAULT_ACTION_NAME.equals(action))
+//            return action;
+//        return method.name().toLowerCase() + StringUtil.camelize(action.replace('-', '_'), true);
+//    }
     
-    void reloadController() {
-        try {
-            //reload
-            controller = loadController(controller.getClass().getName());
-        } catch (ClassLoadException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
+//    void reloadController() {
+//        try {
+//            //reload
+//            controller = loadController(controller.getClass().getName());
+//        } catch (ClassLoadException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//    }
 
     
 //    /**

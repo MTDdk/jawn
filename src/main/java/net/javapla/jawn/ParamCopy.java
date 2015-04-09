@@ -36,12 +36,12 @@ class ParamCopy {
 
 
     static void copyInto(HttpServletRequest request, Context context, PropertiesImpl properties){
-        Map<String, Object> assigns = context.getNewControllerResponse().getViewObjects();
-        insertActiveWebParamsInto(assigns, request, context, properties);
-        copyRequestAttributesInto(assigns, request);
-        copyRequestParamsInto(assigns, request);
-        copySessionAttrsInto(assigns, request);
-        copyRequestProperties(assigns, request);
+//        Map<String, Object> assigns = context.getNewControllerResponse().getViewObjects();
+//        insertActiveWebParamsInto(assigns, request, context, properties);
+//        copyRequestAttributesInto(assigns, request);
+//        copyRequestParamsInto(assigns, request);
+//        copySessionAttrsInto(assigns, request);
+//        copyRequestProperties(assigns, request);
     }
 
     private static void insertActiveWebParamsInto(Map<String, Object> assigns, HttpServletRequest request, Context context, PropertiesImpl properties) {

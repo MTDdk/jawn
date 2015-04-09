@@ -85,6 +85,7 @@ public abstract class DynamicClassFactory {
         }
     }
     
+    
     /**
      * Wraps {@link Class#forName(String)} and recast any potential exception into a {@link RuntimeException}.
      * @param className

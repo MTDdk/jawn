@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and 
 limitations under the License. 
 */
-package net.javapla.jawn.controller_filters;
+package net.javapla.jawn.trash.controller_filters;
 
 import net.javapla.jawn.Context;
 
@@ -31,6 +31,7 @@ import net.javapla.jawn.Context;
  * 
  * @author Igor Polevoy
  */
+@Deprecated
 public interface ControllerFilter {
 
     /**

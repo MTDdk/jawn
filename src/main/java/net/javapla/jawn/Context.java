@@ -59,7 +59,7 @@ public class Context {
     private final PropertiesImpl properties;
     private final ParserEngineManager parserManager;
     
-    private ControllerResponse newControllerResponse;
+//    private ControllerResponse newControllerResponse;
     
     private Route route;
     private String format, language;
@@ -79,7 +79,7 @@ public class Context {
         this.parserManager = parserManager;
         
         // Standard behaviour is to look for HTML template
-        this.newControllerResponse = ControllerResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
+//        this.newControllerResponse = ControllerResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
     }
     
     public void init(Route route/*, RequestContext requestContext*/, String format, String language, String routedPath) {
@@ -94,12 +94,12 @@ public class Context {
     }
     
     
-    void setControllerResponse(ControllerResponse response) {
-        newControllerResponse = response;
-    }
-    ControllerResponse getNewControllerResponse() {
-        return newControllerResponse;
-    }
+//    void setControllerResponse(ControllerResponse response) {
+//        newControllerResponse = response;
+//    }
+//    ControllerResponse getNewControllerResponse() {
+//        return newControllerResponse;
+//    }
     
     /**
      * @return An instance of the Request interface

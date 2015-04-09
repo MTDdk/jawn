@@ -9,7 +9,7 @@ public class TemplateEngineHelper {
     public static String getTemplateForResult(Route route, ControllerResponse response) {
         if (response.template() == null) {
             if (route != null) {
-                String controllerPath = RouterHelper.getReverseRoute(route.getController().getClass());
+                String controllerPath = RouterHelper.getReverseRoute(route.getController());
                 
               //TODO Route(r).reverseRoute
                 String template =  controllerPath + "/" + route.getActionName();

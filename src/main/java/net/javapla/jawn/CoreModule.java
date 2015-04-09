@@ -37,7 +37,10 @@ public class CoreModule extends AbstractModule {
         bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class);
         bind(ResponseRunner.class);
         
-        bind(Router.class).in(Singleton.class);
+        bind(ControllerActionInvoker.class).in(Singleton.class);
+        bind(FilterChainEnd.class);
+        
+//        bind(Router.class).in(Singleton.class);
         
 //        bind(Router.class);
         

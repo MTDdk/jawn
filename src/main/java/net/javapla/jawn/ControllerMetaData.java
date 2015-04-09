@@ -19,7 +19,7 @@ import com.google.inject.Injector;
 
 import java.util.*;
 
-import net.javapla.jawn.controller_filters.ControllerFilter;
+import net.javapla.jawn.trash.controller_filters.ControllerFilter;
 
 /**
  * Meta-data class to keep various things related to a controller.
