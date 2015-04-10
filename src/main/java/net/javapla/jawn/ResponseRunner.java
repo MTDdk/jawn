@@ -15,7 +15,6 @@ import com.google.inject.Singleton;
  * Handling the ControllerResponse using a TemplateManager
  * @author MTD
  */
-@Singleton
 //perhaps to be called ResponseHandler
 public class ResponseRunner {
 

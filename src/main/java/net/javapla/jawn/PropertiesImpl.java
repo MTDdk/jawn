@@ -50,8 +50,9 @@ public class PropertiesImpl {
                 props.put(name, overrides.get(name));
             }
             checkInitProperties();
-//            initTemplateManager();
             
+            @Deprecated
+            //Just remove it from here and from wiki + jettyrun
             String logRequest = System.getProperty("jawn.log.request");
             props.put(Constants.LOG_REQUESTS, logRequest);
             
@@ -124,8 +125,9 @@ public class PropertiesImpl {
     }
     
     
-    public void setSupportedLanguages(String... languages) {
-        props.put(Constants.SUPPORTED_LANGUAGES, languages);
+    public void setSupportedLanguages(String[] languages) {
+        if (languages != null)
+            props.put(Constants.SUPPORTED_LANGUAGES, languages);
     }
     /**
      * First element is the default language

@@ -13,12 +13,10 @@ import com.google.inject.Inject;
 class FilterChainEnd implements FilterChain {
 
     private final ControllerActionInvoker invoker;
-//    private Injector injector;
     
     @Inject
-    public FilterChainEnd(ControllerActionInvoker invoker/*, Injector injector*/) {
+    public FilterChainEnd(ControllerActionInvoker invoker) {
         this.invoker = invoker;
-//        this.injector = injector;
     }
     
     @Override

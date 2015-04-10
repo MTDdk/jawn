@@ -1,4 +1,4 @@
-package net.javapla.jawn.templates.configuration;
+package net.javapla.jawn.templates.stringtemplateconfiguration;
 
 import java.util.ArrayList;
 import java.util.List;

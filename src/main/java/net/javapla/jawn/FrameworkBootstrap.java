@@ -39,13 +39,19 @@ public class FrameworkBootstrap {
         
         config = readConfiguration(appConfig, router, filters);
         
+        // supported languages are needed in the creation of the injector
+        properties.setSupportedLanguages(appConfig.getSupportedLanguages()); 
+        
+        // create a single injector for both the framework and the user registered modules
         Injector localInjector = initInjector(Lists.newArrayList(appConfig.getRegisteredModules()), router);
+        
+        // compiling of routes needs an injector, so this is done after the creation
         router.compileRoutes(localInjector);
         
         injector = localInjector;
         
         FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
-        engine.onFrameworkStartup();
+        engine.onFrameworkStartup(); // signal startup
         
         logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
     }
@@ -73,20 +79,9 @@ public class FrameworkBootstrap {
         
         List<AbstractModule> combinedModules = new ArrayList<>();
         
-        combinedModules.add(new AbstractModule() {
-            @Override
-            protected void configure() {
-                // TODO readfilters, create router, compile router, remove filters from bind
-//                bind(Router.class).toInstance(createRouter(readFilters()));
-//                bind(Filters.class).toInstance(readFilters());
-                bind(Router.class).toInstance(router);//.in(Singleton.class);
-            }
-        });
-        combinedModules.add(new CoreModule(properties));
+        combinedModules.add(new CoreModule(properties, router));
         
         combinedModules.addAll(userModules);
-        
-        
         
         return Guice.createInjector(Stage.PRODUCTION, combinedModules);
     }

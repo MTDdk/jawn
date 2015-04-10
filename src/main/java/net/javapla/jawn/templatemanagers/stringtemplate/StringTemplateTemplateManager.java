@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 
 import net.javapla.jawn.templatemanagers.TemplateManager;
-import net.javapla.jawn.templates.configuration.ConfigurationReader;
-import net.javapla.jawn.templates.configuration.Site;
-import net.javapla.jawn.templates.configuration.Template;
+import net.javapla.jawn.templates.stringtemplateconfiguration.ConfigurationReader;
+import net.javapla.jawn.templates.stringtemplateconfiguration.Site;
+import net.javapla.jawn.templates.stringtemplateconfiguration.Template;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

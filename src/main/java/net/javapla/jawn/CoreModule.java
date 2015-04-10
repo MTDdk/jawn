@@ -7,7 +7,7 @@ import net.javapla.jawn.parsers.ParserEngineManagerImpl;
 import net.javapla.jawn.parsers.XmlMapperProvider;
 import net.javapla.jawn.templates.TemplateEngineManager;
 import net.javapla.jawn.templates.TemplateEngineManagerImpl;
-import net.javapla.jawn.templates.configuration.ConfigurationReader;
+import net.javapla.jawn.templates.stringtemplateconfiguration.ConfigurationReader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -17,9 +17,11 @@ import com.google.inject.Singleton;
 public class CoreModule extends AbstractModule {
     
     private final PropertiesImpl properties;
+    private final Router router;
     
-    CoreModule(PropertiesImpl properties) {
+    CoreModule(PropertiesImpl properties, Router router) {
         this.properties = properties;
+        this.router = router;
     }
 
     @Override
@@ -27,28 +29,22 @@ public class CoreModule extends AbstractModule {
         bind(PropertiesImpl.class).toInstance(properties);
         bind(Lang.class).in(Singleton.class);
         
+        bind(Router.class).toInstance(router);
+        
         // Marshallers
         bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
         bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
         
         bind(ConfigurationReader.class).in(Singleton.class);
         
-        bind(TemplateEngineManager.class).to(TemplateEngineManagerImpl.class);
-        bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class);
-        bind(ResponseRunner.class);
+        bind(TemplateEngineManager.class).to(TemplateEngineManagerImpl.class).in(Singleton.class);
+        bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
+        bind(ResponseRunner.class).in(Singleton.class);
         
         bind(Context.class);
         
         bind(ControllerActionInvoker.class).in(Singleton.class);
-        bind(FilterChainEnd.class);
-        
-//        bind(Router.class).in(Singleton.class);
-        
-//        bind(Router.class);
-        
-//        bind(Context.class);
-        
-//        bind(Request.class);
+        bind(FilterChainEnd.class).in(Singleton.class);
         
         bind(FrameworkEngine.class).in(Singleton.class);
     }

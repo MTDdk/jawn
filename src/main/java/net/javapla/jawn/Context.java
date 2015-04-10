@@ -140,9 +140,9 @@ public class Context {
      *      is set - else null
      */
     public String getRouteLanguage() {
-        if (language != null)
-            return language;//route.getLanguage();
-        return getRouteParam("lang");
+        String routeLang = getRouteParam("lang");
+        if (routeLang != null) return routeLang;
+        return language;
     }
     public String getRouteFormat() {
         return format;//route.getFormat();

@@ -35,6 +35,7 @@ public interface Constants {
     /**
      * Should the framework log requests
      */
+    @Deprecated
     public static final String LOG_REQUESTS = "jawn.log.request";
     
     

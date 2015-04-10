@@ -15,11 +15,12 @@ import net.javapla.jawn.Context;
 import net.javapla.jawn.ControllerResponse;
 import net.javapla.jawn.ResponseStream;
 import net.javapla.jawn.exceptions.ViewException;
+import net.javapla.jawn.templatemanagers.stringtemplate.AbstractStringTemplateConfig;
 import net.javapla.jawn.templatemanagers.stringtemplate.StringTemplateConfiguration;
-import net.javapla.jawn.templates.configuration.ConfigurationReader;
-import net.javapla.jawn.templates.configuration.Site;
-import net.javapla.jawn.templates.configuration.SiteConfiguration;
-import net.javapla.jawn.templates.configuration.Template;
+import net.javapla.jawn.templates.stringtemplateconfiguration.ConfigurationReader;
+import net.javapla.jawn.templates.stringtemplateconfiguration.Site;
+import net.javapla.jawn.templates.stringtemplateconfiguration.SiteConfiguration;
+import net.javapla.jawn.templates.stringtemplateconfiguration.Template;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,12 +50,15 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
 
     @Inject
     public StringTemplateTemplateEngine(StringTemplateTemplateConfigProvider templateConfig, ConfigurationReader configReader) {
+        log.debug("Starting the StringTemplateTemplateEngine");
+        
         STGroupDir.verbose = false;
         Interpreter.trace = false;
         
         config = new StringTemplateConfiguration();
-        if (templateConfig.get() != null) {
-            templateConfig.get().init(config);
+        AbstractStringTemplateConfig stringTemplateConfig = templateConfig.get();
+        if (stringTemplateConfig != null) {
+            stringTemplateConfig.init(config);
         }
         
         this.configReader = configReader;
@@ -190,9 +194,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     private void readyLayoutTemplate(Context ctx, StringWriter content, Map<String, Object> values, String controller, String language, ErrorBuffer error) {
         injectTemplateValues(layoutTemplate, values);
         
-//        ConfigurationReader conf = new ConfigurationReader(getTemplateFolder(ctx), controller);
         SiteConfiguration conf = configReader.read(getTemplateFolder(ctx), controller);
-        
         Site site = new Site();
         
         //add title

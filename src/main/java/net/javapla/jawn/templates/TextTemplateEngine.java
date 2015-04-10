@@ -19,6 +19,8 @@ public class TextTemplateEngine implements TemplateEngine {
     
     @Override
     public void invoke(Context context, ControllerResponse response, ResponseStream stream) {
+        if (response.renderable() == null) return;
+        
         try (Writer output = stream.getWriter()) {
             
             output.write(response.renderable().toString());

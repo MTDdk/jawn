@@ -13,12 +13,17 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
+@Singleton
 public class StringTemplateTemplateConfigProvider implements Provider<AbstractStringTemplateConfig> {
     
     private static Logger log = LoggerFactory.getLogger(StringTemplateTemplateConfigProvider.class.getName());
     
     private final PropertiesImpl properties;
+
+    private Class<?> userTemplateConfig;
+    private boolean tried;
     
     @Inject
     public StringTemplateTemplateConfigProvider(PropertiesImpl properties) {
@@ -27,8 +32,9 @@ public class StringTemplateTemplateConfigProvider implements Provider<AbstractSt
 
     @Override
     public AbstractStringTemplateConfig get() {
-        log.debug("Trying to find the user specified configuration");
-        System.err.println("Trying to find the user specified configuration");
+        log.debug("????? Trying to find the user specified configuration");
+        
+        if (!tried) {
         
      // read template package
         // find implementations of AbstractTemplateConfig and TemplateManager
@@ -36,13 +42,9 @@ public class StringTemplateTemplateConfigProvider implements Provider<AbstractSt
         // the implementation of AbstractTemplateConfig have to be consistent with app.config.TemplateConfig (if such exists)
         // if TemplateManager could not be found - throw (a hissy fit)
         
-        // locate the user-defined TemplateConfig
-        // if it exists, use its super-type to base the templateEngine lookup
-        // else, take the first, and therefore the best, TemplateManager
-//        Reflections frameworkReflections;
-        Class<?> userTemplateConfig = null;
+        userTemplateConfig  = null;
         try {
-            userTemplateConfig = DynamicClassFactory.getCompiledClass(properties.get(Constants.Params.templateConfig.toString()), properties.isProd());
+            userTemplateConfig  = DynamicClassFactory.getCompiledClass(properties.get(Constants.Params.templateConfig.toString()), properties.isProd());
 //            Package templatePackage = userTemplateConfig.getSuperclass().getPackage();
             
 //            frameworkReflections = new Reflections(templatePackage.getName());
@@ -71,7 +73,10 @@ public class StringTemplateTemplateConfigProvider implements Provider<AbstractSt
 //        Class<? extends AbstractTemplateConfig<?>> abstractConfig
 //            = (Class<? extends AbstractTemplateConfig<?>>) abstractConfigs.stream().findFirst().orElse(null);
         
-        if (userTemplateConfig == null)
+        tried = true;
+        }
+        
+        if (userTemplateConfig  == null)
             return null;
         else {
             try {
@@ -79,11 +84,11 @@ public class StringTemplateTemplateConfigProvider implements Provider<AbstractSt
 //            } catch (ClassLoadException/*ClassCastException*/ e) {
 //                LOGGER.warn("The found implementation of '"+Params.templateConfig.toString()+"' were not a subtype of " + userTemplateConfig + ". Proceeding without custom configuration of '"+AbstractTemplateConfig.class.getSimpleName()+"'");
             }catch(Exception e){
-                log.warn("Failed to find implementation of '" + userTemplateConfig + "', proceeding without custom configuration of '"+AbstractTemplateConfig.class.getSimpleName()+"'");
+                log.warn("Failed to find implementation of '" + userTemplateConfig  + "', proceeding without custom configuration of '"+AbstractTemplateConfig.class.getSimpleName()+"'");
                 return null;
             }
         }
-            
+        
     }
 
 }
