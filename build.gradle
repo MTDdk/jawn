@@ -20,10 +20,7 @@ repositories {
 
 dependencies {
 
-    //compile project(':jawn-core')
-    
 	compile 'com.google.inject:guice:3.0'
-	compile 'com.google.inject.extensions:guice-servlet:3.0'
 	compile 'commons-fileupload:commons-fileupload:1.3'
 
 	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.4.4'
@@ -41,8 +38,6 @@ dependencies {
 	/* Template Engines */
 	//StringTemplate
 	compile 'org.antlr:ST4:4.0.8'
-	//Freemaker
-	compile 'org.freemarker:freemarker:2.3.20'
 	
 	//ImgScalr (image manipulation)
 	compile 'org.imgscalr:imgscalr-lib:4.2'
@@ -53,5 +48,8 @@ dependencies {
 	
 	//Logging
     compile 'org.slf4j:slf4j-api:1.7.7'
+    
+    //Test
+    testCompile 'junit:junit:4.12'
 }
 
