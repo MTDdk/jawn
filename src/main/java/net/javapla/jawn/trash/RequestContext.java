@@ -1,4 +1,4 @@
-package net.javapla.jawn;
+package net.javapla.jawn.trash;
 
 
 /**

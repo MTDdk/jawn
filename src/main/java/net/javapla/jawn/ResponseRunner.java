@@ -4,6 +4,7 @@ import java.text.MessageFormat;
 
 import net.javapla.jawn.exceptions.BadRequestException;
 import net.javapla.jawn.exceptions.MediaTypeException;
+import net.javapla.jawn.exceptions.ViewException;
 import net.javapla.jawn.templates.TemplateEngine;
 import net.javapla.jawn.templates.TemplateEngineManager;
 
@@ -25,14 +26,14 @@ public class ResponseRunner {
         this.templateEngineManager = templateEngineManager;
     }
     
-    public void run(Context context, ControllerResponse response) {
+    public void run(Context context, ControllerResponse response) throws ViewException, BadRequestException, MediaTypeException {
         //might already have been handled by the controller
         if (response == null) return;
         
         
         
         Object renderable = response.renderable();
-        if (renderable instanceof NoHttpBody) { // no http body
+        if (renderable instanceof NoHttpBody) {
             // This indicates that we do not want to render anything in the body.
             // Can be used e.g. for a 204 No Content response.
             // and bypasses the rendering engines.
@@ -42,7 +43,7 @@ public class ResponseRunner {
         }
     }
     
-    private void renderWithTemplateEngine(Context context, ControllerResponse response) throws BadRequestException {
+    private void renderWithTemplateEngine(Context context, ControllerResponse response) throws ViewException, BadRequestException, MediaTypeException {
         
         // if the response does not contain a content type, we try to look at the request 'accept' header
         if (response.contentType() == null) {

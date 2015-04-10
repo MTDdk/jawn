@@ -3,6 +3,7 @@ package net.javapla.jawn.templates;
 import net.javapla.jawn.Context;
 import net.javapla.jawn.ControllerResponse;
 import net.javapla.jawn.ResponseStream;
+import net.javapla.jawn.exceptions.ViewException;
 
 public interface TemplateEngine {
 
@@ -14,7 +15,7 @@ public interface TemplateEngine {
      * @param result
      *            The result to render
      */
-    public void invoke(Context context, ControllerResponse response/*, Result result*/);
+    public void invoke(Context context, ControllerResponse response/*, Result result*/) throws ViewException;
     
     
     /**

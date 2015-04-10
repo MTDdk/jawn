@@ -119,12 +119,4 @@ public class Filters {
             return null;
         }
     }
-    
-    public class MethodExposer<T> {
-        private T obj;
-        public MethodExposer(T obj) {
-            this.obj = obj;
-            
-        }
-    }
 }

@@ -28,6 +28,7 @@ import com.google.inject.Injector;
  *
  * @author Igor Polevoy
  */
+@Deprecated
 public abstract class Bootstrap extends AppConfig {
     
     private Injector applicationInjector;

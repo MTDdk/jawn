@@ -1,18 +1,3 @@
-/*
-Copyright 2009-2014 Igor Polevoy
-
-Licensed under the Apache License, Version 2.0 (the "License"); 
-you may not use this file except in compliance with the License. 
-You may obtain a copy of the License at 
-
-http://www.apache.org/licenses/LICENSE-2.0 
-
-Unless required by applicable law or agreed to in writing, software 
-distributed under the License is distributed on an "AS IS" BASIS, 
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-See the License for the specific language governing permissions and 
-limitations under the License. 
-*/
 package net.javapla.jawn;
 
 
@@ -20,10 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,23 +26,14 @@ import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.application.IFilterConfig;
 import net.javapla.jawn.application.IRouteConfig;
-import net.javapla.jawn.exceptions.ActionNotFoundException;
-import net.javapla.jawn.exceptions.CompilationException;
 import net.javapla.jawn.exceptions.ConfigurationException;
-import net.javapla.jawn.exceptions.ControllerException;
 import net.javapla.jawn.exceptions.InitException;
-import net.javapla.jawn.exceptions.RouteException;
-import net.javapla.jawn.exceptions.ViewException;
-import net.javapla.jawn.exceptions.ViewMissingException;
-import net.javapla.jawn.exceptions.WebException;
 import net.javapla.jawn.i18n.Lang;
-import net.javapla.jawn.parsers.ParserEngineManager;
 import net.javapla.jawn.session.SessionHelper;
 import net.javapla.jawn.templates.TemplateEngine;
 import net.javapla.jawn.templates.TemplateEngineManager;
 import net.javapla.jawn.util.CollectionUtil;
 import net.javapla.jawn.util.Constants;
-import net.javapla.jawn.util.StringUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,14 +51,16 @@ public class RequestDispatcher implements Filter {
     private Set<String> exclusions = new TreeSet<String>();
     private ControllerRegistry controllerRegistry;
     private AppContext appContext;
-    private Bootstrap appBootstrap;
+//    private Bootstrap appBootstrap;
 //    private String root_controller;
     
-    private Router router;
+//    private Router router;
 
     private Injector injector;
 
     private PropertiesImpl properties;
+
+    private FrameworkBootstrap bootstrapper;
     
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -98,13 +73,12 @@ public class RequestDispatcher implements Filter {
         // adding user modules to controllerRegistry
         initApp(appContext, controllerRegistry, properties);
         
-        //-----
-        Bootstrapper bootstrapper = new Bootstrapper(properties, controllerRegistry.getModules());
+        bootstrapper = new FrameworkBootstrap(properties/*, controllerRegistry.getModules()*/);
         bootstrapper.boot();
         injector = bootstrapper.getInjector();
         controllerRegistry.setInjector(injector);
-        Filters filters = initFilters();
-        router = createRouter(filters); // created at startup, as we have no need for reloading custom routes.
+//        Filters filters = readFilters();
+//        router = createRouter(filters); // created at startup, as we have no need for reloading custom routes.
         //--------
         
         servletContext.setAttribute("appContext", appContext);
@@ -124,7 +98,7 @@ public class RequestDispatcher implements Filter {
     }
 
     protected void initApp(AppContext context, ControllerRegistry registry, PropertiesImpl properties) {
-        initAppConfig(properties.get(Constants.Params.bootstrap.name()), context, registry, properties, true);
+//        initAppConfig(properties.get(Constants.Params.bootstrap.name()), context, registry, properties, true);
         //these are optional config classes:
         //deprecated
 //        initAppConfig(properties.get(Constants.Params.controllerConfig.name()), context, registry, properties, false);//AppControllerConfig
@@ -147,7 +121,7 @@ public class RequestDispatcher implements Filter {
 
     //README is it necessary to dynamically load the Router? 
     //TODO the router most definitely should be created at startup, as we do not care for looking up custom routes per request
-    private Router createRouter(Filters filters) {
+    /*private Router createRouter(Filters filters) {
         Router router = new Router(filters, injector);//injector.getInstance(Router.class);
         
         String routeConfigClassName = "app.config.RouteConfig";
@@ -167,9 +141,9 @@ public class RequestDispatcher implements Filter {
         router.compileRoutes();
         
         return router;
-    }
+    }*/
     
-    private Filters initFilters() {
+    /*private Filters readFilters() {
         Filters filters = new Filters();
         
         String filterConfigClassName = "app.config.FilterConfig";
@@ -187,7 +161,7 @@ public class RequestDispatcher implements Filter {
         }
         
         return filters;
-    }
+    }*/
 
     //TODO: refactor to some util class. This is stolen...ehrr... borrowed from Apache ExceptionUtils
     static String getCauseMessage(Throwable throwable) {
@@ -203,9 +177,9 @@ public class RequestDispatcher implements Filter {
         AppConfig appConfig;
         try {
             appConfig = DynamicClassFactory.createInstance(configClassName, AppConfig.class, false);
-            if(appConfig instanceof  Bootstrap){
-                appBootstrap = (Bootstrap) appConfig;
-            }
+//            if(appConfig instanceof  Bootstrap){
+//                appBootstrap = (Bootstrap) appConfig;
+//            }
             appConfig.init(properties);
             appConfig.completeInit(registry);
         }
@@ -231,7 +205,7 @@ public class RequestDispatcher implements Filter {
     }
     
     public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)  throws ServletException, IOException {
-        try {
+//        try {
 
             String path = /*request.getRequestURI();*/request.getServletPath();
             
@@ -241,7 +215,12 @@ public class RequestDispatcher implements Filter {
             //MTD: filtering resources
             if (filteringResources(request, response, chain, path)) return;
             
-            String format = null;
+            Context context = injector.getInstance(Context.class);
+            context.init(servletContext, request, response);
+            FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
+            engine.runRequest(context);
+            
+            /*String format = null;
             String uri;
             // look for any format in the request
             if(path.contains(".")){
@@ -265,13 +244,13 @@ public class RequestDispatcher implements Filter {
             
             if (StringUtil.blank(uri)) {
                 uri = "/";//different servlet implementations, damn.
-            }
+            }*/
             
             
             // Try to look up the route
-            Route route = router.getRoute(HttpMethod.getMethod(request), uri);
+//            Route route = router.getRoute(HttpMethod.getMethod(request), uri);
 
-            if (route != null) {
+            /*if (route != null) {
                 //TODO consider if it should be possible to ignore routes
 //                if(route.ignores(path)) {
 //                    chain.doFilter(request, response); // let someone else handle this
@@ -279,14 +258,16 @@ public class RequestDispatcher implements Filter {
 //                    return;
 //                }
 
-                Context context = new Context(servletContext, request, response, injector.getInstance(PropertiesImpl.class), injector.getInstance(ParserEngineManager.class));
-                context.init(route, format, language, uri);
+                
+                Context context = injector.getInstance(Context.class);
+                context.init(servletContext, request, response);
+                context.setRouteInformation(route, format, language, uri);
                 
                 // run filters
                 ControllerResponse controllerResponse = route.getFilterChain().before(context);
                 
                 ResponseRunner runner = injector.getInstance(ResponseRunner.class);
-                runner.run(context, controllerResponse/*context.getNewControllerResponse()*/);
+                runner.run(context, controllerResponsecontext.getNewControllerResponse());
                 
                 route.getFilterChain().after(context);
             } else {
@@ -301,7 +282,7 @@ public class RequestDispatcher implements Filter {
 //            renderSystemError(request, response, "/system/404", useDefaultLayoutForErrors() ? getDefaultLayout():null, 404, e);
 //        }catch (ActionNotFoundException e) {
 //            renderSystemError(request, response, "/system/404", useDefaultLayoutForErrors() ? getDefaultLayout():null, 404, e);
-        }catch(/*ClassLoadException |*/ ActionNotFoundException |ViewMissingException | RouteException e){
+        }catch(ClassLoadException | ActionNotFoundException |ViewMissingException | RouteException e){
             renderSystemError(request, response, "/system/404", properties.get(Constants.Params.defaultLayout.name()), 404, e);
 //        }catch(RouteException e){
 //            renderSystemError(request, response, "/system/404", useDefaultLayoutForErrors() ? getDefaultLayout():null, 404, e);
@@ -317,7 +298,7 @@ public class RequestDispatcher implements Filter {
 //                        + connectionsRemaining + ". ActiveWeb is closing all active connections for you...");
 //                DB.closeAllConnections();
 //            }
-        }
+        }*/
     }
     
     
@@ -449,7 +430,8 @@ public class RequestDispatcher implements Filter {
                     logger.error("Failed to send error response to client", ex);
                 }
             } else {
-                Context c = new Context(servletContext, request, response, injector.getInstance(PropertiesImpl.class), injector.getInstance(ParserEngineManager.class));
+                Context c = injector.getInstance(Context.class);
+                c.init(servletContext, request, response);
                 
                 TemplateEngineManager manager = injector.getInstance(TemplateEngineManager.class);
                 TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
@@ -494,7 +476,8 @@ public class RequestDispatcher implements Filter {
     }
     
     public void destroy() {
-        appBootstrap.destroy(appContext);
+        bootstrapper.shutdown();
+//        appBootstrap.destroy(appContext);
     }
     
     /**

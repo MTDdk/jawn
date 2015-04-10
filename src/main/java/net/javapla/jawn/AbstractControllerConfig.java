@@ -70,6 +70,7 @@ public abstract class AbstractControllerConfig extends AppConfig {
         this.filterBuilders = new ArrayList<>();
     }
 
+    @Deprecated
     public class FilterBuilder {
         private ControllerFilter[] filters;
         private Class<? extends AppController>[] controllerClasses;

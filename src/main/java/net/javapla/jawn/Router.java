@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import net.javapla.jawn.exceptions.ClassLoadException;
@@ -34,14 +35,13 @@ public class Router {
     
     private final List<RouteBuilder> builders;
     private final Filters filters;
-    private final Injector injector;
     
     private List<Route> routes;
     
-    public Router(Filters filters, Injector injector) {
+    @Inject
+    public Router(Filters filters) {
         builders = new ArrayList<>();
         this.filters = filters;
-        this.injector = injector;
     }
     
     public RouteBuilder GET() {
@@ -71,7 +71,7 @@ public class Router {
     }
     
     
-    public Route getRoute(HttpMethod httpMethod, String requestUri) {
+    public Route getRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException, IllegalStateException {
         if (routes == null) throw new IllegalStateException("Routes have not been compiled");//README could be compiling instead
         
         // go through custom user routes
@@ -83,7 +83,7 @@ public class Router {
         
         // nothing is found - try to deduce a route from controllers
         try {
-            Route route = matchStandard(httpMethod, requestUri);
+            Route route = matchStandard(httpMethod, requestUri, injector);
             return route;
         } catch (ClassLoadException e) {
             // a route could not be deduced
@@ -92,7 +92,7 @@ public class Router {
         throw new RouteException("Failed to map resource to URI: " + requestUri);
     }
     
-    void compileRoutes() {
+    void compileRoutes(Injector injector) {
         if (routes != null) throw new IllegalStateException("Routes already compiled");//README could just return without throw
         List<Route> r = new ArrayList<>();
         for (RouteBuilder builder : builders) {
@@ -107,7 +107,7 @@ public class Router {
     }
     
     
-    private Route matchStandard(HttpMethod httpMethod, String requestUri) throws ClassLoadException {
+    private Route matchStandard(HttpMethod httpMethod, String requestUri, Injector injector) throws ClassLoadException {
         
         // find potential routes
         for (InternalRoute internalRoute : internalRoutes) {

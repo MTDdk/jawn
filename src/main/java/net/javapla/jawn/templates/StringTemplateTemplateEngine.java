@@ -66,7 +66,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
     
     @Override
-    public void invoke(Context context, ControllerResponse response, ResponseStream stream) {
+    public void invoke(Context context, ControllerResponse response, ResponseStream stream) throws ViewException {
         Map<String, Object> values = response.getViewObjects();//context.getViewObjects();
 //      Object renderable = response.renderable();
       /*if (renderable == null) {
@@ -107,7 +107,9 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
           
       } else { // with layout
           
-          String controller = template.substring(1, template.indexOf('/', 1)); // remove leading '/'
+          if (template.charAt(0) == '/')
+              template = template.substring(1, template.indexOf('/', 1)); // remove leading '/'
+          String controller = template;
           layoutTemplate = locateDefaultTemplate(group, controller);
           
           if (contentTemplate != null) // it have to be possible to use a layout without defining a template

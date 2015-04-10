@@ -30,7 +30,6 @@ import java.util.StringTokenizer;
 
 import net.javapla.jawn.AppController;
 import net.javapla.jawn.HttpMethod;
-import net.javapla.jawn.RequestContext;
 import net.javapla.jawn.exceptions.ClassLoadException;
 import net.javapla.jawn.exceptions.ControllerException;
 import net.javapla.jawn.exceptions.RouteException;

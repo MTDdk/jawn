@@ -138,7 +138,7 @@ public class ImageHandlerBuilder {
      }
 
      /**
-      * Saves the file on the server in the folder stated in {@link Configuration#imageUploadFolder()}
+      * Saves the file on the server in the folder stated in {@link ConfigApp#imageUploadFolder()}
       * (default is uploads/images)
       * 
       * @return The server path to the saved file.

@@ -19,6 +19,7 @@ package net.javapla.jawn;
 /**
  * @author Igor Polevoy
  */
+@Deprecated
 public abstract class AppConfig {
 //    @Deprecated
 //    public abstract void init(AppContext appContext);

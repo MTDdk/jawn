@@ -39,6 +39,8 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
+import com.google.inject.Inject;
+
 import net.javapla.jawn.exceptions.ControllerException;
 import net.javapla.jawn.parsers.ParserEngineManager;
 import net.javapla.jawn.session.SessionFacade;
@@ -51,15 +53,12 @@ import net.javapla.jawn.util.MultiList;
  */
 public class Context {
     
-//    private final Map<String, Object> viewValues; //TODO these needs to be a part of the "Controller"Response instead
-    
-    private final ServletContext servletContext;
-    private final HttpServletRequest request;
-    private final HttpServletResponse response;
     private final PropertiesImpl properties;
     private final ParserEngineManager parserManager;
     
-//    private ControllerResponse newControllerResponse;
+    private ServletContext servletContext;
+    private HttpServletRequest request;
+    private HttpServletResponse response;
     
     private Route route;
     private String format, language;
@@ -71,35 +70,28 @@ public class Context {
     
     // servletcontext, appcontext (what the hell is the difference?)
     // requestcontext - the hell, man??
-    public Context(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response, PropertiesImpl properties, ParserEngineManager parserManager) {
+    @Inject
+    public Context(PropertiesImpl properties, ParserEngineManager parserManager) {
+        this.properties = properties;
+        this.parserManager = parserManager;
+    }
+    
+    public void init(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response) {
         this.servletContext = servletContext;
         this.request = request;//new RequestImpl(request);
         this.response = response;
-        this.properties = properties;
-        this.parserManager = parserManager;
-        
-        // Standard behaviour is to look for HTML template
-//        this.newControllerResponse = ControllerResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
     }
     
-    public void init(Route route/*, RequestContext requestContext*/, String format, String language, String routedPath) {
+    //TODO a part of Context.Impl/Internal
+    public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException {
         if (route == null)
             throw new IllegalArgumentException("Route could not be null");
-
         this.route = route;
         
         this.format = format;
         this.language = language;
         this.routedPath = routedPath;
     }
-    
-    
-//    void setControllerResponse(ControllerResponse response) {
-//        newControllerResponse = response;
-//    }
-//    ControllerResponse getNewControllerResponse() {
-//        return newControllerResponse;
-//    }
     
     /**
      * @return An instance of the Request interface
@@ -181,6 +173,10 @@ public class Context {
         return param("id");
     }
 
+    /**
+     * Request servlet path
+     * @return
+     */
     public String path() {
         return request.getServletPath();
     }
@@ -193,6 +189,15 @@ public class Context {
      */
     public String contextPath() {
         return request.getContextPath();
+    }
+    
+    /**
+     * Differs from {@link #requestUrl()} in that this
+     * might have been stripped from language prefix
+     * @return
+     */
+    public String getRoutedPath() {
+        return routedPath;
     }
     
     /**
@@ -224,6 +229,10 @@ public class Context {
     
     public String method() {
         return request.getMethod();
+    }
+    
+    public HttpMethod getHttpMethod() {
+        return HttpMethod.getMethod(request);
     }
     
     public String requestContentType() {

@@ -28,7 +28,7 @@ class ControllerActionInvoker {
 //            }
             
         this.injector = injector;
-        this.useCachedController = !properties.isProd();
+        this.useCachedController = properties.isProd();
             
     }
     
