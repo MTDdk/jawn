@@ -24,6 +24,7 @@ import net.javapla.jawn.util.StringUtil;
  * Added caching of controllers when active-reload is not set
  */
 public abstract class DynamicClassFactory {
+    private final static Map<String, Class<?>> CACHED_CONTROLLERS = new ConcurrentHashMap<>();
 
     /**
      * Loads and instantiates the class into the stated <code>expectedType</code>.
@@ -51,8 +52,27 @@ public abstract class DynamicClassFactory {
             throw new ClassLoadException(e);
         }
     }
+    
+    public static <T> T createInstance(Class<?> clazz, Class<T> expectedType) throws ClassLoadException {
+        try {
+            Object o = clazz.newInstance();
+            return expectedType.cast(o);
+        } catch (ClassCastException e) {
+            //from cast()
+            throw new ClassLoadException("Class: " + clazz + " is not the expected type, are you sure it extends " + expectedType.getName() + "?");
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ClassLoadException(e);
+        }
+    }
+    
+    public static <T> T createInstance(Class<? extends T> clazz) throws ClassLoadException {
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ClassLoadException(e);
+        }
+    }
 
-    private final static Map<String, Class<?>> CACHED_CONTROLLERS = new ConcurrentHashMap<>();
     /**
      * Handles caching of classes if not active_reload
      * @param className
@@ -61,7 +81,7 @@ public abstract class DynamicClassFactory {
      * @throws CompilationException
      * @throws ClassLoadException
      */
-    public static Class<?> getCompiledClass(String className, boolean useCache) throws CompilationException, ClassLoadException{
+    public static Class<?> getCompiledClass(String className, boolean useCache) throws CompilationException, ClassLoadException {
         try {
             if (! useCache) {
                 
@@ -83,6 +103,10 @@ public abstract class DynamicClassFactory {
         } catch (Exception e) {
             throw new ClassLoadException(e);
         }
+    }
+    
+    public static <T> Class<? extends T> getCompiledClass(String className, Class<T> expected, boolean useCache) throws CompilationException, ClassLoadException {
+        return getCompiledClass(className, useCache).asSubclass(expected);
     }
     
     

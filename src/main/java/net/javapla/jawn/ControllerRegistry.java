@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.javapla.jawn.trash.controller_filters.ControllerFilter;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -32,13 +31,14 @@ import com.google.inject.Injector;
  *
  * @author Igor Polevoy
  */
+@Deprecated
 public class ControllerRegistry {
 
     /**
      * key - controller class name, value ControllerMetaData.
      */
-    private Map<String, ControllerMetaData> metaDataMap = new HashMap<String, ControllerMetaData>();
-    private List<FilterList> globalFilterLists = new ArrayList<FilterList>();
+//    private Map<String, ControllerMetaData> metaDataMap = new HashMap<String, ControllerMetaData>();
+//    private List<FilterList> globalFilterLists = new ArrayList<FilterList>();
     private Injector injector;
     
     private List<AbstractModule> modules;
@@ -65,24 +65,18 @@ public class ControllerRegistry {
      * @param controllerClass controller class.
      * @return controller metadata for a controller class.
      */
-    protected ControllerMetaData getMetaData(Class<? extends AppController> controllerClass) {
+    /*protected ControllerMetaData getMetaData(Class<? extends AppController> controllerClass) {
         if (metaDataMap.get(controllerClass.getName()) == null) {
             metaDataMap.put(controllerClass.getName(), new ControllerMetaData());
         }
         return metaDataMap.get(controllerClass.getName());
-    }
+    }*/
 
-    protected void addGlobalFilters(ControllerFilter... filters) {
-        globalFilterLists.add(new FilterList(Arrays.asList(filters)));
-    }
 
-    protected void addGlobalFilters(List<ControllerFilter> filters, List<Class<? extends AppController>> excludeControllerClasses) {
-        globalFilterLists.add(new FilterList(filters, excludeControllerClasses));
-    }
 
-    protected List<FilterList> getGlobalFilterLists() {
-        return Collections.unmodifiableList(globalFilterLists);
-    }
+//    protected List<FilterList> getGlobalFilterLists() {
+//        return Collections.unmodifiableList(globalFilterLists);
+//    }
 
     protected void setInjector(Injector injector) {
         this.injector = injector;
@@ -108,16 +102,16 @@ public class ControllerRegistry {
             synchronized (token) {
                 if (injector != null) {
                     //inject global filters:
-                    for (FilterList filterList : globalFilterLists) {
+                    /*for (FilterList filterList : globalFilterLists) {
                         List<ControllerFilter> filters = filterList.getFilters();
                         for (ControllerFilter controllerFilter : filters) {
                             injector.injectMembers(controllerFilter);
                         }
-                    }
+                    }*/
                     //inject specific controller filters:
-                    for (String key : metaDataMap.keySet()) {
+                    /*for (String key : metaDataMap.keySet()) {
                         metaDataMap.get(key).injectFilters(injector);
-                    }
+                    }*/
                 }
                 filtersInjected = true;
             }
@@ -131,7 +125,7 @@ public class ControllerRegistry {
 
     // instance contains a list of filters and corresponding  list of controllers for which these filters
     // need to be excluded.
-    static class FilterList{
+    /*static class FilterList{
         private final List<ControllerFilter> filters;
         private final List<Class<? extends AppController>> excludedControllers;
 
@@ -157,5 +151,5 @@ public class ControllerRegistry {
             }
             return false;
         }
-    }
+    }*/
 }

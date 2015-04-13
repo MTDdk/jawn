@@ -119,7 +119,9 @@ public class Router {
                 // find a route that actually exists
                 try {
                     String className = c.getControllerClassName();
-                    AppController controller = DynamicClassFactory.createInstance(className, AppController.class, false);
+                    boolean isProd = injector.getInstance(PropertiesImpl.class).isProd();
+//                    AppController controller = DynamicClassFactory.createInstance(className, AppController.class, false);
+                    Class<? extends AppController> controller = DynamicClassFactory.getCompiledClass(className, AppController.class, isProd);
 
                     RouteBuilder bob = RouteBuilder.method(httpMethod);
                     bob.route(internalRoute.uri);

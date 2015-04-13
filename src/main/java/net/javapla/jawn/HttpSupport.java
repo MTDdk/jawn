@@ -1600,7 +1600,7 @@ class HttpSupport implements ControllerResponseHolder {
         TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
         engine.invoke(
                 context, 
-                ControllerResponseBuilder.ok().addAllViewObjects(values).template(template), 
+                ControllerResponseBuilder.ok().addAllViewObjects(values).template(template).layout(null), 
                 new ResponseStream() {
                     @Override
                     public Writer getWriter() throws IOException {

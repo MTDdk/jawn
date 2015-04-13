@@ -13,7 +13,7 @@ import net.javapla.jawn.exceptions.WebException;
 class ControllerActionInvoker {
 
 //    private AppController controller;
-    private boolean useCachedController;
+//    private boolean useCachedController;
     private Injector injector;
     
     @Inject
@@ -28,7 +28,7 @@ class ControllerActionInvoker {
 //            }
             
         this.injector = injector;
-        this.useCachedController = properties.isProd();
+//        this.useCachedController = properties.isProd();
             
     }
     
@@ -36,7 +36,8 @@ class ControllerActionInvoker {
         Route route = context.getRoute();
 
         try{
-            AppController controller = loadController(route.getController().getName(), useCachedController);
+//            AppController controller = loadController(route.getController().getName(), useCachedController);
+            AppController controller = loadController(route.getController());
         
             injectControllerWithContext(controller, context, injector);
         
@@ -69,9 +70,18 @@ class ControllerActionInvoker {
     }
     
     
-    protected AppController loadController(String controllerClassName, boolean useCachedController) throws ClassLoadException {
+//    private AppController loadController(String controllerClassName, boolean useCachedController) throws ClassLoadException {
+//        try {
+//            return  DynamicClassFactory.createInstance(controllerClassName, AppController.class, useCachedController);
+//        } catch (ClassLoadException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            throw new ClassLoadException(e);
+//        }
+//    }
+    private AppController loadController(Class<? extends AppController> controller) throws ClassLoadException {
         try {
-            return  DynamicClassFactory.createInstance(controllerClassName, AppController.class, useCachedController);
+            return DynamicClassFactory.createInstance(controller);
         } catch (ClassLoadException e) {
             throw e;
         } catch (Exception e) {

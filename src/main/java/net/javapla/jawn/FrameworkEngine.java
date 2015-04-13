@@ -111,7 +111,7 @@ public class FrameworkEngine {
      * @author MTD
      */
     //TODO perhaps refactor into some LangHelper
-    protected String findLanguagePrefix(String uri, Lang language) {
+    private String findLanguagePrefix(String uri, Lang language) {
         if ( ! language.areLanguagesSet()) return null;
         String lang = uri.startsWith("/") ? uri.substring(1) : uri;
         lang = lang.split("/")[0];

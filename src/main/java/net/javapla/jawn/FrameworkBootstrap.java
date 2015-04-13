@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.javapla.jawn.application.FrameworkConfig;
+import net.javapla.jawn.db.DatabaseConnections;
+import net.javapla.jawn.db.DatabaseModule;
 import net.javapla.jawn.exceptions.ConfigurationException;
 
 import org.slf4j.Logger;
@@ -36,14 +38,15 @@ public class FrameworkBootstrap {
         ConfigApp appConfig = new ConfigApp();
         Filters filters = new Filters();
         Router router = new Router(filters);
+        DatabaseConnections connections = new DatabaseConnections();
         
-        config = readConfiguration(appConfig, router, filters);
+        config = readConfiguration(appConfig, router, filters, connections);
         
         // supported languages are needed in the creation of the injector
         properties.setSupportedLanguages(appConfig.getSupportedLanguages()); 
         
         // create a single injector for both the framework and the user registered modules
-        Injector localInjector = initInjector(Lists.newArrayList(appConfig.getRegisteredModules()), router);
+        Injector localInjector = initInjector(Lists.newArrayList(appConfig.getRegisteredModules()), router, connections);
         
         // compiling of routes needs an injector, so this is done after the creation
         router.compileRoutes(localInjector);
@@ -72,7 +75,7 @@ public class FrameworkBootstrap {
         return injector;
     }
 
-    private Injector initInjector(final List<AbstractModule> userModules, Router router) {
+    private Injector initInjector(final List<AbstractModule> userModules, Router router, DatabaseConnections connections) {
         // this class is a part of the server project
         // configure all the needed dependencies for the server
         // this includes injecting templatemanager
@@ -81,54 +84,14 @@ public class FrameworkBootstrap {
         
         combinedModules.add(new CoreModule(properties, router));
         
+        combinedModules.add(new DatabaseModule(connections, properties));
+        
         combinedModules.addAll(userModules);
         
         return Guice.createInjector(Stage.PRODUCTION, combinedModules);
     }
     
-    /*private Filters readFilters() {
-        Filters filters = new Filters();
-        
-        String filterConfigClassName = "app.config.FilterConfig";
-        // try to read custom routes provided by user
-        try {
-            IFilterConfig filterConfig = DynamicClassFactory.createInstance(filterConfigClassName, IFilterConfig.class, false);
-            filterConfig.init(filters);
-            logger.debug("Instantiated filters from: " + filterConfigClassName);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch(ConfigurationException e){
-            throw  e;
-        } catch (Exception e) {
-            logger.debug("Did not find any filters: " + getCauseMessage(e));
-        }
-        
-        return filters;
-    }*/
-    
-    /*private Router createRouter(Filters filters, Router router) {
-//        Router router = new Router(filters, injector);//injector.getInstance(Router.class);
-        
-        String routeConfigClassName = "app.config.RouteConfig";
-        // try to read custom routes provided by user
-        try {
-            IRouteConfig localRouteConfig = DynamicClassFactory.createInstance(routeConfigClassName, IRouteConfig.class, false);
-            localRouteConfig.init(router);
-            logger.debug("Loaded routes from: " + routeConfigClassName);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch(ConfigurationException e){
-            throw  e;
-        } catch (Exception e) {
-            logger.debug("Did not find custom routes. Going with built in defaults: " + getCauseMessage(e));
-        }
-        
-        router.compileRoutes(injector);
-        
-        return router;
-    }*/
-    
-    private FrameworkConfig readConfiguration(ConfigApp configuration, Router router, Filters filters) {
+    private FrameworkConfig readConfiguration(ConfigApp configuration, Router router, Filters filters, DatabaseConnections connections) {
         
         String configClassName = "app.config.ApplicationConfiguration";//TODO reconsider naming
         
@@ -138,6 +101,7 @@ public class FrameworkBootstrap {
             localConfig.bootstrap(configuration);
             localConfig.filters(filters);
             localConfig.router(router);
+            localConfig.dbConnections(connections);
             
             logger.debug("Loaded configuration from: " + configClassName);
             return localConfig;

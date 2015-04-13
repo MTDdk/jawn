@@ -30,6 +30,7 @@ import javax.servlet.ServletContext;
  *  
  * @author MTD
  */
+@Deprecated
 public class AppContext {
     
     public static final String PREFIX = "net.javapla.jawn.";

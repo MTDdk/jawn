@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -24,16 +22,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.application.IFilterConfig;
-import net.javapla.jawn.application.IRouteConfig;
-import net.javapla.jawn.exceptions.ConfigurationException;
-import net.javapla.jawn.exceptions.InitException;
-import net.javapla.jawn.i18n.Lang;
 import net.javapla.jawn.session.SessionHelper;
 import net.javapla.jawn.templates.TemplateEngine;
 import net.javapla.jawn.templates.TemplateEngineManager;
 import net.javapla.jawn.util.CollectionUtil;
-import net.javapla.jawn.util.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 
 /**
- * @author Igor Polevoy
  * @author MTD
  */
 public class RequestDispatcher implements Filter {
@@ -49,8 +40,8 @@ public class RequestDispatcher implements Filter {
     
     private ServletContext servletContext;
     private Set<String> exclusions = new TreeSet<String>();
-    private ControllerRegistry controllerRegistry;
-    private AppContext appContext;
+//    private ControllerRegistry controllerRegistry;
+//    private AppContext appContext;
 //    private Bootstrap appBootstrap;
 //    private String root_controller;
     
@@ -67,44 +58,36 @@ public class RequestDispatcher implements Filter {
         properties = new PropertiesImpl(ModeHelper.determineModeFromSystem());
         
         this.servletContext = filterConfig.getServletContext();
-        controllerRegistry = new ControllerRegistry();
-        appContext = new AppContext(servletContext);
+//        controllerRegistry = new ControllerRegistry();
+//        appContext = new AppContext(servletContext);
         
         // adding user modules to controllerRegistry
-        initApp(appContext, controllerRegistry, properties);
+//        initApp(appContext, controllerRegistry, properties);
         
         bootstrapper = new FrameworkBootstrap(properties/*, controllerRegistry.getModules()*/);
         bootstrapper.boot();
         injector = bootstrapper.getInjector();
-        controllerRegistry.setInjector(injector);
+//        controllerRegistry.setInjector(injector);
 //        Filters filters = readFilters();
 //        router = createRouter(filters); // created at startup, as we have no need for reloading custom routes.
         //--------
         
-        servletContext.setAttribute("appContext", appContext);
+//        servletContext.setAttribute("appContext", appContext);
         
         findExclusionPaths();
         
         // either the encoding was set by the user, or we default
-        String enc = appContext.getAsString(AppContext.ENCODING);
-        if (enc == null) {
-            enc = Constants.ENCODING;
-            appContext.set(AppContext.ENCODING, enc);
-        }
-        logger.debug("Setting encoding: " + enc);
+//        String enc = appContext.getAsString(AppContext.ENCODING);
+//        if (enc == null) {
+//            enc = Constants.ENCODING;
+//            appContext.set(AppContext.ENCODING, enc);
+//        }
+//        logger.debug("Setting encoding: " + enc);
         
 //        root_controller = filterConfig.getInitParameter("root_controller");
         logger.info("ActiveWeb: starting the app in environment: " + properties.getMode());//Configuration.getEnv());
     }
 
-    protected void initApp(AppContext context, ControllerRegistry registry, PropertiesImpl properties) {
-//        initAppConfig(properties.get(Constants.Params.bootstrap.name()), context, registry, properties, true);
-        //these are optional config classes:
-        //deprecated
-//        initAppConfig(properties.get(Constants.Params.controllerConfig.name()), context, registry, properties, false);//AppControllerConfig
-        initAppConfig(properties.get(Constants.Params.dbconfig.name()), context, registry, properties, false);
-    }
-    
     private void findExclusionPaths() {
         // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF
         Set<String> resourcePaths = servletContext.getResourcePaths("/");
@@ -115,81 +98,6 @@ public class RequestDispatcher implements Filter {
             if (path.charAt(path.length()-1) == '/')
                 path = path.substring(0, path.length()-1);// remove the last slash
             exclusions.add(path);
-        }
-    }
-
-
-    //README is it necessary to dynamically load the Router? 
-    //TODO the router most definitely should be created at startup, as we do not care for looking up custom routes per request
-    /*private Router createRouter(Filters filters) {
-        Router router = new Router(filters, injector);//injector.getInstance(Router.class);
-        
-        String routeConfigClassName = "app.config.RouteConfig";
-        // try to read custom routes provided by user
-        try {
-            IRouteConfig localRouteConfig = DynamicClassFactory.createInstance(routeConfigClassName, IRouteConfig.class, false);
-            localRouteConfig.init(router);
-            logger.debug("Loaded routes from: " + routeConfigClassName);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch(ConfigurationException e){
-            throw  e;
-        } catch (Exception e) {
-            logger.debug("Did not find custom routes. Going with built in defaults: " + getCauseMessage(e));
-        }
-        
-        router.compileRoutes();
-        
-        return router;
-    }*/
-    
-    /*private Filters readFilters() {
-        Filters filters = new Filters();
-        
-        String filterConfigClassName = "app.config.FilterConfig";
-        // try to read custom routes provided by user
-        try {
-            IFilterConfig filterConfig = DynamicClassFactory.createInstance(filterConfigClassName, IFilterConfig.class, false);
-            filterConfig.init(filters);
-            logger.debug("Instantiated filters from: " + filterConfigClassName);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch(ConfigurationException e){
-            throw  e;
-        } catch (Exception e) {
-            logger.debug("Did not find any filters: " + getCauseMessage(e));
-        }
-        
-        return filters;
-    }*/
-
-    //TODO: refactor to some util class. This is stolen...ehrr... borrowed from Apache ExceptionUtils
-    static String getCauseMessage(Throwable throwable) {
-        List<Throwable> list = new ArrayList<Throwable>();
-        while (throwable != null && list.contains(throwable) == false) {
-            list.add(throwable);
-            throwable = throwable.getCause();
-        }
-        return list.get(0).getMessage();
-    }
-
-    private void initAppConfig(String configClassName, AppContext context, ControllerRegistry registry, PropertiesImpl properties, boolean fail){
-        AppConfig appConfig;
-        try {
-            appConfig = DynamicClassFactory.createInstance(configClassName, AppConfig.class, false);
-//            if(appConfig instanceof  Bootstrap){
-//                appBootstrap = (Bootstrap) appConfig;
-//            }
-            appConfig.init(properties);
-            appConfig.completeInit(registry);
-        }
-        catch (Throwable e) {
-            if(fail){
-                throw new InitException("Failed to create and init a new instance of class: " + configClassName, e);
-            }else{
-                logger.debug("Failed to create and init a new instance of class: " + configClassName
-                        + ", proceeding without it. " + e);
-            }
         }
     }
 
@@ -340,7 +248,7 @@ public class RequestDispatcher implements Filter {
             
             
             // setting default headers for static files
-            resp.setHeader(HttpHeaders.CACHE_CONTROL, "max-age=604800"); // one week
+            resp.setHeader(HttpHeaders.CACHE_CONTROL, "max-age=86400"); // 24 hours
             File file = new File(servletContext.getRealPath(translated));
             if (file.canRead())
                 resp.setHeader(HttpHeaders.ETAG, String.valueOf(file.lastModified()));
@@ -478,24 +386,5 @@ public class RequestDispatcher implements Filter {
     public void destroy() {
         bootstrapper.shutdown();
 //        appBootstrap.destroy(appContext);
-    }
-    
-    /**
-     * Finds the language segment of the URI if the language property is set.
-     * Just extracts the first segment.
-     * @param uri The full URI
-     * @return the extracted language segment. null, if none is found
-     * @author MTD
-     */
-    //TODO perhaps refactor into some LangHelper
-    protected String findLanguagePrefix(String uri, Lang language) {
-        if ( ! language.areLanguagesSet()) return null;
-        String lang = uri.startsWith("/") ? uri.substring(1) : uri;
-        lang = lang.split("/")[0];
-        
-        if(language.isLanguageSupported(lang)) return lang;
-        
-        //TODO we probably want to throw some exceptions
-        return null;
     }
 }

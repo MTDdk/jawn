@@ -58,6 +58,7 @@ class DynamicClassLoader extends ClassLoader {
                 byte[] classBytes = StreamUtil.bytes(getResourceAsStream(pathToClassFile));
                 Class<?> daClass = defineClass(name, classBytes, 0, classBytes.length);
 
+                System.err.println("dynamicly calling class  " + Thread.currentThread().getName());
                 logger.debug("Loaded class: " + name);
                 return daClass;
             }else{
