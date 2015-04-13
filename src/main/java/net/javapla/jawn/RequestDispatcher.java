@@ -3,9 +3,6 @@ package net.javapla.jawn;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -20,12 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.session.SessionHelper;
-import net.javapla.jawn.templates.TemplateEngine;
-import net.javapla.jawn.templates.TemplateEngineManager;
-import net.javapla.jawn.util.CollectionUtil;
+import net.javapla.jawn.Context.Internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +70,7 @@ public class RequestDispatcher implements Filter {
         findExclusionPaths();
         
         // either the encoding was set by the user, or we default
+        //TODO make encoding configurable
 //        String enc = appContext.getAsString(AppContext.ENCODING);
 //        if (enc == null) {
 //            enc = Constants.ENCODING;
@@ -123,7 +117,7 @@ public class RequestDispatcher implements Filter {
             //MTD: filtering resources
             if (filteringResources(request, response, chain, path)) return;
             
-            Context context = injector.getInstance(Context.class);
+            Context.Internal context = (Internal) injector.getInstance(Context.class);
             context.init(servletContext, request, response);
             FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
             engine.runRequest(context);
@@ -219,11 +213,11 @@ public class RequestDispatcher implements Filter {
         return false;
     }
 
-    private Map<String, Object> getMapWithExceptionDataAndSession(HttpServletRequest request, Throwable e) {
+    /*private Map<String, Object> getMapWithExceptionDataAndSession(HttpServletRequest request, Throwable e) {
         return CollectionUtil.map("message", e.getMessage() == null ? e.toString() : e.getMessage(),
                    "stack_trace", getStackTraceString(e),
                    "session", SessionHelper.getSessionAttributes(request));
-    }
+    }*/
 
 
     /**
@@ -306,20 +300,20 @@ public class RequestDispatcher implements Filter {
     }
     
     
-    private void renderSystemError(HttpServletRequest request, HttpServletResponse response, Throwable e) {
-        renderSystemError(request, response, "/system/error", null, 500, e);
-    }
+//    private void renderSystemError(HttpServletRequest request, HttpServletResponse response, Throwable e) {
+//        renderSystemError(request, response, "/system/error", null, 500, e);
+//    }
 
 
-    private String getStackTraceString(Throwable e) {
+    /*private String getStackTraceString(Throwable e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         pw.flush();
         return sw.toString();
-    }
+    }*/
 
-    private void renderSystemError(HttpServletRequest request, HttpServletResponse response, String template, String layout, int status, Throwable e) {
+    /*private void renderSystemError(HttpServletRequest request, HttpServletResponse response, String template, String layout, int status, Throwable e) {
         try{
             String requestProperties = getRequestProperties(request);
             if(status == 404){
@@ -368,10 +362,10 @@ public class RequestDispatcher implements Filter {
                 logger.error(ex.toString(), ex);
             }
         }
-    }
+    }*/
 
 
-    private String getRequestProperties(HttpServletRequest request){
+    /*private String getRequestProperties(HttpServletRequest request){
         StringBuilder sb = new StringBuilder();
         if (request == null) return "";
         sb.append("Request URL: ").append(request.getRequestURL()).append("\n");
@@ -381,7 +375,7 @@ public class RequestDispatcher implements Filter {
         sb.append("URI Path: ").append(request.getServletPath()).append("\n");
         sb.append("Method: ").append(request.getMethod()).append("\n");
         return sb.toString();
-    }
+    }*/
     
     public void destroy() {
         bootstrapper.shutdown();

@@ -21,7 +21,7 @@ import net.javapla.jawn.util.HttpHeaderUtil;
  * 
  * @author MTD
  */
-class RequestImpl implements Request.Impl {
+class RequestImpl implements Request {
     private final HttpServletRequest request;
     private final ParserEngineManager parserEngineManager;
     RequestImpl(HttpServletRequest request, ParserEngineManager parserEngineManager) {
@@ -29,30 +29,17 @@ class RequestImpl implements Request.Impl {
         this.parserEngineManager = parserEngineManager;
     }
     
-//    /**
-//     * Converts the request input into an object of the specified class in case of <code>application/json</code> request.
-//     *  
-//     * @param clazz A representation of the expected JSON
-//     * @return The object of the converted JSON, or <code>throws</code> if the JSON could not be correctly deserialized,
-//     *         or the media type was incorrect. 
-//     * @throws ParsableException If the parsing from JSON to class failed
-//     * @throws MediaTypeException If the mediatype of the request was not "application/json"
-//     * @author MTD
-//     */
-//    @Override
-//    public <T> T fromJson(Class<T> clazz) throws ParsableException, MediaTypeException {
-//        String contentType = request.getContentType();
-//        
-//        if (!MediaType.APPLICATION_JSON.equals(contentType))
-//            throw new MediaTypeException("Media type was not: " + MediaType.APPLICATION_JSON);
-//        
-//        try (InputStream stream = request.getInputStream()) {
-//            return JsonParserEngine.parseObject(stream, clazz);
-//        } catch (IOException e) {
-//            throw new ParsableException(clazz);
-//        }
-//    }
-    
+    /**
+     * Converts the request input into an object of the specified class in case of <code>application/json</code> request.
+     *  
+     * @param clazz A representation of the expected JSON
+     * @return The object of the converted JSON, or <code>throws</code> if the JSON could not be correctly deserialized,
+     *         or the media type was incorrect. 
+     * @throws ParsableException If the parsing from JSON to class failed
+     * @throws MediaTypeException If the mediatype of the request was not "application/json"
+     * @author MTD
+     */
+    //TODO not correctly formulated doc
     public <T> T parseBody(Class<T> clazz) throws ParsableException, MediaTypeException {
         String contentType = request.getContentType();
         
@@ -117,9 +104,5 @@ class RequestImpl implements Request.Impl {
             return array.toByteArray();
         }
     }
-    
-/* ****************
- *  Internal
- ***************** */
     
 }

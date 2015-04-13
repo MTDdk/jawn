@@ -56,7 +56,7 @@ public class ControllerResponse {
         headers = new HashMap<>();
         viewObjects = new HashMap<>();
         
-        charset = Constants.ENCODING;
+//        charset = Constants.ENCODING;
         this.statusCode = statusCode;
     }
     

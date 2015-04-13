@@ -5,13 +5,13 @@ import java.io.OutputStream;
 
 import javax.ws.rs.core.MediaType;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
 import net.javapla.jawn.Context;
 import net.javapla.jawn.ControllerResponse;
 import net.javapla.jawn.ResponseStream;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 @Singleton
 class JsonTemplateEngine implements TemplateEngine {

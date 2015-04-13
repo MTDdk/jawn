@@ -1,12 +1,12 @@
 package net.javapla.jawn.filters;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.javapla.jawn.Context;
 import net.javapla.jawn.ControllerResponse;
 import net.javapla.jawn.Filter;
 import net.javapla.jawn.FilterChain;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class FilterAdapter implements Filter {
     protected final Logger logger = LoggerFactory.getLogger(getClass());

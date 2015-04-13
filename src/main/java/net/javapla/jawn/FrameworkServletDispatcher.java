@@ -34,7 +34,7 @@ public class FrameworkServletDispatcher extends HttpServlet {
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         ServletContext servletContext = getServletContext();
         
-        Context context = injector.getInstance(Context.class);
+        Context.Internal context = (Context.Internal) injector.getInstance(Context.class);
         context.init(servletContext, req, resp);
         
         framework.runRequest(context);

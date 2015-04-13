@@ -129,6 +129,10 @@ class FileName {
             this.path = function.apply(this.path);
     }
     
+    public void sanitise() {
+        apply((s) -> s.replace(' ', '_')); // replace space with underscore
+    }
+    
     /**
      * filename.jpg -&gt; filename_1v.jpg -&gt; filename_2v.jpg
      * 

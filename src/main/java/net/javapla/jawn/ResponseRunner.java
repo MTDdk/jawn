@@ -9,7 +9,6 @@ import net.javapla.jawn.templates.TemplateEngine;
 import net.javapla.jawn.templates.TemplateEngineManager;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
 /**
  * Handling the ControllerResponse using a TemplateManager
@@ -34,7 +33,7 @@ public class ResponseRunner {
         Object renderable = response.renderable();
         if (renderable instanceof NoHttpBody) {
             // This indicates that we do not want to render anything in the body.
-            // Can be used e.g. for a 204 No Content response.
+            // Can be used e.g. for a 204 No Content response or Redirect.
             // and bypasses the rendering engines.
             context.finalize(response);
         } else {

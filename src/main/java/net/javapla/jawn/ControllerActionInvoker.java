@@ -3,12 +3,12 @@ package net.javapla.jawn;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-
 import net.javapla.jawn.exceptions.ClassLoadException;
 import net.javapla.jawn.exceptions.ControllerException;
 import net.javapla.jawn.exceptions.WebException;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 class ControllerActionInvoker {
 
@@ -89,7 +89,7 @@ class ControllerActionInvoker {
         }
     }
 
-    private void injectControllerWithContext(HttpSupport controller, Context context, Injector injector) {
+    private void injectControllerWithContext(AppController controller, Context context, Injector injector) {
         controller.init(context, injector);
         
         //Inject dependencies

@@ -12,15 +12,13 @@ import net.javapla.jawn.exceptions.MediaTypeException;
 import org.imgscalr.Scalr;
 
 /**
- * Always assumes, that the image is to be saved in the configured imageUploadFolder
+ * 
  * @author MTD
  */
 public class ImageHandlerBuilder {
     private final ControllerResponseHolder holder;
     private final Context context;
     
-    //TODO actually this is up to the user to figure out. There should not be a default folder
-//    private final String uploadPath;// = "uploads/images";//Configuration.imageUploadFolder();
     private BufferedImage image;
     private final FileName fn = new FileName();
 
@@ -45,9 +43,6 @@ public class ImageHandlerBuilder {
         this(holder, context);
         try {
             this.image = ImageIO.read(file);
-//            String fullpath = file.getPath();
-//            folder(fullpath);
-//            name(fullpath);
             fn.updateNameAndExtension(file.getName());
             
             if (this.image == null)
@@ -71,17 +66,13 @@ public class ImageHandlerBuilder {
      }
 
      /**
-      * Assumes, that the <code>folder</code> is relative to "uploadPath"
-      * @param folder
+      * Crop the image to the given width and height, using (x,y) as coordinates for upper left corner
+      * @param x
+      * @param y
+      * @param width
+      * @param height
       * @return
       */
-     public ImageHandlerBuilder folder(String folder) {
-         if (folder.contains("uploads/images")) 
-             folder = folder.substring( folder.indexOf("uploads/images") + "uploads/images".length() +1 );
-         fn.updatePath(folder);
-         return this;
-     }
-
      public ImageHandlerBuilder crop(int x, int y, int width, int height) {
          height = Math.min(height, image.getHeight() - y); 
          width = Math.min(width, image.getWidth() - x);
@@ -92,18 +83,36 @@ public class ImageHandlerBuilder {
          return this;
      }
 
+     /**
+      * Resize the image to the given width and height
+      * @param width
+      * @param height
+      * @return
+      */
      public ImageHandlerBuilder resize(int width, int height) {
          BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_EXACT, width, height);
          image.flush();
          image = resize;
          return this;
      }
+     /**
+      * Resize the image to a given height, maintaining the original proportions of the image
+      * and setting the width accordingly.
+      * @param size
+      * @return
+      */
      public ImageHandlerBuilder resizeToHeight(int size) {
          BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_TO_HEIGHT, size);
          image.flush();
          image = resize;
          return this;
      }
+     /**
+      * Resize the image to a given width, maintaining the original proportions of the image
+      * and setting the height accordingly.
+      * @param size
+      * @return
+      */
      public ImageHandlerBuilder resizeToWidth(int size) {
          BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_TO_WIDTH, size);
          image.flush();
@@ -122,19 +131,16 @@ public class ImageHandlerBuilder {
       */
      public void send() throws ControllerException, MediaTypeException {
          String extension = fn.extension();
-//         if (!Arrays.asList(ImageIO.getWriterFileSuffixes()).contains(extension))
-//             throw new MediaTypeException(MessageFormat.format("An image writer could not be found for the extension {}", extension));
 
-//         try {
-             int status = 200;
-             String contentType = "image/"+extension;
-             ControllerResponse response = ControllerResponseBuilder.ok().contentType(contentType).status(status).addSupportedContentType("image/*").renderable(this.image);
-             holder.setControllerResponse(response);
-//            context.setControllerResponse(response);
-//             ImageIO.write(this.image, extension, context.responseOutputStream());//outputStream(contentType, null, status));
-//         } catch (IOException e) {
-//             throw new ControllerException(e);
-//         }
+         int status = 200;
+         String contentType = "image/"+extension;
+         ControllerResponse response = ControllerResponseBuilder
+                 .ok()
+                 .contentType(contentType)
+                 .status(status)
+                 .addSupportedContentType("image/*")
+                 .renderable(this.image);
+         holder.setControllerResponse(response);
      }
 
      /**
@@ -147,8 +153,7 @@ public class ImageHandlerBuilder {
      public String save(String uploadFolder) throws ControllerException {
          String realPath = context.getRealPath(uploadFolder);
 
-         // sanitise
-         fn.apply((s) -> s.replace(' ', '_'));
+         fn.sanitise();
 
          String imagename = uniqueImagename(realPath, fn.fullPath());
          try {

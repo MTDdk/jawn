@@ -10,15 +10,6 @@ import net.javapla.jawn.parsers.ParserEngineManager;
 
 public interface Request {
     
-    /**
-     * Internal contract goes here.
-     * <p>
-     * Not visible for users
-     */
-    interface Impl extends Request {
-        
-    }
-
     byte[] asBytes() throws IOException;
 
     InputStream asStream() throws IOException;

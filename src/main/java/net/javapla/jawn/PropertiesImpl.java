@@ -1,12 +1,8 @@
 package net.javapla.jawn;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
-import net.javapla.jawn.db.ConnectionSpec;
-import net.javapla.jawn.db.JdbcConnectionSpec;
 import net.javapla.jawn.exceptions.InitException;
 import net.javapla.jawn.util.Constants;
 import net.javapla.jawn.util.StringUtil;
@@ -25,12 +21,12 @@ public class PropertiesImpl {
     
     private final Modes mode;
     
-    private final Map<Modes, ConnectionSpec<JdbcConnectionSpec>> databaseSpecs;
+//    private final Map<Modes, ConnectionSpec<JdbcConnectionSpec>> databaseSpecs;
     
     
     public PropertiesImpl(Modes mode) {
         this.mode = mode;
-        databaseSpecs = new HashMap<>();
+//        databaseSpecs = new HashMap<>();
         
         try {
             
@@ -137,12 +133,12 @@ public class PropertiesImpl {
         return get(Constants.SUPPORTED_LANGUAGES, String[].class);
     }
     
-    public ConnectionSpec<JdbcConnectionSpec> getDatabaseSpec() {
-        return databaseSpecs.get(getMode());
-    }
-    public void putDatabaseSpec(Modes mode, ConnectionSpec<JdbcConnectionSpec> spec) {
-        databaseSpecs.put(mode, spec);
-    }
+//    public ConnectionSpec<JdbcConnectionSpec> getDatabaseSpec() {
+//        return databaseSpecs.get(getMode());
+//    }
+//    public void putDatabaseSpec(Modes mode, ConnectionSpec<JdbcConnectionSpec> spec) {
+//        databaseSpecs.put(mode, spec);
+//    }
     
     
     /**

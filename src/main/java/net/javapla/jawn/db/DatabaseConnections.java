@@ -69,6 +69,7 @@ public class DatabaseConnections {
         }
     }
     
+    //JdbcConnectionSpec
     private class JdbcConnectionBuilderImpl implements JdbcConnectionBuilder {
         private final DatabaseConnectionBuilderImpl builder;
         public JdbcConnectionBuilderImpl(DatabaseConnectionBuilderImpl builder) {

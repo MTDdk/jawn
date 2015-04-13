@@ -20,7 +20,8 @@ public class DatabaseModule extends AbstractModule {
         
         DatabaseConnection connection = connections.getConnection(properties.getMode());
         
-        bind(DatabaseConnection.class).toInstance(connection);
+        if (connection != null)
+            bind(DatabaseConnection.class).toInstance(connection);
     }
 
 }

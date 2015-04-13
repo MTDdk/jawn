@@ -35,7 +35,7 @@ class ParamCopy {
     private static Logger logger = LoggerFactory.getLogger(ParamCopy.class.getName());
 
 
-    static void copyInto(HttpServletRequest request, Context context, PropertiesImpl properties){
+    static void copyInto(HttpServletRequest request, ContextImpl context, PropertiesImpl properties){
 //        Map<String, Object> assigns = context.getNewControllerResponse().getViewObjects();
 //        insertActiveWebParamsInto(assigns, request, context, properties);
 //        copyRequestAttributesInto(assigns, request);
@@ -44,7 +44,7 @@ class ParamCopy {
 //        copyRequestProperties(assigns, request);
     }
 
-    private static void insertActiveWebParamsInto(Map<String, Object> assigns, HttpServletRequest request, Context context, PropertiesImpl properties) {
+    private static void insertActiveWebParamsInto(Map<String, Object> assigns, HttpServletRequest request, ContextImpl context, PropertiesImpl properties) {
         assigns.put("context_path", request.getContextPath());
         //in some cases the Route is missing - for example, when exception happened before Router was invoked.
 

@@ -41,7 +41,7 @@ public class CoreModule extends AbstractModule {
         bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
         bind(ResponseRunner.class).in(Singleton.class);
         
-        bind(Context.class);
+        bind(Context.class).to(ContextImpl.class);
         
         bind(ControllerActionInvoker.class).in(Singleton.class);
         bind(FilterChainEnd.class).in(Singleton.class);

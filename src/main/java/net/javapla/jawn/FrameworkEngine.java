@@ -1,14 +1,16 @@
 package net.javapla.jawn;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.javapla.jawn.exceptions.BadRequestException;
 import net.javapla.jawn.exceptions.MediaTypeException;
 import net.javapla.jawn.exceptions.RouteException;
 import net.javapla.jawn.exceptions.ViewException;
 import net.javapla.jawn.i18n.Lang;
+import net.javapla.jawn.i18n.LanguagesNotSetException;
+import net.javapla.jawn.i18n.NotSupportedLanguageException;
 import net.javapla.jawn.util.StringUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -31,8 +33,7 @@ public class FrameworkEngine {
     }
     
     //onRouteRequest
-    public void runRequest(Context context) {
-        
+    public void runRequest(Context.Internal context) {
         String path = context.path();
         
         String format = null;
@@ -45,17 +46,24 @@ public class FrameworkEngine {
             uri = path;
         }
         
-      //TODO first do this language extraction IF custom route not found
-        String language = findLanguagePrefix(uri, lang);
-            
-        //MTD: we first look for a language prefix and strip the URI if it is found
-        if (!StringUtil.blank(language)) {
-            uri = uri.substring(language.length() +1 );
-//            if (uri.isEmpty()) uri = "/";
-        } else {
+        //README maybe first do this language extraction IFF custom route not found
+        String language;
+        try {
+            // if languages are set we try to deduce them
+            language = lang.deduceLanguageFromUri(uri);
+            if (!StringUtil.blank(language))
+                uri = uri.substring(language.length() +1 ); // strip the language prefix from the URI
+            else
+                language = lang.getDefaultLanguage();
+        } catch (LanguagesNotSetException e) {
+            language = null;
+        } catch (NotSupportedLanguageException e) {
+            // use the default language
             language = lang.getDefaultLanguage();
+            // We cannot be sure that the URI actually contains
+            // a language parameter, so we let the router handle this
         }
-        
+            
         if (StringUtil.blank(uri)) {
             uri = "/";//different servlet implementations, damn.
         }
@@ -79,6 +87,7 @@ public class FrameworkEngine {
                 // if no route is found
                 logger.warn("No matching route for servlet path: " + context.path() + ", passing down to container.");
             }
+            //TODO do something about the exceptions!
         } catch (RouteException e) {
             // 404
             e.printStackTrace();
@@ -100,25 +109,5 @@ public class FrameworkEngine {
     
     public void onFrameworkShutdown() {
         
-    }
-    
-    
-    /**
-     * Finds the language segment of the URI if the language property is set.
-     * Just extracts the first segment.
-     * @param uri The full URI
-     * @return the extracted language segment. null, if none is found
-     * @author MTD
-     */
-    //TODO perhaps refactor into some LangHelper
-    private String findLanguagePrefix(String uri, Lang language) {
-        if ( ! language.areLanguagesSet()) return null;
-        String lang = uri.startsWith("/") ? uri.substring(1) : uri;
-        lang = lang.split("/")[0];
-        
-        if(language.isLanguageSupported(lang)) return lang;
-        
-        //TODO we probably want to throw some exceptions
-        return null;
     }
 }

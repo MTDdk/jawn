@@ -24,6 +24,16 @@ public class ControllerResponseBuilder {
     public static ControllerResponse noContent() {
         return new ControllerResponse(Status.NO_CONTENT.getStatusCode()).renderable(new NoHttpBody());
     }
+    public static ControllerResponse noBody(int status) {
+        return new ControllerResponse(status).renderable(new NoHttpBody());
+    }
+    /**
+     * 302 (Found)
+     */
+    public static ControllerResponse redirect() {
+        return new ControllerResponse(Status.FOUND.getStatusCode()).renderable(new NoHttpBody());
+    }
+    
     
     /**
      * This method will send the text to a client verbatim. It will not use any layouts. Use it to build app.services

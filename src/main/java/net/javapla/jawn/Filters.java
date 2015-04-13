@@ -43,7 +43,6 @@ public class Filters {
         return list;
     }
     
-    
     public class FilterBuilder {
         Filter filter;
         Class<? extends AppController>[] controllers;

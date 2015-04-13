@@ -7,6 +7,7 @@ import net.javapla.jawn.application.FrameworkConfig;
 import net.javapla.jawn.db.DatabaseConnections;
 import net.javapla.jawn.db.DatabaseModule;
 import net.javapla.jawn.exceptions.ConfigurationException;
+import net.javapla.jawn.util.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,8 @@ public class FrameworkBootstrap {
         config = readConfiguration(appConfig, router, filters, connections);
         
         // supported languages are needed in the creation of the injector
-        properties.setSupportedLanguages(appConfig.getSupportedLanguages()); 
+        properties.setSupportedLanguages(appConfig.getSupportedLanguages());
+        properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
         
         // create a single injector for both the framework and the user registered modules
         Injector localInjector = initInjector(Lists.newArrayList(appConfig.getRegisteredModules()), router, connections);
