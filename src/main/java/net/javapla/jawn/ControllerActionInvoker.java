@@ -12,8 +12,6 @@ import com.google.inject.Injector;
 
 class ControllerActionInvoker {
 
-//    private AppController controller;
-//    private boolean useCachedController;
     private Injector injector;
     
     @Inject
@@ -28,30 +26,32 @@ class ControllerActionInvoker {
 //            }
             
         this.injector = injector;
-//        this.useCachedController = properties.isProd();
-            
     }
     
-    public ControllerResponse executeAction(/*Injector injector, */Context context) {
+    public ControllerResponse executeAction(Context context) {
         Route route = context.getRoute();
 
-        try{
-//            AppController controller = loadController(route.getController().getName(), useCachedController);
+        try {
+            long time = System.currentTimeMillis();
             AppController controller = loadController(route.getController());
-        
+            System.out.println("ControllerActionInvoker loadController() " + (System.currentTimeMillis() - time));
+
+            time = System.currentTimeMillis();
             injectControllerWithContext(controller, context, injector);
-        
-            
+            System.out.println("ControllerActionInvoker injectControllerWithContext() " + (System.currentTimeMillis() - time));
+
             //find the method name and run it
+            time = System.currentTimeMillis();
             String methodName = route.getAction().toLowerCase();
-            for (Method method : controller.getClass()/*route.getController()*/.getMethods()) {
+            for (Method method : controller.getClass().getMethods()) {
                 if (methodName.equals( method.getName().toLowerCase() )) {
                     method.invoke(controller);//route.getController());
+                    System.out.println("ControllerActionInvoker getControllerResponse() " + (System.currentTimeMillis() - time));
                     return controller.getControllerResponse();
                 }
             }
             throw new ControllerException(String.format("Action name (%s) not found in controller (%s)", route.getAction(), route.getController().getSimpleName()));
-            
+
 //            Method m = controller.getClass().getMethod(actionName);
 //            m.invoke(controller);
         }catch(InvocationTargetException e){
@@ -61,7 +61,7 @@ class ControllerActionInvoker {
                 throw (RuntimeException)e.getCause();
 //            }else if(e.getCause() != null){
             }
-                throw new ControllerException(e.getCause());
+            throw new ControllerException(e.getCause());
         }catch(WebException e){
             throw e;
         }catch(Exception e){
@@ -70,15 +70,6 @@ class ControllerActionInvoker {
     }
     
     
-//    private AppController loadController(String controllerClassName, boolean useCachedController) throws ClassLoadException {
-//        try {
-//            return  DynamicClassFactory.createInstance(controllerClassName, AppController.class, useCachedController);
-//        } catch (ClassLoadException e) {
-//            throw e;
-//        } catch (Exception e) {
-//            throw new ClassLoadException(e);
-//        }
-//    }
     private AppController loadController(Class<? extends AppController> controller) throws ClassLoadException {
         try {
             return DynamicClassFactory.createInstance(controller);

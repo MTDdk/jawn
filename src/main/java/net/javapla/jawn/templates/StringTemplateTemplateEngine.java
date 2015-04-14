@@ -3,6 +3,7 @@ package net.javapla.jawn.templates;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -13,6 +14,7 @@ import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.Context;
 import net.javapla.jawn.ControllerResponse;
+import net.javapla.jawn.PropertiesImpl;
 import net.javapla.jawn.ResponseStream;
 import net.javapla.jawn.exceptions.ViewException;
 import net.javapla.jawn.templatemanagers.stringtemplate.AbstractStringTemplateConfig;
@@ -45,11 +47,16 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     private final StringTemplateConfiguration config;
     private final ConfigurationReader configReader;
     
+    private final Map<String, ST> templateCache;
+    private final boolean useCache;
+    
     private STGroupDir group;
     private ST layoutTemplate;
 
     @Inject
-    public StringTemplateTemplateEngine(StringTemplateTemplateConfigProvider templateConfig, ConfigurationReader configReader) {
+    public StringTemplateTemplateEngine(StringTemplateTemplateConfigProvider templateConfig,
+                                        ConfigurationReader configReader,
+                                        PropertiesImpl properties) {
         log.debug("Starting the StringTemplateTemplateEngine");
         
         STGroupDir.verbose = false;
@@ -62,6 +69,8 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         }
         
         this.configReader = configReader;
+        this.templateCache = new HashMap<>();
+        this.useCache = properties.isProd();
     }
 
     @Override
@@ -71,6 +80,8 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     
     @Override
     public void invoke(Context context, ControllerResponse response, ResponseStream stream) throws ViewException {
+        long time = System.currentTimeMillis();
+        
         Map<String, Object> values = response.getViewObjects();//context.getViewObjects();
 //      Object renderable = response.renderable();
       /*if (renderable == null) {
@@ -116,8 +127,13 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
           String controller = template;
           layoutTemplate = locateDefaultTemplate(group, controller);
           
-          if (contentTemplate != null) // it have to be possible to use a layout without defining a template
-              readyContentTemplate(contentTemplate, sw, values, language, error);
+          if (contentTemplate != null) { // it have to be possible to use a layout without defining a template
+              if (useCache) {
+                  templateCache.computeIfAbsent(template, f -> {readyContentTemplate(contentTemplate, sw, values, language, error); return contentTemplate;});
+              } else {
+                  readyContentTemplate(contentTemplate, sw, values, language, error);
+              }
+          }
           readyLayoutTemplate(context, sw, values, controller, language, error);
       }
           
@@ -127,7 +143,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
           throw new ViewException(e);
       }
       
-      log.info("Rendered template: '{}' with layout: '{}'", template, layout);
+      log.info("Rendered template: '{}' with layout: '{}' in  {}ms", template, layout, (System.currentTimeMillis() - time));
       
       if (!error.errors.isEmpty()) {
           log.warn(error.errors.toString());
@@ -205,7 +221,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         
         //add scripts
         site.scripts = readLinks(Template.SCRIPTS_TEMPLATE, conf.scripts, error);
-        site.styles = readLinks(Template.STYLES_TEMPLATE, conf.styles, error);
+        site.styles  = readLinks(Template.STYLES_TEMPLATE, conf.styles, error);
         
         // put the rendered content into the main template
         site.content = content.toString();
@@ -228,7 +244,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
     
     private String readLinks(Template template, List<String> links, ErrorBuffer error) {
-        ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);//README should it be ${tag} instead of $tag$?
+        ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
         
         List<String> prefixed = prefixResourceLinks(links, template.prefix);
         

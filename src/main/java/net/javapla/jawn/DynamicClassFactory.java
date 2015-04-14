@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
+import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -37,6 +38,7 @@ public abstract class DynamicClassFactory {
      * @throws ClassLoadException 
      */
     public static <T> T createInstance(String className, Class<T> expectedType, boolean useCache) throws CompilationException, ClassLoadException {
+        System.out.println(MessageFormat.format("_______________ createInstance(String {0}, Class<T> {1}, boolean {2})", className, expectedType, useCache));
         try {
             Object o = getCompiledClass(className, useCache).newInstance(); // a check to see if the class exists
             T instance = expectedType.cast(o); // a check to see if the class is actually a correct subclass
@@ -54,6 +56,7 @@ public abstract class DynamicClassFactory {
     }
     
     public static <T> T createInstance(Class<?> clazz, Class<T> expectedType) throws ClassLoadException {
+        System.out.println(MessageFormat.format("_______________ createInstance(Class<?> {0}, Class<T> {1})", clazz, expectedType));
         try {
             Object o = clazz.newInstance();
             return expectedType.cast(o);
@@ -66,6 +69,7 @@ public abstract class DynamicClassFactory {
     }
     
     public static <T> T createInstance(Class<? extends T> clazz) throws ClassLoadException {
+        System.out.println(MessageFormat.format("_______________ createInstance(Class<? extends T> {0})", clazz));
         try {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
@@ -82,6 +86,7 @@ public abstract class DynamicClassFactory {
      * @throws ClassLoadException
      */
     public static Class<?> getCompiledClass(String className, boolean useCache) throws CompilationException, ClassLoadException {
+        System.out.println(MessageFormat.format("_______________ getCompiledClass(String {0}, boolean {1})", className, useCache));
         try {
             if (! useCache) {
                 
@@ -106,6 +111,7 @@ public abstract class DynamicClassFactory {
     }
     
     public static <T> Class<? extends T> getCompiledClass(String className, Class<T> expected, boolean useCache) throws CompilationException, ClassLoadException {
+        System.out.println(MessageFormat.format("_______________ getCompiledClass(String {0}, Class<T> {1}, boolean {2})", className, expected, useCache));
         return getCompiledClass(className, useCache).asSubclass(expected);
     }
     
@@ -118,6 +124,7 @@ public abstract class DynamicClassFactory {
      */
     protected static final Function<String, Class<?>> WRAP_FORNAME = className -> {
         try {
+            System.out.println("CACHED_CONTROLLERS ????? " + className);
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);

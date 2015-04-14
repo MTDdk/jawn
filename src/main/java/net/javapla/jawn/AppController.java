@@ -307,7 +307,7 @@ public abstract class AppController implements ControllerResponseHolder {
      * @param value value.
      */
     protected void assign(String name, Object value) {
-        KeyWords.check(name);
+//        KeyWords.check(name);
 //        context.addViewObject(name, value);//getValues().put(name, value);
 //        context.getNewControllerResponse().addViewObject(name, value);
         response.addViewObject(name, value);

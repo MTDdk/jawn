@@ -13,34 +13,52 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
+/**
+ * 
+ * Empirical evidence tells that caching the SiteConfiguration does not do anything.
+ * This may make sense, as the JSON file is pretty small
+ * @author MTD
+ */
 public class ConfigurationReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String SITE_FILE = "site.json";
 
     private final ObjectMapper mapper;
+//    private final Map<String, SiteConfiguration> configurationCache;
+//    private final boolean useCache;
     
 
     @Inject
-    public ConfigurationReader(ObjectMapper mapper) {
+    public ConfigurationReader(ObjectMapper mapper/*, PropertiesImpl properties*/) {
         this.mapper = mapper;
+//        this.configurationCache = new HashMap<>();
+//        this.useCache = false;//properties.isProd();
     }
     
     public SiteConfiguration read(String templateFolder, String controller) {
         Path rootFolder = Paths.get(templateFolder);
 
         // find eventual extra configurations in the controller folder
-        SiteConfiguration localConf = readSiteFile(rootFolder.resolve(controller)); // we skip path.controller+'/'+path.method because we only look for other configurations on controller
+        SiteConfiguration localConf = readSiteFile/*WithCache*/(rootFolder.resolve(controller)); // we skip path.controller+'/'+path.method because we only look for other configurations on controller
         
         if (localConf.overrideDefault) {
             return localConf;
         } else {
             // find root site_file and eventual extra configurations of the controller folder
-            SiteConfiguration conf = readSiteFile(rootFolder);
+            SiteConfiguration conf = readSiteFile/*WithCache*/(rootFolder);
             mergeConfigurations(conf, localConf);
             return conf;
         }
     }
+    
+//    private SiteConfiguration readSiteFileWithCache(Path folder) {
+//        if (useCache) {
+//            return configurationCache.computeIfAbsent(folder.toString(), f -> readSiteFile(folder));
+//        } else {
+//            return readSiteFile(folder);
+//        }
+//    }
 
     private SiteConfiguration readSiteFile(Path folder) {
         Path rootFile = folder.resolve(SITE_FILE);
@@ -63,6 +81,4 @@ public class ConfigurationReader {
         globalConf.scripts.addAll(localConf.scripts);
         globalConf.styles.addAll(localConf.styles);
     }
-
 }
-

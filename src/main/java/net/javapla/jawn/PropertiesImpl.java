@@ -47,11 +47,6 @@ public class PropertiesImpl {
             }
             checkInitProperties();
             
-            @Deprecated
-            //Just remove it from here and from wiki + jettyrun
-            String logRequest = System.getProperty("jawn.log.request");
-            props.put(Constants.LOG_REQUESTS, logRequest);
-            
         } catch (InitException e ) {
             throw e;
         } catch (Exception e) {

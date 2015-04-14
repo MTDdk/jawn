@@ -33,13 +33,6 @@ public interface Constants {
     
     
     /**
-     * Should the framework log requests
-     */
-    @Deprecated
-    public static final String LOG_REQUESTS = "jawn.log.request";
-    
-    
-    /**
      * The defined languages available in the app
      */
     public static final String SUPPORTED_LANGUAGES = "languages";

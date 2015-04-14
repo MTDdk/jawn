@@ -23,7 +23,6 @@ public class StringTemplateTemplateConfigProvider implements Provider<AbstractSt
     private final PropertiesImpl properties;
 
     private Class<?> userTemplateConfig;
-    private boolean tried;
     
     @Inject
     public StringTemplateTemplateConfigProvider(PropertiesImpl properties) {
@@ -32,9 +31,7 @@ public class StringTemplateTemplateConfigProvider implements Provider<AbstractSt
 
     @Override
     public AbstractStringTemplateConfig get() {
-        log.debug("????? Trying to find the user specified configuration");
-        
-        if (!tried) {
+            log.debug("????? Trying to find the user specified configuration");
         
      // read template package
         // find implementations of AbstractTemplateConfig and TemplateManager
@@ -73,8 +70,6 @@ public class StringTemplateTemplateConfigProvider implements Provider<AbstractSt
 //        Class<? extends AbstractTemplateConfig<?>> abstractConfig
 //            = (Class<? extends AbstractTemplateConfig<?>>) abstractConfigs.stream().findFirst().orElse(null);
         
-        tried = true;
-        }
         
         if (userTemplateConfig  == null)
             return null;
