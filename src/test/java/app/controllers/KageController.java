@@ -1,6 +1,6 @@
 package app.controllers;
 
-import net.javapla.jawn.AppController;
+import net.javapla.jawn.core.AppController;
 
 public class KageController extends AppController {
 
