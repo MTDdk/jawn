@@ -118,6 +118,15 @@ public class FrameworkBootstrap {
         return locate(reflections, ApplicationBootstrap.class, impl -> impl.bootstrap(configuration));
     }
     
+    /**
+     * Locates an implementation of the given type, and executes the consumer if 
+     * a class of the given type is found
+     * 
+     * @param reflections
+     * @param clazz
+     * @param f
+     * @return
+     */
     private <T, U> T locate(Reflections reflections, Class<T> clazz, Consumer<T> f) {
         Set<Class<? extends T>> set = reflections.getSubTypesOf(clazz);
         if (!set.isEmpty()) {

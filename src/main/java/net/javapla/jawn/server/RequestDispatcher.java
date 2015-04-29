@@ -38,12 +38,6 @@ public class RequestDispatcher implements Filter {
     
     private ServletContext servletContext;
     private Set<String> exclusions = new TreeSet<String>();
-//    private ControllerRegistry controllerRegistry;
-//    private AppContext appContext;
-//    private Bootstrap appBootstrap;
-//    private String root_controller;
-    
-//    private Router router;
 
     private Injector injector;
 
@@ -56,21 +50,10 @@ public class RequestDispatcher implements Filter {
         properties = new PropertiesImpl(ModeHelper.determineModeFromSystem());
         
         this.servletContext = filterConfig.getServletContext();
-//        controllerRegistry = new ControllerRegistry();
-//        appContext = new AppContext(servletContext);
-        
-        // adding user modules to controllerRegistry
-//        initApp(appContext, controllerRegistry, properties);
         
         bootstrapper = new FrameworkBootstrap(properties/*, controllerRegistry.getModules()*/);
         bootstrapper.boot();
         injector = bootstrapper.getInjector();
-//        controllerRegistry.setInjector(injector);
-//        Filters filters = readFilters();
-//        router = createRouter(filters); // created at startup, as we have no need for reloading custom routes.
-        //--------
-        
-//        servletContext.setAttribute("appContext", appContext);
         
         findExclusionPaths();
         
@@ -218,11 +201,7 @@ public class RequestDispatcher implements Filter {
         return false;
     }
 
-    /*private Map<String, Object> getMapWithExceptionDataAndSession(HttpServletRequest request, Throwable e) {
-        return CollectionUtil.map("message", e.getMessage() == null ? e.toString() : e.getMessage(),
-                   "stack_trace", getStackTraceString(e),
-                   "session", SessionHelper.getSessionAttributes(request));
-    }*/
+    /**/
 
 
     /**
@@ -305,83 +284,7 @@ public class RequestDispatcher implements Filter {
     }
     
     
-//    private void renderSystemError(HttpServletRequest request, HttpServletResponse response, Throwable e) {
-//        renderSystemError(request, response, "/system/error", null, 500, e);
-//    }
-
-
-    /*private String getStackTraceString(Throwable e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        pw.flush();
-        return sw.toString();
-    }*/
-
-    /*private void renderSystemError(HttpServletRequest request, HttpServletResponse response, String template, String layout, int status, Throwable e) {
-        try{
-            String requestProperties = getRequestProperties(request);
-            if(status == 404){
-                logger.warn("ActiveWeb 404 WARNING: \n" + requestProperties, e);
-            }else{
-                logger.error("ActiveWeb ERROR: \n" + requestProperties, e);
-            }
-
-            if (request.getHeader("x-requested-with") != null
-                    || request.getHeader("X-Requested-With") != null) {
-
-                try {
-                    response.setStatus(status);
-                    response.getWriter().write(getStackTraceString(e));
-                } catch (Exception ex) {
-                    logger.error("Failed to send error response to client", ex);
-                }
-            } else {
-                Context c = injector.getInstance(Context.class);
-                c.init(servletContext, request, response);
-                
-                TemplateEngineManager manager = injector.getInstance(TemplateEngineManager.class);
-                TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
-                ControllerResponse r = ControllerResponseBuilder
-                        .ok()
-                        .addAllViewObjects(getMapWithExceptionDataAndSession(request, e))
-                        .template(template)
-                        .layout(layout)
-                        .contentType(MediaType.TEXT_HTML)
-                        .status(status);
-                engine.invoke(c, r);
-                
-////                ParamCopy.copyInto(resp.values(), request, null);
-            }
-        }catch(Throwable t){
-
-            if(t instanceof IllegalStateException){
-                logger.error("Failed to render a template: '" + template + "' because templates are rendered with Writer, but you probably already used OutputStream");
-            }else{
-                logger.error("ActiveWeb internal error: ", t);
-            }
-            try{
-                //MTD: changed from getOutputStream(), as this results in IllegalStateException, due to getWriter() has been called prior to this statement 
-                response.getWriter().print("<html><head><title>Sorry!</title></head><body><div style='background-color:pink;'>internal error</div></body>");
-            }catch(Exception ex){
-                logger.error(ex.toString(), ex);
-            }
-        }
-    }*/
-
-
-    /*private String getRequestProperties(HttpServletRequest request){
-        StringBuilder sb = new StringBuilder();
-        if (request == null) return "";
-        sb.append("Request URL: ").append(request.getRequestURL()).append("\n");
-        sb.append("ContextPath: ").append(request.getContextPath()).append("\n");
-        sb.append("Query String: ").append(request.getQueryString()).append("\n");
-        sb.append("URI Full Path: ").append(request.getRequestURI()).append("\n");
-        sb.append("URI Path: ").append(request.getServletPath()).append("\n");
-        sb.append("Method: ").append(request.getMethod()).append("\n");
-        return sb.toString();
-    }*/
-    
+    @Override
     public void destroy() {
         bootstrapper.shutdown();
 //        appBootstrap.destroy(appContext);

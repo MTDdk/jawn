@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 class ParserConfiguration {
 
     public static void config(ObjectMapper mapper) {
-        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        mapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         mapper.configure(Feature.ALLOW_COMMENTS, true);
         mapper.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, false);
         

@@ -20,20 +20,18 @@ public class TemplateConfigProvider<T> implements Provider<TemplateConfig<T>> {
 
     private static Logger log = LoggerFactory.getLogger(TemplateConfigProvider.class.getName());
 
-//    private final PropertiesImpl properties;
+//    private final TemplateConfig<T> userTemplateConfig;
 
-//    private Class<?> userTemplateConfig;
-
-//    @Inject
-    public TemplateConfigProvider(/*PropertiesImpl properties*/) {
-//        this.properties = properties;
+    public TemplateConfigProvider() {
+//        TemplateConfig<T> localTemplateConfig = locateTemplateConfig();
+//        
+//        userTemplateConfig = localTemplateConfig;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    @Override
-    public TemplateConfig<T> get() {
+    private TemplateConfig<T> locateTemplateConfig() {
         log.debug("????? Trying to find the user specified configuration");
-
+        
         Reflections reflections = new Reflections("app.config");
         Set<Class<? extends TemplateConfig>> set = reflections.getSubTypesOf(TemplateConfig.class);
         Iterator<Class<? extends TemplateConfig>> iterator = set.iterator();
@@ -46,6 +44,12 @@ public class TemplateConfigProvider<T> implements Provider<TemplateConfig<T>> {
         log.warn("Failed to find implementation of '" + TemplateConfig.class + "', proceeding without custom configuration of '"
                 + TemplateConfig.class.getSimpleName() + "'");
         return null;
+    }
+
+    @Override
+    public TemplateConfig<T> get() {
+
+        return locateTemplateConfig();//userTemplateConfig;
 
         // read template package
         // find implementations of AbstractTemplateConfig and TemplateManager

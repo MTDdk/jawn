@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-apply from: 'maven.gradle'
+//apply from: 'maven.gradle'
 
 
 // compiler options
@@ -11,7 +11,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 // maven metadata
 group = "net.javapla.jawn"
 archivesBaseName = "jawn"
-version = "0.2.1-SNAPSHOT"
+version = "0.8.5-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -38,6 +38,7 @@ dependencies {
 	/* Template Engines */
 	//StringTemplate
 	compile 'org.antlr:ST4:4.0.8'
+
 	
 	//ImgScalr (image manipulation)
 	compile 'org.imgscalr:imgscalr-lib:4.2'
@@ -53,3 +54,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+test {
+	ignoreFailures true
+}

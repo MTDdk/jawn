@@ -27,6 +27,14 @@ public class ControllerResponseBuilder {
     public static ControllerResponse noBody(int status) {
         return new ControllerResponse(status).renderable(new NoHttpBody());
     }
+    public static ControllerResponse status(int status) {
+        return new ControllerResponse(status);
+    }
+    
+    public static ControllerResponse text(String text, int status) {
+        return new ControllerResponse(status).renderable(text).contentType(MediaType.TEXT_PLAIN);
+    }
+    
     /**
      * 302 (Found)
      */
@@ -93,7 +101,7 @@ public class ControllerResponseBuilder {
         return response;
     }
     
-    ControllerResponseBuilder status(int statusCode) {
+    ControllerResponseBuilder setStatus(int statusCode) {
         holder.setControllerResponse(new ControllerResponse(statusCode));
         return this;
     }
@@ -125,7 +133,7 @@ public class ControllerResponseBuilder {
         public ControllerResponseBuilder ok() {
 //            this.builder.controllerResponse.setStatus(javax.ws.rs.core.Response.Status.OK.getStatusCode());
 //            return builder;
-            builder.status(javax.ws.rs.core.Response.Status.OK.getStatusCode());
+            builder.setStatus(Status.OK.getStatusCode());
             return builder;
         }
         /**
@@ -133,7 +141,7 @@ public class ControllerResponseBuilder {
          * @return The original builder
          */
         public ControllerResponseBuilder noContent() {
-            builder.status(javax.ws.rs.core.Response.Status.NO_CONTENT.getStatusCode());
+            builder.setStatus(Status.NO_CONTENT.getStatusCode());
             return builder;
         }
         /**
@@ -141,7 +149,7 @@ public class ControllerResponseBuilder {
          * @return The original builder
          */
         public ControllerResponseBuilder badRequest() {
-            builder.status(javax.ws.rs.core.Response.Status.BAD_REQUEST.getStatusCode());
+            builder.setStatus(Status.BAD_REQUEST.getStatusCode());
             return builder;
         }
         /**
@@ -149,7 +157,7 @@ public class ControllerResponseBuilder {
          * @return The original builder
          */
         public ControllerResponseBuilder notFound() {
-            builder.status(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
+            builder.setStatus(Status.NOT_FOUND.getStatusCode());
             return builder;
         }
         /**
@@ -157,7 +165,7 @@ public class ControllerResponseBuilder {
          * @return The original builder
          */
         public ControllerResponseBuilder internalServerError() {
-            builder.status(javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            builder.setStatus(Status.INTERNAL_SERVER_ERROR.getStatusCode());
             return builder;
         }
     }

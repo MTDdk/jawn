@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
@@ -54,6 +53,7 @@ import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.MultiList;
+import net.javapla.jawn.core.util.StringBuilderWriter;
 import net.javapla.jawn.core.util.StringUtil;
 
 import org.apache.commons.fileupload.FileItem;
@@ -1722,7 +1722,7 @@ public abstract class AppController implements ControllerResponseHolder {
      */
     //TODO TEST this mofo
     protected String merge(String template, Map<String, Object> values){
-        StringWriter stringWriter = new StringWriter();
+        Writer stringWriter = new StringBuilderWriter();//StringWriter();
         
         TemplateEngineOrchestrator manager = injector.getInstance(TemplateEngineOrchestrator.class);
         TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);

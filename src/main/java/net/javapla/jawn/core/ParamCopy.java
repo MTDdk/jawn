@@ -31,30 +31,31 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Igor Polevoy
  */
+@Deprecated
 class ParamCopy {
     private static Logger logger = LoggerFactory.getLogger(ParamCopy.class.getName());
 
 
-    static void copyInto(HttpServletRequest request, ContextImpl context, PropertiesImpl properties){
-//        Map<String, Object> assigns = context.getNewControllerResponse().getViewObjects();
-//        insertActiveWebParamsInto(assigns, request, context, properties);
-//        copyRequestAttributesInto(assigns, request);
-//        copyRequestParamsInto(assigns, request);
-//        copySessionAttrsInto(assigns, request);
-//        copyRequestProperties(assigns, request);
+    static void copyInto(HttpServletRequest request, ControllerResponse response, PropertiesImpl properties){
+        Map<String, Object> assigns = response.getViewObjects();
+        insertActiveWebParamsInto(assigns, request, properties);
+        copyRequestAttributesInto(assigns, request);
+        copyRequestParamsInto(assigns, request);
+        copySessionAttrsInto(assigns, request);
+        copyRequestProperties(assigns, request);
     }
 
-    private static void insertActiveWebParamsInto(Map<String, Object> assigns, HttpServletRequest request, ContextImpl context, PropertiesImpl properties) {
+    private static void insertActiveWebParamsInto(Map<String, Object> assigns, HttpServletRequest request, /*ContextImpl context,*/ PropertiesImpl properties) {
         assigns.put("context_path", request.getContextPath());
         //in some cases the Route is missing - for example, when exception happened before Router was invoked.
 
         Map<Object, Object> params = CollectionUtil.map("environment", properties.getMode());
 
-        if(context.getRoute() != null){
+//        if(context.getRoute() != null){
 //            params.put("controller", context.getRoute().getControllerPath());
-            params.put("action", context.getRoute().getAction());
-            params.put("language", context.getRouteLanguage());
-        }
+//            params.put("action", context.getRoute().getAction());
+//            params.put("language", context.getRouteLanguage());
+//        }
         assigns.put("activeweb", params);
     }
 

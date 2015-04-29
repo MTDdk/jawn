@@ -36,7 +36,9 @@ public class Param {
     }
     public Integer asInt(int defaultValue) {
         try {
-            return toInteger(param);
+            Integer integer = toInteger(param);
+            if (integer == null) return defaultValue;
+            return integer;
         } catch (ConversionException e) {
             return defaultValue;
         }

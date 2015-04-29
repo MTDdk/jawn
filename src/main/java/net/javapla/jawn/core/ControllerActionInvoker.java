@@ -32,21 +32,21 @@ class ControllerActionInvoker {
         Route route = context.getRoute();
 
         try {
-            long time = System.currentTimeMillis();
+//            long time = System.currentTimeMillis();
             AppController controller = loadController(route.getController());
-            System.out.println("ControllerActionInvoker loadController() " + (System.currentTimeMillis() - time));
+//            System.out.println("ControllerActionInvoker loadController() " + (System.currentTimeMillis() - time));
 
-            time = System.currentTimeMillis();
+//            time = System.currentTimeMillis();
             injectControllerWithContext(controller, context, injector);
-            System.out.println("ControllerActionInvoker injectControllerWithContext() " + (System.currentTimeMillis() - time));
+//            System.out.println("ControllerActionInvoker injectControllerWithContext() " + (System.currentTimeMillis() - time));
 
             //find the method name and run it
-            time = System.currentTimeMillis();
+//            time = System.currentTimeMillis();
             String methodName = route.getAction().toLowerCase();
             for (Method method : controller.getClass().getMethods()) {
                 if (methodName.equals( method.getName().toLowerCase() )) {
                     method.invoke(controller);//route.getController());
-                    System.out.println("ControllerActionInvoker getControllerResponse() " + (System.currentTimeMillis() - time));
+//                    System.out.println("ControllerActionInvoker getControllerResponse() " + (System.currentTimeMillis() - time));
                     return controller.getControllerResponse();
                 }
             }

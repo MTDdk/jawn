@@ -16,10 +16,11 @@ import com.google.inject.Injector;
 
 /**
  * Simple servlet that allows to run the framework inside a servlet container
+ * 
+ * *Not fully implemented*
+ * 
  * @author MTD
- *
  */
-//TODO make it a part of the server project
 public class FrameworkServletDispatcher extends HttpServlet {
 
     private static final long serialVersionUID = -7219362539542656401L;
@@ -41,5 +42,10 @@ public class FrameworkServletDispatcher extends HttpServlet {
         context.init(servletContext, req, resp);
         
         framework.runRequest(context);
+    }
+    
+    @Override
+    public void destroy() {
+        framework.onFrameworkShutdown();
     }
 }

@@ -2,7 +2,11 @@ package net.javapla.jawn.server;
 
 import com.google.inject.AbstractModule;
 
-public class ServletModule extends AbstractModule {
+/**
+ * Not implemented
+ * @author MTD
+ */
+public class ServerModule extends AbstractModule {
 
     @Override
     protected void configure() {

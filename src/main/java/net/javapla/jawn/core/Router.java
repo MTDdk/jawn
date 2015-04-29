@@ -71,8 +71,8 @@ public class Router {
     }
     
     
-    public Route getRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException, IllegalStateException {
-        if (routes == null) throw new IllegalStateException("Routes have not been compiled");//README could be compiling instead
+    public Route getRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
+        if (routes == null) compileRoutes(injector); // used to throw an illegalstateexception
         
         // go through custom user routes
         for (Route route : routes) {
@@ -93,7 +93,8 @@ public class Router {
     }
     
     void compileRoutes(Injector injector) {
-        if (routes != null) throw new IllegalStateException("Routes already compiled");//README could just return without throw
+        if (routes != null) return; // used to throw an illegalstateexception
+        
         List<Route> r = new ArrayList<>();
         for (RouteBuilder builder : builders) {
             r.add(builder.build(filters, injector));

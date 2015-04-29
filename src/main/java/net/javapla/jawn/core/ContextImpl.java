@@ -105,9 +105,10 @@ class ContextImpl implements Context.Internal {
         return new SessionFacade(request);
     }
     
-    public AppContext createAppContext() {
-        return new AppContext(servletContext);
-    }
+    //README do we need some sort of globally available context?
+//    public AppContext createAppContext() {
+//        return new AppContext(servletContext);
+//    }
     
     //TODO this somehow needs to be a part of the ControllerResponse, which, of course, is not
     //exactly trivial

@@ -6,6 +6,10 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import net.javapla.jawn.core.PropertiesImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +19,9 @@ import com.google.inject.Inject;
 
 /**
  * 
- * Empirical evidence tells that caching the SiteConfiguration does not have any impact on performance.
- * This may make sense, as the JSON file is pretty small
+ * Empirical evidence tells us that caching the SiteConfiguration has a significant impact on performance in high load use.
+ * This makes sense as all roundtrips to disk cost.
+ * 
  * @author MTD
  */
 public class ConfigurationReader {
@@ -25,40 +30,40 @@ public class ConfigurationReader {
     private static final String SITE_FILE = "site.json";
 
     private final ObjectMapper mapper;
-//    private final Map<String, SiteConfiguration> configurationCache;
-//    private final boolean useCache;
+    private final Map<String, SiteConfiguration> configurationCache;
+    private final boolean useCache;
     
 
     @Inject
-    public ConfigurationReader(ObjectMapper mapper/*, PropertiesImpl properties*/) {
+    public ConfigurationReader(ObjectMapper mapper, PropertiesImpl properties) {
         this.mapper = mapper;
-//        this.configurationCache = new HashMap<>();
-//        this.useCache = false;//properties.isProd();
+        this.configurationCache = new ConcurrentHashMap<>();
+        this.useCache = properties.isProd();
     }
     
     public SiteConfiguration read(String templateFolder, String controller) {
         Path rootFolder = Paths.get(templateFolder);
 
         // find eventual extra configurations in the controller folder
-        SiteConfiguration localConf = readSiteFile/*WithCache*/(rootFolder.resolve(controller)); // we skip path.controller+'/'+path.method because we only look for other configurations on controller
+        SiteConfiguration localConf = readSiteFileWithCache(rootFolder.resolve(controller)); // we skip path.controller+'/'+path.method because we only look for other configurations on controller
         
         if (localConf.overrideDefault) {
             return localConf;
         } else {
             // find root site_file and eventual extra configurations of the controller folder
-            SiteConfiguration conf = readSiteFile/*WithCache*/(rootFolder);
+            SiteConfiguration conf = readSiteFileWithCache(rootFolder);
             mergeConfigurations(conf, localConf);
             return conf;
         }
     }
     
-//    private SiteConfiguration readSiteFileWithCache(Path folder) {
-//        if (useCache) {
-//            return configurationCache.computeIfAbsent(folder.toString(), f -> readSiteFile(folder));
-//        } else {
-//            return readSiteFile(folder);
-//        }
-//    }
+    private SiteConfiguration readSiteFileWithCache(Path folder) {
+        if (useCache) {
+            return configurationCache.computeIfAbsent(folder.toString(), f -> readSiteFile(folder));
+        } else {
+            return readSiteFile(folder);
+        }
+    }
 
     private SiteConfiguration readSiteFile(Path folder) {
         Path rootFile = folder.resolve(SITE_FILE);

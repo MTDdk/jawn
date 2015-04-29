@@ -58,7 +58,7 @@ public class RouteBuilder {
         return this;
     }
     
-    public <T extends AppController> RouteBuilder to(Class<T> type) {
+    public RouteBuilder to(Class<? extends AppController> type) {
         this.type = type;
 //        try {
 //            this.controller = type.newInstance();
@@ -69,7 +69,7 @@ public class RouteBuilder {
         return this;
     }
     
-    public <T extends AppController> RouteBuilder to(Class<T> type, String action) /*throws ControllerException*/{
+    public RouteBuilder to(Class<? extends AppController> type, String action) /*throws ControllerException*/{
 //        try {
 //            this.controller = type.newInstance();
 //        } catch (InstantiationException | IllegalAccessException e) {

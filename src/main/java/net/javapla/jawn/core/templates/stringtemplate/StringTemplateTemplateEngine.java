@@ -1,9 +1,7 @@
 package net.javapla.jawn.core.templates.stringtemplate;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,14 +22,17 @@ import net.javapla.jawn.core.templates.config.Site;
 import net.javapla.jawn.core.templates.config.SiteConfiguration;
 import net.javapla.jawn.core.templates.config.TemplateConfig;
 import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
+import net.javapla.jawn.core.util.StringBuilderWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.stringtemplate.v4.AutoIndentWriter;
 import org.stringtemplate.v4.Interpreter;
+import org.stringtemplate.v4.NoIndentWriter;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroupDir;
 import org.stringtemplate.v4.STRawGroupDir;
+import org.stringtemplate.v4.STWriter;
 import org.stringtemplate.v4.misc.ErrorBuffer;
 
 import com.google.inject.Inject;
@@ -41,41 +42,48 @@ import com.google.inject.Singleton;
 public class StringTemplateTemplateEngine implements TemplateEngine {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private static final String TEMPLATE_DEFAULT = "index.html";
+    
     private static final String TEMPLATE_ENDING = ".st";
-    private static final String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "WEB-INF/views/");
     
     private final StringTemplateConfiguration config;
     private final ConfigurationReader configReader;
     
-    private final Map<String, ST> templateCache;
-    private final boolean useCache;
-    
+    // The StringTemplateGroup actually handles some sort of caching internally
     private STGroupDir group;
-    private ST layoutTemplate;
+    
+    private final boolean useCache;
+    private final boolean outputHtmlIndented;
 
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
                                         ConfigurationReader configReader,
                                         PropertiesImpl properties) {
-        log.debug("Starting the StringTemplateTemplateEngine");
+        log.warn("Starting the StringTemplateTemplateEngine");
         
         STGroupDir.verbose = false;
         Interpreter.trace = false;
+
         
         config = new StringTemplateConfiguration();
+        
+        // Add standard renderers
+        // TODO Do some HTML escaping by standard
+//        config.registerRenderer(String.class, new StringRenderer());
+        
         TemplateConfig<StringTemplateConfiguration> stringTemplateConfig = templateConfig.get();
         if (stringTemplateConfig != null) {
             stringTemplateConfig.init(config);
         }
         
+        
+        useCache = properties.isProd();
+        outputHtmlIndented = !properties.isProd();
+        
         this.configReader = configReader;
-        this.templateCache = new HashMap<>();
-        this.useCache = properties.isProd();
     }
 
     @Override
-    public void invoke(Context context, ControllerResponse response) {
+    public void invoke(Context context, ControllerResponse response) throws ViewException {
         invoke(context, response, context.finalize(response));
     }
     
@@ -106,44 +114,35 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
       
       setupTemplateGroup(context);
       
-      //name of the template
+      //generate name of the template
       String template = TemplateEngineHelper.getTemplateForResult(context.getRoute(), response);
       String layout = response.layout();
       String language = context.getRouteLanguage();
       
-      StringWriter sw = new StringWriter();
       final ErrorBuffer error = new ErrorBuffer();
-      
-      ST contentTemplate = group.getInstanceOf(template);
-      
-      if (layout == null) { // no layout
-          
-          readyContentTemplate(contentTemplate, sw, values, language, error);
-          layoutTemplate = contentTemplate;
-          
-      } else { // with layout
-          
-          if (template.charAt(0) == '/')
-              template = template.substring(1, template.indexOf('/', 1)); // remove leading '/'
-          String controller = template;
-          layoutTemplate = locateDefaultTemplate(group, controller);
-          
-          if (contentTemplate != null) { // it have to be possible to use a layout without defining a template
-              if (useCache) {
-                  templateCache.computeIfAbsent(template, f -> {readyContentTemplate(contentTemplate, sw, values, language, error); return contentTemplate;});
-              } else {
-                  readyContentTemplate(contentTemplate, sw, values, language, error);
-              }
-          }
-          readyLayoutTemplate(context, sw, values, controller, language, error);
-      }
-          
+      ST contentTemplate = locateTemplate(group, template);
+
       try (Writer writer = stream.getWriter()) {
-          renderTemplate(writer, error);
+
+          if (layout == null) { // no layout
+
+              renderContentTemplate(contentTemplate, writer, values, language, error);
+
+          } else { // with layout
+              if (template.charAt(0) == '/')
+                  template = template.substring(1, template.indexOf('/', 1)); // remove leading '/'
+
+              String content = renderContentTemplate(contentTemplate, values, language, error);
+
+              ST layoutTemplate = locateDefaultTemplate(group, template);
+              readyLayoutTemplate(layoutTemplate, context, content, values, template, language, error);
+
+              renderTemplate(layoutTemplate, writer, error);
+          }
       } catch (IOException e) {
           throw new ViewException(e);
       }
-      
+
       log.info("Rendered template: '{}' with layout: '{}' in  {}ms", template, layout, (System.currentTimeMillis() - time));
       
       if (!error.errors.isEmpty()) {
@@ -162,19 +161,15 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
     
     
-    /**
-     * Allows to modify the configuration of the template engine.
-     * In this case for StringTemplate
-     * 
-     * @return the StringTemplate configuration
-     */
-    public StringTemplateConfiguration getConfiguration() {
-        return config;
-    }
-
-    
+    // It is not necessary to do complex synchronization on this
+    // as it may be set a few times, but it will always be the same value that are set
+    // and by not synchronizing it, we might get some form of performance.
+    private String realPath;
     private String getTemplateFolder(Context ctx) {
-        return ctx.getRealPath(TEMPLATES_FOLDER);
+        if (realPath == null)
+            realPath = ctx.getRealPath(TEMPLATES_FOLDER);
+        return realPath;
+//        return ctx.getRealPath(TEMPLATES_FOLDER);
     }
     
     private void setupTemplateGroup(Context ctx) {
@@ -186,46 +181,65 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
             config.renderers.forEach((k, v) -> group.registerRenderer(k, v));
         }
         
-        group.unload(); // because of reasons: this might be necessary in some cases and completely unnecessary in others
+        // clears the internal cache of StringTemplate
+        // forces it to read templates from disk
+        if (! useCache)
+            group.unload();
     }
     
+    private ST locateTemplate(STGroupDir group, String template) {
+        return group.getInstanceOf(template);
+    }
+
     /**
      * If the default template is found within the controller folder
      * then use this to override the root default template
      */
     private ST locateDefaultTemplate(STGroupDir group, String controller) {
-        ST index = group.getInstanceOf(controller + '/' + TEMPLATE_DEFAULT);
+        ST index = locateTemplate(group, controller + '/' + TEMPLATE_DEFAULT);//group.getInstanceOf(controller + '/' + TEMPLATE_DEFAULT);
         if (index != null)
             return index;
-        return group.getInstanceOf(TEMPLATE_DEFAULT);
+        return locateTemplate(group, TEMPLATE_DEFAULT);//group.getInstanceOf(TEMPLATE_DEFAULT);
     }
     
-    private void readyContentTemplate(ST contentTemplate, StringWriter sw, Map<String, Object> values, String language, ErrorBuffer error) {
+    /** Renders template directly to writer */
+    private void renderContentTemplate(ST contentTemplate, Writer writer, Map<String, Object> values, String language, ErrorBuffer error) {
         injectTemplateValues(contentTemplate, values);
         if (language == null)
-            contentTemplate.write(new AutoIndentWriter(sw), error);
+            contentTemplate.write(createSTWriter(writer), error);
         else
-            contentTemplate.write(new AutoIndentWriter(sw), new Locale(language), error);
+            contentTemplate.write(createSTWriter(writer), new Locale(language), error);
     }
 
-    private void readyLayoutTemplate(Context ctx, StringWriter content, Map<String, Object> values, String controller, String language, ErrorBuffer error) {
+    /** Renders template into string
+     * @return The rendered template if exists, or empty string */
+    private String renderContentTemplate(ST contentTemplate, Map<String, Object> values, String language, final ErrorBuffer error) {
+        if (contentTemplate != null) { // it has to be possible to use a layout without defining a template
+            Writer sw = new StringBuilderWriter();
+            renderContentTemplate(contentTemplate, sw, values, language, error);
+            return sw.toString();
+        }
+        return "";
+    }
+
+    private void readyLayoutTemplate(ST layoutTemplate, Context ctx, String content, Map<String, Object> values, String controller, String language, ErrorBuffer error) {
         injectTemplateValues(layoutTemplate, values);
         
         SiteConfiguration conf = configReader.read(getTemplateFolder(ctx), controller);
-        Site site = new Site();
-        
-        //add title
-        site.title = conf.title;
-        
-        //add language (if any)
-        site.language = language;
-        
-        //add scripts
-        site.scripts = readLinks(Template.SCRIPTS_TEMPLATE, conf.scripts, error);
-        site.styles  = readLinks(Template.STYLES_TEMPLATE, conf.styles, error);
-        
-        // put the rendered content into the main template
-        site.content = content.toString();
+        Site site = new Site(
+                    //add title
+                    conf.title,
+                    
+                    //add language (if any)
+                    language,
+                    
+                    //add scripts
+                    readLinks(Template.SCRIPTS_TEMPLATE, conf.scripts, error),
+                    readLinks(Template.STYLES_TEMPLATE, conf.styles, error),
+                    
+                    // put the rendered content into the main template
+                    content
+                );
         
         // put everything into the reserved keyword
         layoutTemplate.add("site", site);
@@ -245,13 +259,15 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
     
     private String readLinks(Template template, List<String> links, ErrorBuffer error) {
+        if (links.isEmpty()) return null;//README or empty string?
+        
         ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
         
         List<String> prefixed = prefixResourceLinks(links, template.prefix);
         
         linkTemplate.add("links", prefixed);
-        StringWriter writer = new StringWriter();
-        linkTemplate.write(new AutoIndentWriter(writer), error);//indent writer could be removed for less HTML as a result
+        Writer writer = new StringBuilderWriter();
+        linkTemplate.write(createSTWriter(writer), error);//indent writer could be removed for less HTML as a result
         return writer.toString();
     }
 
@@ -270,7 +286,15 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
                 .collect(Collectors.toList());
     }
     
-    private void renderTemplate(Writer writer, ErrorBuffer error) {
-        layoutTemplate.write(new AutoIndentWriter(writer), error);
+    private void renderTemplate(ST layoutTemplate, Writer writer, ErrorBuffer error) {
+        layoutTemplate.write(createSTWriter(writer), error);
+    }
+    
+    private STWriter createSTWriter(Writer writer) {
+        if (outputHtmlIndented) {
+            return new AutoIndentWriter(writer);
+        } else {
+            return new NoIndentWriter(writer);
+        }
     }
 }

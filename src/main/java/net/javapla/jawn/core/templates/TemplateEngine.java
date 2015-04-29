@@ -6,6 +6,9 @@ import net.javapla.jawn.core.ResponseStream;
 import net.javapla.jawn.core.exceptions.ViewException;
 
 public interface TemplateEngine {
+    
+    static final String TEMPLATE_DEFAULT = "index.html";
+    static final String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "WEB-INF/views/");
 
     /**
      * Render the given object to the given context
@@ -27,7 +30,7 @@ public interface TemplateEngine {
      * @param stream
      *            The stream to render to
      */
-    public void invoke(Context context, ControllerResponse response, ResponseStream stream);
+    public void invoke(Context context, ControllerResponse response, ResponseStream stream) throws ViewException;
 
     /**
      * For instance returns ".ftl.html" Or .ftl.json.

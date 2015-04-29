@@ -12,6 +12,10 @@ task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
 }
 
+javadoc {
+	failOnError = false
+}
+
 
 // hooks up the javadoc to the generated artifacts
 artifacts {
@@ -26,9 +30,10 @@ signing {
     sign configurations.archives
 }
 
-// =============
-// Maven deploy
-// =============
+// ========================
+//     Maven deploy
+// https://oss.sonatype.org
+// ========================
 uploadArchives {
   repositories {
     mavenDeployer {

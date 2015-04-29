@@ -27,7 +27,7 @@ public class ImageHandlerBuilder {
         this.context = context;
     }
     
-    public ImageHandlerBuilder(ControllerResponseHolder holder, Context context, FormItem item) throws ControllerException {
+    ImageHandlerBuilder(ControllerResponseHolder holder, Context context, FormItem item) throws ControllerException {
         this(holder, context);
         try {
             this.image = ImageIO.read(item.getInputStream());
@@ -39,7 +39,7 @@ public class ImageHandlerBuilder {
             throw new ControllerException(e);
         }
     }
-    public ImageHandlerBuilder(ControllerResponseHolder holder, Context context, File file) throws ControllerException {
+    ImageHandlerBuilder(ControllerResponseHolder holder, Context context, File file) throws ControllerException {
         this(holder, context);
         try {
             this.image = ImageIO.read(file);
