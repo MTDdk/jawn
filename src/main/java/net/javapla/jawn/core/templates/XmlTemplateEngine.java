@@ -7,7 +7,7 @@ import javax.ws.rs.core.MediaType;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.ControllerResponse;
-import net.javapla.jawn.core.ResponseStream;
+import net.javapla.jawn.core.http.ResponseStream;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;

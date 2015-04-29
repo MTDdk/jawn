@@ -15,7 +15,7 @@ import com.google.inject.name.Names;
  * 
  * @author MTD
  */
-public class PropertiesImpl {
+public class PropertiesImpl implements JawnProperties {
     
     private final Properties props;
     
@@ -104,7 +104,7 @@ public class PropertiesImpl {
         return Boolean.parseBoolean(get(name));
     }
     
-    void set(String name, String value) {
+    public void set(String name, String value) {
         props.setProperty(name, value);
     }
     

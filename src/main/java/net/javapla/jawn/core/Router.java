@@ -13,6 +13,7 @@ import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.CompilationException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
+import net.javapla.jawn.core.util.HttpMethod;
 import net.javapla.jawn.core.util.StringUtil;
 
 public class Router {
@@ -92,7 +93,7 @@ public class Router {
         throw new RouteException("Failed to map resource to URI: " + requestUri);
     }
     
-    void compileRoutes(Injector injector) {
+    public void compileRoutes(Injector injector) {
         if (routes != null) return; // used to throw an illegalstateexception
         
         List<Route> r = new ArrayList<>();

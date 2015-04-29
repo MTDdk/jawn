@@ -1,8 +1,14 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.reflection;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import net.javapla.jawn.core.AppController;
+import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.ControllerResponse;
+import net.javapla.jawn.core.DynamicClassFactory;
+import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.WebException;
@@ -10,7 +16,7 @@ import net.javapla.jawn.core.exceptions.WebException;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-class ControllerActionInvoker {
+public class ControllerActionInvoker {
 
     private Injector injector;
     
@@ -32,28 +38,20 @@ class ControllerActionInvoker {
         Route route = context.getRoute();
 
         try {
-//            long time = System.currentTimeMillis();
             AppController controller = loadController(route.getController());
-//            System.out.println("ControllerActionInvoker loadController() " + (System.currentTimeMillis() - time));
 
-//            time = System.currentTimeMillis();
             injectControllerWithContext(controller, context, injector);
-//            System.out.println("ControllerActionInvoker injectControllerWithContext() " + (System.currentTimeMillis() - time));
 
             //find the method name and run it
-//            time = System.currentTimeMillis();
             String methodName = route.getAction().toLowerCase();
             for (Method method : controller.getClass().getMethods()) {
                 if (methodName.equals( method.getName().toLowerCase() )) {
                     method.invoke(controller);//route.getController());
-//                    System.out.println("ControllerActionInvoker getControllerResponse() " + (System.currentTimeMillis() - time));
                     return controller.getControllerResponse();
                 }
             }
             throw new ControllerException(String.format("Action name (%s) not found in controller (%s)", route.getAction(), route.getController().getSimpleName()));
 
-//            Method m = controller.getClass().getMethod(actionName);
-//            m.invoke(controller);
         }catch(InvocationTargetException e){
             if(e.getCause() != null && e.getCause() instanceof  WebException){
                 throw (WebException)e.getCause();                

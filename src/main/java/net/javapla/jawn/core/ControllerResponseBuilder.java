@@ -5,6 +5,8 @@ import java.text.MessageFormat;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import net.javapla.jawn.core.util.NoHttpBody;
+
 /**
  * 
  * @author MTD

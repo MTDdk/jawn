@@ -47,11 +47,15 @@ import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.PathNotFoundException;
 import net.javapla.jawn.core.exceptions.WebException;
-import net.javapla.jawn.core.session.SessionFacade;
+import net.javapla.jawn.core.http.Cookie;
+import net.javapla.jawn.core.http.Request;
+import net.javapla.jawn.core.http.ResponseStream;
+import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.ConvertUtil;
+import net.javapla.jawn.core.util.HttpMethod;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 import net.javapla.jawn.core.util.StringUtil;
@@ -61,7 +65,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
-
 
 /**
  * Subclass this class to create application controllers. A controller is a main component of a web

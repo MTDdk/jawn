@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.impl;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.ParsableException;
+import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.util.HttpHeaderUtil;

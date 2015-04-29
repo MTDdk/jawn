@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.http;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,6 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.util;
+
+import net.javapla.jawn.core.ResponseRunner;
 
 /**
  * Empty container for rendering purposes.

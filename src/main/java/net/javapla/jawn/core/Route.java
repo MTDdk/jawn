@@ -1,5 +1,7 @@
 package net.javapla.jawn.core;
 
+import net.javapla.jawn.core.util.HttpMethod;
+
 
 /**
  * Holding path parameters as well - including user defined

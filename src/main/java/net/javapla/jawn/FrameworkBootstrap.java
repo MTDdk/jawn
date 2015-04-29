@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,10 +10,19 @@ import net.javapla.jawn.application.ApplicationBootstrap;
 import net.javapla.jawn.application.ApplicationDatabaseBootstrap;
 import net.javapla.jawn.application.ApplicationFilters;
 import net.javapla.jawn.application.ApplicationRoutes;
+import net.javapla.jawn.core.ApplicationConfig;
+import net.javapla.jawn.core.CoreModule;
+import net.javapla.jawn.core.DynamicClassFactory;
+import net.javapla.jawn.core.Filters;
+import net.javapla.jawn.core.FrameworkEngine;
+import net.javapla.jawn.core.ModeHelper;
+import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.Router;
 import net.javapla.jawn.core.db.DatabaseConnections;
 import net.javapla.jawn.core.db.DatabaseModule;
 import net.javapla.jawn.core.exceptions.ConfigurationException;
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.impl.FrameworkModule;
 
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -32,6 +41,10 @@ public class FrameworkBootstrap {
 
     private ApplicationBootstrap config;
 
+    public FrameworkBootstrap() {
+        properties = new PropertiesImpl(ModeHelper.determineModeFromSystem());
+    }
+    
     public FrameworkBootstrap(PropertiesImpl conf) {
         properties = conf;
     }
@@ -42,7 +55,7 @@ public class FrameworkBootstrap {
         long startupTime = System.currentTimeMillis();
         
         // Read all the configuration from the user
-        ConfigApp appConfig = new ConfigApp();
+        ApplicationConfig appConfig = new ApplicationConfig();
         Filters filters = new Filters();
         Router router = new Router(filters);
         DatabaseConnections connections = new DatabaseConnections();
@@ -91,7 +104,9 @@ public class FrameworkBootstrap {
         
         List<AbstractModule> combinedModules = new ArrayList<>();
         
-        combinedModules.add(new CoreModule(properties, router));
+        combinedModules.add(new CoreModule());
+        
+        combinedModules.add(new FrameworkModule(properties, router));
         
         combinedModules.add(new DatabaseModule(connections, properties));
         
@@ -101,7 +116,7 @@ public class FrameworkBootstrap {
         return Guice.createInjector(Stage.PRODUCTION, combinedModules);
     }
     
-    private ApplicationBootstrap readConfiguration(ConfigApp configuration, Router router, Filters filters, DatabaseConnections connections) {
+    private ApplicationBootstrap readConfiguration(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {
         
         Reflections reflections = new Reflections("app.config");
         
@@ -149,8 +164,7 @@ public class FrameworkBootstrap {
         return null;
     }
 
-    //TODO: refactor to some util class. This is stolen...ehrr... borrowed from Apache ExceptionUtils
-    static String getCauseMessage(Throwable throwable) {
+    private String getCauseMessage(Throwable throwable) {
         List<Throwable> list = new ArrayList<Throwable>();
         while (throwable != null && list.contains(throwable) == false) {
             list.add(throwable);

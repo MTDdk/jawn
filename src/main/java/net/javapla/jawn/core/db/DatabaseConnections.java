@@ -27,12 +27,6 @@ public class DatabaseConnections {
     public interface DatabaseConnectionBuilder {
         JdbcConnectionBuilder jdbc();
     }
-    public interface DatabaseConnection {
-        String url();
-        String driver();
-        String user();
-        String password();
-    }
     public interface JdbcConnectionBuilder {
         JdbcConnectionBuilder url(String url);
         JdbcConnectionBuilder driver(String driver);

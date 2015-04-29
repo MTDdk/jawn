@@ -9,8 +9,8 @@ import javax.imageio.ImageIO;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.ControllerResponse;
-import net.javapla.jawn.core.ResponseStream;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
+import net.javapla.jawn.core.http.ResponseStream;
 
 class ImageTemplateEngine implements TemplateEngine {
 

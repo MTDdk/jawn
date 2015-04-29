@@ -1,7 +1,6 @@
 package net.javapla.jawn.core.db;
 
 import net.javapla.jawn.core.PropertiesImpl;
-import net.javapla.jawn.core.db.DatabaseConnections.DatabaseConnection;
 
 import com.google.inject.AbstractModule;
 

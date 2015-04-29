@@ -15,7 +15,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.fileupload.FileItem;
 
-import net.javapla.jawn.core.session.SessionFacade;
+import net.javapla.jawn.core.http.Cookie;
+import net.javapla.jawn.core.http.Request;
+import net.javapla.jawn.core.http.ResponseStream;
+import net.javapla.jawn.core.http.SessionFacade;
+import net.javapla.jawn.core.util.HttpMethod;
 import net.javapla.jawn.core.util.MultiList;
 
 public interface Context {

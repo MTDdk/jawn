@@ -6,6 +6,8 @@ import java.util.List;
 import com.google.inject.Injector;
 
 import net.javapla.jawn.core.exceptions.ControllerException;
+import net.javapla.jawn.core.reflection.ControllerActionInvoker;
+import net.javapla.jawn.core.util.HttpMethod;
 import net.javapla.jawn.core.util.StringUtil;
 
 public class RouteBuilder {
@@ -120,7 +122,7 @@ public class RouteBuilder {
         
         
 //        boolean isProd = injector.getInstance(PropertiesImpl.class).isProd();
-        FilterChainEnd chainEnd = injector.getInstance(FilterChainEnd.class);
+        FilterChain chainEnd = injector.getInstance(FilterChainEnd.class);
         Route route = new Route(uri, httpMethod, type, action, actionName, buildFilterChain(chainEnd,/*injector,*/ list, type/*, isProd*/));
         
         // verify that the controller has the corresponding action

@@ -22,7 +22,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import net.javapla.jawn.core.session.SessionHelper;
+import net.javapla.jawn.core.http.SessionHelper;
 import net.javapla.jawn.core.util.CollectionUtil;
 
 import org.slf4j.Logger;

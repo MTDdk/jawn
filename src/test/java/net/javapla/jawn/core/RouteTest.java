@@ -5,8 +5,8 @@ import static org.junit.Assert.*;
 import java.util.Map;
 
 import net.javapla.jawn.core.AppController;
-import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.util.HttpMethod;
 
 import org.junit.After;
 import org.junit.AfterClass;

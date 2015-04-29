@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and 
 limitations under the License. 
 */
-package net.javapla.jawn.core;
+package net.javapla.jawn.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,9 +34,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 
+import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.ControllerResponse;
+import net.javapla.jawn.core.Filter;
+import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.http.Cookie;
+import net.javapla.jawn.core.http.CookieHelper;
+import net.javapla.jawn.core.http.Request;
+import net.javapla.jawn.core.http.ResponseStream;
+import net.javapla.jawn.core.http.ResponseStreamServlet;
+import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
-import net.javapla.jawn.core.session.SessionFacade;
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.HttpMethod;
 import net.javapla.jawn.core.util.MultiList;
 
 import org.apache.commons.fileupload.FileItem;
@@ -487,7 +498,7 @@ class ContextImpl implements Context.Internal {
         
         if(servletCookies != null) {
             for (javax.servlet.http.Cookie servletCookie: servletCookies) {
-                Cookie cookie = Cookie.fromServletCookie(servletCookie);
+                Cookie cookie = CookieHelper.fromServletCookie(servletCookie);
                 cookies.add(cookie);
             }
         }
@@ -573,7 +584,7 @@ class ContextImpl implements Context.Internal {
     }
     
     public void addCookie(Cookie cookie) {
-        response.addCookie(Cookie.toServletCookie(cookie));
+        response.addCookie(CookieHelper.toServletCookie(cookie));
     }
     
     public void addResponseHeader(String name, String value) {

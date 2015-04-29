@@ -1,9 +1,9 @@
 package net.javapla.jawn.application;
 
-import net.javapla.jawn.core.ConfigApp;
+import net.javapla.jawn.core.ApplicationConfig;
 
 public interface ApplicationBootstrap {
 
-    void bootstrap(ConfigApp config);
+    void bootstrap(ApplicationConfig config);
     void destroy();
 }

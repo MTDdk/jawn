@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License. 
 */
 
-package net.javapla.jawn.core.session;
+package net.javapla.jawn.core.http;
 
 import java.util.Enumeration;
 import java.util.HashMap;

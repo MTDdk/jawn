@@ -7,6 +7,7 @@ import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
+import net.javapla.jawn.core.util.NoHttpBody;
 
 import com.google.inject.Inject;
 

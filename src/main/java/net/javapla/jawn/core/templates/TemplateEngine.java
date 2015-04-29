@@ -2,8 +2,8 @@ package net.javapla.jawn.core.templates;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.ControllerResponse;
-import net.javapla.jawn.core.ResponseStream;
 import net.javapla.jawn.core.exceptions.ViewException;
+import net.javapla.jawn.core.http.ResponseStream;
 
 public interface TemplateEngine {
     

@@ -18,12 +18,11 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 
+import net.javapla.jawn.FrameworkBootstrap;
 import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.FrameworkBootstrap;
-import net.javapla.jawn.core.FrameworkEngine;
-import net.javapla.jawn.core.ModeHelper;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Context.Internal;
+import net.javapla.jawn.core.FrameworkEngine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,17 +40,13 @@ public class RequestDispatcher implements Filter {
 
     private Injector injector;
 
-    private PropertiesImpl properties;
-
     private FrameworkBootstrap bootstrapper;
     
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        properties = new PropertiesImpl(ModeHelper.determineModeFromSystem());
-        
         this.servletContext = filterConfig.getServletContext();
         
-        bootstrapper = new FrameworkBootstrap(properties/*, controllerRegistry.getModules()*/);
+        bootstrapper = new FrameworkBootstrap();
         bootstrapper.boot();
         injector = bootstrapper.getInjector();
         
@@ -67,7 +62,7 @@ public class RequestDispatcher implements Filter {
 //        logger.debug("Setting encoding: " + enc);
         
 //        root_controller = filterConfig.getInitParameter("root_controller");
-        logger.info("ActiveWeb: starting the app in environment: " + properties.getMode());//Configuration.getEnv());
+        logger.info("ActiveWeb: starting the app in environment: " + injector.getInstance(PropertiesImpl.class).getMode());//Configuration.getEnv());
     }
 
     private void findExclusionPaths() {

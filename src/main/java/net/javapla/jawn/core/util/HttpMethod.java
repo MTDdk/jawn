@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and 
 limitations under the License. 
 */
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.util;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -23,11 +23,10 @@ import javax.servlet.http.HttpServletRequest;
 public enum HttpMethod {
     GET, POST, PUT, DELETE, HEAD;
 
-
     /**
      * Detects an HTTP method from a request.
      */
-    static HttpMethod getMethod(HttpServletRequest request){
+    public static HttpMethod getMethod(HttpServletRequest request){
         String methodParam = request.getParameter("_method");
         String requestMethod = request.getMethod();
         requestMethod = requestMethod.equalsIgnoreCase("POST") && methodParam != null && methodParam.equalsIgnoreCase("DELETE")? "DELETE" : requestMethod;

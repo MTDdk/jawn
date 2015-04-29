@@ -1,5 +1,7 @@
 package net.javapla.jawn.core;
 
+import net.javapla.jawn.core.reflection.ControllerActionInvoker;
+
 import com.google.inject.Inject;
 
 /**
