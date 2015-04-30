@@ -1,8 +1,8 @@
 package net.javapla.jawn.core.templates;
 
-import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.ControllerResponse;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.exceptions.ViewException;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
 
 public interface TemplateEngine {
@@ -18,7 +18,7 @@ public interface TemplateEngine {
      * @param result
      *            The result to render
      */
-    public void invoke(Context context, ControllerResponse response/*, Result result*/) throws ViewException;
+    public void invoke(Context context, Response response/*, Result result*/) throws ViewException;
     
     
     /**
@@ -30,7 +30,7 @@ public interface TemplateEngine {
      * @param stream
      *            The stream to render to
      */
-    public void invoke(Context context, ControllerResponse response, ResponseStream stream) throws ViewException;
+    public void invoke(Context context, Response response, ResponseStream stream) throws ViewException;
 
     /**
      * For instance returns ".ftl.html" Or .ftl.json.

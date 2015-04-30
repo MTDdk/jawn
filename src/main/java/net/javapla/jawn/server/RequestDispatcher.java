@@ -19,9 +19,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 
 import net.javapla.jawn.FrameworkBootstrap;
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.PropertiesImpl;
-import net.javapla.jawn.core.Context.Internal;
+import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.http.Context.Internal;
 import net.javapla.jawn.core.FrameworkEngine;
 
 import org.slf4j.Logger;

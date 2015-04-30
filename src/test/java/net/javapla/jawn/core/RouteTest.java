@@ -6,7 +6,7 @@ import java.util.Map;
 
 import net.javapla.jawn.core.AppController;
 import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.util.HttpMethod;
+import net.javapla.jawn.core.http.HttpMethod;
 
 import org.junit.After;
 import org.junit.AfterClass;

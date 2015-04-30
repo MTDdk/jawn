@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.images;
 
 import java.io.File;
 import java.util.function.UnaryOperator;

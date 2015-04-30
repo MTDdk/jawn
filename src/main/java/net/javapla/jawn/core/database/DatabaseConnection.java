@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.db;
+package net.javapla.jawn.core.database;
 
 public interface DatabaseConnection {
     String url();

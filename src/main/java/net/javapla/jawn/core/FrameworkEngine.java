@@ -10,6 +10,7 @@ import net.javapla.jawn.core.exceptions.BadRequestException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.exceptions.ViewException;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.i18n.Lang;
 import net.javapla.jawn.core.i18n.LanguagesNotSetException;
 import net.javapla.jawn.core.i18n.NotSupportedLanguageException;
@@ -24,6 +25,15 @@ import com.google.inject.Injector;
 
 //NinjaDefault
 public class FrameworkEngine {
+    
+    private static final String FRAMEWORK_SPLASH = "\n" 
+            + "     ____.  _____  __      _________   \n"
+            + "    |    | /  _  \\/  \\    /  \\      \\  \n"
+            + "    |    |/  /_\\  \\   \\/\\/   /   |   \\ \n"
+            + "/\\__|    /    |    \\        /    |    \\ \n"
+            + "\\________\\____|__  /\\__/\\  /\\____|__  /\n"
+            + "  web framework  \\/      \\/         \\/ http://www.javapla.net\n";
+
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
     private final Router router;
@@ -82,7 +92,7 @@ public class FrameworkEngine {
             
             if (route != null) {
                 // run pre-filters
-                ControllerResponse response = route.getFilterChain().before(context);
+                Response response = route.getFilterChain().before(context);
                 
                 runner.run(context, response);
                 
@@ -111,7 +121,7 @@ public class FrameworkEngine {
     }
     
     public void onFrameworkStartup() {
-        
+        printFrameworkSplash();
     }
     
     public void onFrameworkShutdown() {
@@ -127,13 +137,13 @@ public class FrameworkEngine {
             if (!(context.requestHeader("x-requested-with") == null || context.requestHeader("X-Requested-With") == null)) {
 
                 try {
-                    ControllerResponse response = ControllerResponseBuilder.text(getStackTraceString(e), status);
+                    Response response = ResponseBuilder.text(getStackTraceString(e), status);
                     runner.run(context, response);
                 } catch (Exception ex) {
                     logger.error("Failed to send error response to client", ex);
                 }
             } else {
-                ControllerResponse response = ControllerResponseBuilder
+                Response response = ResponseBuilder
                         .status(status)
                         .addAllViewObjects(getMapWithExceptionDataAndSession(e))
                         .template(template)
@@ -152,7 +162,7 @@ public class FrameworkEngine {
                 logger.error("Java-web-planet internal error: ", t);
             }
             try {
-                ControllerResponse renderable = ControllerResponseBuilder.ok().contentType(MediaType.TEXT_HTML)
+                Response renderable = ResponseBuilder.ok().contentType(MediaType.TEXT_HTML)
                         .renderable("<html><head><title>Sorry!</title></head><body><div style='background-color:pink;'>internal error</div></body>");
                 runner.run(context, renderable);
             } catch (Exception ex) {
@@ -192,5 +202,9 @@ public class FrameworkEngine {
         e.printStackTrace(pw);
         pw.flush();
         return sw.toString();
+    }
+    
+    private void printFrameworkSplash() {
+        logger.info(FRAMEWORK_SPLASH);
     }
 }

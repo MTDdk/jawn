@@ -1,6 +1,9 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.impl;
 
+import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.reflection.ControllerActionInvoker;
+import net.javapla.jawn.core.spi.FilterChainEnd;
 
 import com.google.inject.Inject;
 
@@ -12,17 +15,17 @@ import com.google.inject.Inject;
  * 
  * @author MTD
  */
-class FilterChainEnd implements FilterChain {
+class FilterChainEndImpl implements FilterChainEnd {
 
     private final ControllerActionInvoker invoker;
     
     @Inject
-    public FilterChainEnd(ControllerActionInvoker invoker) {
+    public FilterChainEndImpl(ControllerActionInvoker invoker) {
         this.invoker = invoker;
     }
     
     @Override
-    public ControllerResponse before(Context context) {
+    public Response before(Context context) {
 //        long time = System.currentTimeMillis();
 //        try {
             return invoker.executeAction(context);

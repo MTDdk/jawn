@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
  * Facade to HTTP session. 
@@ -45,7 +46,9 @@ public class SessionFacade implements Map<String, Object> {
      * @return named object. 
      */
     public Object get(String name){
-        return request.getSession(true).getAttribute(name);
+        HttpSession session = request.getSession(false);
+        if (session == null) return null;
+        return session.getAttribute(name);
     }
 
     /**
@@ -67,7 +70,9 @@ public class SessionFacade implements Map<String, Object> {
      * @param name name of object
      */
     public void remove(String name){
-        request.getSession(true).removeAttribute(name);
+        HttpSession session = request.getSession(false);
+        if (session != null)
+            session.removeAttribute(name);
     }
 
     /**
@@ -87,7 +92,7 @@ public class SessionFacade implements Map<String, Object> {
      *
      * @return time when session was created.
      */
-    public long getCreationTime(){
+    public long getCreationTime() {
         return request.getSession(true).getCreationTime();
     }
 
@@ -148,12 +153,14 @@ public class SessionFacade implements Map<String, Object> {
 
     @Override
     public boolean isEmpty() {
-        return !request.getSession(true).getAttributeNames().hasMoreElements();
+        HttpSession session = request.getSession(false);
+        return session == null || !session.getAttributeNames().hasMoreElements();
     }
 
     @Override
     public boolean containsKey(Object key) {
-        return request.getSession(true).getAttribute(key.toString()) != null;
+        HttpSession session = request.getSession(false);
+        return session != null && session.getAttribute(key.toString()) != null;
     }
 
     @Override
@@ -183,7 +190,9 @@ public class SessionFacade implements Map<String, Object> {
     @Override
     public Object remove(Object key) {
         Object val = get(key.toString());
-        request.getSession(true).removeAttribute(key.toString());
+        HttpSession session = request.getSession(false);
+        if (session == null) return null;
+        session.removeAttribute(key.toString());
         return val;
     }
 

@@ -1,6 +1,5 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.util;
 
-import net.javapla.jawn.core.util.StringUtil;
 
 public class ModeHelper {
 

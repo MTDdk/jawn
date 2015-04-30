@@ -4,6 +4,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.javapla.jawn.core.spi.Filter;
+
 /**
  * FilterBuilder
  * 

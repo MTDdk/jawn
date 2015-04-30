@@ -1,4 +1,7 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.spi;
+
+import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.http.Context;
 
 
 public interface FilterChain {
@@ -9,7 +12,7 @@ public interface FilterChain {
      * @param context
      *            The context for the request
      */
-    ControllerResponse before(Context context);
+    Response before(Context context);
     
     void after(Context context);
     

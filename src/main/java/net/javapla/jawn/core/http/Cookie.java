@@ -15,32 +15,28 @@ limitations under the License.
 */
 package net.javapla.jawn.core.http;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Igor Polevoy
  */
 public class Cookie {
 
-    static Logger logger = LoggerFactory.getLogger(Cookie.class);
-
     private java.lang.String name;
     private java.lang.String value;
 
     private int maxAge = -1;
-    private java.lang.String domain = null;
-    private java.lang.String path = "/";
+    private String domain = null;
+    private String path = "/";
     private boolean secure;
     private boolean httpOnly;
     private int version;
 
-    public Cookie(java.lang.String name, String value) {
+    public Cookie(String name, String value) {
         this.name = name;
         this.value = value;
     }
 
-    public Cookie(java.lang.String name, String value, boolean httpOnly) {
+    public Cookie(String name, String value, boolean httpOnly) {
         this.name = name;
         this.value = value;
         this.httpOnly = httpOnly;
@@ -52,11 +48,11 @@ public class Cookie {
 
     public void setPath(String path) {this.path = path;}
 
-    public java.lang.String getPath() {return path;}
+    public String getPath() {return path;}
 
     public void setDomain(String domain) {this.domain = domain;}
 
-    public java.lang.String getDomain() {return domain;}
+    public String getDomain() {return domain;}
 
     public void setSecure(boolean secure) {this.secure = secure;}
 

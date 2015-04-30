@@ -1,6 +1,7 @@
 package net.javapla.jawn.core;
 
-import net.javapla.jawn.core.util.HttpMethod;
+import net.javapla.jawn.core.http.HttpMethod;
+import net.javapla.jawn.core.spi.FilterChain;
 
 
 /**

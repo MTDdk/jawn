@@ -18,7 +18,6 @@ package net.javapla.jawn.core;
 import static java.util.Arrays.asList;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,15 +46,17 @@ import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.PathNotFoundException;
 import net.javapla.jawn.core.exceptions.WebException;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
+import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
+import net.javapla.jawn.core.images.ImageHandlerBuilder;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.ConvertUtil;
-import net.javapla.jawn.core.util.HttpMethod;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 import net.javapla.jawn.core.util.StringUtil;
@@ -72,14 +73,14 @@ import com.google.inject.Injector;
  *
  * @author MTD
  */
-public abstract class AppController implements ControllerResponseHolder {
+public abstract class AppController implements ResponseHolder {
     
  // Standard behaviour is to look for HTML template
-    protected ControllerResponse response = ControllerResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
-    public void setControllerResponse(ControllerResponse r) {
+    protected Response response = ResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
+    public void setControllerResponse(Response r) {
         response = r;
     }
-    public ControllerResponse getControllerResponse() {
+    public Response getControllerResponse() {
         return response;
     }
     
@@ -160,8 +161,8 @@ public abstract class AppController implements ControllerResponseHolder {
 
 
     protected class NewRenderBuilder {
-        private final ControllerResponse response;
-        NewRenderBuilder(ControllerResponse response) {
+        private final Response response;
+        NewRenderBuilder(Response response) {
             this.response = response;
         }
         
@@ -238,7 +239,6 @@ public abstract class AppController implements ControllerResponseHolder {
                 return true;
             }
         }
-        //README: it might not actually be necessary to do this lowercasing
         return false;
     }
 
@@ -303,19 +303,6 @@ public abstract class AppController implements ControllerResponseHolder {
     }
 
  
-    /**
-     * Assigns value that will be passed into view.
-     *
-     * @param name name of value
-     * @param value value.
-     */
-    protected void assign(String name, Object value) {
-//        KeyWords.check(name);
-//        context.addViewObject(name, value);//getValues().put(name, value);
-//        context.getNewControllerResponse().addViewObject(name, value);
-        response.addViewObject(name, value);
-    }
-    
     protected Map<String, Object> values() {
 //        return context.getViewObjects();//getValues();
 //        return context.getNewControllerResponse().getViewObjects();
@@ -323,25 +310,25 @@ public abstract class AppController implements ControllerResponseHolder {
     }
 
     /**
-     * Alias to {@link #assign(String, Object)}.
+     * Assigns value that will be passed into view.
      *
      * @param name name of object to be passed to view
      * @param value object to be passed to view
      */
     protected void view(String name, Object value) {
-        assign(name, value);
+        response.addViewObject(name, value);
     }
 
 
     /**
-     * Convenience method, calls {@link #assign(String, Object)} internally.
+     * Convenience method, calls {@link #view(String, Object)} internally.
      * The keys in the map are converted to String values.
      *
      * @param values map with values to pass to view.
      */
     protected void view(Map<String, Object> values){
         for(String key:values.keySet() ){
-            assign(key, values.get(key));
+            view(key, values.get(key));
         }
     }
 
@@ -399,35 +386,36 @@ public abstract class AppController implements ControllerResponseHolder {
     
     /**
      * Sends value to flash. Flash survives one more request.  Using flash is typical
-     * for POST/GET pattern,
+     * for POST/REDIRECT/GET pattern,
      *
      * @param name name of value to flash
      * @param value value to live for one more request in current session.
      */
     @SuppressWarnings("unchecked")
     protected void flash(String name, Object value) {
-        if (session().get("flasher") == null) {
-            session().put("flasher", new HashMap<String, Object>());
+        if (session().get(Context.FLASH_KEYWORD) == null) {
+            session().put(Context.FLASH_KEYWORD, new HashMap<String, Object>());
         }
-        ((Map<String, Object>) session().get("flasher")).put(name, value);
+        ((Map<String, Object>) session().get(Context.FLASH_KEYWORD)).put(name, value);
     }
-    //TODO make sure, flash actually works
     
 
-    protected ControllerResponseBuilder respond() {
-        return new ControllerResponseBuilder(this);
+    protected ResponseBuilder respond() {
+        return new ResponseBuilder(this);
     }
 
     
     /**
      * Redirects to a an action of this controller, or an action of a different controller.
      * This method does not expect a full URL.
+     * 
+     * Sets the 'Location' header to the specified <code>path</code>
      *
      * @param path - expected to be a path within the application.
      * @return instance of {@link HttpSupport.HttpBuilder} to accept additional information.
      */
     protected void redirect(String path) {
-        response = ControllerResponseBuilder.redirect().addHeader("Location", path);
+        response = ResponseBuilder.redirect(path);
     }
 
     /**
@@ -592,30 +580,6 @@ public abstract class AppController implements ControllerResponseHolder {
 
         String uri = contextPath + lang + RouterHelper.generate(controllerPath, action, id, params) + anchor;
         redirect(uri);
-    }
-    
-
-    /**
-     * Convenience method for downloading files. This method will force the browser to find a handler(external program)
-     *  for  this file (content type) and will provide a name of file to the browser. This method sets an HTTP header
-     * "Content-Disposition" based on a file name.
-     *
-     * @param file file to download.
-     * @return builder instance.
-     * @throws PathNotFoundException thrown if file not found.
-     */
-    protected void sendFile(File file) throws PathNotFoundException {
-        try{
-            //TODO TEST the god damn method 
-            ControllerResponse r = ControllerResponseBuilder.ok()
-                    .addHeader("Content-Disposition", "attachment; filename=" + file.getName())
-                    .renderable(new FileInputStream(file))
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM);
-//            context.setControllerResponse(r);
-            response = r;
-        }catch(Exception e){
-            throw new PathNotFoundException(e);
-        }
     }
     
     
@@ -811,7 +775,6 @@ public abstract class AppController implements ControllerResponseHolder {
         return context.protocol();
     }
 
-  //TODO: provide methods for: X-Forwarded-Proto and X-Forwarded-Port
     /**
      * This method returns a host name of a web server if this container is fronted by one, such that
      * it sets a header <code>X-Forwarded-Host</code> on the request and forwards it to the Java container.
@@ -1302,7 +1265,7 @@ public abstract class AppController implements ControllerResponseHolder {
      * @return collection of all cookies browser sent.
      */
     public List<Cookie> cookies(){
-        return context.getCookies();//RequestUtils.cookies();
+        return context.getCookies();
     }
 
     /**
@@ -1312,7 +1275,7 @@ public abstract class AppController implements ControllerResponseHolder {
      * @return a cookie by name, null if not found.
      */
     public Cookie cookie(String name){
-        return context.getCookie(name);//RequestUtils.cookie(name);
+        return context.getCookie(name);
     }
 
 
@@ -1342,7 +1305,6 @@ public abstract class AppController implements ControllerResponseHolder {
      * @param value value of cookie.
      */
     public void sendCookie(String name, String value) {
-//        context.getHttpResponse().addCookie(Cookie.toServletCookie(new Cookie(name, value)));
         context.addCookie(new Cookie(name, value));
     }
 
@@ -1356,7 +1318,7 @@ public abstract class AppController implements ControllerResponseHolder {
     public void sendPermanentCookie(String name, String value) {
         Cookie cookie = new Cookie(name, value);
         cookie.setMaxAge(60*60*24*365*20);
-        context.addCookie(cookie);//getHttpResponse().addCookie(Cookie.toServletCookie(cookie));
+        context.addCookie(cookie);
     }
 
     /**
@@ -1376,7 +1338,7 @@ public abstract class AppController implements ControllerResponseHolder {
      * @return a full URL of the request, all except a query string.
      */
     protected  String url(){
-        return context.requestUrl();//RequestUtils.url();
+        return context.requestUrl();
     }
 
     /**
@@ -1385,7 +1347,7 @@ public abstract class AppController implements ControllerResponseHolder {
      * @return query string of the request.
      */
     protected  String queryString(){
-        return context.queryString();//RequestUtils.queryString();
+        return context.queryString();
     }
 
     /**
@@ -1394,7 +1356,7 @@ public abstract class AppController implements ControllerResponseHolder {
      * @return an HTTP method from the request.
      */
     protected String method(){
-        return context.method();//RequestUtils.method();
+        return context.method();
     }
 
     /**
@@ -1403,7 +1365,7 @@ public abstract class AppController implements ControllerResponseHolder {
      * @return True if this request uses HTTP GET method, false otherwise.
      */
     protected boolean isGet() {
-        return "GET".equalsIgnoreCase(method()); //RequestUtils.isGet();
+        return "GET".equalsIgnoreCase(method());
     }
 
 
@@ -1544,7 +1506,7 @@ public abstract class AppController implements ControllerResponseHolder {
 //        return new HttpBuilder(resp);
         //TODO finish and TEST the god damn method
         //------------------
-        ControllerResponse r = ControllerResponseBuilder.ok()
+        Response r = ResponseBuilder.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .renderable(in);
 //        context.setControllerResponse(r);
@@ -1606,7 +1568,7 @@ public abstract class AppController implements ControllerResponseHolder {
     protected OutputStream outputStream(String contentType, Map<String, String> headers, int status) {
 //        context.setControllerResponse(new NopResponse(context, contentType, status));
         //------
-        ControllerResponse r = new ControllerResponse(200);
+        Response r = new Response(200);
         r.contentType(contentType).status(status);
 //        context.setControllerResponse(r);
         response = r;
@@ -1646,7 +1608,7 @@ public abstract class AppController implements ControllerResponseHolder {
      */
     protected PrintWriter writer(String contentType, Map<String, String> headers, int status){
 //        context.setControllerResponse(new NopResponse(context, contentType, status));
-        response = ControllerResponseBuilder.noBody(status).contentType(contentType);
+        response = ResponseBuilder.noBody(status).contentType(contentType);
         //TODO TEST
         try{
             if (headers != null) {
@@ -1731,7 +1693,7 @@ public abstract class AppController implements ControllerResponseHolder {
         TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
         engine.invoke(
                 context, 
-                ControllerResponseBuilder.ok().addAllViewObjects(values).template(template).layout(null), 
+                ResponseBuilder.ok().addAllViewObjects(values).template(template).layout(null), 
                 new ResponseStream() {
                     @Override
                     public Writer getWriter() throws IOException {

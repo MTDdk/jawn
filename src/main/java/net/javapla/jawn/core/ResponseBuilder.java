@@ -1,47 +1,52 @@
 package net.javapla.jawn.core;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.text.MessageFormat;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import net.javapla.jawn.core.util.NoHttpBody;
+import net.javapla.jawn.core.Response.NoHttpBody;
+import net.javapla.jawn.core.exceptions.PathNotFoundException;
 
 /**
  * 
  * @author MTD
  */
 //Results
-public class ControllerResponseBuilder {
+public class ResponseBuilder {
 
-    private final ControllerResponseHolder holder;
-    public ControllerResponseBuilder(ControllerResponseHolder holder) {
+    private final ResponseHolder holder;
+    public ResponseBuilder(ResponseHolder holder) {
         this.holder = holder;
     }
     
     
-    public static ControllerResponse ok() {
-        return new ControllerResponse(Status.OK.getStatusCode());
+    public static Response ok() {
+        return new Response(Status.OK.getStatusCode());
     }
-    public static ControllerResponse noContent() {
-        return new ControllerResponse(Status.NO_CONTENT.getStatusCode()).renderable(new NoHttpBody());
+    public static Response noContent() {
+        return new Response(Status.NO_CONTENT.getStatusCode()).renderable(new NoHttpBody());
     }
-    public static ControllerResponse noBody(int status) {
-        return new ControllerResponse(status).renderable(new NoHttpBody());
+    public static Response noBody(int status) {
+        return new Response(status).renderable(new NoHttpBody());
     }
-    public static ControllerResponse status(int status) {
-        return new ControllerResponse(status);
-    }
-    
-    public static ControllerResponse text(String text, int status) {
-        return new ControllerResponse(status).renderable(text).contentType(MediaType.TEXT_PLAIN);
+    public static Response status(int status) {
+        return new Response(status);
     }
     
-    /**
-     * 302 (Found)
-     */
-    public static ControllerResponse redirect() {
-        return new ControllerResponse(Status.FOUND.getStatusCode()).renderable(new NoHttpBody());
+    public static Response text(String text, int status) {
+        return new Response(status).renderable(text).contentType(MediaType.TEXT_PLAIN);
+    }
+    
+    /** 302 (Found) */
+    public static Response redirect() {
+        return new Response(Status.FOUND.getStatusCode()).renderable(new NoHttpBody());
+    }
+    /** 302 (Found) */
+    public static Response redirect(String location) {
+        return redirect().addHeader("Location", location);
     }
     
     
@@ -52,8 +57,8 @@ public class ControllerResponseBuilder {
      * @param text text of response.
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    public ControllerResponse text(String text) {
-        ControllerResponse response = ok();
+    public Response text(String text) {
+        Response response = ok();
         holder.setControllerResponse(response);
         response.contentType(MediaType.TEXT_PLAIN).renderable(text);
         return response;
@@ -67,7 +72,7 @@ public class ControllerResponseBuilder {
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      * @see MessageFormat#format
      */
-    public ControllerResponse text(String text, Object...objects) {
+    public Response text(String text, Object...objects) {
         return text(MessageFormat.format(text, objects));
     }
     
@@ -77,11 +82,11 @@ public class ControllerResponseBuilder {
      * Use it to build app.services and to support AJAX.
      * 
      * @param obj
-     * @return {@link ControllerResponse}, to accept additional information. The response is automatically
+     * @return {@link Response}, to accept additional information. The response is automatically
      * has its content type set to "application/json"
      */
-    public ControllerResponse json(Object obj) {
-        ControllerResponse response = ok();
+    public Response json(Object obj) {
+        Response response = ok();
         holder.setControllerResponse(response);
         response.contentType(MediaType.APPLICATION_JSON).renderable(obj);
         return response;
@@ -93,18 +98,40 @@ public class ControllerResponseBuilder {
      * Use it to build app.services.
      * 
      * @param obj
-     * @return {@link ControllerResponse}, to accept additional information. The response is automatically
+     * @return {@link Response}, to accept additional information. The response is automatically
      * has its content type set to "application/xml"
      */
-    public ControllerResponse xml(Object obj) {
-        ControllerResponse response = ok();
+    public Response xml(Object obj) {
+        Response response = ok();
         holder.setControllerResponse(response);
         response.contentType(MediaType.APPLICATION_XML).renderable(obj);
         return response;
     }
     
-    ControllerResponseBuilder setStatus(int statusCode) {
-        holder.setControllerResponse(new ControllerResponse(statusCode));
+    /**
+     * Convenience method for downloading files. This method will force the browser to find a handler(external program)
+     *  for  this file (content type) and will provide a name of file to the browser. This method sets an HTTP header
+     * "Content-Disposition" based on a file name.
+     *
+     * @param file file to download.
+     * @return builder instance.
+     * @throws PathNotFoundException thrown if file not found.
+     */
+    public Response sendFile(File file) throws PathNotFoundException {
+        try{
+            Response r = ResponseBuilder.ok()
+                    .addHeader("Content-Disposition", "attachment; filename=" + file.getName())
+                    .renderable(new FileInputStream(file))
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM);
+            holder.setControllerResponse(r);
+            return r;
+        }catch(Exception e){
+            throw new PathNotFoundException(e);
+        }
+    }
+    
+    ResponseBuilder setStatus(int statusCode) {
+        holder.setControllerResponse(new Response(statusCode));
         return this;
     }
     
@@ -122,8 +149,8 @@ public class ControllerResponseBuilder {
      * @author MTD
      */
     public class StatusWrapper {
-        private final ControllerResponseBuilder builder;
-        StatusWrapper(ControllerResponseBuilder builder) {
+        private final ResponseBuilder builder;
+        StatusWrapper(ResponseBuilder builder) {
             this.builder = builder;
         }
         
@@ -132,7 +159,7 @@ public class ControllerResponseBuilder {
          * @return 
          * @return The original builder
          */
-        public ControllerResponseBuilder ok() {
+        public ResponseBuilder ok() {
 //            this.builder.controllerResponse.setStatus(javax.ws.rs.core.Response.Status.OK.getStatusCode());
 //            return builder;
             builder.setStatus(Status.OK.getStatusCode());
@@ -142,7 +169,7 @@ public class ControllerResponseBuilder {
          * 204 No Content
          * @return The original builder
          */
-        public ControllerResponseBuilder noContent() {
+        public ResponseBuilder noContent() {
             builder.setStatus(Status.NO_CONTENT.getStatusCode());
             return builder;
         }
@@ -150,7 +177,7 @@ public class ControllerResponseBuilder {
          * 400 Bad Request
          * @return The original builder
          */
-        public ControllerResponseBuilder badRequest() {
+        public ResponseBuilder badRequest() {
             builder.setStatus(Status.BAD_REQUEST.getStatusCode());
             return builder;
         }
@@ -158,7 +185,7 @@ public class ControllerResponseBuilder {
          * 404 Not Found
          * @return The original builder
          */
-        public ControllerResponseBuilder notFound() {
+        public ResponseBuilder notFound() {
             builder.setStatus(Status.NOT_FOUND.getStatusCode());
             return builder;
         }
@@ -166,7 +193,7 @@ public class ControllerResponseBuilder {
          * 500 Internal Server Error
          * @return The original builder
          */
-        public ControllerResponseBuilder internalServerError() {
+        public ResponseBuilder internalServerError() {
             builder.setStatus(Status.INTERNAL_SERVER_ERROR.getStatusCode());
             return builder;
         }

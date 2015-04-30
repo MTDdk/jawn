@@ -5,20 +5,20 @@ import java.io.Writer;
 
 import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.ControllerResponse;
+import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
 
 public class TextTemplateEngine implements TemplateEngine {
 
     @Override
-    public void invoke(Context context, ControllerResponse response) {
-        ResponseStream stream = context.finalize(response);
+    public void invoke(Context context, Response response) {
+        ResponseStream stream = context.finalizeResponse(response);
         invoke(context, response, stream);
     }
     
     @Override
-    public void invoke(Context context, ControllerResponse response, ResponseStream stream) {
+    public void invoke(Context context, Response response, ResponseStream stream) {
         if (response.renderable() == null) return;
         
         try (Writer output = stream.getWriter()) {

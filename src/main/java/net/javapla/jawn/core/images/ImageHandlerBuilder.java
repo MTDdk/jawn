@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.images;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -6,8 +6,13 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.ResponseBuilder;
+import net.javapla.jawn.core.ResponseHolder;
+import net.javapla.jawn.core.FormItem;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
+import net.javapla.jawn.core.http.Context;
 
 import org.imgscalr.Scalr;
 
@@ -16,18 +21,18 @@ import org.imgscalr.Scalr;
  * @author MTD
  */
 public class ImageHandlerBuilder {
-    private final ControllerResponseHolder holder;
+    private final ResponseHolder holder;
     private final Context context;
     
     private BufferedImage image;
     private final FileName fn = new FileName();
 
-    private ImageHandlerBuilder(ControllerResponseHolder holder, Context context) {
+    private ImageHandlerBuilder(ResponseHolder holder, Context context) {
         this.holder = holder;
         this.context = context;
     }
     
-    ImageHandlerBuilder(ControllerResponseHolder holder, Context context, FormItem item) throws ControllerException {
+    public ImageHandlerBuilder(ResponseHolder holder, Context context, FormItem item) throws ControllerException {
         this(holder, context);
         try {
             this.image = ImageIO.read(item.getInputStream());
@@ -39,7 +44,7 @@ public class ImageHandlerBuilder {
             throw new ControllerException(e);
         }
     }
-    ImageHandlerBuilder(ControllerResponseHolder holder, Context context, File file) throws ControllerException {
+    public ImageHandlerBuilder(ResponseHolder holder, Context context, File file) throws ControllerException {
         this(holder, context);
         try {
             this.image = ImageIO.read(file);
@@ -134,7 +139,7 @@ public class ImageHandlerBuilder {
 
          int status = 200;
          String contentType = "image/"+extension;
-         ControllerResponse response = ControllerResponseBuilder
+         Response response = ResponseBuilder
                  .ok()
                  .contentType(contentType)
                  .status(status)

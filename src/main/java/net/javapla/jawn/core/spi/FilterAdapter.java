@@ -1,9 +1,7 @@
-package net.javapla.jawn.core.filters;
+package net.javapla.jawn.core.spi;
 
-import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.ControllerResponse;
-import net.javapla.jawn.core.Filter;
-import net.javapla.jawn.core.FilterChain;
+import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.http.Context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +10,7 @@ public abstract class FilterAdapter implements Filter {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     
     @Override
-    public ControllerResponse before(FilterChain chain, Context context) {
+    public Response before(FilterChain chain, Context context) {
         before(context);
         return chain.before(context);
     }

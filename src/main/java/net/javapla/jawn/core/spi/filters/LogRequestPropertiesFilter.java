@@ -1,6 +1,7 @@
-package net.javapla.jawn.core.filters;
+package net.javapla.jawn.core.spi.filters;
 
-import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.spi.FilterAdapter;
 
 public class LogRequestPropertiesFilter extends FilterAdapter {
 

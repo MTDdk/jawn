@@ -36,7 +36,7 @@ class ParamCopy {
     private static Logger logger = LoggerFactory.getLogger(ParamCopy.class.getName());
 
 
-    static void copyInto(HttpServletRequest request, ControllerResponse response, PropertiesImpl properties){
+    static void copyInto(HttpServletRequest request, Response response, PropertiesImpl properties){
         Map<String, Object> assigns = response.getViewObjects();
         insertActiveWebParamsInto(assigns, request, properties);
         copyRequestAttributesInto(assigns, request);
@@ -64,7 +64,7 @@ class ParamCopy {
 
         Map<String, Object> sessionAttrs = SessionHelper.getSessionAttributes(request);
         if (assigns.get("session") != null) {
-            logger.warn("found 'session' value set by controller. It is reserved by ActiveWeb and will be overwritten.");
+            logger.warn("found 'session' value set by controller. It is reserved by JAWN and will be overwritten.");
         }
         if (sessionAttrs.containsKey("flasher")){ //flasher is special
             assigns.put("flasher", sessionAttrs.get("flasher"));

@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringUtil;
 
 import com.google.inject.Binder;

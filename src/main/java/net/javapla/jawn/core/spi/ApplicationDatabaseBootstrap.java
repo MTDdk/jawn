@@ -1,6 +1,6 @@
-package net.javapla.jawn.application;
+package net.javapla.jawn.core.spi;
 
-import net.javapla.jawn.core.db.DatabaseConnections;
+import net.javapla.jawn.core.database.DatabaseConnections;
 
 public interface ApplicationDatabaseBootstrap {
 

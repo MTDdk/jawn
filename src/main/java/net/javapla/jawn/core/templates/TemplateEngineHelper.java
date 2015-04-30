@@ -1,12 +1,12 @@
 package net.javapla.jawn.core.templates;
 
-import net.javapla.jawn.core.ControllerResponse;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.RouterHelper;
 
 public class TemplateEngineHelper {
 
-    public static String getTemplateForResult(Route route, ControllerResponse response) {
+    public static String getTemplateForResult(Route route, Response response) {
         if (response.template() == null) {
             if (route != null) {
                 String controllerPath = RouterHelper.getReverseRoute(route.getController());

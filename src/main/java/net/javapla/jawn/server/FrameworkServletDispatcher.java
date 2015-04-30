@@ -8,8 +8,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.FrameworkEngine;
+import net.javapla.jawn.core.http.Context;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;

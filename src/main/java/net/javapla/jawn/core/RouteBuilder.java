@@ -3,12 +3,15 @@ package net.javapla.jawn.core;
 import java.text.MessageFormat;
 import java.util.List;
 
-import com.google.inject.Injector;
-
 import net.javapla.jawn.core.exceptions.ControllerException;
+import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ControllerActionInvoker;
-import net.javapla.jawn.core.util.HttpMethod;
+import net.javapla.jawn.core.spi.Filter;
+import net.javapla.jawn.core.spi.FilterChain;
+import net.javapla.jawn.core.spi.FilterChainEnd;
 import net.javapla.jawn.core.util.StringUtil;
+
+import com.google.inject.Injector;
 
 public class RouteBuilder {
     
@@ -122,7 +125,7 @@ public class RouteBuilder {
         
         
 //        boolean isProd = injector.getInstance(PropertiesImpl.class).isProd();
-        FilterChain chainEnd = injector.getInstance(FilterChainEnd.class);
+        FilterChainEnd chainEnd = injector.getInstance(FilterChainEnd.class);
         Route route = new Route(uri, httpMethod, type, action, actionName, buildFilterChain(chainEnd,/*injector,*/ list, type/*, isProd*/));
         
         // verify that the controller has the corresponding action

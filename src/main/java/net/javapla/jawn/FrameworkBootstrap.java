@@ -6,22 +6,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import net.javapla.jawn.application.ApplicationBootstrap;
-import net.javapla.jawn.application.ApplicationDatabaseBootstrap;
-import net.javapla.jawn.application.ApplicationFilters;
-import net.javapla.jawn.application.ApplicationRoutes;
 import net.javapla.jawn.core.ApplicationConfig;
 import net.javapla.jawn.core.CoreModule;
 import net.javapla.jawn.core.DynamicClassFactory;
 import net.javapla.jawn.core.Filters;
 import net.javapla.jawn.core.FrameworkEngine;
-import net.javapla.jawn.core.ModeHelper;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Router;
-import net.javapla.jawn.core.db.DatabaseConnections;
-import net.javapla.jawn.core.db.DatabaseModule;
+import net.javapla.jawn.core.database.DatabaseConnections;
+import net.javapla.jawn.core.database.DatabaseModule;
 import net.javapla.jawn.core.exceptions.ConfigurationException;
+import net.javapla.jawn.core.spi.ApplicationBootstrap;
+import net.javapla.jawn.core.spi.ApplicationDatabaseBootstrap;
+import net.javapla.jawn.core.spi.ApplicationFilters;
+import net.javapla.jawn.core.spi.ApplicationRoutes;
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.ModeHelper;
 import net.javapla.jawn.impl.FrameworkModule;
 
 import org.reflections.Reflections;
@@ -31,7 +31,9 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.Stage;
+import com.google.inject.util.Modules;
 
 public class FrameworkBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
@@ -110,8 +112,12 @@ public class FrameworkBootstrap {
         
         combinedModules.add(new DatabaseModule(connections, properties));
         
-        if (userModules != null)
-            combinedModules.addAll(userModules);
+        // Makes it possible for users to override single framework-specific implementations
+        if (userModules != null) {
+            Module modules = Modules.override(combinedModules).with(userModules);
+            return Guice.createInjector(Stage.PRODUCTION, modules);
+//            combinedModules.addAll(userModules);
+        }
         
         return Guice.createInjector(Stage.PRODUCTION, combinedModules);
     }

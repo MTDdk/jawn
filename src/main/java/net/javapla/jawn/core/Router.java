@@ -13,7 +13,7 @@ import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.CompilationException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
-import net.javapla.jawn.core.util.HttpMethod;
+import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.util.StringUtil;
 
 public class Router {
@@ -104,7 +104,7 @@ public class Router {
     }
     
     public List<Route> getRoutes() {
-        if (routes == null) throw new IllegalStateException("Routes have not been compiled");//README could be compiling instead
+        if (routes == null) throw new IllegalStateException("Routes have not been compiled");
         return routes;
     }
     

@@ -4,14 +4,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import net.javapla.jawn.core.AppController;
-import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.ControllerResponse;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.DynamicClassFactory;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.WebException;
+import net.javapla.jawn.core.http.Context;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -34,7 +34,7 @@ public class ControllerActionInvoker {
         this.injector = injector;
     }
     
-    public ControllerResponse executeAction(Context context) {
+    public Response executeAction(Context context) {
         Route route = context.getRoute();
 
         try {

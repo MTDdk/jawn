@@ -30,7 +30,6 @@ public class CoreModule extends AbstractModule {
         bind(ResponseRunner.class).in(Singleton.class);
         
         bind(ControllerActionInvoker.class).in(Singleton.class);
-        bind(FilterChainEnd.class).in(Singleton.class);
         
         bind(FrameworkEngine.class).in(Singleton.class);
     }

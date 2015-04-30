@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,15 +15,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.fileupload.FileItem;
 
-import net.javapla.jawn.core.http.Cookie;
-import net.javapla.jawn.core.http.Request;
-import net.javapla.jawn.core.http.ResponseStream;
-import net.javapla.jawn.core.http.SessionFacade;
-import net.javapla.jawn.core.util.HttpMethod;
+import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.util.MultiList;
 
 public interface Context {
-
+    
+    public static final String FLASH_KEYWORD = "flash";
+    
     /**
      * Internal contract goes here.
      * <p>
@@ -261,5 +260,6 @@ public interface Context {
     
 /* ****** */
 
-    public ResponseStream finalize(ControllerResponse controllerResponse);
+    public ResponseStream finalizeResponse(Response controllerResponse);
+    public ResponseStream finalizeResponse(Response controllerResponse, boolean handleFlash);
 }

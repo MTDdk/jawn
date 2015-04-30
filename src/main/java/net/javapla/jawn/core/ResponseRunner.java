@@ -2,12 +2,13 @@ package net.javapla.jawn.core;
 
 import java.text.MessageFormat;
 
+import net.javapla.jawn.core.Response.NoHttpBody;
 import net.javapla.jawn.core.exceptions.BadRequestException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.ViewException;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
-import net.javapla.jawn.core.util.NoHttpBody;
 
 import com.google.inject.Inject;
 
@@ -25,8 +26,8 @@ public class ResponseRunner {
         this.templateEngineManager = templateEngineManager;
     }
     
-    public void run(Context context, ControllerResponse response) throws ViewException, BadRequestException, MediaTypeException {
-        //might already have been handled by the controller
+    public void run(Context context, Response response) throws ViewException, BadRequestException, MediaTypeException {
+        //might already have been handled by the controller or filters
         if (response == null) return;
         
         
@@ -34,15 +35,15 @@ public class ResponseRunner {
         Object renderable = response.renderable();
         if (renderable instanceof NoHttpBody) {
             // This indicates that we do not want to render anything in the body.
-            // Can be used e.g. for a 204 No Content response or Redirect.
+            // Can be used e.g. for a 204 No Content response or Redirect
             // and bypasses the rendering engines.
-            context.finalize(response);
+            context.finalizeResponse(response, false);
         } else {
             renderWithTemplateEngine(context, response);
         }
     }
     
-    private void renderWithTemplateEngine(Context context, ControllerResponse response) throws ViewException, BadRequestException, MediaTypeException {
+    private void renderWithTemplateEngine(Context context, Response response) throws ViewException, BadRequestException, MediaTypeException {
         
         // if the response does not contain a content type, we try to look at the request 'accept' header
         if (response.contentType() == null) {

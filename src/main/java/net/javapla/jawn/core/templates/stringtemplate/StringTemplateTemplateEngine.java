@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.ControllerResponse;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.exceptions.ViewException;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineHelper;
@@ -83,12 +83,12 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public void invoke(Context context, ControllerResponse response) throws ViewException {
-        invoke(context, response, context.finalize(response));
+    public void invoke(Context context, Response response) throws ViewException {
+        invoke(context, response, context.finalizeResponse(response));
     }
     
     @Override
-    public void invoke(Context context, ControllerResponse response, ResponseStream stream) throws ViewException {
+    public void invoke(Context context, Response response, ResponseStream stream) throws ViewException {
         long time = System.currentTimeMillis();
         
         Map<String, Object> values = response.getViewObjects();//context.getViewObjects();

@@ -1,4 +1,4 @@
-package net.javapla.jawn.application;
+package net.javapla.jawn.core.spi;
 
 import net.javapla.jawn.core.Router;
 

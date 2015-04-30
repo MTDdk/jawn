@@ -1,9 +1,9 @@
-package net.javapla.jawn.core.db;
+package net.javapla.jawn.core.database;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import net.javapla.jawn.core.Modes;
+import net.javapla.jawn.core.util.Modes;
 
 public class DatabaseConnections {
 

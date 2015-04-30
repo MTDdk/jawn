@@ -1,9 +1,10 @@
 package net.javapla.jawn.impl;
 
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Router;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.i18n.Lang;
+import net.javapla.jawn.core.spi.FilterChainEnd;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -27,7 +28,7 @@ public class FrameworkModule extends AbstractModule {
         
         bind(Context.class).to(ContextImpl.class);
         
-        
+        bind(FilterChainEnd.class).to(FilterChainEndImpl.class).in(Singleton.class);
     }
 
 }

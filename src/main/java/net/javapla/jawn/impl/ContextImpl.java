@@ -32,22 +32,22 @@ import java.util.Map.Entry;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.ControllerResponse;
-import net.javapla.jawn.core.Filter;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.CookieHelper;
+import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.ResponseStreamServlet;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
+import net.javapla.jawn.core.spi.Filter;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.HttpMethod;
+import net.javapla.jawn.core.util.HttpHeaderUtil;
 import net.javapla.jawn.core.util.MultiList;
 
 import org.apache.commons.fileupload.FileItem;
@@ -88,11 +88,12 @@ class ContextImpl implements Context.Internal {
     
     public void init(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response) {
         this.servletContext = servletContext;
-        this.request = request;//new RequestImpl(request);
+        this.request = request;
         this.response = response;
         
         // Set the encoding according to the user defined
         setEncoding(properties.get(Constants.DEFINED_ENCODING));
+        response.addHeader("X-Powered-By", "java-web-planet / jawn");
     }
     
     public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException {
@@ -119,17 +120,6 @@ class ContextImpl implements Context.Internal {
     //README do we need some sort of globally available context?
 //    public AppContext createAppContext() {
 //        return new AppContext(servletContext);
-//    }
-    
-    //TODO this somehow needs to be a part of the ControllerResponse, which, of course, is not
-    //exactly trivial
-    //Perhaps creating a ControllerResponse on the fly for TemplateRendering - if it gets overridden by
-    //a builder of sorts, the ControllerResponse is simply discarded
-//    public void addViewObject(String name, Object value) {
-//        viewValues.put(name, value);
-//    }
-//    public Map<String, Object> getViewObjects() {
-//        return viewValues;
 //    }
     
     /**
@@ -254,40 +244,7 @@ class ContextImpl implements Context.Internal {
     
     public String getAcceptContentType() {
         String contentType = request.getHeader("accept");
-
-        if (contentType == null) {
-            return MediaType.TEXT_HTML;
-        }
-
-        if (contentType.indexOf("application/xhtml") != -1
-                || contentType.indexOf("text/html") != -1
-                || contentType.startsWith("*/*")) {
-            return MediaType.TEXT_HTML;
-        }
-
-        if (contentType.indexOf("application/xml") != -1
-                || contentType.indexOf("text/xml") != -1) {
-            return MediaType.APPLICATION_XML;
-        }
-
-        if (contentType.indexOf("application/json") != -1
-                || contentType.indexOf("text/javascript") != -1) {
-            return MediaType.APPLICATION_JSON;
-        }
-
-        if (contentType.indexOf("text/plain") != -1) {
-            return MediaType.TEXT_PLAIN;
-        }
-
-        if (contentType.indexOf("application/octet-stream") != -1) {
-            return MediaType.APPLICATION_OCTET_STREAM;
-        }
-
-        if (contentType.endsWith("*/*")) {
-            return MediaType.TEXT_HTML;
-        }
-
-        return MediaType.TEXT_HTML;
+        return HttpHeaderUtil.parseAcceptHeader(contentType);   
     }
 
     /**
@@ -480,11 +437,9 @@ class ContextImpl implements Context.Internal {
     
     public Cookie getCookie(String cookieName) {
         List<Cookie> cookies = getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (cookie.getName().equals(cookieName)) {
-                    return cookie;
-                }
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(cookieName)) {
+                return cookie;
             }
         }
         return null;
@@ -646,7 +601,11 @@ class ContextImpl implements Context.Internal {
     
 /* ****** */
 
-    public ResponseStream finalize(ControllerResponse controllerResponse) {
+    public ResponseStream finalizeResponse(Response controllerResponse) {
+        return finalizeResponse(controllerResponse, true);
+    }
+    
+    public ResponseStream finalizeResponse(Response controllerResponse, boolean handleFlash) {
         // status
         response.setStatus(controllerResponse.status());
         
@@ -662,6 +621,15 @@ class ContextImpl implements Context.Internal {
                 response.setCharacterEncoding(Constants.DEFAULT_ENCODING); // use default
         }
         
+        // flash
+        if (handleFlash) {
+            SessionFacade session = getSession();
+            if (session.containsKey(FLASH_KEYWORD)) {
+                Object object = session.get(FLASH_KEYWORD);
+                controllerResponse.addViewObject(FLASH_KEYWORD, object);
+                session.remove(FLASH_KEYWORD);
+            }
+        }
         
         // copy headers
         if (!controllerResponse.headers().isEmpty()) {
@@ -669,9 +637,6 @@ class ContextImpl implements Context.Internal {
                response.addHeader(entry.getKey(), entry.getValue());
            }
         }
-        
-        //cookies
-        // TODO
         
         return new ResponseStreamServlet(response);
     }

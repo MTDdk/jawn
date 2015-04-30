@@ -1,5 +1,9 @@
 package net.javapla.jawn.core;
 
+import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.spi.Filter;
+import net.javapla.jawn.core.spi.FilterChain;
+
 
 class FilterChainImpl implements FilterChain {
 
@@ -12,7 +16,7 @@ class FilterChainImpl implements FilterChain {
     }
 
     @Override
-    public ControllerResponse before(Context context) {
+    public Response before(Context context) {
         return filter.before(next, context);
     }
     

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 //Result
-public class ControllerResponse {
+public class Response {
 
     /**
      * Http status code
@@ -49,7 +49,7 @@ public class ControllerResponse {
     //defacto layout or not
     private String layout = "index.html.st";//Configuration.getDefaultLayout();
     
-    public ControllerResponse(int statusCode) {
+    public Response(int statusCode) {
         supportedContentTypes = new ArrayList<>();
         headers = new HashMap<>();
         viewObjects = new HashMap<>();
@@ -59,7 +59,7 @@ public class ControllerResponse {
     }
     
     
-    public ControllerResponse renderable(Object obj) {
+    public Response renderable(Object obj) {
         this.renderable = obj;
         return this;
     }
@@ -68,7 +68,7 @@ public class ControllerResponse {
     }
     
     
-    public ControllerResponse contentType(String type) {
+    public Response contentType(String type) {
         this.contentType = type;
         return this;
     }
@@ -76,7 +76,7 @@ public class ControllerResponse {
         return contentType;
     }
     
-    public ControllerResponse status(int statusCode) {
+    public Response status(int statusCode) {
         this.statusCode = statusCode;
         return this;
     }
@@ -84,7 +84,7 @@ public class ControllerResponse {
         return statusCode;
     }
     
-    public ControllerResponse charset(String charset) {
+    public Response charset(String charset) {
         this.charset = charset;
         return this;
     }
@@ -93,7 +93,7 @@ public class ControllerResponse {
     }
     
     
-    public ControllerResponse template(String template) {
+    public Response template(String template) {
         this.template = template;
         return this;
     }
@@ -101,7 +101,7 @@ public class ControllerResponse {
         return template;
     }
     
-    public ControllerResponse layout(String layout) {
+    public Response layout(String layout) {
         this.layout = layout;
         return this;
     }
@@ -112,16 +112,16 @@ public class ControllerResponse {
     public Map<String, String> headers() {
         return headers;
     }
-    public ControllerResponse addHeader(String name, String value) {
+    public Response addHeader(String name, String value) {
         headers.put(name, value);
         return this;
     }
     
-    public ControllerResponse addViewObject(String name, Object value) {
+    public Response addViewObject(String name, Object value) {
         viewObjects.put(name, value);
         return this;
     }
-    public ControllerResponse addAllViewObjects(Map<String, Object> values) {
+    public Response addAllViewObjects(Map<String, Object> values) {
         viewObjects.putAll(values);
         return this;
     }
@@ -130,7 +130,7 @@ public class ControllerResponse {
     }
     
     
-    public ControllerResponse addSupportedContentType(String contentType) {
+    public Response addSupportedContentType(String contentType) {
         this.supportedContentTypes.add(contentType);
         return this;
     }
@@ -139,6 +139,21 @@ public class ControllerResponse {
     }
     public List<String> supportedContentTypes() {
         return supportedContentTypes;
+    }
+    
+    
+    
+    /**
+     * Empty container for rendering purposes.
+     * 
+     * <p>
+     * It causes the {@link ResponseRunner} to render no body, just the header. Useful
+     * when issuing a redirect and no corresponding content should be shown.
+     * 
+     * @author MTD
+     */
+    public static class NoHttpBody {
+        // intentionally left empty. Just a marker class.
     }
     
 }

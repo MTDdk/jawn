@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-//apply from: 'maven.gradle'
+apply from: 'maven.gradle'
 
 
 // compiler options
@@ -11,7 +11,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 // maven metadata
 group = "net.javapla.jawn"
 archivesBaseName = "jawn"
-version = "0.8.5-SNAPSHOT"
+version = "0.8.5"
 
 repositories {
     mavenCentral()
