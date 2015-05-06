@@ -11,7 +11,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 // maven metadata
 group = "net.javapla.jawn"
 archivesBaseName = "jawn"
-version = "0.8.5"
+version = "0.8.6-SNAPSHOT"
 
 repositories {
     mavenCentral()
