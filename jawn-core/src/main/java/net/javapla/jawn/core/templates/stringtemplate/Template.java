@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.templates.stringtemplate;
 
-//TODO make package private
 class Template {
 
     public static final Template STYLES_TEMPLATE = new Template(
