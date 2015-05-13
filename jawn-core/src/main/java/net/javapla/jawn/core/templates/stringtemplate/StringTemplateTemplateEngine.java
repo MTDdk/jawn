@@ -75,7 +75,6 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
             stringTemplateConfig.init(config);
         }
         
-        
         useCache = properties.isProd();
         outputHtmlIndented = !properties.isProd();
         
@@ -178,6 +177,10 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
             // add the user configurations
             config.adaptors.forEach((k, v) -> group.registerModelAdaptor(k, v));
             config.renderers.forEach((k, v) -> group.registerRenderer(k, v));
+            
+            // adding a fallback group that will try to serve from resources instead of webapp/WEB-INF/
+            STGroupDir fallbackGroup = new STRawGroupDir("views", config.delimiterStart, config.delimiterEnd);
+            group.importTemplates(fallbackGroup);
         }
         
         // clears the internal cache of StringTemplate
@@ -233,8 +236,8 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
                     language,
                     
                     //add scripts
-                    readLinks(Template.SCRIPTS_TEMPLATE, conf.scripts, error),
-                    readLinks(Template.STYLES_TEMPLATE, conf.styles, error),
+                    readLinks(StringTemplateTemplate.SCRIPTS_TEMPLATE, conf.scripts, error),
+                    readLinks(StringTemplateTemplate.STYLES_TEMPLATE, conf.styles, error),
                     
                     // put the rendered content into the main template
                     content
@@ -257,7 +260,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         }
     }
     
-    private String readLinks(Template template, List<String> links, ErrorBuffer error) {
+    private String readLinks(StringTemplateTemplate template, List<String> links, ErrorBuffer error) {
         if (links.isEmpty()) return null;
         
         ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
