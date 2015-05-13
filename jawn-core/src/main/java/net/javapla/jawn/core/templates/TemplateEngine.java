@@ -14,9 +14,9 @@ public interface TemplateEngine {
      * Render the given object to the given context
      * 
      * @param context
-     *            The context to render to
+     *      The context to render to
      * @param result
-     *            The result to render
+     *      The result to render
      */
     public void invoke(Context context, Response response/*, Result result*/) throws ViewException;
     
@@ -28,7 +28,7 @@ public interface TemplateEngine {
      * @param context
      * @param response
      * @param stream
-     *            The stream to render to
+     *      The stream to render to
      */
     public void invoke(Context context, Response response, ResponseStream stream) throws ViewException;
 
@@ -40,14 +40,16 @@ public interface TemplateEngine {
      * But Gson for instance does not use a template to render stuff. Therefore
      * it will return null
      * 
-     * @return name of suffix or null if engine is not using a template on disk.
+     * @return
+     *      name of suffix or null if engine is not using a template on disk.
      */
     public String getSuffixOfTemplatingEngine();
 
     /**
      * Get the content type this template engine renders
      * 
-     * @return The content type this template engine renders
+     * @return
+     *      The content type this template engine renders
      */
     public String[] getContentType();
 

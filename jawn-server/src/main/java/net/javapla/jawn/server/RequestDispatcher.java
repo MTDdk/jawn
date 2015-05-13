@@ -88,102 +88,21 @@ public class RequestDispatcher implements Filter {
     }
     
     public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)  throws ServletException, IOException {
-//        try {
 
-            String path = /*request.getRequestURI();*/request.getServletPath();
-            
-            // redirect if the path ends with a slash - URLS cannot end with a slash - they should not do such a thing - why would they?
-            if (redirectUrlEndingWithSlash(path, response)) return;
+        String path = request.getServletPath();
 
-            //MTD: filtering resources
-            if (filteringResources(request, response, chain, path)) return;
-            
-            ContextImpl context = (ContextImpl) injector.getInstance(Context.class);
-            context.init(servletContext, request, response);
-            FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
-            engine.runRequest(context);
-            
-            /*String format = null;
-            String uri;
-            // look for any format in the request
-            if(path.contains(".")){
-                uri = path.substring(0, path.lastIndexOf('.'));
-                format = path.substring(path.lastIndexOf('.') + 1);
-            }else{
-                uri = path;
-            }
-            
-            
-            //TODO first do this language extraction IF custom route not found
-            String language = findLanguagePrefix(uri, injector.getInstance(Lang.class));
-                
-            //MTD: we first look for a language prefix and strip the URI if it is found
-            if (!StringUtil.blank(language)) {
-                uri = uri.substring(language.length() +1 );
-//                if (uri.isEmpty()) uri = "/";
-            } else {
-                language = injector.getInstance(Lang.class).getDefaultLanguage();//defaultLanguage;
-            }
-            
-            if (StringUtil.blank(uri)) {
-                uri = "/";//different servlet implementations, damn.
-            }*/
-            
-            
-            // Try to look up the route
-//            Route route = router.getRoute(HttpMethod.getMethod(request), uri);
+        // redirect if the path ends with a slash - URLS cannot end with a slash - they should not do such a thing - why would they?
+        if (redirectUrlEndingWithSlash(path, response)) return;
 
-            /*if (route != null) {
-                //TODO consider if it should be possible to ignore routes
-//                if(route.ignores(path)) {
-//                    chain.doFilter(request, response); // let someone else handle this
-//                    logger.debug("URI ignored: " + path);
-//                    return;
-//                }
+        //MTD: filtering resources
+        if (filteringResources(request, response, chain, path)) return;
 
-                
-                Context context = injector.getInstance(Context.class);
-                context.init(servletContext, request, response);
-                context.setRouteInformation(route, format, language, uri);
-                
-                // run filters
-                ControllerResponse controllerResponse = route.getFilterChain().before(context);
-                
-                ResponseRunner runner = injector.getInstance(ResponseRunner.class);
-                runner.run(context, controllerResponsecontext.getNewControllerResponse());
-                
-                route.getFilterChain().after(context);
-            } else {
-                //TODO: theoretically this will never happen, because if the route was not excluded, the router.recognize() would throw some kind
-                // of exception, leading to the a system error page.
-                logger.warn("No matching route for servlet path: " + request.getServletPath() + ", passing down to container.");
-                chain.doFilter(request, response);//let it fall through
-            }
-        } catch (CompilationException e) {
-            renderSystemError(request, response, e);
-//        } catch (ClassLoadException e) {
-//            renderSystemError(request, response, "/system/404", useDefaultLayoutForErrors() ? getDefaultLayout():null, 404, e);
-//        }catch (ActionNotFoundException e) {
-//            renderSystemError(request, response, "/system/404", useDefaultLayoutForErrors() ? getDefaultLayout():null, 404, e);
-        }catch(ClassLoadException | ActionNotFoundException |ViewMissingException | RouteException e){
-            renderSystemError(request, response, "/system/404", properties.get(Constants.Params.defaultLayout.name()), 404, e);
-//        }catch(RouteException e){
-//            renderSystemError(request, response, "/system/404", useDefaultLayoutForErrors() ? getDefaultLayout():null, 404, e);
-        }catch(ViewException e){
-            renderSystemError(request, response, "/system/error", properties.get(Constants.Params.defaultLayout.name()), 500, e);
-        }catch (Throwable e) {
-            renderSystemError(request, response, e);
-        }finally {
-//           Context.clear();
-//            List<String> connectionsRemaining = DB.getCurrrentConnectionNames();
-//            if(connectionsRemaining.size() != 0){
-//                logger.warn("CONNECTION LEAK DETECTED ... and AVERTED!!! You left connections opened:"
-//                        + connectionsRemaining + ". ActiveWeb is closing all active connections for you...");
-//                DB.closeAllConnections();
-//            }
-        }*/
+        ContextImpl context = (ContextImpl) injector.getInstance(Context.class);
+        context.init(servletContext, request, response);
+        FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
+        engine.runRequest(context);
     }
-    
+
     
     
     private boolean redirectUrlEndingWithSlash(String path, HttpServletResponse response) throws IOException {

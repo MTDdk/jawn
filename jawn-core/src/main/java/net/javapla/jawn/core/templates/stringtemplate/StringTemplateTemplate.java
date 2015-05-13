@@ -1,11 +1,11 @@
 package net.javapla.jawn.core.templates.stringtemplate;
 
-class Template {
+class StringTemplateTemplate {
 
-    public static final Template STYLES_TEMPLATE = new Template(
+    public static final StringTemplateTemplate STYLES_TEMPLATE = new StringTemplateTemplate(
             "$links:{link|<link rel=\"stylesheet\" type=\"text/css\" href=\"$link$\">\n}$", "/css/", '$', '$'
     );
-    public static final Template SCRIPTS_TEMPLATE = new Template(
+    public static final StringTemplateTemplate SCRIPTS_TEMPLATE = new StringTemplateTemplate(
             "$links:{link|<script src=\"$link$\"></script>\n}$", "/js/", '$', '$'
     );
             
@@ -15,7 +15,7 @@ class Template {
     public final char delimiterStart;
     public final char delimiterEnd;
     
-    public Template(String template, String prefix, char delimiterStart, char delimitarEnd) {
+    public StringTemplateTemplate(String template, String prefix, char delimiterStart, char delimitarEnd) {
         this.template = template;
         this.prefix = prefix;
         this.delimiterStart = delimiterStart;
