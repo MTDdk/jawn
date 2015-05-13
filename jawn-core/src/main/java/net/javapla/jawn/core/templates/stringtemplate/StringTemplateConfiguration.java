@@ -8,7 +8,6 @@ import org.stringtemplate.v4.ModelAdaptor;
 
 public class StringTemplateConfiguration {
 
-    //TODO make all fields package private
     Map<Class<?>, AttributeRenderer> renderers = new HashMap<>();
     Map<Class<?>, ModelAdaptor> adaptors = new HashMap<>();
     

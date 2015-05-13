@@ -195,10 +195,10 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
      * then use this to override the root default template
      */
     private ST locateDefaultTemplate(STGroupDir group, String controller) {
-        ST index = locateTemplate(group, controller + '/' + TEMPLATE_DEFAULT);//group.getInstanceOf(controller + '/' + TEMPLATE_DEFAULT);
+        ST index = locateTemplate(group, controller + '/' + TEMPLATE_DEFAULT);
         if (index != null)
             return index;
-        return locateTemplate(group, TEMPLATE_DEFAULT);//group.getInstanceOf(TEMPLATE_DEFAULT);
+        return locateTemplate(group, TEMPLATE_DEFAULT);
     }
     
     /** Renders template directly to writer */
@@ -224,7 +224,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     private void readyLayoutTemplate(ST layoutTemplate, Context ctx, String content, Map<String, Object> values, String controller, String language, ErrorBuffer error) {
         injectTemplateValues(layoutTemplate, values);
         
-        SiteConfiguration conf = configReader.read(getTemplateFolder(ctx), controller);
+        SiteConfiguration conf = configReader.read(getTemplateFolder(ctx), controller, useCache);
         Site site = new Site(
                     //add title
                     conf.title,
@@ -258,7 +258,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
     
     private String readLinks(Template template, List<String> links, ErrorBuffer error) {
-        if (links.isEmpty()) return null;//README or empty string?
+        if (links.isEmpty()) return null;
         
         ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
         
@@ -266,7 +266,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         
         linkTemplate.add("links", prefixed);
         Writer writer = new StringBuilderWriter();
-        linkTemplate.write(createSTWriter(writer), error);//indent writer could be removed for less HTML as a result
+        linkTemplate.write(createSTWriter(writer), error);
         return writer.toString();
     }
 
@@ -293,7 +293,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         if (outputHtmlIndented) {
             return new AutoIndentWriter(writer);
         } else {
-            return new NoIndentWriter(writer);
+            return new NoIndentWriter(writer);//no indents for less HTML as a result
         }
     }
 }

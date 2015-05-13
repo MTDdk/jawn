@@ -9,8 +9,6 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.javapla.jawn.core.PropertiesImpl;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +18,7 @@ import com.google.inject.Inject;
 /**
  * 
  * Empirical evidence tells us that caching the SiteConfiguration has a significant impact on performance in high load use.
- * This makes sense as all roundtrips to disk cost.
+ * This makes sense as all roundtrips to disk have great cost.
  * 
  * @author MTD
  */
@@ -31,33 +29,56 @@ public class ConfigurationReader {
 
     private final ObjectMapper mapper;
     private final Map<String, SiteConfiguration> configurationCache;
-    private final boolean useCache;
     
 
     @Inject
-    public ConfigurationReader(ObjectMapper mapper, PropertiesImpl properties) {
+    public ConfigurationReader(ObjectMapper mapper) {
         this.mapper = mapper;
         this.configurationCache = new ConcurrentHashMap<>();
-        this.useCache = properties.isProd();
     }
     
+    /**
+     * @see #read(String, String, boolean)
+     */
     public SiteConfiguration read(String templateFolder, String controller) {
+        return read(templateFolder, controller, false);
+    }
+    /**
+     * Reads the {@value #SITE_FILE} of the <code>templateFolder</code> and merges with <code>templateFolder/controller</code>,
+     * if any exists.
+     * 
+     * @param templateFolder 
+     *      The root folder to read from. The {@value #SITE_FILE} in this location is the default configuration file.
+     *      Same as the index.html.st is the default layout.
+     * @param controller
+     *      The folder for the controller that is executed. This folder might hold an additional {@value #SITE_FILE},
+     *      which will be used to merge with the default configuration file.
+     *      This takes precedence over the values in default configuration file.
+     * @param useCache
+     *      Use caching of the read configuration
+     * @return
+     *      The read configuration.
+     *      This might be the default configuration, or the merged configuration, or only the controller configuration
+     *      if the controller configuration has {@link SiteConfiguration#overrideDefault} set to override everything.
+     */
+    public SiteConfiguration read(String templateFolder, String controller, boolean useCache) {
         Path rootFolder = Paths.get(templateFolder);
 
         // find eventual extra configurations in the controller folder
-        SiteConfiguration localConf = readSiteFileWithCache(rootFolder.resolve(controller)); // we skip path.controller+'/'+path.method because we only look for other configurations on controller
+        // we skip path.controller+'/'+path.method because we only look for other configurations on controller
+        SiteConfiguration localConf = readSiteFileWithCache(rootFolder.resolve(controller), useCache);
         
         if (localConf.overrideDefault) {
             return localConf;
         } else {
             // find root site_file and eventual extra configurations of the controller folder
-            SiteConfiguration conf = readSiteFileWithCache(rootFolder);
+            SiteConfiguration conf = readSiteFileWithCache(rootFolder, useCache);
             mergeConfigurations(conf, localConf);
             return conf;
         }
     }
     
-    private SiteConfiguration readSiteFileWithCache(Path folder) {
+    private SiteConfiguration readSiteFileWithCache(Path folder, boolean useCache) {
         if (useCache) {
             return configurationCache.computeIfAbsent(folder.toString(), f -> readSiteFile(folder));
         } else {
@@ -78,8 +99,13 @@ public class ConfigurationReader {
     }
 
     /**
-     * adding them uncritically
+     * Letting localConf take precedence over globalConf.
+     * Adding them uncritically
+     * 
+     * @param globalConf
+     *      The default configuration
      * @param localConf
+     *      The controller configuration
      */
     private void mergeConfigurations(SiteConfiguration globalConf, SiteConfiguration localConf) {
         if (localConf.title != null && !localConf.title.isEmpty()) globalConf.title = localConf.title;
