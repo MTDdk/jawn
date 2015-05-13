@@ -1,0 +1,32 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+
+// compiler options
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	// Framework
+	//compile 'net.javapla.jawn:jawn:0.8.5'
+	compile project(':jawn-server'), project(':jawn-core')
+
+	// Server
+	compile 'io.undertow:undertow-servlet:1.2.4.Final'
+}
+
+/* ****************** */
+/*    Eclipse         */
+/* ****************** */
+eclipse {
+	classpath {
+		// we need the output dir to be the same as the one gradle uses when running Jetty
+		// or else the dynamic loading does not apply
+		defaultOutputDir = file('build/classes/main')
+	}
+}

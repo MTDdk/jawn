@@ -1,59 +1,19 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
+//http://gradle.org/docs/current/userguide/multi_project_builds.html#sub:real_life_examples
 
-apply from: 'maven.gradle'
+subprojects {
+	apply plugin: 'java'
+	apply from: '../maven.gradle'
 
-
-// compiler options
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-// maven metadata
-group = "net.javapla.jawn"
-archivesBaseName = "jawn"
-version = "0.8.6-SNAPSHOT"
-
-repositories {
-    mavenCentral()
+	// maven metadata
+	group = "net.javapla.jawn"
+	version = "0.8.6-SNAPSHOT"
+	
+	repositories {
+	    mavenCentral()
+	}
+	
+	test {
+		ignoreFailures true
+	}
 }
 
-
-dependencies {
-
-	compile 'com.google.inject:guice:3.0'
-	compile 'commons-fileupload:commons-fileupload:1.3'
-
-	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.4.4'
-	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.4.4' // faster data binding
-	compile 'org.codehaus.woodstox:woodstox-core-asl:4.1.4' // faster XML parsing
-    compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
-    compile 'javax.servlet:javax.servlet-api:3.1.0'
-    
-    
-    // https://github.com/ronmamo/reflections
-    compile 'org.reflections:reflections:0.9.9'
-    
-	
-	
-	/* Template Engines */
-	//StringTemplate
-	compile 'org.antlr:ST4:4.0.8'
-
-	
-	//ImgScalr (image manipulation)
-	compile 'org.imgscalr:imgscalr-lib:4.2'
-
-
-	//Compiler
-    runtime files("${System.env['JAVA_HOME']}/lib/tools.jar")
-	
-	//Logging
-    compile 'org.slf4j:slf4j-api:1.7.7'
-    
-    //Test
-    testCompile 'junit:junit:4.12'
-}
-
-test {
-	ignoreFailures true
-}

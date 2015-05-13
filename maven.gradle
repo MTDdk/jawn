@@ -1,6 +1,7 @@
 apply plugin: 'maven'
 apply plugin: 'signing'
 
+
 // Generates the javadoc
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'

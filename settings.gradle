@@ -1,3 +1,6 @@
 rootProject.name = 'java-web-planet / jawn'
 
-//include('jawn-core')
+include ':jawn-core'
+include ':jawn-server'
+include ':jawn-server-undertow'
+include ':jawn-server-jetty'
