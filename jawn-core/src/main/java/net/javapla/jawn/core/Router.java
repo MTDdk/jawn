@@ -14,9 +14,10 @@ import net.javapla.jawn.core.exceptions.CompilationException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
+import net.javapla.jawn.core.spi.Routes;
 import net.javapla.jawn.core.util.StringUtil;
 
-public class Router {
+public class Router implements Routes {
     
     private static final List<InternalRoute> internalRoutes;
     static {
@@ -72,6 +73,8 @@ public class Router {
     }
     
     
+    //TODO we need to have the injector somewhere else.
+    //It is not consistent that this particular injector handles implementations from both core and server
     public Route getRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
         if (routes == null) compileRoutes(injector); // used to throw an illegalstateexception
         
@@ -123,7 +126,7 @@ public class Router {
                     String className = c.getControllerClassName();
                     boolean isProd = injector.getInstance(PropertiesImpl.class).isProd();
 //                    AppController controller = DynamicClassFactory.createInstance(className, AppController.class, false);
-                    Class<? extends AppController> controller = DynamicClassFactory.getCompiledClass(className, AppController.class, isProd);
+                    Class<? extends ApplicationController> controller = DynamicClassFactory.getCompiledClass(className, ApplicationController.class, isProd);
 
                     RouteBuilder bob = RouteBuilder.method(httpMethod);
                     bob.route(internalRoute.uri);

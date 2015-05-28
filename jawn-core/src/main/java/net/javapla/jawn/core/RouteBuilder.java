@@ -22,7 +22,7 @@ public class RouteBuilder {
     private String uri;
 //    private AppController controller; //README see ControllerActionInvoker
     private String actionName; // is not prefixed with the http method
-    private Class<? extends AppController> type;
+    private Class<? extends ApplicationController> type;
     
     private RouteBuilder(HttpMethod m) {
         httpMethod = m;
@@ -63,7 +63,7 @@ public class RouteBuilder {
         return this;
     }
     
-    public RouteBuilder to(Class<? extends AppController> type) {
+    public RouteBuilder to(Class<? extends ApplicationController> type) {
         this.type = type;
 //        try {
 //            this.controller = type.newInstance();
@@ -74,7 +74,7 @@ public class RouteBuilder {
         return this;
     }
     
-    public RouteBuilder to(Class<? extends AppController> type, String action) /*throws ControllerException*/{
+    public RouteBuilder to(Class<? extends ApplicationController> type, String action) /*throws ControllerException*/{
 //        try {
 //            this.controller = type.newInstance();
 //        } catch (InstantiationException | IllegalAccessException e) {
@@ -93,7 +93,7 @@ public class RouteBuilder {
         return this;
     }
     
-    public RouteBuilder to(AppController controller, String action) /*throws ControllerException*/ {
+    public RouteBuilder to(ApplicationController controller, String action) /*throws ControllerException*/ {
 //        // verify that the controller has the corresponding action
 //        // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
 //        if ( ! controller.isAllowedAction(NewRoute.constructAction(action, httpMethod)) )
@@ -136,7 +136,7 @@ public class RouteBuilder {
         return route;
     }
     
-    private FilterChain buildFilterChain(FilterChain chainEnd,/*Injector injector, */List<Filter> filters, Class<? extends AppController> controller/*, boolean isProduction*/) {
+    private FilterChain buildFilterChain(FilterChain chainEnd,/*Injector injector, */List<Filter> filters, Class<? extends ApplicationController> controller/*, boolean isProduction*/) {
         if (filters.isEmpty()) {
             return chainEnd;//new FilterChainEnd(/*new ControllerActionInvoker(controller, isProduction), *//*injector*/);
         } else {
