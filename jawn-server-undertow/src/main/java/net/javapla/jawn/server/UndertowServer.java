@@ -3,6 +3,7 @@ package net.javapla.jawn.server;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
+import io.undertow.Undertow.Builder;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.servlet.Servlets;
@@ -41,13 +42,34 @@ public class UndertowServer implements JawnServer {
         
         // Start the server
         HttpHandler start = manager.start();
-        Undertow.builder()
+        Builder serverBuilder = Undertow.builder()
             .addHttpListener(config.getPort(), "localhost")
             
             // from undertow-edge benchmark
-            .setHandler(Handlers.header(start, Headers.SERVER_STRING, "Undertow"))
-            .setIoThreads(Runtime.getRuntime().availableProcessors() * 2) 
-            .build()
-            .start();
+            .setHandler(Handlers.header(start, Headers.SERVER_STRING, "Undertow"));
+        
+        configureServerPerformance(serverBuilder, config);
+            
+        serverBuilder.build().start();
+    }
+    
+    private void configureServerPerformance(Builder serverBuilder, ServerConfig config) {
+        switch (config.getServerPerformance()) {
+            case HIGHEST:
+                serverBuilder.setIoThreads(Runtime.getRuntime().availableProcessors() * 2);
+                break;
+            case HIGH:
+                serverBuilder.setIoThreads(Runtime.getRuntime().availableProcessors());
+                break;
+            case MEDIUM:
+                serverBuilder.setIoThreads(Math.max(Runtime.getRuntime().availableProcessors() / 2, 2));
+                break;
+            case MINIMAL:
+                serverBuilder.setIoThreads(2);//may not be less than 2 because of the inner workings of Undertow 
+                break;
+            case CUSTOM:
+                serverBuilder.setIoThreads(Math.max(config.getIoThreads(), 2));
+                break;
+        }
     }
 }
