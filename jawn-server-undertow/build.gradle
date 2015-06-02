@@ -17,7 +17,7 @@ dependencies {
 	compile project(':jawn-server'), project(':jawn-core')
 
 	// Server
-	compile 'io.undertow:undertow-servlet:1.2.4.Final'
+	compile 'io.undertow:undertow-servlet:1.2.6.Final'
 }
 
 /* ****************** */
