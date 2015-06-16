@@ -1,0 +1,19 @@
+//http://gradle.org/docs/current/userguide/multi_project_builds.html#sub:real_life_examples
+
+subprojects {
+	apply plugin: 'java'
+	apply from: '../maven.gradle'
+
+	// maven metadata
+	group = "net.javapla.jawn"
+	version = "0.8.7-SNAPSHOT"
+	
+	repositories {
+	    mavenCentral()
+	}
+	
+	test {
+		ignoreFailures true
+	}
+}
+

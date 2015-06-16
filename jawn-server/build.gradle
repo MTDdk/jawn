@@ -1,0 +1,31 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+// compiler options
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	compile project(':jawn-core')
+	
+	
+	compile 'javax.servlet:javax.servlet-api:3.1.0'
+	/*compile 'org.apache.shiro:shiro-core:1.2.3'
+	compile 'org.apache.shiro:shiro-web:1.2.3'
+	runtime 'commons-logging:commons-logging:1.2'*/
+}
+
+/* ****************** */
+/*    Eclipse         */
+/* ****************** */
+eclipse {
+	classpath {
+		// we need the output dir to be the same as the one gradle uses when running Jetty
+		// or else the dynamic loading does not apply
+		defaultOutputDir = file('build/classes/main')
+	}
+}

@@ -1,0 +1,82 @@
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+
+// Generates the javadoc
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+// Collect the source
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+javadoc {
+	failOnError = false
+}
+
+
+// hooks up the javadoc to the generated artifacts
+artifacts {
+    archives sourcesJar, javadocJar 
+}
+
+// sign the generated artifacts
+//http://www.gradle.org/docs/current/userguide/signing_plugin.html
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+signing {
+    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+// ========================
+//     Maven deploy
+// https://oss.sonatype.org
+// ========================
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      pom.project {
+        
+        name "${project.group}:${project.archivesBaseName}" 
+        description 'java-web-planet / jawn - A simple web framework in Java'
+        url 'https://github.com/MTDdk/jawn'
+        
+        packaging 'jar'
+
+        scm {
+          connection 'scm:git:git@github.com:MTDdk/jawn.git'
+          developerConnection 'scm:git:git@github.com:MTDdk/jawn.git'
+          url 'https://github.com/MTDdk/jawn'
+        }
+
+        licenses {
+          license {
+            name 'GNU LGPL, Version 3.0'
+            url 'http://www.gnu.org/licenses/lgpl-3.0.txt'
+          }
+        }
+
+        developers {
+          developer {
+            id 'MTDdk'
+            name 'MTDdk'
+            email 'alvn@alvn.dk'
+          }
+        }
+      }
+    }
+  }
+}
