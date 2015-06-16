@@ -75,7 +75,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
             stringTemplateConfig.init(config);
         }
         
-        useCache = properties.isProd();
+        useCache = !properties.isDev();
         outputHtmlIndented = !properties.isProd();
         
         this.configReader = configReader;

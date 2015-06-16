@@ -72,11 +72,11 @@ public class PropertiesImpl implements JawnProperties {
     public boolean isProd() {
         return mode.equals(Modes.prod);
     }
-    public boolean isDev() {
-        return mode.equals(Modes.dev);
-    }
     public boolean isTest() {
         return mode.equals(Modes.test);
+    }
+    public boolean isDev() {
+        return mode.equals(Modes.dev);
     }
     
     

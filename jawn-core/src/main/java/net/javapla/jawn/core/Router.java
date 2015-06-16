@@ -88,8 +88,8 @@ public class Router implements Routes {
                 }
 
                 // reload the controller, if we are not in production mode
-                boolean isProd = injector.getInstance(PropertiesImpl.class).isProd();
-                if (!isProd) {
+                boolean isDev = injector.getInstance(PropertiesImpl.class).isDev();
+                if (isDev) {
                     try {
                         // a route might not have the actionName or controller set by the user, so 
                         // we try to infer it from the URI
@@ -155,10 +155,10 @@ public class Router implements Routes {
         // find a route that actually exists
         try {
             String className = c.getControllerClassName();
-            boolean isProd = injector.getInstance(PropertiesImpl.class).isProd();
-            RouteBuilder bob = loadController(className, httpMethod, route.uri, c.getAction(), isProd);
+            boolean isDev = injector.getInstance(PropertiesImpl.class).isDev();
+            RouteBuilder bob = loadController(className, httpMethod, route.uri, c.getAction(), !isDev);
             
-            //TODO cache the routes if isProd
+            //TODO cache the routes if !isDev
             return bob.build(filters, injector); // this might throw if the controller does not have the action
         } catch (ControllerException e) {
             //to() failed - the controller does not contain the corresponding action
