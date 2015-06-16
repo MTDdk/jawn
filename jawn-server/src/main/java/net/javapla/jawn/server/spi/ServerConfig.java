@@ -77,4 +77,18 @@ public class ServerConfig {
         this.performance = mode;
     }
 
+    private boolean useauthentication = false;
+    private String authenticationFilterUrlMapping = "/*";
+    public boolean useAuthentication() {
+        return this.useauthentication;
+    }
+    public void useAuthentication(boolean secure) {
+        this.useauthentication = secure;
+    }
+    public String getAuthenticationFilterUrlMapping() {
+        return this.authenticationFilterUrlMapping;
+    }
+    public void setAuthenticationFilterUrlMapping(String url) {
+        this.authenticationFilterUrlMapping = url;
+    }
 }

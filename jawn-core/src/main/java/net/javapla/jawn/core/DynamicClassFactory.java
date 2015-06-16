@@ -1,18 +1,19 @@
 package net.javapla.jawn.core;
 
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.CompilationException;
+import net.javapla.jawn.core.util.StringBuilderWriter;
 import net.javapla.jawn.core.util.StringUtil;
 
 /**
@@ -85,13 +86,14 @@ public abstract class DynamicClassFactory {
         try {
             if (! useCache) {
                 
-                String compilationResult = compileClass(className);
+                /*String compilationResult = compileClass(className);
+                System.out.println("************ compilationResult   " + compilationResult);
                 if (compilationResult.contains("cannot read")) {
                     throw new ClassLoadException(compilationResult);
                 }
                 if (compilationResult.contains("error")) {
                     throw new CompilationException(compilationResult);
-                }
+                }*/
 
                 DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DynamicClassFactory.class.getClassLoader());
                 return dynamicClassLoader.loadClass(className);
@@ -118,7 +120,6 @@ public abstract class DynamicClassFactory {
      */
     protected static final Function<String, Class<?>> WRAP_FORNAME = className -> {
         try {
-//            System.out.println("CACHED_CONTROLLERS ????? " + className);
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -134,8 +135,12 @@ public abstract class DynamicClassFactory {
 
         String classpath = getClasspath(urls);
 
-        StringWriter writer = new StringWriter();
+        StringBuilderWriter writer = new StringBuilderWriter();
         PrintWriter out = new PrintWriter(writer);
+        
+        //TODO something needs to be done to alter this, so it does not cohere to standard Maven build output
+        // '-d' is the directory for outputting the compiled classes
+        //http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javac.html
         String targetClasses = StringUtil.join(System.getProperty("file.separator"), "target", "classes");
         String srcMainJava = StringUtil.join(System.getProperty("file.separator"), "src", "main", "java");
 
@@ -157,7 +162,7 @@ public abstract class DynamicClassFactory {
                     path = path.substring(1);//loose leading slash
                 }
                 try{
-                    path = URLDecoder.decode(path, "UTF-8");// fill in the spaces
+                    path = URLDecoder.decode(path, StandardCharsets.UTF_8.displayName());// fill in the spaces
                 }catch(java.io.UnsupportedEncodingException e){/*ignore*/}
                 path = path.replace("/", "\\");//boy, do I dislike windoz!
             }

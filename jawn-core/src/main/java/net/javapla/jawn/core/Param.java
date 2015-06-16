@@ -1,6 +1,9 @@
 package net.javapla.jawn.core;
 
-import static net.javapla.jawn.core.util.ConvertUtil.*;
+import static net.javapla.jawn.core.util.ConvertUtil.toBoolean;
+import static net.javapla.jawn.core.util.ConvertUtil.toDouble;
+import static net.javapla.jawn.core.util.ConvertUtil.toInteger;
+import static net.javapla.jawn.core.util.ConvertUtil.toLong;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -8,7 +11,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Optional;
 
 import net.javapla.jawn.core.exceptions.ParsableException;
 import net.javapla.jawn.core.util.ConversionException;
@@ -27,8 +29,8 @@ public class Param {
         this.param = param;
     }
     
-    public Optional<Param> usable() {
-        return Optional.of(this);
+    public boolean isPresent() {
+        return param != null;
     }
     
     public Integer asInt() {

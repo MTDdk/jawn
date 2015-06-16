@@ -128,13 +128,14 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
               renderContentTemplate(contentTemplate, writer, values, language, error);
 
           } else { // with layout
+              String controller = template;
               if (template.charAt(0) == '/')
-                  template = template.substring(1, template.indexOf('/', 1)); // remove leading '/'
+                  controller = template.substring(1, template.indexOf('/', 1)); // remove leading '/'
 
               String content = renderContentTemplate(contentTemplate, values, language, error);
 
-              ST layoutTemplate = locateDefaultTemplate(group, template);
-              readyLayoutTemplate(layoutTemplate, context, content, values, template, language, error);
+              ST layoutTemplate = locateDefaultLayout(group, controller, layout);
+              readyLayoutTemplate(layoutTemplate, context, content, values, controller, language, error);
 
               renderTemplate(layoutTemplate, writer, error);
           }
@@ -194,11 +195,15 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
 
     /**
-     * If the default template is found within the controller folder
+     * If found, uses the provided layout within the controller folder.
+     * If not found, it looks for the default template within the controller folder
      * then use this to override the root default template
      */
-    private ST locateDefaultTemplate(STGroupDir group, String controller) {
-        ST index = locateTemplate(group, controller + '/' + TEMPLATE_DEFAULT);
+    private ST locateDefaultLayout(STGroupDir group, String controller, String layout) {
+        ST index = locateTemplate(group, controller + '/' + layout);
+        if (index != null)
+            return index;
+        index = locateTemplate(group, controller + '/' + TEMPLATE_DEFAULT);
         if (index != null)
             return index;
         return locateTemplate(group, TEMPLATE_DEFAULT);

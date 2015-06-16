@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.util;
 
-import java.io.IOException;
 import java.io.Writer;
 
 public class StringBuilderWriter extends Writer {
@@ -13,7 +12,7 @@ public class StringBuilderWriter extends Writer {
     }
 
     @Override
-    public void write(char[] cbuf, int off, int len) throws IOException {
+    public void write(char[] cbuf, int off, int len) throws IndexOutOfBoundsException {
         if ((off < 0) || (off > cbuf.length) || (len < 0) ||
             ((off + len) > cbuf.length) || ((off + len) < 0)) {
             throw new IndexOutOfBoundsException();
@@ -24,32 +23,32 @@ public class StringBuilderWriter extends Writer {
     }
     
     @Override
-    public void write(String str) throws IOException {
+    public void write(String str) {
         bob.append(str);
     }
     
     @Override
-    public void write(char[] cbuf) throws IOException {
+    public void write(char[] cbuf) {
         bob.append(cbuf);
     }
     
     @Override
-    public void write(int c) throws IOException {
+    public void write(int c) {
         bob.append((char)c);
     }
     
     @Override
-    public void write(String str, int off, int len) throws IOException {
+    public void write(String str, int off, int len) {
         bob.append(str, off, off+len);
     }
 
     @Override
-    public void flush() throws IOException {
+    public void flush() {
         
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         
     }
     

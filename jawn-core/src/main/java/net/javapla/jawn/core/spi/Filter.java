@@ -7,7 +7,7 @@ import net.javapla.jawn.core.http.Context;
 public interface Filter {
 
     /**
-     * Filter the request. Filters should invoke the filterChain.nextFilter()
+     * Filter the request. Filters should invoke the {@link FilterChain#before(Context)}
      * method if they wish the request to proceed.
      * 
      * @param chain

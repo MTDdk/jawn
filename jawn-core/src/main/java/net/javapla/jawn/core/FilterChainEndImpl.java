@@ -25,12 +25,7 @@ class FilterChainEndImpl implements FilterChainEnd {
     
     @Override
     public Response before(Context context) {
-//        long time = System.currentTimeMillis();
-//        try {
-            return invoker.executeAction(context);
-//        } finally {
-//            System.out.println("____  ControllerActionInvoker ... " + (System.currentTimeMillis()- time));
-//        }
+        return invoker.executeAction(context);
     }
 
     @Override

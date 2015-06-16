@@ -14,6 +14,9 @@ dependencies {
 	
 	
 	compile 'javax.servlet:javax.servlet-api:3.1.0'
+	/*compile 'org.apache.shiro:shiro-core:1.2.3'
+	compile 'org.apache.shiro:shiro-web:1.2.3'
+	runtime 'commons-logging:commons-logging:1.2'*/
 }
 
 /* ****************** */

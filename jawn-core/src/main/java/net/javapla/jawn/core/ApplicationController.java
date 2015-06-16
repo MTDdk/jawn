@@ -1,21 +1,4 @@
-/*
-Copyright 2009-2014 Igor Polevoy
-
-Licensed under the Apache License, Version 2.0 (the "License"); 
-you may not use this file except in compliance with the License. 
-You may obtain a copy of the License at 
-
-http://www.apache.org/licenses/LICENSE-2.0 
-
-Unless required by applicable law or agreed to in writing, software 
-distributed under the License is distributed on an "AS IS" BASIS, 
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-See the License for the specific language governing permissions and 
-limitations under the License. 
-*/
 package net.javapla.jawn.core;
-
-import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.IOException;
@@ -168,6 +151,22 @@ public abstract class ApplicationController implements ResponseHolder {
         
         public NewRenderBuilder noLayout() {
             response.layout(null);
+            return this;
+        }
+        
+        /**
+         * If the parameter does not end with ".html", then ".html" is automatically appended, as that is the standard
+         * layout ending.
+         * @param layout
+         * @return
+         */
+        public NewRenderBuilder layout(String layout) {
+            response.layout(layout);
+            return this;
+        }
+        
+        public NewRenderBuilder template(String template) {
+            response.template(template);
             return this;
         }
     }
@@ -369,10 +368,12 @@ public abstract class ApplicationController implements ResponseHolder {
      * Sets a flash name for a flash with  a body.
      * Here is a how to use a tag with a body:
      *
+     * <i>flash</i> keyword
+     *
      * <pre>
-     * &lt;@flash name=&quot;warning&quot;&gt;
-     * &lt;div class=&quot;warning&quot;&gt;${message}&lt;/div&gt;
-     *  &lt;/@flash&gt;
+     * $if(flash.&lt;name&gt;)$
+     *   &lt;div class=&quot;warning&quot;&gt;$flash.&lt;name&gt;$&lt;/div&gt;
+     * $endif$
      * </pre>
      *
      * If body refers to variables (as in this example), then such variables need to be passed in to the template as usual using
@@ -381,12 +382,12 @@ public abstract class ApplicationController implements ResponseHolder {
      * @param name name of a flash
      */
     protected void flash(String name){
-        flash(name, null);
+        flash(name, name);
     }
     
     /**
      * Sends value to flash. Flash survives one more request.  Using flash is typical
-     * for POST/REDIRECT/GET pattern,
+     * for POST->REDIRECT->GET pattern,
      *
      * @param name name of value to flash
      * @param value value to live for one more request in current session.
@@ -598,16 +599,19 @@ public abstract class ApplicationController implements ResponseHolder {
      * @param name name of multiple values from request.
      * @return multiple request values for a name.
      */
-    protected List<String> params(String name) {
+    protected List<Param> params(String name) {
         if (name.equals("id")) {
             String id = getIdString();
-            return id != null ? asList(id) : Collections.emptyList();
+            return id != null ? Arrays.asList(new Param(id)) : Collections.emptyList();
         } else {
             String[] values = context.requestParameterValues(name);
-            List<String>valuesList = values == null? new ArrayList<>() : Arrays.asList(values);
+            if (values == null) return new ArrayList<>();
+            
+            List<Param> valuesList = new ArrayList<>(values.length + 1);
+            Arrays.asList(values).stream().map(val -> new Param(val)).forEach(param -> valuesList.add(param));
             String routeParameter = context.getRouteParam(name);
             if(routeParameter != null){
-                valuesList.add(routeParameter);
+                valuesList.add(new Param(routeParameter));
             }
             return valuesList;
         }
@@ -1143,7 +1147,7 @@ public abstract class ApplicationController implements ResponseHolder {
      * @return reference to a current session.
      */
     protected SessionFacade session(){
-        return context.getSession();
+        return context.createSession();
     }
     /**
      * Convenience method, sets an object on a session. Equivalent of:

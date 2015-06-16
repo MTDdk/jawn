@@ -17,7 +17,7 @@ import org.apache.commons.fileupload.FileItem;
 
 public interface Context {
     
-    public static final String FLASH_KEYWORD = "flash";
+    public static final String FLASH_KEYWORD = Context.class.getName() + ".flash";
     
     /**
      * Internal contract goes here.
@@ -54,7 +54,7 @@ public interface Context {
     
     public String getRouteParam(String name);
     
-    public SessionFacade getSession();
+    public SessionFacade createSession();
     
 /* *************** */
 /*   REQUEST       */

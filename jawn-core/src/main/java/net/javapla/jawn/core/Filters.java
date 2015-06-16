@@ -7,7 +7,7 @@ import java.util.List;
 import net.javapla.jawn.core.spi.Filter;
 
 /**
- * FilterBuilder
+ * FilterHandler
  * 
  * @author MTD
  *
@@ -26,7 +26,7 @@ public class Filters {
         return bob;
     }
     
-    public List<Filter> compileFilters(Class<? extends AppController> controller, String action) {
+    public List<Filter> compileFilters(Class<? extends ApplicationController> controller, String action) {
         List<Filter> list = new ArrayList<>();
         for (FilterBuilder bob : builders) {
             Filter filter = bob.get(controller, action);
@@ -35,7 +35,7 @@ public class Filters {
         }
         return list;
     }
-    public List<Filter> compileFilters(Class<? extends AppController> controller) {
+    public List<Filter> compileFilters(Class<? extends ApplicationController> controller) {
         List<Filter> list = new ArrayList<>();
         for (FilterBuilder bob : builders) {
             Filter filter = bob.get(controller);
@@ -47,15 +47,16 @@ public class Filters {
     
     public class FilterBuilder {
         Filter filter;
-        Class<? extends AppController>[] controllers;
+        Class<? extends ApplicationController>[] controllers;
         String[] actionNames;
         
         public FilterBuilder(Filter filter) {
             this.filter = filter;
         }
         
+        
         @SafeVarargs
-        public final FilterBuilder to( Class<? extends AppController>... classes) {
+        public final FilterBuilder to( Class<? extends ApplicationController>... classes) {
             this.controllers = classes;
             if (actionNames != null) ensureControllersContainsActions();
             return this;
@@ -70,12 +71,12 @@ public class Filters {
         }
         
         private void ensureControllersContainsActions() {
-            for (Class<? extends AppController> controller : controllers) {
+            for (Class<? extends ApplicationController> controller : controllers) {
                 if (!doesControllerHaveActions(controller, actionNames))
                     throw new IllegalArgumentException("Controller does not have an action resembling the provided - " + controller.getSimpleName());
             }
         }
-        private boolean doesControllerHaveActions(Class<? extends AppController> controller, String[] actions) {
+        private boolean doesControllerHaveActions(Class<? extends ApplicationController> controller, String[] actions) {
             for (Method method : controller.getDeclaredMethods()) {
                 if (doesMethodResemble(method, actions)) {
                     return true;
@@ -91,7 +92,7 @@ public class Filters {
             return false;
         }
         
-        public Filter get(Class<? extends AppController> controller, String action) {
+        Filter get(Class<? extends ApplicationController> controller, String action) {
             if (actionNames == null) return null;
             
             Filter f = getFilter(controller);
@@ -104,15 +105,15 @@ public class Filters {
             }
             return null;
         }
-        public Filter get(Class<? extends AppController> controller) {
+        Filter get(Class<? extends ApplicationController> controller) {
             if (actionNames != null) return null;
             if (controllers == null) return filter; // the filter it defined globally
             
             return getFilter(controller);
         }
         
-        private Filter getFilter(Class<? extends AppController> controller) {
-            for (Class<? extends AppController> con : controllers) {
+        Filter getFilter(Class<? extends ApplicationController> controller) {
+            for (Class<? extends ApplicationController> con : controllers) {
                 if (con.getName().equals(controller.getName())) {
                     return filter;
                 }

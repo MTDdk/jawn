@@ -63,6 +63,9 @@ public class FrameworkBootstrap {
         
         config = readConfiguration(appConfig, router, filters, connections);
         
+        // If any initialisation of filters needs to be done, like injecting ServletContext,
+        // it can be done here.
+        
         // supported languages are needed in the creation of the injector
         properties.setSupportedLanguages(appConfig.getSupportedLanguages());
         properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());

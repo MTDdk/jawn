@@ -75,7 +75,7 @@ class InternalRoute {
 //        return map;
 //    }
     
-    protected List<String> parseParameters(String uri) {
+    protected static List<String> parseParameters(String uri) {
         List<String> params = new ArrayList<>();
         
         Matcher m = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(uri);

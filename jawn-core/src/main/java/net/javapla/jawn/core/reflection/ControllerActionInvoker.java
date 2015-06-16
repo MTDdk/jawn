@@ -3,9 +3,9 @@ package net.javapla.jawn.core.reflection;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import net.javapla.jawn.core.AppController;
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.ApplicationController;
 import net.javapla.jawn.core.DynamicClassFactory;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
@@ -38,7 +38,7 @@ public class ControllerActionInvoker {
         Route route = context.getRoute();
 
         try {
-            AppController controller = loadController(route.getController());
+            ApplicationController controller = loadController(route.getController());
 
             injectControllerWithContext(controller, context, injector);
 
@@ -68,7 +68,7 @@ public class ControllerActionInvoker {
     }
     
     
-    private AppController loadController(Class<? extends AppController> controller) throws ClassLoadException {
+    private ApplicationController loadController(Class<? extends ApplicationController> controller) throws ClassLoadException {
         try {
             return DynamicClassFactory.createInstance(controller);
         } catch (ClassLoadException e) {
@@ -78,7 +78,7 @@ public class ControllerActionInvoker {
         }
     }
 
-    private void injectControllerWithContext(AppController controller, Context context, Injector injector) {
+    private void injectControllerWithContext(ApplicationController controller, Context context, Injector injector) {
         controller.init(context, injector);
         
         //Inject dependencies
@@ -87,7 +87,7 @@ public class ControllerActionInvoker {
         }
     }
     
-    public static boolean isAllowedAction(Class<? extends AppController> controller, String actionMethodName) {
+    public static boolean isAllowedAction(Class<? extends ApplicationController> controller, String actionMethodName) {
         String lowerCaseActionName = actionMethodName.toLowerCase();
         for (Method method : controller.getMethods()) {
             if (lowerCaseActionName.equals( method.getName().toLowerCase() )) {

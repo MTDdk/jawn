@@ -18,7 +18,7 @@ public class RouteBuilder {
     public static final String ROOT_CONTROLLER_NAME = "index";//README could be set in filter.init()
     public static final String DEFAULT_ACTION_NAME = "index";
 
-    private final HttpMethod httpMethod;// = HttpMethod.GET; //defaults
+    private final HttpMethod httpMethod;
     private String uri;
 //    private AppController controller; //README see ControllerActionInvoker
     private String actionName; // is not prefixed with the http method
@@ -26,7 +26,7 @@ public class RouteBuilder {
     
     private RouteBuilder(HttpMethod m) {
         httpMethod = m;
-        actionName = DEFAULT_ACTION_NAME;
+//        actionName = DEFAULT_ACTION_NAME;
     }
     
     static RouteBuilder get() {
@@ -56,6 +56,9 @@ public class RouteBuilder {
     
     /**
      * Used for custom routes
+     * <p>Can be a regular expression
+     * <p>If <b>uri</b> contains reserved keywords like "action", "controller" or "package", then this will be attempted to be deduced
+     * and used <b>IFF</b> it has not been explicitly stated already
      * @param uri what was specified in the  RouteConfig class
      */
     public RouteBuilder route(String uri) {
@@ -124,10 +127,10 @@ public class RouteBuilder {
         list.addAll(filters.compileFilters(type, action));
         
         
-//        boolean isProd = injector.getInstance(PropertiesImpl.class).isProd();
         FilterChainEnd chainEnd = injector.getInstance(FilterChainEnd.class);
-        Route route = new Route(uri, httpMethod, type, action, actionName, buildFilterChain(chainEnd,/*injector,*/ list, type/*, isProd*/));
+        Route route = new Route(uri, httpMethod, type, action, actionName, buildFilterChain(chainEnd,/*injector,*/ list, type));
         
+        if (actionName != null && type != null)
         // verify that the controller has the corresponding action
         // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
         if ( ! ControllerActionInvoker.isAllowedAction(type, route.getAction()))//controller.isAllowedAction(route.getAction()) )

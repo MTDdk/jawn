@@ -1,18 +1,3 @@
-/*
-Copyright 2009-2014 Igor Polevoy
-
-Licensed under the Apache License, Version 2.0 (the "License"); 
-you may not use this file except in compliance with the License. 
-You may obtain a copy of the License at 
-
-http://www.apache.org/licenses/LICENSE-2.0 
-
-Unless required by applicable law or agreed to in writing, software 
-distributed under the License is distributed on an "AS IS" BASIS, 
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-See the License for the specific language governing permissions and 
-limitations under the License. 
-*/
 package net.javapla.jawn.server;
 
 import java.io.Serializable;
@@ -24,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import net.javapla.jawn.core.http.SessionFacade;
@@ -33,12 +17,15 @@ import net.javapla.jawn.core.http.SessionFacade;
  * Facade to HTTP session. 
  *
  * @author Igor Polevoy
+ * @author MTD
  */
 public class SessionFacadeImpl implements SessionFacade {
     
-    private final HttpServletRequest request;
-    public SessionFacadeImpl(HttpServletRequest request) {
-        this.request = request;
+    private final HttpSession session;
+    public SessionFacadeImpl(HttpSession session) throws IllegalArgumentException {
+        if (session == null) 
+            throw new IllegalArgumentException("The inputted HttpSession must not be null");
+        this.session = session;
     }
 
     /**
@@ -48,8 +35,8 @@ public class SessionFacadeImpl implements SessionFacade {
      * @return named object. 
      */
     public Object get(String name){
-        HttpSession session = request.getSession(false);
-        if (session == null) return null;
+//        HttpSession session = session/*request.getSession(false)*/;
+//        if (session == null) return null;
         return session.getAttribute(name);
     }
 
@@ -72,8 +59,8 @@ public class SessionFacadeImpl implements SessionFacade {
      * @param name name of object
      */
     public void remove(String name){
-        HttpSession session = request.getSession(false);
-        if (session != null)
+//        HttpSession session = request.getSession(false);
+//        if (session != null)
             session.removeAttribute(name);
     }
 
@@ -84,8 +71,10 @@ public class SessionFacadeImpl implements SessionFacade {
      * @return the previous bound value for the name
      */
     public Object put(String name, Serializable value){
-        Object val = request.getSession(true).getAttribute(name);
-        request.getSession(false).setAttribute(name, value);
+//        Object val = session/*request.getSession(true)*/.getAttribute(name);
+//        request.getSession(false).setAttribute(name, value);
+        Object val = session.getAttribute(name);
+        session.setAttribute(name, value);
         return val;
     }
 
@@ -95,14 +84,17 @@ public class SessionFacadeImpl implements SessionFacade {
      * @return time when session was created.
      */
     public long getCreationTime() {
-        return request.getSession(true).getCreationTime();
+//        return request.getSession(true).getCreationTime();
+        return session.getCreationTime();
     }
 
     /**
      * Invalidates current session. All attributes are discarded.
      */
     public void invalidate(){
-        request.getSession(true).invalidate();
+//        HttpSession session = request.getSession(false);
+//        if (session != null)
+            session.invalidate();
     }
 
     /**
@@ -110,7 +102,8 @@ public class SessionFacadeImpl implements SessionFacade {
      * @param seconds time to live.
      */
     public void setTimeToLive(int seconds){
-        request.getSession(true).setMaxInactiveInterval(seconds);
+//        request.getSession(true).setMaxInactiveInterval(seconds);
+        session.setMaxInactiveInterval(seconds);
     }
 
     /**
@@ -120,7 +113,7 @@ public class SessionFacadeImpl implements SessionFacade {
      */
     public String[] names(){
         List<String> namesList = new ArrayList<String>();
-        Enumeration<String> names = request.getSession(true).getAttributeNames();
+        Enumeration<String> names = session.getAttributeNames();//request.getSession(true).getAttributeNames();
         while (names.hasMoreElements()) {
             Object o = names.nextElement();
             namesList.add(o.toString());
@@ -135,7 +128,7 @@ public class SessionFacadeImpl implements SessionFacade {
      * @return ID of the underlying session
      */
     public String getId(){
-        return request.getSession(true).getId();
+        return session/*request.getSession(true)*/.getId();
     }
 
 
@@ -143,31 +136,26 @@ public class SessionFacadeImpl implements SessionFacade {
      * Destroys current session
      */
     public void destroy(){
-        request.getSession(true).invalidate();
+        session/*request.getSession(true)*/.invalidate();
     }
 
 
-
-    @Override
-    public int size() {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public boolean isEmpty() {
-        HttpSession session = request.getSession(false);
+//        HttpSession session = request.getSession(false);
         return session == null || !session.getAttributeNames().hasMoreElements();
     }
 
     @Override
     public boolean containsKey(Object key) {
-        HttpSession session = request.getSession(false);
+//        HttpSession session = request.getSession(false);
         return session != null && session.getAttribute(key.toString()) != null;
     }
 
     @Override
     public boolean containsValue(Object value) {
-        Enumeration<String> names = request.getSession(true).getAttributeNames();
+        Enumeration<String> names = session/*request.getSession(true)*/.getAttributeNames();
         while (names.hasMoreElements()){
             String name = names.nextElement().toString();
             if(name.equals(value)){
@@ -185,15 +173,15 @@ public class SessionFacadeImpl implements SessionFacade {
     @Override
     public Object put(String key, Object value) {
         Object val = get(key.toString());
-        put(key.toString(), (Serializable)value);
+        session/*request.getSession(true)*/.setAttribute(key, value);
         return val;
     }
 
     @Override
     public Object remove(Object key) {
         Object val = get(key.toString());
-        HttpSession session = request.getSession(false);
-        if (session == null) return null;
+//        HttpSession session = request.getSession(false);
+//        if (session == null) return null;
         session.removeAttribute(key.toString());
         return val;
     }
@@ -214,7 +202,7 @@ public class SessionFacadeImpl implements SessionFacade {
     @Override
     public Set<String> keySet() {
         Set<String> keys = new HashSet<String>();
-        Enumeration<String> names = request.getSession(true).getAttributeNames();
+        Enumeration<String> names = session/*request.getSession(true)*/.getAttributeNames();
         while (names.hasMoreElements()){
             String name = names.nextElement();
             keys.add(name);
@@ -225,7 +213,7 @@ public class SessionFacadeImpl implements SessionFacade {
     @Override
     public Collection<Object> values() {
         Set<Object> values = new HashSet<Object>();
-        Enumeration<String> names = request.getSession(true).getAttributeNames();
+        Enumeration<String> names = session/*request.getSession(true)*/.getAttributeNames();
         while (names.hasMoreElements()){
             String name = names.nextElement();
             values.add(get(name));
@@ -235,6 +223,11 @@ public class SessionFacadeImpl implements SessionFacade {
 
     @Override
     public Set<Entry<String, Object>> entrySet() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int size() {
         throw new UnsupportedOperationException();
     }
 }

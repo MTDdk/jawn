@@ -47,7 +47,7 @@ public class Response {
     
     //README perhaps this ought to be a boolean, as it is solely used as a flag whether to use the 
     //defacto layout or not
-    private String layout = "index.html.st";//Configuration.getDefaultLayout();
+    private String layout = "index.html";//Configuration.getDefaultLayout();
     
     public Response(int statusCode) {
         supportedContentTypes = new ArrayList<>();
@@ -95,6 +95,8 @@ public class Response {
     
     public Response template(String template) {
         this.template = template;
+        if (template.endsWith(".st"))
+            this.template = template.substring(0, template.length()-3);//FIXME this ought to be up to the templateengine to remove
         return this;
     }
     public String template() {
@@ -103,6 +105,12 @@ public class Response {
     
     public Response layout(String layout) {
         this.layout = layout;
+        if (layout != null) {
+            if (layout.endsWith(".st"))
+                this.layout = layout.substring(0, layout.length()-3);
+            if (!this.layout.endsWith(".html"))
+                this.layout += ".html";
+        }
         return this;
     }
     public String layout() {

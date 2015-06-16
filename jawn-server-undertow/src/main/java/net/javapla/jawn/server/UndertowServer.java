@@ -18,6 +18,9 @@ import javax.servlet.DispatcherType;
 import net.javapla.jawn.server.spi.JawnServer;
 import net.javapla.jawn.server.spi.ServerConfig;
 
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
+
 public class UndertowServer implements JawnServer {
     
     public void setupAndStartServer(ServerConfig config) throws Exception {
@@ -27,11 +30,17 @@ public class UndertowServer implements JawnServer {
         DeploymentInfo deployment = Servlets.deployment()
             .setClassLoader(UndertowServer.class.getClassLoader())
             .setContextPath(config.getContextPath())
-            .setDeploymentName("test.war")
+            .setDeploymentName("test.war");
             
-            // Add the framework
+        // security
+        configureServerAuthentication(deployment, config);
+            
+            
+        // Add the framework
+        deployment
             .addFilter(Servlets.filter(filtername, RequestDispatcher.class))
             .addFilterUrlMapping(filtername, "/*", DispatcherType.REQUEST)
+            
             
             // The resource folder to read from
             .setResourceManager(new FileResourceManager(new File(config.getWebappPath()), 100));
@@ -51,6 +60,15 @@ public class UndertowServer implements JawnServer {
         configureServerPerformance(serverBuilder, config);
             
         serverBuilder.build().start();
+    }
+    
+    private void configureServerAuthentication(DeploymentInfo deployment, ServerConfig config) {
+        if (config.useAuthentication()) {
+            deployment
+                .addListener(Servlets.listener(EnvironmentLoaderListener.class))
+                .addFilter(Servlets.filter("shiro", ShiroFilter.class))
+                .addFilterUrlMapping("shiro",config.getAuthenticationFilterUrlMapping(),DispatcherType.REQUEST);
+        }
     }
     
     private void configureServerPerformance(Builder serverBuilder, ServerConfig config) {
