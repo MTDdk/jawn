@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.function.UnaryOperator;
 
 /**
- * 
+ * *Might need to be moved to util*
  * @author MTD
  */
 class FileName {
@@ -131,6 +131,15 @@ class FileName {
     
     public void sanitise() {
         apply((s) -> s.replace(' ', '_')); // replace space with underscore
+        
+        /*
+         * Explanation:
+         * [a-zA-Z0-9\\._] matches a letter from a-z lower or uppercase, numbers, dots and underscores
+         * [^a-zA-Z0-9\\._] is the inverse. i.e. all characters which do not match the first expression
+         * [^a-zA-Z0-9\\._]+ is a sequence of characters which do not match the first expression
+         * So every sequence of characters which does not consist of characters from a-z, 0-9 or . _ will be replaced.
+         */
+        apply(s -> s.replaceAll("[^a-zA-Z0-9\\._]+", "_"));
     }
     
     /**
