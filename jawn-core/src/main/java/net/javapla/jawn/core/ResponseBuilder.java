@@ -41,7 +41,7 @@ public class ResponseBuilder {
     }
     
     /** 302 (Found) */
-    public static Response redirect() {
+    static Response redirect() {
         return new Response(Status.FOUND.getStatusCode()).renderable(new NoHttpBody());
     }
     /** 302 (Found) */

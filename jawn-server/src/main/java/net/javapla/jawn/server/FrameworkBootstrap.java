@@ -9,10 +9,11 @@ import java.util.function.Consumer;
 import net.javapla.jawn.core.ApplicationConfig;
 import net.javapla.jawn.core.CoreModule;
 import net.javapla.jawn.core.DynamicClassFactory;
-import net.javapla.jawn.core.Filters;
+import net.javapla.jawn.core.FilterHandler;
 import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Router;
+import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseModule;
 import net.javapla.jawn.core.exceptions.ConfigurationException;
@@ -20,6 +21,7 @@ import net.javapla.jawn.core.spi.ApplicationBootstrap;
 import net.javapla.jawn.core.spi.ApplicationDatabaseBootstrap;
 import net.javapla.jawn.core.spi.ApplicationFilters;
 import net.javapla.jawn.core.spi.ApplicationRoutes;
+import net.javapla.jawn.core.spi.Filters;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.ModeHelper;
 
@@ -57,14 +59,11 @@ public class FrameworkBootstrap {
         
         // Read all the configuration from the user
         ApplicationConfig appConfig = new ApplicationConfig();
-        Filters filters = new Filters();
+        FilterHandler filters = new FilterHandler();
         Router router = new Router(filters);
         DatabaseConnections connections = new DatabaseConnections();
         
         config = readConfiguration(appConfig, router, filters, connections);
-        
-        // If any initialisation of filters needs to be done, like injecting ServletContext,
-        // it can be done here.
         
         // supported languages are needed in the creation of the injector
         properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -73,6 +72,14 @@ public class FrameworkBootstrap {
         // create a single injector for both the framework and the user registered modules
         List<AbstractModule> userModules = appConfig.getRegisteredModules() == null ? null : Arrays.asList(appConfig.getRegisteredModules());
         Injector localInjector = initInjector(userModules, router, connections);
+        
+        
+        // If any initialisation of filters needs to be done, like injecting ServletContext,
+        // it can be done here.
+        // Get current database connection (if any)
+        DatabaseConnection connection = localInjector.getInstance(DatabaseConnection.class);
+        filters.setDatabaseConnection(connection);
+        
         
         // compiling of routes needs an injector, so this is done after the creation
         router.compileRoutes(localInjector);

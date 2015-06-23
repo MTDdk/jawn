@@ -19,7 +19,7 @@ package net.javapla.jawn.core.exceptions;
 /**
  * @author Igor Polevoy
  */
-public class ControllerException extends WebException{
+public class ControllerException extends WebException {
     private static final long serialVersionUID = -7478962369544025815L;
 
     public ControllerException() {
