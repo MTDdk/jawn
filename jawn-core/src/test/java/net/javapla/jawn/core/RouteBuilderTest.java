@@ -1,7 +1,7 @@
 package net.javapla.jawn.core;
 
 import static org.junit.Assert.*;
-import net.javapla.jawn.core.FilterHandler;
+import net.javapla.jawn.core.FiltersHandler;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.RouteBuilder;
 import net.javapla.jawn.core.exceptions.ControllerException;
@@ -34,12 +34,12 @@ public class RouteBuilderTest {
 
     @Test(expected=ControllerException.class)
     public void should_throw_because_action_not_found() {
-        RouteBuilder.get().route("/").to(KageController.class, "nothing").build(new FilterHandler(), null);
+        RouteBuilder.get().route("/").to(KageController.class, "nothing").build(new FiltersHandler(), null);
     }
     
     @Test
     public void should_return_route() {
-        Route route = RouteBuilder.get().to(KageController.class, "bolle").route("/kage/bolle").build(new FilterHandler(), null);
+        Route route = RouteBuilder.get().to(KageController.class, "bolle").route("/kage/bolle").build(new FiltersHandler(), null);
         
         assertNotNull(route);
         assertEquals("getBolle", route.getAction());

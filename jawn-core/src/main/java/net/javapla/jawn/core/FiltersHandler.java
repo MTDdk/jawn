@@ -7,7 +7,6 @@ import java.util.List;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnectionAware;
 import net.javapla.jawn.core.security.SecurityFilter;
-import net.javapla.jawn.core.security.SecurityFilterFactory;
 import net.javapla.jawn.core.spi.Filter;
 import net.javapla.jawn.core.spi.Filters;
 
@@ -16,15 +15,21 @@ import net.javapla.jawn.core.spi.Filters;
  * 
  * @author MTD
  */
-public class FilterHandler implements Filters, DatabaseConnectionAware {
+public class FiltersHandler implements Filters, DatabaseConnectionAware {
 
     private final List<FilterBuilder<? extends Filter>> builders;
     
     private DatabaseConnection databaseConnection;
+//    private SecurityFilterFactory security;
     
-    public FilterHandler() {
+    public FiltersHandler() {
         this.builders = new ArrayList<>();
     }
+    
+//    public FiltersHandler(SecurityFilterFactory security) {
+//        this();
+//        this.security = security;
+//    }
     
     @Override
     public FilterBuilder<Filter> add(Filter filter) {
@@ -39,15 +44,16 @@ public class FilterHandler implements Filters, DatabaseConnectionAware {
     }
     
     @Override
-    public SecureBuilder secureOnRole(String role) {
-        SecurityFilter filter = SecurityFilterFactory.filter(databaseConnection, role);
+    public SecureBuilder secureOnRole(String role) throws IllegalStateException {
+//        if (security == null) throw new IllegalStateException("Security is not specified");
+//        SecurityFilter filter = security.filter(role);//SecurityFilterFactory.filter(databaseConnection, context, role);
         
-        SecureBuilder bob = new SecureBuilder(filter);
-        builders.add(bob);
-        
-        // If the filter is ConnectionAware, then inject the database connection
-        if (filter instanceof DatabaseConnectionAware)
-            ((DatabaseConnectionAware) filter).setDatabaseConnection(databaseConnection);
+        SecureBuilder bob = new SecureBuilder(/*filter*/);
+//        builders.add(bob);
+//        
+//        // If the filter is ConnectionAware, then inject the database connection
+//        if (filter instanceof DatabaseConnectionAware)
+//            ((DatabaseConnectionAware) filter).setDatabaseConnection(databaseConnection);
         
         return bob;
     }
@@ -64,13 +70,6 @@ public class FilterHandler implements Filters, DatabaseConnectionAware {
                 list.add(filter);
         }
         
-//        // if the filter is 
-//        if (databaseConnection != null) {
-//            for (Filter filter : list) {
-//                if (filter instanceof DatabaseConnectionAware)
-//                    ((DatabaseConnectionAware) filter).setDatabaseConnection(databaseConnection);
-//            }
-//        }
         return list;
     }
     public List<Filter> compileFilters(Class<? extends ApplicationController> controller) {
@@ -81,12 +80,6 @@ public class FilterHandler implements Filters, DatabaseConnectionAware {
                 list.add(filter);
         }
         
-//        if (databaseConnection != null) {
-//            for (Filter filter : list) {
-//                if (filter instanceof DatabaseConnectionAware)
-//                    ((DatabaseConnectionAware) filter).setDatabaseConnection(databaseConnection);
-//            }
-//        }
         return list;
     }
     
@@ -120,6 +113,10 @@ public class FilterHandler implements Filters, DatabaseConnectionAware {
     public void setDatabaseConnection(DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection;
     }
+
+//    public void setSecurityFilterFactory(SecurityFilterFactory secure) {
+//        this.security = secure;
+//    }
 
     public static class FilterBuilder<T extends Filter> {
         T filter;
@@ -210,7 +207,8 @@ public class FilterHandler implements Filters, DatabaseConnectionAware {
     }
     
     public static class SecureBuilder extends FilterBuilder<SecurityFilter> {
-        
+        public SecureBuilder() {
+        }
         public SecureBuilder(SecurityFilter filter) {
             super(filter);
         }
@@ -227,6 +225,11 @@ public class FilterHandler implements Filters, DatabaseConnectionAware {
         
         public SecureBuilder redirectWhenNotAuth(String toUrl) {
             filter.redirectWhenNotAuth(toUrl);
+            return this;
+        }
+        
+        public SecureBuilder logoutUrl(String url) {
+            filter.logoutUrl(url);
             return this;
         }
         

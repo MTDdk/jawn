@@ -1,7 +1,7 @@
 package net.javapla.jawn.core.spi;
 
-import net.javapla.jawn.core.FilterHandler.FilterBuilder;
-import net.javapla.jawn.core.FilterHandler.SecureBuilder;
+import net.javapla.jawn.core.FiltersHandler.FilterBuilder;
+import net.javapla.jawn.core.FiltersHandler.SecureBuilder;
 
 public interface Filters {
 

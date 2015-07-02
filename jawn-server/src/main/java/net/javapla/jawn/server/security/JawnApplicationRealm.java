@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.security;
+package net.javapla.jawn.server.security;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;

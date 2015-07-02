@@ -35,11 +35,11 @@ public class Router implements Routes {
     
     
     private final List<RouteBuilder> builders;
-    private final FilterHandler filters;
+    private final FiltersHandler filters;
     
     private List<Route> routes;
     
-    public Router(FilterHandler filters) {
+    public Router(FiltersHandler filters) {
         builders = new ArrayList<>();
         this.filters = filters;
     }

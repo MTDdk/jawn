@@ -1,9 +1,11 @@
-package net.javapla.jawn.core.security;
+package net.javapla.jawn.server.security;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.sql.DataSource;
+
+import net.javapla.jawn.core.http.Context;
 
 import org.apache.shiro.config.ConfigurationException;
 import org.apache.shiro.mgt.DefaultSecurityManager;
@@ -15,6 +17,7 @@ import org.apache.shiro.realm.jdbc.JdbcRealm;
 import org.apache.shiro.realm.jdbc.JdbcRealm.SaltStyle;
 import org.apache.shiro.realm.text.IniRealm;
 import org.apache.shiro.util.AbstractFactory;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 
 /**
  * Factory for a {@link SecurityManager}.
@@ -24,27 +27,35 @@ import org.apache.shiro.util.AbstractFactory;
  * 
  * @author MTD
  */
-class JawnSecurityManagerFactory extends AbstractFactory<JawnSecurityManager> {
+class JawnSecurityManagerFactory extends AbstractFactory<SecurityManager> {
 
-    private DataSource dataSource;
+    private final DataSource dataSource;
+//    private final Context context;
 
-    public JawnSecurityManagerFactory() {
-        super();
-    }
+//    public JawnSecurityManagerFactory() {
+//        super();
+//    }
     
-    JawnSecurityManagerFactory(DataSource spec) {
+    JawnSecurityManagerFactory(DataSource spec/*, Context context*/) {
+        super();
         this.dataSource = spec;
+//        this.context = context;
     }
     
     @Override
-    protected JawnSecurityManager createInstance() {
+    protected SecurityManager createInstance() {
         return createSecurityManager();
     }
     
-    private JawnSecurityManager createSecurityManager() {
+    private SecurityManager createSecurityManager() {
 
         // create security manager
-        JawnSecurityManager securityManager = new JawnSecurityManager();
+        DefaultWebSecurityManager securityManager = /*new DefaultWebSecurityManager();/*/new JawnSecurityManager();
+        
+        // add rememberme manager
+        securityManager.setSessionManager(new JawnSecuritySessionManager());//TODO
+        securityManager.setRememberMeManager(new JawnRememberMeManager());//TODO
+        securityManager.setSubjectFactory(new JWebSubjectFactory());//TODO
 
         Collection<Realm> realms = readRealms();
 

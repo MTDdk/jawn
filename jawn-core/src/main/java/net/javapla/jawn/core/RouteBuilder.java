@@ -114,7 +114,7 @@ public class RouteBuilder {
      * Build the route
      * @return
      */
-    Route build(FilterHandler filters, Injector injector) throws IllegalStateException, ControllerException {
+    Route build(FiltersHandler filters, Injector injector) throws IllegalStateException, ControllerException {
 //        if (controller == null) throw new IllegalStateException("Route not with a controller");
         if (uri == null) throw new IllegalStateException("Route is not specified");
         

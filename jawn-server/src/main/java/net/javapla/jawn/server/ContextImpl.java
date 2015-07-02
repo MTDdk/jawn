@@ -17,9 +17,10 @@ import java.util.Map.Entry;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
-import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
@@ -64,13 +65,13 @@ class ContextImpl implements Context.Internal {
     // servletcontext, appcontext (what the hell is the difference?)
     // requestcontext - the hell, man??
     @Inject
-    public ContextImpl(PropertiesImpl properties, ParserEngineManager parserManager) {
+    ContextImpl(PropertiesImpl properties, ParserEngineManager parserManager) {
         this.properties = properties;
         this.parserManager = parserManager;
     }
     
-    public void init(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response) {
-        this.servletContext = servletContext;
+    void init(/*ServletContext servletContext, */HttpServletRequest request, HttpServletResponse response) {
+        this.servletContext = request.getServletContext();//servletContext;
         this.request = request;
         this.response = response;
         
@@ -96,8 +97,20 @@ class ContextImpl implements Context.Internal {
         return new RequestImpl(request, parserManager);
     }
     
-    public SessionFacade createSession() {
-        return new SessionFacadeImpl(request.getSession(true));
+    public SessionFacade getSession(boolean createIfNotExists) {
+        HttpSession session = request.getSession(createIfNotExists);
+        if (session == null) return null;
+        return new SessionFacadeImpl(session);
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public void setFlash(String name, Object value) {
+        SessionFacade session = getSession(true);
+        if (session.get(Context.FLASH_SESSION_KEYWORD) == null) {
+            session.put(Context.FLASH_SESSION_KEYWORD, new HashMap<String, Object>());
+        }
+        ((Map<String, Object>) session.get(Context.FLASH_SESSION_KEYWORD)).put(name, value);
     }
     
     //README do we need some sort of globally available context?
@@ -606,11 +619,11 @@ class ContextImpl implements Context.Internal {
         
         // flash
         if (handleFlash) {
-            SessionFacade session = createSession();
-            if (session.containsKey(FLASH_KEYWORD)) {
-                Object object = session.get(FLASH_KEYWORD);
+            SessionFacade session = getSession(false);
+            if (session != null && session.containsKey(FLASH_SESSION_KEYWORD)) {
+                Object object = session.get(FLASH_SESSION_KEYWORD);
                 controllerResponse.addViewObject(FLASH_KEYWORD, object);
-                session.remove(FLASH_KEYWORD);
+                session.remove(FLASH_SESSION_KEYWORD);
             }
         }
         

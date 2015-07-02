@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 import net.javapla.jawn.core.ApplicationConfig;
 import net.javapla.jawn.core.CoreModule;
 import net.javapla.jawn.core.DynamicClassFactory;
-import net.javapla.jawn.core.FilterHandler;
+import net.javapla.jawn.core.FiltersHandler;
 import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Router;
@@ -34,6 +34,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
+import com.google.inject.name.Names;
 import com.google.inject.util.Modules;
 
 public class FrameworkBootstrap {
@@ -59,7 +60,8 @@ public class FrameworkBootstrap {
         
         // Read all the configuration from the user
         ApplicationConfig appConfig = new ApplicationConfig();
-        FilterHandler filters = new FilterHandler();
+//        SecurityFilterFactory security = new SecurityFilterFactory();
+        FiltersHandler filters = new FiltersHandler(/*security*/);
         Router router = new Router(filters);
         DatabaseConnections connections = new DatabaseConnections();
         
@@ -76,10 +78,8 @@ public class FrameworkBootstrap {
         
         // If any initialisation of filters needs to be done, like injecting ServletContext,
         // it can be done here.
-        // Get current database connection (if any)
-        DatabaseConnection connection = localInjector.getInstance(DatabaseConnection.class);
-        filters.setDatabaseConnection(connection);
-        
+        initiateFilters(filters, localInjector/*, security*/);
+
         
         // compiling of routes needs an injector, so this is done after the creation
         router.compileRoutes(localInjector);
@@ -97,8 +97,18 @@ public class FrameworkBootstrap {
             config.destroy();
         }
         if (injector != null) {
+            
+            // shutdown the database connection pool
+            try {
+                DatabaseConnection connection = injector.getInstance(DatabaseConnection.class);
+                if (connection != null)
+                    connection.close();
+            } catch (Exception ignore) { ignore.printStackTrace(); }
+            
+            // signal the framework that we are closing down
             FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
             engine.onFrameworkShutdown();
+            
             injector = null;
             engine = null;
         }
@@ -121,11 +131,24 @@ public class FrameworkBootstrap {
         
         combinedModules.add(new DatabaseModule(connections, properties));
         
-        // Makes it possible for users to override single framework-specific implementations
+        combinedModules.add(new AbstractModule() {
+            @Override
+            protected void configure() {
+                //Get all the constants from Filters and bind them
+                //This way we go through all filter classes, lets guice handle their instantiation
+                //and only the class will need to be stated when defining a new filter
+                //TODO
+                bindConstant().annotatedWith(Names.named("something_like_userrole")).to("like_admin");
+                //this kind of binding constants might not be viable, as multiple security filters
+                //need different permissions
+            }
+        });
+        
         if (userModules != null) {
+            // Makes it possible for users to override single framework-specific implementations
             Module modules = Modules.override(combinedModules).with(userModules);
+            
             return Guice.createInjector(Stage.PRODUCTION, modules);
-//            combinedModules.addAll(userModules);
         }
         
         return Guice.createInjector(Stage.PRODUCTION, combinedModules);
@@ -171,7 +194,7 @@ public class FrameworkBootstrap {
             } catch(ConfigurationException e){
                 throw  e;
             } catch (Exception e) {
-                logger.debug("Did not find custom configuration. Going with built in defaults: " + getCauseMessage(e));
+                logger.debug("Error reading custom configuration. Going with built in defaults. The error was: " + getCauseMessage(e));
             }
         } else {
             logger.debug("Did not find custom configuration for {}. Going with built in defaults ", clazz);
@@ -186,5 +209,18 @@ public class FrameworkBootstrap {
             throwable = throwable.getCause();
         }
         return list.get(0).getMessage();
+    }
+    
+    private void initiateFilters(FiltersHandler filters, Injector localInjector/*, SecurityFilterFactory security*/) {
+        // Get current database connection (if any)
+        DatabaseConnection connection = localInjector.getInstance(DatabaseConnection.class);
+        filters.setDatabaseConnection(connection);
+        
+        
+        // Create and inject the security framework
+//        Context context = localInjector.getInstance(Context.class); //README Context is NOT fully ready at this point, as it needs request,response
+//        security.initialiseSecurityManager(connection, context);
+//        SecurityFilterFactory security = new SecurityFilterFactory(connection, context);
+//        filters.setSecurityFilterFactory(security);
     }
 }

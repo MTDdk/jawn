@@ -2,7 +2,7 @@ package net.javapla.jawn.core.database;
 
 import javax.sql.DataSource;
 
-public interface DatabaseConnection extends DataSource {
+public interface DatabaseConnection extends DataSource, AutoCloseable {
     String url();
     String driver();
     String user();

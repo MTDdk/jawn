@@ -11,13 +11,15 @@ import java.util.Map;
 
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.spi.Filter;
 import net.javapla.jawn.core.util.MultiList;
 
 import org.apache.commons.fileupload.FileItem;
 
 public interface Context {
     
-    public static final String FLASH_KEYWORD = Context.class.getName() + ".flash";
+    static final String FLASH_KEYWORD = "flash";
+    static final String FLASH_SESSION_KEYWORD = Context.class.getName() + ".flash";
     
     /**
      * Internal contract goes here.
@@ -54,7 +56,8 @@ public interface Context {
     
     public String getRouteParam(String name);
     
-    public SessionFacade createSession();
+    public SessionFacade getSession(boolean createIfNotExists);
+    public void setFlash(String name, Object value);
     
 /* *************** */
 /*   REQUEST       */
@@ -205,6 +208,18 @@ public interface Context {
     public boolean hasCookie(String cookieName);
     public List<Cookie> getCookies();
     
+    
+    /**
+     * Sets an attribute value.
+     * <p>
+     * Attributes are shared state for the duration of the request;
+     * useful to pass values between {@link Filter filters} and
+     * controllers.
+     *
+     * @see #getAttribute(String)
+     * @see #getAttribute(String, Class)
+     */
+    void setAttribute(String name, Object value);
     
     public void setRequestCharacterEncoding(String encoding) throws UnsupportedEncodingException;
     

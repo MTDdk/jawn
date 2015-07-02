@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.sql.DataSource;
-
 import net.javapla.jawn.core.util.Modes;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
@@ -58,7 +56,7 @@ public class DatabaseConnections {
         int maxPoolSize = 8;
         int minPoolSize = 1;
         
-        DataSource source;
+        ComboPooledDataSource source;
         
         public DatabaseConnectionBuilderImpl(Modes mode) {
             this.mode = mode;
@@ -102,7 +100,7 @@ public class DatabaseConnections {
          * @throws ClassNotFoundException If the driver was not found
          * @throws PropertyVetoException If any of the input is unacceptable
          */
-        private DataSource createPooledDataSource() throws PropertyVetoException, ClassNotFoundException {
+        private ComboPooledDataSource createPooledDataSource() throws PropertyVetoException, ClassNotFoundException {
             Class.forName(driver());
             
             ComboPooledDataSource source = new ComboPooledDataSource();
@@ -171,6 +169,11 @@ public class DatabaseConnections {
         @Override
         public boolean isWrapperFor(Class<?> iface) throws SQLException {
             return source.isWrapperFor(iface);
+        }
+
+        @Override
+        public void close() throws Exception {
+            source.close();
         }
     }
     

@@ -4,7 +4,8 @@ import net.javapla.jawn.core.spi.Filter;
 
 public interface SecurityFilter extends Filter {
 
-    void onRole(String role);
-    void redirectWhenNotLoggedIn(String toUrl);
-    void redirectWhenNotAuth(String toUrl);
+    SecurityFilter onRole(String role);
+    SecurityFilter redirectWhenNotLoggedIn(String toUrl);
+    SecurityFilter redirectWhenNotAuth(String toUrl);
+    SecurityFilter logoutUrl(String url);
 }
