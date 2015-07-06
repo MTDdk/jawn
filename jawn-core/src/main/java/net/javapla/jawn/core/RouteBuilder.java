@@ -150,7 +150,7 @@ public class RouteBuilder {
     
     private String constructAction(String actionName, HttpMethod method) {
         if (StringUtil.blank(actionName)) return DEFAULT_ACTION_NAME;
-        if (DEFAULT_ACTION_NAME.equals(actionName))
+        if (DEFAULT_ACTION_NAME.equals(actionName) && method == HttpMethod.GET)
             return actionName;
         return method.name().toLowerCase() + StringUtil.camelize(actionName.replace('-', '_'), true);
     }

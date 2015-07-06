@@ -64,8 +64,15 @@ public abstract class ApplicationController implements ResponseHolder {
         response = r;
     }
     public Response getControllerResponse() {
+        if (layout() != null)
+            response.layout(layout());
         return response;
     }
+    
+    protected String layout() {
+        return null;
+    }
+    
     
 //    @Inject
     private Context context;

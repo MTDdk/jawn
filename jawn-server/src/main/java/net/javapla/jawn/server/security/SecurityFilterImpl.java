@@ -49,12 +49,14 @@ class SecurityFilterImpl implements SecurityFilter {
     
     @Override
     public Response before(FilterChain chain, Context context) {
+        SessionFacade session = context.getSession(false);//true?
+        
         if (context.getHttpMethod() == HttpMethod.GET) {
             String path = context.path();
             if (path.equals(notLoggedInRedirect))
                 return chain.before(context);
             else if (path.equals(logout)) {
-                SessionFacade session = context.getSession(false);
+//                SessionFacade session = context.getSession(false);
                 if (session != null) {
                     Subject subject = session.get(SESSION_USER, Subject.class);
                     if (subject != null) {
@@ -82,15 +84,13 @@ class SecurityFilterImpl implements SecurityFilter {
 
         // get the current user
         // if not already existing, create and save user
-        SessionFacade session = context.getSession(false);//true?
         if (session == null) {
             session = context.getSession(true);
             
 //            context.finalizeResponse(ResponseBuilder.redirect(notLoggedInRedirect));
 //            return null;//TODO Response with login html
         }
-        //save the path for later use
-        session.put(SESSION_REQUESTED_PATH, context.path());
+        
         
         
         //according to AbstractShiroFilter:
@@ -107,7 +107,7 @@ class SecurityFilterImpl implements SecurityFilter {
         //The IP<->Cookie relationship also has to be taken into consideration
         //Perhaps this also ought to be a principal (IpPrincipal)
         System.out.println("is remembered? " + sub.isRemembered());
-        System.out.println(sub.getPrincipals().getPrimaryPrincipal());
+//        System.out.println(sub.getPrincipals().getPrimaryPrincipal());
         
         Subject subject = sub;
 /*        Subject subject = session.get(SESSION_USER, Subject.class);
@@ -124,12 +124,12 @@ class SecurityFilterImpl implements SecurityFilter {
 //            return null;
         }*/
         
-        
         if (!subject.isAuthenticated()) {
             
             System.out.println("not AUTH");
             
             if (context.getHttpMethod() == HttpMethod.POST) {
+                
             
                 UsernamePasswordToken token = new UsernamePasswordToken(username, password);
                 token.setHost(context.host());
@@ -151,19 +151,26 @@ class SecurityFilterImpl implements SecurityFilter {
                     ae.printStackTrace();
                 }
             //context.finalizeResponse(ResponseBuilder.noBody(401));// README could actually throw an exception instead
-            } else { 
+            } else {
+                //save the path for later use
+                session.put(SESSION_REQUESTED_PATH, context.path());
                 return ResponseBuilder.redirect(notLoggedInRedirect);
             }
         }
         
         System.out.println(subject.getPrincipal() + " is AUTH ("+role+") " + subject.hasRole(role));
         
-        //login was successful (whether the subject is authenticated or not)
-        session.remove(SESSION_REQUESTED_PATH);
         
-        if (subject.hasRole(role))
-            return chain.before(context);
-        else
+        //login was successful (whether the subject is authenticated or not)
+        
+        if (subject.hasRole(role)) {
+            String location = session.get(SESSION_REQUESTED_PATH, String.class);
+            session.remove(SESSION_REQUESTED_PATH);
+            if (location != null)
+                return ResponseBuilder.redirect(location);
+            else
+                return chain.before(context);
+        } else
             //if not auth
         return ResponseBuilder.redirect(notAuthRedirect);
             

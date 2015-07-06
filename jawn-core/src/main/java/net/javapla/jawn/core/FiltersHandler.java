@@ -3,6 +3,9 @@ package net.javapla.jawn.core;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import org.reflections.Reflections;
 
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnectionAware;
@@ -138,6 +141,16 @@ public class FiltersHandler implements Filters, DatabaseConnectionAware {
         public final FilterBuilder<T> to( Class<? extends ApplicationController>... classes) {
             this.controllers = classes;
             if (actionNames != null) ensureControllersContainsActions();
+            return this;
+        }
+        
+        @SuppressWarnings("unchecked")
+        public final FilterBuilder<T> toPackage( String packageName ) {
+            if (!packageName.startsWith("app.controllers"))
+                packageName = "app.controllers." + packageName;
+            Reflections reflect = new Reflections(packageName);
+            Set<Class<? extends ApplicationController>> classes = reflect.getSubTypesOf(ApplicationController.class);
+            this.controllers = classes.toArray(new Class[0]);
             return this;
         }
         

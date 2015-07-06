@@ -130,11 +130,14 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
           } else { // with layout
               String controller = template;
               if (template.charAt(0) == '/')
-                  controller = template.substring(1, template.indexOf('/', 1)); // remove leading '/'
+                  controller = template.substring(1, template.lastIndexOf('/')); // remove leading '/'
 
               String content = renderContentTemplate(contentTemplate, values, language, error);
 
               ST layoutTemplate = locateDefaultLayout(group, controller, layout);
+              if (layoutTemplate == null) throw new ViewException("index.html.st is not to be found anywhere");
+              
+              layout = layoutTemplate.getName(); // for later logging
               readyLayoutTemplate(layoutTemplate, context, content, values, controller, language, error);
 
               renderTemplate(layoutTemplate, writer, error);
@@ -200,13 +203,36 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
      * then use this to override the root default template
      */
     private ST locateDefaultLayout(STGroupDir group, String controller, String layout) {
+        // the exact path is defined in the controller
+//        ST index = locateTemplate(group, layout);
+//        if (index != null)
+//            return index;
+        
+        // look for a layout of a given name within the controller folder
         ST index = locateTemplate(group, controller + '/' + layout);
         if (index != null)
             return index;
+        
+        
+        // going for defaults
+        // look for the default layout in controller folder
+        // and bubble up one folder if nothing is found
+        while ((index = locateTemplate(group, controller + '/' + LAYOUT_DEFAULT)) == null && controller.indexOf('/') > 0) {
+            controller = controller.substring(0,controller.lastIndexOf('/'));
+        }
+//        return index;
+        /*
         index = locateTemplate(group, controller + '/' + TEMPLATE_DEFAULT);
         if (index != null)
             return index;
-        return locateTemplate(group, TEMPLATE_DEFAULT);
+        
+        // look exactly one folder up
+        index = locateTemplate(group, controller.substring(controller.indexOf('/')) + '/' + TEMPLATE_DEFAULT);*/
+        if (index != null)
+            return index;
+        
+        // last resort - this should always be present
+        return locateTemplate(group, LAYOUT_DEFAULT);
     }
     
     /** Renders template directly to writer */
