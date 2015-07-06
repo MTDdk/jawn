@@ -52,7 +52,7 @@ public class UndertowServer implements JawnServer {
         // Start the server
         HttpHandler start = manager.start();
         Builder serverBuilder = Undertow.builder()
-            .addHttpListener(config.getPort(), "localhost")
+            .addHttpListener(config.getPort(), config.getHost())
             
             // from undertow-edge benchmark
             .setHandler(Handlers.header(start, Headers.SERVER_STRING, "Undertow"));
