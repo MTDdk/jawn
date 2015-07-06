@@ -6,6 +6,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,7 +19,7 @@ import com.google.inject.Inject;
 /**
  * 
  * Empirical evidence tells us that caching the SiteConfiguration has a significant impact on performance in high load use.
- * This makes sense as all roundtrips to disk have great cost.
+ * This makes sense as ALL roundtrips to disk have great cost.
  * 
  * @author MTD
  */
@@ -71,10 +72,12 @@ public class ConfigurationReader {
         if (localConf.overrideDefault) {
             return localConf;
         } else {
-            // find root site_file and eventual extra configurations of the controller folder
+            /*// find root site_file and eventual extra configurations of the controller folder
             SiteConfiguration conf = readSiteFileWithCache(rootFolder, useCache);
-            mergeConfigurations(conf, localConf);
-            return conf;
+            
+            SiteConfiguration merged = mergeConfigurations(conf, localConf);
+            return merged;*/
+            return mergeSiteFilesWithCache(rootFolder, controller, localConf, useCache);
         }
     }
     
@@ -83,6 +86,20 @@ public class ConfigurationReader {
             return configurationCache.computeIfAbsent(folder.toString(), f -> readSiteFile(folder));
         } else {
             return readSiteFile(folder);
+        }
+    }
+    
+    private SiteConfiguration mergeSiteFilesWithCache(Path rootFolder, String controller, SiteConfiguration localConf, boolean useCache) {
+        if (useCache) {
+            String rootPlusController = MessageFormat.format("{0}+{1}", rootFolder.toString(), controller);
+            return configurationCache
+                        .computeIfAbsent(rootPlusController, 
+                            f -> mergeConfigurations(readSiteFileWithCache(rootFolder, true), localConf)
+                        );
+        } else {
+            // find root site_file and eventual extra configurations of the controller folder
+            SiteConfiguration conf = readSiteFileWithCache(rootFolder, useCache);
+            return mergeConfigurations(conf, localConf);
         }
     }
 
@@ -102,14 +119,23 @@ public class ConfigurationReader {
      * Letting localConf take precedence over globalConf.
      * Adding them uncritically
      * 
+     * <p>Does not do any overwrites on any of the parameters.
+     * Instead it creates a new object with all the merges
+     * 
      * @param globalConf
      *      The default configuration
      * @param localConf
      *      The controller configuration
+     * @return The merged SiteConfiguration
      */
-    private void mergeConfigurations(SiteConfiguration globalConf, SiteConfiguration localConf) {
-        if (localConf.title != null && !localConf.title.isEmpty()) globalConf.title = localConf.title;
-        globalConf.scripts.addAll(localConf.scripts);
-        globalConf.styles.addAll(localConf.styles);
+    private SiteConfiguration mergeConfigurations(SiteConfiguration globalConf, SiteConfiguration localConf) {
+        // do not do any overwrites to the globalConf
+        // clone it instead (or create an entirely new object instead)
+        SiteConfiguration topConf = globalConf.clone();
+        if (localConf.title != null && !localConf.title.isEmpty()) topConf.title = localConf.title;
+        topConf.scripts.addAll(localConf.scripts);
+        topConf.styles.addAll(localConf.styles);
+        
+        return topConf;
     }
 }

@@ -18,9 +18,6 @@ import javax.servlet.DispatcherType;
 import net.javapla.jawn.server.spi.JawnServer;
 import net.javapla.jawn.server.spi.ServerConfig;
 
-import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.servlet.ShiroFilter;
-
 public class UndertowServer implements JawnServer {
     
     public void setupAndStartServer(ServerConfig config) throws Exception {
@@ -33,7 +30,7 @@ public class UndertowServer implements JawnServer {
             .setDeploymentName("test.war");
             
         // security
-        configureServerAuthentication(deployment, config);
+        //configureServerAuthentication(deployment, config);
             
             
         // Add the framework
@@ -52,7 +49,7 @@ public class UndertowServer implements JawnServer {
         // Start the server
         HttpHandler start = manager.start();
         Builder serverBuilder = Undertow.builder()
-            .addHttpListener(config.getPort(), "localhost")
+            .addHttpListener(config.getPort(), config.getHost())
             
             // from undertow-edge benchmark
             .setHandler(Handlers.header(start, Headers.SERVER_STRING, "Undertow"));
@@ -62,14 +59,14 @@ public class UndertowServer implements JawnServer {
         serverBuilder.build().start();
     }
     
-    private void configureServerAuthentication(DeploymentInfo deployment, ServerConfig config) {
+    /*private void configureServerAuthentication(DeploymentInfo deployment, ServerConfig config) {
         if (config.useAuthentication()) {
             deployment
                 .addListener(Servlets.listener(EnvironmentLoaderListener.class))
                 .addFilter(Servlets.filter("shiro", ShiroFilter.class))
                 .addFilterUrlMapping("shiro",config.getAuthenticationFilterUrlMapping(),DispatcherType.REQUEST);
         }
-    }
+    }*/
     
     private void configureServerPerformance(Builder serverBuilder, ServerConfig config) {
         switch (config.getServerPerformance()) {

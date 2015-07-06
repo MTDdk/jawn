@@ -9,4 +9,4 @@ that you can do it almost in your sleep.
 Head over to the **[wiki](https://github.com/MTDdk/jawn/wiki)** for a thorough walk-through.
 
 ## Latest version
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.javapla.jawn/jawn/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.javapla.jawn/jawn)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.javapla.jawn/jawn-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.javapla.jawn/jawn-core)
