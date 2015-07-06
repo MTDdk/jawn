@@ -3,18 +3,12 @@ package net.javapla.jawn.server;
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
-import javax.servlet.ServletContextEvent;
 
-import net.javapla.jawn.server.RequestDispatcher;
 import net.javapla.jawn.server.spi.JawnServer;
 import net.javapla.jawn.server.spi.ServerConfig;
 
-import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.util.log.Slf4jLog;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -29,7 +23,7 @@ public class JettyServer implements JawnServer {
         WebAppContext contextHandler = new WebAppContext();
         
         // set the security filter up before anything else
-        setupShiro(contextHandler, config);
+        //setupShiro(contextHandler, config);
         
         contextHandler.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false"); //disables directory listing
         contextHandler.setContextPath(config.getContextPath());
@@ -84,7 +78,7 @@ public class JettyServer implements JawnServer {
         return server;
     }
 
-    private void setupShiro(ServletContextHandler contextHandler, ServerConfig config) throws Exception {
+    /*private void setupShiro(ServletContextHandler contextHandler, ServerConfig config) throws Exception {
         if (config.useAuthentication()) {
             contextHandler.setLogger(new Slf4jLog());
     
@@ -93,5 +87,5 @@ public class JettyServer implements JawnServer {
             contextHandler.callContextInitialized(listener, new ServletContextEvent(contextHandler.getServletContext()));
             contextHandler.addFilter(ShiroFilter.class,config.getAuthenticationFilterUrlMapping(),EnumSet.allOf(DispatcherType.class));
         }
-    }
+    }*/
 }
