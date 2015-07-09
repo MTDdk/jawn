@@ -4,11 +4,11 @@ package net.javapla.jawn.core.util;
 public enum Modes {
 
     /** Production: All caching is enabled and everything is trying to run as fast as possible. */
-    prod(Constants.MODE_PRODUCTION), 
+    PROD(Constants.MODE_PRODUCTION), 
     /** Development: No caching, everything is read from disk, so minor changes can be seen instantly. This applies to controllers as well. */
-    dev(Constants.MODE_DEVELOPMENT), 
+    DEV(Constants.MODE_DEVELOPMENT), 
     /** Testing: Emulates {@link #prod}, but can have a different configuration. For example: a local database in a production environment. */
-    test(Constants.MODE_TEST);
+    TEST(Constants.MODE_TEST);
     
     
     private String mode;

@@ -6,7 +6,7 @@ public class ModeHelper {
     public static Modes determineModeFromSystem() {
         String ENV = System.getProperty("JAWN_ENV") == null? System.getenv().get("JAWN_ENV"): System.getProperty("JAWN_ENV");
         if(StringUtil.blank(ENV)){                
-            return Modes.dev;
+            return Modes.DEV;
 //            LOGGER.warn("Environment variable JAWN_ENV not provided, defaulting to '" + ENV + "'");
         }
         
