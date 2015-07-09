@@ -1,4 +1,4 @@
-package net.javapla.jawn.server.security.interfaces;
+package net.javapla.jawn.security.interfaces;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.server.security.JWebSubjectContext;
+import net.javapla.jawn.security.JWebSubjectContext;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.mgt.SecurityManager;

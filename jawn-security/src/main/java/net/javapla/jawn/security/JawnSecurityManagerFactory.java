@@ -1,4 +1,4 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 
 import net.javapla.jawn.core.http.Context;
 
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.config.ConfigurationException;
 import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.mgt.RealmSecurityManager;
@@ -19,6 +20,8 @@ import org.apache.shiro.realm.text.IniRealm;
 import org.apache.shiro.util.AbstractFactory;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 
+import com.google.inject.Inject;
+
 /**
  * Factory for a {@link SecurityManager}.
  * 
@@ -27,7 +30,7 @@ import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
  * 
  * @author MTD
  */
-class JawnSecurityManagerFactory extends AbstractFactory<SecurityManager> {
+class JawnSecurityManagerFactory /*extends AbstractFactory<SecurityManager>*/ {
 
     private final DataSource dataSource;
 //    private final Context context;
@@ -36,16 +39,20 @@ class JawnSecurityManagerFactory extends AbstractFactory<SecurityManager> {
 //        super();
 //    }
     
+    @Inject
     JawnSecurityManagerFactory(DataSource spec/*, Context context*/) {
         super();
         this.dataSource = spec;
 //        this.context = context;
+        
+        // TODO if dataSource == null then default to IniRealm always
+        SecurityUtils.setSecurityManager(createSecurityManager());
     }
     
-    @Override
-    protected SecurityManager createInstance() {
-        return createSecurityManager();
-    }
+//    @Override
+//    protected SecurityManager createInstance() {
+//        return createSecurityManager();
+//    }
     
     private SecurityManager createSecurityManager() {
 

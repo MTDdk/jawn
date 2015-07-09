@@ -1,4 +1,4 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.SessionFacade;

@@ -1,7 +1,7 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.server.security.interfaces.JSubjectContext;
+import net.javapla.jawn.security.interfaces.JSubjectContext;
 
 import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.subject.support.DefaultSubjectContext;

@@ -1,11 +1,7 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import net.javapla.jawn.core.database.DatabaseConnection;
-import net.javapla.jawn.core.security.SecurityFilter;
-
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.mgt.SecurityManager;
-import org.apache.shiro.util.Factory;
+import net.javapla.jawn.security.spi.SecurityFilter;
 
 public class SecurityFilterFactory {
     
@@ -34,14 +30,14 @@ public class SecurityFilterFactory {
         if (INITIALISED) return;
         synchronized(mutex) {
             if (INITIALISED) return;
-            // create the security manager
+            /*// create the security manager
             //1.
             Factory<SecurityManager> factory = new JawnSecurityManagerFactory(conn);
             //2.
             SecurityManager securityManager = factory.getInstance();
 //            securityManager.getRealm().
             //3.
-            SecurityUtils.setSecurityManager(securityManager);
+            SecurityUtils.setSecurityManager(securityManager);*/
             INITIALISED = true;
         }
     }

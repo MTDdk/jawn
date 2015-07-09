@@ -1,4 +1,4 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import java.text.MessageFormat;
 
@@ -8,9 +8,9 @@ import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.SessionFacade;
-import net.javapla.jawn.core.security.SecurityFilter;
 import net.javapla.jawn.core.spi.FilterChain;
-import net.javapla.jawn.server.security.interfaces.JawnSubject;
+import net.javapla.jawn.security.interfaces.JawnSubject;
+import net.javapla.jawn.security.spi.SecurityFilter;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.IncorrectCredentialsException;

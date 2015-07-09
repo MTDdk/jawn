@@ -1,8 +1,8 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
-import net.javapla.jawn.server.security.interfaces.ContextSource;
+import net.javapla.jawn.security.interfaces.ContextSource;
 
 import org.apache.shiro.codec.Base64;
 import org.apache.shiro.mgt.AbstractRememberMeManager;

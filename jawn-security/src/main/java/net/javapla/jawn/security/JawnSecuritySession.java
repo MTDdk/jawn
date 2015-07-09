@@ -1,4 +1,4 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import java.io.Serializable;
 import java.util.ArrayList;

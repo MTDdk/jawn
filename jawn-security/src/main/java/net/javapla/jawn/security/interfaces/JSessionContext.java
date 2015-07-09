@@ -1,4 +1,4 @@
-package net.javapla.jawn.server.security.interfaces;
+package net.javapla.jawn.security.interfaces;
 
 import net.javapla.jawn.core.http.Context;
 

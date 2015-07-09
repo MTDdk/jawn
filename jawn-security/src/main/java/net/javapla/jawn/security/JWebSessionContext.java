@@ -1,9 +1,9 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import java.util.Map;
 
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.server.security.interfaces.JSessionContext;
+import net.javapla.jawn.security.interfaces.JSessionContext;
 
 import org.apache.shiro.session.mgt.DefaultSessionContext;
 

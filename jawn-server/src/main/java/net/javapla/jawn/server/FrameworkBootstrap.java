@@ -1,7 +1,9 @@
 package net.javapla.jawn.server;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -16,7 +18,6 @@ import net.javapla.jawn.core.Router;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseModule;
-import net.javapla.jawn.core.exceptions.ConfigurationException;
 import net.javapla.jawn.core.spi.ApplicationBootstrap;
 import net.javapla.jawn.core.spi.ApplicationDatabaseBootstrap;
 import net.javapla.jawn.core.spi.ApplicationFilters;
@@ -34,7 +35,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
-import com.google.inject.name.Names;
 import com.google.inject.util.Modules;
 
 public class FrameworkBootstrap {
@@ -44,6 +44,7 @@ public class FrameworkBootstrap {
     Injector injector;
 
     private ApplicationBootstrap config;
+    private ApplicationBootstrap[] plugins;
 
     public FrameworkBootstrap() {
         properties = new PropertiesImpl(ModeHelper.determineModeFromSystem());
@@ -72,13 +73,19 @@ public class FrameworkBootstrap {
         properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
         
         // create a single injector for both the framework and the user registered modules
-        List<AbstractModule> userModules = appConfig.getRegisteredModules() == null ? null : Arrays.asList(appConfig.getRegisteredModules());
-        Injector localInjector = initInjector(userModules, router, connections);
+        List<AbstractModule> userModules = appConfig.getRegisteredModules();//appConfig.getRegisteredModules() == null ? null : Arrays.asList(appConfig.getRegisteredModules());
+        
+        // read plugins
+        ApplicationConfig pluginConfig = new ApplicationConfig();
+        plugins = readRegisteredPlugins(pluginConfig);
+        List<AbstractModule> pluginModules = pluginConfig.getRegisteredModules();
+        
+        Injector localInjector = initInjector(userModules, router, connections, pluginModules);
         
         
         // If any initialisation of filters needs to be done, like injecting ServletContext,
         // it can be done here.
-        initiateFilters(filters, localInjector/*, security*/);
+        //initiateFilters(filters, localInjector/*, security*/);
 
         
         // compiling of routes needs an injector, so this is done after the creation
@@ -96,6 +103,10 @@ public class FrameworkBootstrap {
         if (config != null) {
             config.destroy();
         }
+        if (plugins != null) {
+            Arrays.stream(plugins).forEach(plugin -> plugin.destroy());
+        }
+        
         if (injector != null) {
             
             // shutdown the database connection pool
@@ -118,7 +129,7 @@ public class FrameworkBootstrap {
         return injector;
     }
 
-    private Injector initInjector(final List<AbstractModule> userModules, Router router, DatabaseConnections connections) {
+    private Injector initInjector(final List<AbstractModule> userModules, Router router, DatabaseConnections connections, List<AbstractModule> pluginModules) {
         // this class is a part of the server project
         // configure all the needed dependencies for the server
         // this includes injecting templatemanager
@@ -131,7 +142,7 @@ public class FrameworkBootstrap {
         
         combinedModules.add(new DatabaseModule(connections, properties));
         
-        combinedModules.add(new AbstractModule() {
+        /*combinedModules.add(new AbstractModule() {
             @Override
             protected void configure() {
                 //Get all the constants from Filters and bind them
@@ -142,21 +153,28 @@ public class FrameworkBootstrap {
                 //this kind of binding constants might not be viable, as multiple security filters
                 //need different permissions
             }
-        });
+        });*/
         
-        if (userModules != null) {
-            // Makes it possible for users to override single framework-specific implementations
-            Module modules = Modules.override(combinedModules).with(userModules);
-            
-            return Guice.createInjector(Stage.PRODUCTION, modules);
+        Module combined = Modules.combine(combinedModules);
+        
+        if ( ! pluginModules.isEmpty()) {
+            // Makes it possible for plugins to override framework-specific implementations
+            combined = Modules.override(combined).with(pluginModules);
         }
         
-        return Guice.createInjector(Stage.PRODUCTION, combinedModules);
+        if ( ! userModules.isEmpty()) {
+            // Makes it possible for users to override single framework-specific implementations
+            combined = Modules.override(combined).with(userModules);
+        }
+        
+        return Guice.createInjector(Stage.PRODUCTION, combined);
     }
     
     private ApplicationBootstrap readConfiguration(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {
         
         Reflections reflections = new Reflections("app.config");
+        
+        //TODO if multiple implementations were found - write something in the log
         
         // filters
         locate(reflections, ApplicationFilters.class, impl -> impl.filters(filters));
@@ -169,6 +187,11 @@ public class FrameworkBootstrap {
         
         // bootstrap
         return locate(reflections, ApplicationBootstrap.class, impl -> impl.bootstrap(configuration));
+    }
+    
+    private ApplicationBootstrap[] readRegisteredPlugins(ApplicationConfig config) {
+        Reflections reflections = new Reflections("net.javapla.jawn.plugins.modules");
+        return locateAll(reflections, ApplicationBootstrap.class, impl -> impl.bootstrap(config));
     }
     
     /**
@@ -191,10 +214,40 @@ public class FrameworkBootstrap {
                 return locatedImplementation;
             } catch (IllegalArgumentException e) {
                 throw e;
-            } catch(ConfigurationException e){
-                throw  e;
             } catch (Exception e) {
                 logger.debug("Error reading custom configuration. Going with built in defaults. The error was: " + getCauseMessage(e));
+            }
+        } else {
+            logger.debug("Did not find custom configuration for {}. Going with built in defaults ", clazz);
+        }
+        return null;
+    }
+    
+    private <T, U> T[] locateAll(Reflections reflections, Class<T> clazz, Consumer<T> f) {
+        Set<Class<? extends T>> set = reflections.getSubTypesOf(clazz);
+        if (!set.isEmpty()) {
+            
+            @SuppressWarnings("unchecked")
+            T[] all =   (T[]) Array.newInstance(clazz, set.size());
+            int index = 0;
+            
+            Iterator<Class<? extends T>> iterator = set.iterator();
+            while (iterator.hasNext()) {
+                Class<? extends T> c = iterator.next();
+                
+                try {
+                    T locatedImplementation = DynamicClassFactory.createInstance(c, clazz);
+                    f.accept(locatedImplementation);
+                    logger.debug("Loaded configuration from: " + c);
+                    all[index++] = locatedImplementation;
+                    
+                } catch (IllegalArgumentException e) {
+                    throw e;
+                } catch (Exception e) {
+                    logger.debug("Error reading custom configuration. Going with built in defaults. The error was: " + getCauseMessage(e));
+                }
+                
+                return all;
             }
         } else {
             logger.debug("Did not find custom configuration for {}. Going with built in defaults ", clazz);
@@ -213,8 +266,8 @@ public class FrameworkBootstrap {
     
     private void initiateFilters(FiltersHandler filters, Injector localInjector/*, SecurityFilterFactory security*/) {
         // Get current database connection (if any)
-        DatabaseConnection connection = localInjector.getInstance(DatabaseConnection.class);
-        filters.setDatabaseConnection(connection);
+//        DatabaseConnection connection = localInjector.getInstance(DatabaseConnection.class);
+//        filters.setDatabaseConnection(connection);
         
         
         // Create and inject the security framework

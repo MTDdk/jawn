@@ -1,9 +1,9 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.server.security.interfaces.ContextSource;
-import net.javapla.jawn.server.security.interfaces.JWebSecurityManager;
-import net.javapla.jawn.server.security.interfaces.JawnSubject;
+import net.javapla.jawn.security.interfaces.ContextSource;
+import net.javapla.jawn.security.interfaces.JWebSecurityManager;
+import net.javapla.jawn.security.interfaces.JawnSubject;
 
 import org.apache.shiro.session.mgt.SessionKey;
 import org.apache.shiro.subject.Subject;

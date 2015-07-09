@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.security;
+package net.javapla.jawn.security.spi;
 
 import net.javapla.jawn.core.spi.Filter;
 

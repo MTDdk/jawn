@@ -19,7 +19,7 @@ public class ServerConfig {
     
     /** The source folder to read templates from */
     private String webapp = "src/main/webapp";
-    private String environment = Modes.dev.toString();
+    private String environment = Modes.DEV.toString();
     private String host = "0.0.0.0";
     
     private int ioThreads = 1;

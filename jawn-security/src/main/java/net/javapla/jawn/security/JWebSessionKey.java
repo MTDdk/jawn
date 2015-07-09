@@ -1,11 +1,11 @@
-package net.javapla.jawn.server.security;
+package net.javapla.jawn.security;
 
 import java.io.Serializable;
 
 import org.apache.shiro.session.mgt.DefaultSessionKey;
 
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.server.security.interfaces.ContextSource;
+import net.javapla.jawn.security.interfaces.ContextSource;
 
 public class JWebSessionKey extends DefaultSessionKey implements ContextSource {
 
