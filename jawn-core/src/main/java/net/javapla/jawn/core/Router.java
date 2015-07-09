@@ -25,9 +25,11 @@ public class Router implements Routes {
                 Arrays.asList(
                       new InternalRoute("/{controller}/{action}/{id}")
                     , new InternalRoute("/{controller}/{action}")
+                    //, new InternalRoute("/{controller}/{id}")
                     , new InternalRoute("/{controller}")
                     , new InternalRoute("/{package: .*?}/{controller}/{action}/{id}")
                     , new InternalRoute("/{package: .*?}/{controller}/{action}")
+                    //, new InternalRoute("/{package: .*?}/{controller}/{id}")
                     , new InternalRoute("/{package: .*?}/{controller}")
                 )
             );

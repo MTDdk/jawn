@@ -5,20 +5,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.reflections.Reflections;
-
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnectionAware;
-import net.javapla.jawn.core.security.SecurityFilter;
 import net.javapla.jawn.core.spi.Filter;
 import net.javapla.jawn.core.spi.Filters;
+
+import org.reflections.Reflections;
 
 /**
  * FilterHandler
  * 
  * @author MTD
  */
-public class FiltersHandler implements Filters, DatabaseConnectionAware {
+public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
 
     private final List<FilterBuilder<? extends Filter>> builders;
     
@@ -40,18 +39,18 @@ public class FiltersHandler implements Filters, DatabaseConnectionAware {
         builders.add(bob);
         
         // If the filter is ConnectionAware, then inject the database connection
-        if (filter instanceof DatabaseConnectionAware)
-            ((DatabaseConnectionAware) filter).setDatabaseConnection(databaseConnection);
+//        if (filter instanceof DatabaseConnectionAware)
+//            ((DatabaseConnectionAware) filter).setDatabaseConnection(databaseConnection);
         
         return bob;
     }
     
-    @Override
+    /*@Override
     public SecureBuilder secureOnRole(String role) throws IllegalStateException {
 //        if (security == null) throw new IllegalStateException("Security is not specified");
 //        SecurityFilter filter = security.filter(role);//SecurityFilterFactory.filter(databaseConnection, context, role);
         
-        SecureBuilder bob = new SecureBuilder(/*filter*/);
+        SecureBuilder bob = new SecureBuilder(filter);
 //        builders.add(bob);
 //        
 //        // If the filter is ConnectionAware, then inject the database connection
@@ -59,7 +58,7 @@ public class FiltersHandler implements Filters, DatabaseConnectionAware {
 //            ((DatabaseConnectionAware) filter).setDatabaseConnection(databaseConnection);
         
         return bob;
-    }
+    }*/
     
 //    private T <T extends FilterBuilder<Filter>> add() {
 //        
@@ -112,10 +111,10 @@ public class FiltersHandler implements Filters, DatabaseConnectionAware {
         return filters;
     }*/
     
-    @Override
-    public void setDatabaseConnection(DatabaseConnection databaseConnection) {
-        this.databaseConnection = databaseConnection;
-    }
+//    @Override
+//    public void setDatabaseConnection(DatabaseConnection databaseConnection) {
+//        this.databaseConnection = databaseConnection;
+//    }
 
 //    public void setSecurityFilterFactory(SecurityFilterFactory secure) {
 //        this.security = secure;
@@ -219,7 +218,7 @@ public class FiltersHandler implements Filters, DatabaseConnectionAware {
         }
     }
     
-    public static class SecureBuilder extends FilterBuilder<SecurityFilter> {
+    /*public static class SecureBuilder extends FilterBuilder<SecurityFilter> {
         public SecureBuilder() {
         }
         public SecureBuilder(SecurityFilter filter) {
@@ -246,6 +245,6 @@ public class FiltersHandler implements Filters, DatabaseConnectionAware {
             return this;
         }
         
-    }
+    }*/
     
 }

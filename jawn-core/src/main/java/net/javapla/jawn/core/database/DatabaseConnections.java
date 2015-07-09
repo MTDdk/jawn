@@ -30,6 +30,8 @@ public class DatabaseConnections {
     
     DatabaseConnection getConnection(Modes mode) {
         DatabaseConnectionBuilderImpl connection = builders.get(mode);
+        if (connection == null) return null;
+        
         connection.initiatePooledDataSource();
         return connection;
     }
