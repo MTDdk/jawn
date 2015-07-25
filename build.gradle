@@ -1,3 +1,5 @@
+
+
 //http://gradle.org/docs/current/userguide/multi_project_builds.html#sub:real_life_examples
 
 subprojects {
@@ -17,3 +19,11 @@ subprojects {
 	}
 }
 
+//https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
+configurations.all {
+    resolutionStrategy {
+        // fail eagerly on version conflict (includes transitive dependencies)
+        // e.g. multiple different versions of the same dependency (group and name are equal)
+        failOnVersionConflict()
+    }
+}
