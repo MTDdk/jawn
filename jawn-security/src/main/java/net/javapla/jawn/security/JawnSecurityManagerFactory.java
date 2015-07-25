@@ -3,13 +3,11 @@ package net.javapla.jawn.security;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.annotation.Nullable;
 import javax.sql.DataSource;
-
-import net.javapla.jawn.core.http.Context;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.config.ConfigurationException;
-import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.mgt.RealmSecurityManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
@@ -17,7 +15,6 @@ import org.apache.shiro.realm.SimpleAccountRealm;
 import org.apache.shiro.realm.jdbc.JdbcRealm;
 import org.apache.shiro.realm.jdbc.JdbcRealm.SaltStyle;
 import org.apache.shiro.realm.text.IniRealm;
-import org.apache.shiro.util.AbstractFactory;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 
 import com.google.inject.Inject;
@@ -40,7 +37,7 @@ class JawnSecurityManagerFactory /*extends AbstractFactory<SecurityManager>*/ {
 //    }
     
     @Inject
-    JawnSecurityManagerFactory(DataSource spec/*, Context context*/) {
+    JawnSecurityManagerFactory(@Nullable DataSource spec/*, Context context*/) {
         super();
         this.dataSource = spec;
 //        this.context = context;
@@ -92,13 +89,22 @@ class JawnSecurityManagerFactory /*extends AbstractFactory<SecurityManager>*/ {
     private Collection<Realm> readRealms() {
         // create Realms
         Collection<Realm> realms = new ArrayList<>();
-        try {
-            realms.add(new IniRealm("classpath:security.ini"));
-        } catch (IllegalArgumentException | ConfigurationException e){
-            // one failed - use default instead
-            realms.add(new IniRealm("classpath:jawn_default_security.ini"));
-        }
-        //realms.add(createJdbcRealm());
+        
+        //if (dataSource == null) {
+        
+            try {
+                // try to read user specified security.ini
+                realms.add(new IniRealm("classpath:security.ini"));
+            } catch (IllegalArgumentException | ConfigurationException e){
+                // one failed - use default instead
+                realms.add(new IniRealm("classpath:jawn_default_security.ini"));
+            }
+        
+        //} else {
+            
+            //realms.add(createJdbcRealm());
+            
+        //}
         //realms.add(createSimpleRealm());
         
         return realms;

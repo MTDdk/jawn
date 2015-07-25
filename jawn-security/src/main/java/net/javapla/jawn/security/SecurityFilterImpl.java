@@ -10,7 +10,6 @@ import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.spi.FilterChain;
 import net.javapla.jawn.security.interfaces.JawnSubject;
-import net.javapla.jawn.security.spi.SecurityFilter;
 
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -38,14 +37,18 @@ class SecurityFilterImpl implements SecurityFilter {
 
     protected DatabaseConnection db;
     
-    public SecurityFilterImpl(String role) {
+    SecurityFilterImpl() {
+        
+    }
+    
+    /*public SecurityFilterImpl(String role) {
         this(role, DEFAULT_NOT_LOGGED_IN_REDIRECT);
     }
     
     SecurityFilterImpl(String role, String redirectWhenNotAuth) {
         this.role = role;
         this.notLoggedInRedirect = redirectWhenNotAuth;
-    }
+    }*/
     
     @Override
     public Response before(FilterChain chain, Context context) {
@@ -184,27 +187,23 @@ class SecurityFilterImpl implements SecurityFilter {
     public void onException(FilterChain chain, Exception e) {chain.onException(e);}
 
     @Override
-    public SecurityFilter onRole(String role) {
+    public void onRole(String role) {
         this.role = role;
-        return this;
     }
 
     @Override
-    public SecurityFilter redirectWhenNotLoggedIn(String toUrl) {
+    public void redirectWhenNotLoggedIn(String toUrl) {
         notLoggedInRedirect = toUrl;
-        return this;
     }
 
     @Override
-    public SecurityFilter redirectWhenNotAuth(String toUrl) {
+    public void redirectWhenNotAuth(String toUrl) {
         notAuthRedirect = toUrl;
-        return this;
     }
     
     @Override
-    public SecurityFilter logoutUrl(String url) {
+    public void redirectWhenLogout(String url) {
         logout = url;
-        return this;
     }
     
     protected JawnSubject createSubject(Context context) {
