@@ -20,7 +20,9 @@ import javax.ws.rs.core.HttpHeaders;
 
 import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.templates.TemplateEngine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +53,8 @@ public class RequestDispatcher implements Filter {
         // find paths inside webapp, that are NOT WEB-INF
         Set<String> exclusionPaths = findExclusionPaths();
         // and convert them to an array for fast lookup
-        exclusions = exclusionPaths.toArray(new String[] {});
+        exclusions = exclusionPaths.toArray(new String[exclusionPaths.size()]);
+        logger.debug("Letting the server take care of providing resources from: {}", exclusionPaths);
         
         
         // either the encoding was set by the user, or we default
@@ -76,7 +79,17 @@ public class RequestDispatcher implements Filter {
         
         // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF
         Set<String> resourcePaths = servletContext.getResourcePaths("/");
+        
+        // This most certainly should not be null!
+        // It means that the server cannot read files at all
+        if (resourcePaths == null) throw new InitException("ServletContext cannot read files. Reason is unknown");
+        
         resourcePaths.removeIf( path -> path.contains("-INF") || path.contains("-inf"));
+    
+        // We still need to also remove the views folder from being processed by other handlers
+        resourcePaths.removeIf( path -> path.contains(TemplateEngine.TEMPLATES_FOLDER));
+        
+        // Add the remaining paths to exclusions
         for (String path : resourcePaths) {
             // add leading slash
             if (path.charAt(0) != '/')
