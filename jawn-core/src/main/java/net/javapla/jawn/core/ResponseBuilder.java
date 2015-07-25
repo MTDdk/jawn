@@ -35,6 +35,9 @@ public class ResponseBuilder {
     public static Response status(int status) {
         return new Response(status);
     }
+    public static Response notFound() {
+        return new Response(Status.NOT_FOUND.getStatusCode()).renderable(new NoHttpBody());
+    }
     
     public static Response text(String text, int status) {
         return new Response(status).renderable(text).contentType(MediaType.TEXT_PLAIN);
@@ -134,6 +137,15 @@ public class ResponseBuilder {
         holder.setControllerResponse(new Response(statusCode));
         return this;
     }
+    ResponseBuilder setNoContent() {
+        holder.setControllerResponse(noContent());
+        return this;
+    }
+    ResponseBuilder setNotFound() {
+        holder.setControllerResponse(notFound());
+        return this;
+    }
+    
     
     /**
      * Conveniently wraps status codes into simple method calls 
@@ -170,7 +182,7 @@ public class ResponseBuilder {
          * @return The original builder
          */
         public ResponseBuilder noContent() {
-            builder.setStatus(Status.NO_CONTENT.getStatusCode());
+            builder.setNoContent();
             return builder;
         }
         /**
@@ -186,7 +198,7 @@ public class ResponseBuilder {
          * @return The original builder
          */
         public ResponseBuilder notFound() {
-            builder.setStatus(Status.NOT_FOUND.getStatusCode());
+            builder.setNotFound();
             return builder;
         }
         /**

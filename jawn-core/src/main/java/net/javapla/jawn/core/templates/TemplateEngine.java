@@ -7,8 +7,8 @@ import net.javapla.jawn.core.http.ResponseStream;
 
 public interface TemplateEngine {
     
+    static final String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "views");//"WEB-INF/views/");
     static final String LAYOUT_DEFAULT = "index.html";
-    static final String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "WEB-INF/views/");
 
     /**
      * Render the given object to the given context

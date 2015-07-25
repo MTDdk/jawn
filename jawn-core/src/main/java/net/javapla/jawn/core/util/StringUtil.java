@@ -186,4 +186,24 @@ public class StringUtil {
         
         return bob.toString();
     }
+    
+    /**
+     * Sanitizes a URI to conform with the URI standards RFC3986 http://www.ietf.org/rfc/rfc3986.txt.
+     * <p>
+     * Replaces all the disallowed characters for a correctly formed URI.
+     * @param uri The un-sanitized URI
+     * @param replace The character to replace the disallowed characters with
+     * @return The sanitized input
+     */
+    public static final String sanitizeForUri(String uri, String replace) {
+        /*
+         * Explanation:
+         * [a-zA-Z0-9\\._-] matches a letter from a-z lower or uppercase, numbers, dots, underscores and hyphen
+         * [^a-zA-Z0-9\\._-] is the inverse. i.e. all characters which do not match the first expression
+         * [^a-zA-Z0-9\\._-]+ is a sequence of characters which do not match the first expression
+         * So every sequence of characters which does not consist of characters from a-z, 0-9 or . _ - will be replaced.
+         */
+        uri = uri.replaceAll("[^a-zA-Z0-9\\._-]+", replace);
+        return uri;
+    }
 }

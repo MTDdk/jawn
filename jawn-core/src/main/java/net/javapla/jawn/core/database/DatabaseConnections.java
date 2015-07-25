@@ -32,9 +32,11 @@ public class DatabaseConnections {
         DatabaseConnectionBuilderImpl connection = builders.get(mode);
         if (connection == null) return null;
         
-        connection.initiatePooledDataSource();
+        if (connection.letFrameworkHandleConnectionPool())
+            connection.initiatePooledDataSource();
         return connection;
     }
+    
     
     public interface DatabaseConnectionBuilder {
         JdbcConnectionBuilder jdbc();
@@ -47,6 +49,7 @@ public class DatabaseConnections {
         
         JdbcConnectionBuilder maxPoolSize(int max);
         JdbcConnectionBuilder minPoolSize(int min);
+        JdbcConnectionBuilder letFrameworkHandleConnectionPool(boolean letFramework);
     }
     
     public class DatabaseConnectionBuilderImpl implements DatabaseConnectionBuilder, DatabaseConnection {
@@ -57,8 +60,8 @@ public class DatabaseConnections {
         String password;
         int maxPoolSize = 8;
         int minPoolSize = 1;
+        boolean letFrameworkHandleConnectionPool = true;
         
-        ComboPooledDataSource source;
         
         public DatabaseConnectionBuilderImpl(Modes mode) {
             this.mode = mode;
@@ -93,6 +96,8 @@ public class DatabaseConnections {
         public int maxPoolSize() { return maxPoolSize; }
         @Override
         public int minPoolSize() { return minPoolSize; }
+        @Override
+        public boolean letFrameworkHandleConnectionPool() { return letFrameworkHandleConnectionPool; }
         
         /**
          * Creates a pooled DataSource to be used in a somewhat high performance use case,
@@ -120,11 +125,22 @@ public class DatabaseConnections {
             return source;
         }
         
-        synchronized void initiatePooledDataSource() {
-            try {
-                source = createPooledDataSource();
-            } catch (ClassNotFoundException | PropertyVetoException e) {
-                e.printStackTrace();
+        /* ***************
+         * DataSource Part
+         * ****************/
+        ComboPooledDataSource source;
+        private final Object lock = new Object();
+        /*synchronized */void initiatePooledDataSource() {
+            if (source == null) {
+                synchronized(lock) {
+                    if (source == null) {
+                        try {
+                            source = createPooledDataSource();
+                        } catch (ClassNotFoundException | PropertyVetoException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
         }
         
@@ -220,6 +236,12 @@ public class DatabaseConnections {
         @Override
         public JdbcConnectionBuilder minPoolSize(int min) {
             builder.minPoolSize = min;
+            return this;
+        }
+        
+        @Override
+        public JdbcConnectionBuilder letFrameworkHandleConnectionPool(boolean letFramework) {
+            builder.letFrameworkHandleConnectionPool = letFramework;
             return this;
         }
     }

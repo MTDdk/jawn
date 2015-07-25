@@ -10,6 +10,5 @@ public interface DatabaseConnection extends DataSource, AutoCloseable {
     
     int maxPoolSize();
     int minPoolSize();
-    
-    //Connection getConnection() throws SQLException;
+    boolean letFrameworkHandleConnectionPool();
 }
