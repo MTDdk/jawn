@@ -22,7 +22,7 @@ import net.javapla.jawn.core.util.StringUtil;
  * Date: 4/30/13
  * 
  * @author MTD (16/01/15 - dd/MM/yy)
- * Added caching of controllers when active-reload is not set
+ * Added caching of controllers when caching is not explicitly set
  */
 public abstract class DynamicClassFactory {
     private final static Map<String, Class<?>> CACHED_CONTROLLERS = new ConcurrentHashMap<>();

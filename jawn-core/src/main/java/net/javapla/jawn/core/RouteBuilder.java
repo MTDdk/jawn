@@ -68,6 +68,7 @@ public class RouteBuilder {
     
     public RouteBuilder to(Class<? extends ApplicationController> type) {
         this.type = type;
+        this.actionName = DEFAULT_ACTION_NAME;
 //        try {
 //            this.controller = type.newInstance();
 //        } catch (InstantiationException | IllegalAccessException e) {
@@ -114,7 +115,7 @@ public class RouteBuilder {
      * Build the route
      * @return
      */
-    Route build(Filters filters, Injector injector) throws IllegalStateException, ControllerException {
+    Route build(FiltersHandler filters, Injector injector) throws IllegalStateException, ControllerException {
 //        if (controller == null) throw new IllegalStateException("Route not with a controller");
         if (uri == null) throw new IllegalStateException("Route is not specified");
         
@@ -130,10 +131,10 @@ public class RouteBuilder {
         FilterChainEnd chainEnd = injector.getInstance(FilterChainEnd.class);
         Route route = new Route(uri, httpMethod, type, action, actionName, buildFilterChain(chainEnd,/*injector,*/ list, type));
         
-        if (actionName != null && type != null)
+        if (/*actionName != null && */type != null)
         // verify that the controller has the corresponding action
         // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
-        if ( ! ControllerActionInvoker.isAllowedAction(type, route.getAction()))//controller.isAllowedAction(route.getAction()) )
+        if ( ! ControllerActionInvoker.isAllowedAction(type, action/*route.getAction()*/))//controller.isAllowedAction(route.getAction()) )
             throw new ControllerException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
         
         return route;
@@ -150,7 +151,7 @@ public class RouteBuilder {
     
     private String constructAction(String actionName, HttpMethod method) {
         if (StringUtil.blank(actionName)) return DEFAULT_ACTION_NAME;
-        if (DEFAULT_ACTION_NAME.equals(actionName))
+        if (DEFAULT_ACTION_NAME.equals(actionName) && method == HttpMethod.GET)
             return actionName;
         return method.name().toLowerCase() + StringUtil.camelize(actionName.replace('-', '_'), true);
     }

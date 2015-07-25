@@ -1,10 +1,8 @@
 package net.javapla.jawn.core.database;
 
-import java.beans.PropertyVetoException;
-
 import javax.sql.DataSource;
 
-public interface DatabaseConnection {
+public interface DatabaseConnection extends DataSource, AutoCloseable {
     String url();
     String driver();
     String user();
@@ -12,12 +10,5 @@ public interface DatabaseConnection {
     
     int maxPoolSize();
     int minPoolSize();
-    
-    /**
-     * 
-     * @return
-     * @throws ClassNotFoundException If the driver was not found
-     * @throws PropertyVetoException If any of the input is unacceptable
-     */
-    DataSource createDataSource() throws ClassNotFoundException, PropertyVetoException;
+    boolean letFrameworkHandleConnectionPool();
 }

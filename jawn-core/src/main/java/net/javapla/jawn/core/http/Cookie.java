@@ -18,8 +18,22 @@ package net.javapla.jawn.core.http;
 
 /**
  * @author Igor Polevoy
+ * @author MTD
  */
 public class Cookie {
+    
+    /**
+     * The number of seconds in one day (= 60 * 60 * 24).
+     */
+    public static final int ONE_DAY = 60 * 60 * 24;
+    /**
+     * The number of seconds in one year (= 60 * 60 * 24 * 365).
+     */
+    public static final int ONE_YEAR = ONE_DAY * 365;
+    /**
+     * The number of seconds in half a year (= 60 * 60 * 24 * 365 / 2).
+     */
+    public static final int HALF_YEAR = ONE_YEAR / 2;
 
     private java.lang.String name;
     private java.lang.String value;
@@ -30,6 +44,10 @@ public class Cookie {
     private boolean secure;
     private boolean httpOnly;
     private int version;
+    
+    public Cookie(String name) {
+        this.name = name;
+    }
 
     public Cookie(String name, String value) {
         this.name = name;
@@ -87,6 +105,17 @@ public class Cookie {
      */
     public void setHttpOnly(boolean httpOnly){
         this.httpOnly = httpOnly;
+    }
+    
+    @Override
+    public Cookie clone() {
+        Cookie clone = new Cookie(this.name, this.value, this.httpOnly);
+        clone.domain = this.domain;
+        clone.path = this.path;
+        clone.maxAge = this.maxAge;
+        clone.version = this.version;
+        clone.secure = this.secure;
+        return clone;
     }
 
     @Override

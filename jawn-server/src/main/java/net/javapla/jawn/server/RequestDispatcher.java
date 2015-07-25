@@ -18,9 +18,11 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 
-import net.javapla.jawn.core.PropertiesImpl;
-import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.FrameworkEngine;
+import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.exceptions.InitException;
+import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.templates.TemplateEngine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +36,7 @@ public class RequestDispatcher implements Filter {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
     private ServletContext servletContext;
-    private Set<String> exclusions = new TreeSet<String>();
+    private String[] exclusions;
 
     private Injector injector;
 
@@ -48,7 +50,12 @@ public class RequestDispatcher implements Filter {
         bootstrapper.boot();
         injector = bootstrapper.getInjector();
         
-        findExclusionPaths();
+        // find paths inside webapp, that are NOT WEB-INF
+        Set<String> exclusionPaths = findExclusionPaths();
+        // and convert them to an array for fast lookup
+        exclusions = exclusionPaths.toArray(new String[exclusionPaths.size()]);
+        logger.debug("Letting the server take care of providing resources from: {}", exclusionPaths);
+        
         
         // either the encoding was set by the user, or we default
         //TODO make encoding configurable
@@ -63,17 +70,38 @@ public class RequestDispatcher implements Filter {
         logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(PropertiesImpl.class).getMode());
     }
 
-    private void findExclusionPaths() {
+    /**
+     * Actually sorts the paths, which is not appreciated and not even used anywhere
+     * @return
+     */
+    private Set<String> findExclusionPaths() {
+        Set<String> exclusions = new TreeSet<String>();
+        
         // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF
         Set<String> resourcePaths = servletContext.getResourcePaths("/");
+        
+        // This most certainly should not be null!
+        // It means that the server cannot read files at all
+        if (resourcePaths == null) throw new InitException("ServletContext cannot read files. Reason is unknown");
+        
         resourcePaths.removeIf( path -> path.contains("-INF") || path.contains("-inf"));
+    
+        // We still need to also remove the views folder from being processed by other handlers
+        resourcePaths.removeIf( path -> path.contains(TemplateEngine.TEMPLATES_FOLDER));
+        
+        // Add the remaining paths to exclusions
         for (String path : resourcePaths) {
+            // add leading slash
             if (path.charAt(0) != '/')
                 path = '/' + path;
+            
+            // remove the last slash
             if (path.charAt(path.length()-1) == '/')
-                path = path.substring(0, path.length()-1);// remove the last slash
+                path = path.substring(0, path.length()-1);
             exclusions.add(path);
         }
+        
+        return exclusions;
     }
 
 
@@ -98,7 +126,7 @@ public class RequestDispatcher implements Filter {
         if (filteringResources(request, response, chain, path)) return;
 
         ContextImpl context = (ContextImpl) injector.getInstance(Context.class);
-        context.init(servletContext, request, response);
+        context.init(/*servletContext, */request, response);
         FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
         engine.runRequest(context);
     }
@@ -178,18 +206,18 @@ public class RequestDispatcher implements Filter {
     private String translateResource(String servletPath) {
         // TODO look at the necessity of this line. 
         // Its purpose is to serve single files not in a folder of the root webapp - like favicon.ico
-        if (exclusions.contains(servletPath))
-            return servletPath;
+        // Example: exclusions = ['/images','/css','/favicon.ico']
+        for (String path : exclusions)
+            if (path.equals(servletPath))
+                return servletPath;
         
         int start = 0, end = servletPath.indexOf('/',1);
         String segment;
         while (end > -1) { // fail fast
             segment = servletPath.substring(start, end);
-            for (String exclusion : exclusions) {
-                if (segment.equals( exclusion )) {
+            for (String path : exclusions) // this is most likely faster than Arrays#binarySearch as exclusions is extremely small
+                if (path.equals(segment))
                     return servletPath.substring(start);
-                }
-            }
             start = end;
             end = servletPath.indexOf('/',start+1);
         }

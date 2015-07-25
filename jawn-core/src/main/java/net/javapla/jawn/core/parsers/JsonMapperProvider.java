@@ -13,6 +13,7 @@ public class JsonMapperProvider implements Provider<ObjectMapper> {
 
     @Override
     public ObjectMapper get() {
+        System.out.println("-------------- providing a JSON mapper -> " + this.getClass());
         ObjectMapper mapper = new ObjectMapper();
         
         ParserConfiguration.config(mapper);

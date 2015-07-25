@@ -69,6 +69,9 @@ public class UndertowServer implements JawnServer {
     }*/
     
     private void configureServerPerformance(Builder serverBuilder, ServerConfig config) {
+        // TODO investigate serverBuilder.setWorkerThreads
+        // Per default it gets set to ioThreads * 8, but it does not get updated, when setting ioThreads,
+        // so we need to set it explicitly
         switch (config.getServerPerformance()) {
             case HIGHEST:
                 serverBuilder.setIoThreads(Runtime.getRuntime().availableProcessors() * 2);

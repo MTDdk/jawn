@@ -6,10 +6,10 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import net.javapla.jawn.core.FormItem;
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.ResponseBuilder;
 import net.javapla.jawn.core.ResponseHolder;
-import net.javapla.jawn.core.FormItem;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.http.Context;
@@ -85,6 +85,67 @@ public class ImageHandlerBuilder {
          BufferedImage crop = Scalr.crop(image, x, y, width, height);
          image.flush();// cannot throw
          image = crop;
+         return this;
+     }
+     
+     /**
+      * Crop the image to a given aspect.
+      * <br>
+      * The aspect is the desired proportions of the image, which will be kept when cropping.
+      * <p>
+      * The usecase for this method is when you have an image, that you want to crop into a certain proportion,
+      * but want to keep the original dimensions as much as possible.
+      * @param width
+      * @param height
+      * @return
+      */
+     public ImageHandlerBuilder cropToAspect(int width, int height) {
+         int original_width = image.getWidth();
+         int original_height = image.getHeight();
+         int bound_width = width;
+         int bound_height = height;
+         int new_width = original_width;
+         int new_height = original_height;
+         int x = 0, y = 0;
+         
+         // We need these if any resizing is going to happen, as the precision factors
+         // are no longer sufficiently precise
+         double wfactor = (double)original_width/bound_width;
+         double hfactor = (double)original_height/bound_height;
+         
+         // Calculating the factor between the original dimensions and the wanted dimensions
+         // Using precision down to two decimals.
+         double precision = 100d;
+         double wprecisionfactor = ((int)((wfactor) * precision)) / precision;
+         double hprecisionfactor = ((int)((hfactor) * precision)) / precision;
+         
+         
+         if (wprecisionfactor == hprecisionfactor) {
+             // they are (relatively) equal
+             // just use the original image dimensions
+             return this;
+         }
+         
+         if (wprecisionfactor < hprecisionfactor) {
+             // keep the original width
+             // calculate the new height from the wfactor
+             new_height = (int) (bound_height * wfactor);
+             
+             // calculate new coordinate to keep center
+             y = Math.abs(original_height - new_height) >> 1; // divide by 2
+         } else if (wprecisionfactor > hprecisionfactor) {
+             // keep the original height
+             // calculate the new width from the hfactor
+             new_width = (int) (bound_width * hfactor);
+             
+             // calculate new coordinate to keep center
+             x = Math.abs(original_width - new_width) >> 1; // divide by 2
+         }
+
+         BufferedImage crop = Scalr.crop(image, x, y, new_width, new_height);
+         image.flush();// cannot throw
+         image = crop;
+         
          return this;
      }
 

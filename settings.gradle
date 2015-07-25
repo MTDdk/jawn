@@ -1,6 +1,12 @@
 rootProject.name = 'java-web-planet / jawn'
 
-include ':jawn-core'
-include ':jawn-server'
-include ':jawn-server-undertow'
-include ':jawn-server-jetty'
+//automatically include all jawn-*
+file('.')
+    .listFiles() // find all files in rootDir
+    .findAll {
+        it.isDirectory() && // only look at folders
+        it.name.startsWith('jawn-') // filter all folders starting with 'api-'
+    }
+    .each {
+        include it.name // let the root project include each of these folders
+    }

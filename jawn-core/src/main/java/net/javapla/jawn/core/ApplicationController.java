@@ -64,8 +64,15 @@ public abstract class ApplicationController implements ResponseHolder {
         response = r;
     }
     public Response getControllerResponse() {
+        if (layout() != null)
+            response.layout(layout());
         return response;
     }
+    
+    protected String layout() {
+        return null;
+    }
+    
     
 //    @Inject
     private Context context;
@@ -392,12 +399,12 @@ public abstract class ApplicationController implements ResponseHolder {
      * @param name name of value to flash
      * @param value value to live for one more request in current session.
      */
-    @SuppressWarnings("unchecked")
     protected void flash(String name, Object value) {
-        if (session().get(Context.FLASH_KEYWORD) == null) {
-            session().put(Context.FLASH_KEYWORD, new HashMap<String, Object>());
+        /*if (session().get(Context.FLASH_SESSION_KEYWORD) == null) {
+            session().put(Context.FLASH_SESSION_KEYWORD, new HashMap<String, Object>());
         }
-        ((Map<String, Object>) session().get(Context.FLASH_KEYWORD)).put(name, value);
+        ((Map<String, Object>) session().get(Context.FLASH_SESSION_KEYWORD)).put(name, value);*/
+        context.setFlash(name, value);
     }
     
 
@@ -1147,7 +1154,7 @@ public abstract class ApplicationController implements ResponseHolder {
      * @return reference to a current session.
      */
     protected SessionFacade session(){
-        return context.createSession();
+        return context.getSession(false);
     }
     /**
      * Convenience method, sets an object on a session. Equivalent of:

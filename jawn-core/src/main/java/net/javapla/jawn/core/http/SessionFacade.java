@@ -52,15 +52,34 @@ public interface SessionFacade extends Map<String, Object> {
     public long getCreationTime();
 
     /**
+     * Returns the last time the application received a request or method invocation from the user associated
+     * with this session.  Application calls to this method do not affect this access time.
+     *
+     * @return The time the user last interacted with the system.
+     */
+    long getLastAccessedTime();
+
+    /**
      * Invalidates current session. All attributes are discarded.
      */
     public void invalidate();
 
+    
+    /**
+     * Get time to live in seconds
+     * @return time to live in seconds
+     */
+    int getTimeToLive();
+
     /**
      * Sets time to live in seconds.
-     * @param seconds time to live.
+     * @param l time to live.
      */
-    public void setTimeToLive(int seconds);
+    public void setTimeToLive(int l);
+    
+    public Object getAttribute(String name);
+    public void setAttribute(String name, Object value);
+    public void removeAttribute(String name);
 
     /**
      * Returns names of current attributes as a list.

@@ -1,10 +1,13 @@
 package net.javapla.jawn.core.database;
 
 import java.beans.PropertyVetoException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.sql.DataSource;
+import java.util.logging.Logger;
 
 import net.javapla.jawn.core.util.Modes;
 
@@ -12,7 +15,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 public class DatabaseConnections {
 
-    private final Map<Modes, DatabaseConnection> builders;
+    private final Map<Modes, DatabaseConnectionBuilderImpl> builders;
     
     
     public DatabaseConnections() {
@@ -26,8 +29,14 @@ public class DatabaseConnections {
     }
     
     DatabaseConnection getConnection(Modes mode) {
-        return builders.get(mode);
+        DatabaseConnectionBuilderImpl connection = builders.get(mode);
+        if (connection == null) return null;
+        
+        if (connection.letFrameworkHandleConnectionPool())
+            connection.initiatePooledDataSource();
+        return connection;
     }
+    
     
     public interface DatabaseConnectionBuilder {
         JdbcConnectionBuilder jdbc();
@@ -40,6 +49,7 @@ public class DatabaseConnections {
         
         JdbcConnectionBuilder maxPoolSize(int max);
         JdbcConnectionBuilder minPoolSize(int min);
+        JdbcConnectionBuilder letFrameworkHandleConnectionPool(boolean letFramework);
     }
     
     public class DatabaseConnectionBuilderImpl implements DatabaseConnectionBuilder, DatabaseConnection {
@@ -50,6 +60,8 @@ public class DatabaseConnections {
         String password;
         int maxPoolSize = 8;
         int minPoolSize = 1;
+        boolean letFrameworkHandleConnectionPool = true;
+        
         
         public DatabaseConnectionBuilderImpl(Modes mode) {
             this.mode = mode;
@@ -84,9 +96,18 @@ public class DatabaseConnections {
         public int maxPoolSize() { return maxPoolSize; }
         @Override
         public int minPoolSize() { return minPoolSize; }
-        
         @Override
-        public DataSource createDataSource() throws PropertyVetoException, ClassNotFoundException {
+        public boolean letFrameworkHandleConnectionPool() { return letFrameworkHandleConnectionPool; }
+        
+        /**
+         * Creates a pooled DataSource to be used in a somewhat high performance use case,
+         * like database managers that are used throughout the application.
+         * 
+         * @return
+         * @throws ClassNotFoundException If the driver was not found
+         * @throws PropertyVetoException If any of the input is unacceptable
+         */
+        private ComboPooledDataSource createPooledDataSource() throws PropertyVetoException, ClassNotFoundException {
             Class.forName(driver());
             
             ComboPooledDataSource source = new ComboPooledDataSource();
@@ -103,10 +124,80 @@ public class DatabaseConnections {
             
             return source;
         }
+        
+        /* ***************
+         * DataSource Part
+         * ****************/
+        ComboPooledDataSource source;
+        private final Object lock = new Object();
+        /*synchronized */void initiatePooledDataSource() {
+            if (source == null) {
+                synchronized(lock) {
+                    if (source == null) {
+                        try {
+                            source = createPooledDataSource();
+                        } catch (ClassNotFoundException | PropertyVetoException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }
+        
+        @Override
+        public Connection getConnection() throws SQLException {
+            return source.getConnection();
+        }
+
+        @Override
+        public Connection getConnection(String username, String password) throws SQLException {
+            return source.getConnection(username, password);
+        }
+
+        @Override
+        public PrintWriter getLogWriter() throws SQLException {
+            return source.getLogWriter();
+        }
+
+        @Override
+        public void setLogWriter(PrintWriter out) throws SQLException {
+            source.setLogWriter(out);
+        }
+
+        @Override
+        public void setLoginTimeout(int seconds) throws SQLException {
+            source.setLoginTimeout(seconds);
+        }
+
+        @Override
+        public int getLoginTimeout() throws SQLException {
+            return source.getLoginTimeout();
+        }
+
+        @Override
+        public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+            return source.getParentLogger();
+        }
+
+        @Override
+        public <T> T unwrap(Class<T> iface) throws SQLException {
+            return source.unwrap(iface);
+        }
+
+        @Override
+        public boolean isWrapperFor(Class<?> iface) throws SQLException {
+            return source.isWrapperFor(iface);
+        }
+
+        @Override
+        public void close() throws Exception {
+            source.close();
+        }
     }
     
+    
     //JdbcConnectionSpec
-    private class JdbcConnectionBuilderImpl implements JdbcConnectionBuilder {
+    private static class JdbcConnectionBuilderImpl implements JdbcConnectionBuilder {
         private final DatabaseConnectionBuilderImpl builder;
         public JdbcConnectionBuilderImpl(DatabaseConnectionBuilderImpl builder) {
             this.builder = builder;
@@ -145,6 +236,12 @@ public class DatabaseConnections {
         @Override
         public JdbcConnectionBuilder minPoolSize(int min) {
             builder.minPoolSize = min;
+            return this;
+        }
+        
+        @Override
+        public JdbcConnectionBuilder letFrameworkHandleConnectionPool(boolean letFramework) {
+            builder.letFrameworkHandleConnectionPool = letFramework;
             return this;
         }
     }

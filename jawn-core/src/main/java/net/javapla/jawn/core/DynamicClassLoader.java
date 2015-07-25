@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 class DynamicClassLoader extends ClassLoader {
 
     private static Logger logger = LoggerFactory.getLogger(DynamicClassLoader.class);
+    
+    private static final String FRAMEWORK_PACKAGE = "net.javapla.jawn";
 
     DynamicClassLoader(ClassLoader parent){
         super(parent);
@@ -44,7 +46,8 @@ class DynamicClassLoader extends ClassLoader {
     public Class<?> loadClass(String name) throws ClassNotFoundException {
 
         try{
-            if (name.startsWith(this.getClass().getPackage().getName())) {
+            // net.javapla.jawn
+            if (name.startsWith(FRAMEWORK_PACKAGE/*this.getClass().getPackage().getName()*/)) {
                 return loadByParent(name);
             }
 
@@ -63,8 +66,7 @@ class DynamicClassLoader extends ClassLoader {
             }else{
                 return loadByParent(name);
             }
-        }
-        catch(Exception e){
+        } catch(Exception e){
             logger.debug("Failed to dynamically load class: " + name + ". Loading by parent class loader.");
             return loadByParent(name);
         }

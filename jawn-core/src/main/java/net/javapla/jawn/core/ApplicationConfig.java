@@ -1,20 +1,29 @@
 package net.javapla.jawn.core;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import net.javapla.jawn.core.util.Constants;
 
 import com.google.inject.AbstractModule;
 
 public class ApplicationConfig {
-    private AbstractModule[] modules;
+    private List<AbstractModule> modules;
     private String[] languages;
     private String encoding = Constants.DEFAULT_ENCODING;
     
-    public void registerModules(AbstractModule... modules) {
-        this.modules = modules;
+    public ApplicationConfig() {
+        modules = new ArrayList<>();
     }
     
-    public AbstractModule[] getRegisteredModules() {
-        return modules;
+    public void registerModules(AbstractModule... modules) {
+        Collections.addAll(this.modules, modules);
+    }
+    
+    public List<AbstractModule> getRegisteredModules() {
+        //return modules.stream().toArray(AbstractModule[]::new);
+        return this.modules;
     }
     
     public void setSupportedLanguages(String... languages) {

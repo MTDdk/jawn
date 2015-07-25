@@ -11,7 +11,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import net.javapla.jawn.core.exceptions.ParsableException;
 import net.javapla.jawn.core.util.ConversionException;
 
@@ -101,6 +103,13 @@ public class Param {
         } catch (ParseException e) {
             throw new ParsableException(e);
         }
+    }
+    
+    /**
+     * Not implemented
+     */
+    public Map<String, String> fromJson() {
+        throw new NotImplementedException();
     }
     
     

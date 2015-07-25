@@ -87,6 +87,11 @@ public class SessionFacadeImpl implements SessionFacade {
 //        return request.getSession(true).getCreationTime();
         return session.getCreationTime();
     }
+    
+    @Override
+    public long getLastAccessedTime() {
+        return session.getLastAccessedTime();
+    }
 
     /**
      * Invalidates current session. All attributes are discarded.
@@ -105,7 +110,27 @@ public class SessionFacadeImpl implements SessionFacade {
 //        request.getSession(true).setMaxInactiveInterval(seconds);
         session.setMaxInactiveInterval(seconds);
     }
-
+    
+    @Override
+    public int getTimeToLive() {
+        return session.getMaxInactiveInterval();
+    }
+    
+    @Override
+    public Object getAttribute(String name) {
+        return session.getAttribute(name);
+    }
+    
+    @Override
+    public void setAttribute(String name, Object value) {
+        session.setAttribute(name, value);
+    }
+    
+    @Override
+    public void removeAttribute(String name) {
+        session.removeAttribute(name);
+    }
+    
     /**
      * Returns names of current attributes as a list.
      *
@@ -114,6 +139,7 @@ public class SessionFacadeImpl implements SessionFacade {
     public String[] names(){
         List<String> namesList = new ArrayList<String>();
         Enumeration<String> names = session.getAttributeNames();//request.getSession(true).getAttributeNames();
+        if (names == null) return null;
         while (names.hasMoreElements()) {
             Object o = names.nextElement();
             namesList.add(o.toString());
