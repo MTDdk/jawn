@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.templates;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -62,7 +63,7 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
         }
         
         
-        this.contentTypeToTemplateEngineMap = map; //README probably some immutable
+        this.contentTypeToTemplateEngineMap = Collections.unmodifiableMap(map);
         
         logEngines();
     }

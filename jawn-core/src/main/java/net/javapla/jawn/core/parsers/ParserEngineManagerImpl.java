@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.parsers;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -33,14 +34,15 @@ public class ParserEngineManagerImpl implements ParserEngineManager {
         map.put(json.get().getContentType(), json);
         map.put(xml.get().getContentType(), xml);
         
-        this.contentTypeToParserMap = map; //README some form of immutable
+        this.contentTypeToParserMap = Collections.unmodifiableMap(map);
         
         logParsers();
     }
     
     @Override
     public Set<String> getContentTypes() {
-        return contentTypeToParserMap.keySet(); //README make immutable
+        // is unmodifiable when the map is
+        return contentTypeToParserMap.keySet();
     }
 
     @Override

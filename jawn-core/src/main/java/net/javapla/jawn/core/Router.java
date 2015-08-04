@@ -11,6 +11,7 @@ import net.javapla.jawn.core.exceptions.CompilationException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
+import net.javapla.jawn.core.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.spi.Routes;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -128,7 +129,7 @@ public class Router implements Routes {
         for (RouteBuilder builder : builders) {
             r.add(builder.build(filters, injector));
         }
-        routes = r;//README probably some immutable
+        routes = Collections.unmodifiableList(r);
     }
     
     public List<Route> getRoutes() {

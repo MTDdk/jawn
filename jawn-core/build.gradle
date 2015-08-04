@@ -21,15 +21,10 @@ dependencies {
     compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
     //compile 'javax.servlet:javax.servlet-api:3.1.0'
     
-    // Shiro
-    //compile 'org.apache.shiro:shiro-core:1.2.3'
-    //compile 'org.apache.shiro:shiro-web:1.2.3'
-    //runtime 'commons-logging:commons-logging:1.2'
-    
     
     // https://github.com/ronmamo/reflections
     compile 'org.reflections:reflections:0.9.10'
-    
+
     
     // Database
     compile 'mysql:mysql-connector-java:5.1.36'

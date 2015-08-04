@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 
 import net.javapla.jawn.core.ApplicationConfig;
 import net.javapla.jawn.core.CoreModule;
-import net.javapla.jawn.core.DynamicClassFactory;
 import net.javapla.jawn.core.FiltersHandler;
 import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.PropertiesImpl;
@@ -18,6 +17,7 @@ import net.javapla.jawn.core.Router;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseModule;
+import net.javapla.jawn.core.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.spi.ApplicationBootstrap;
 import net.javapla.jawn.core.spi.ApplicationDatabaseBootstrap;
 import net.javapla.jawn.core.spi.ApplicationFilters;

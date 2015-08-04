@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import net.javapla.jawn.core.database.DatabaseConnection;
-import net.javapla.jawn.core.database.DatabaseConnectionAware;
 import net.javapla.jawn.core.spi.Filter;
 import net.javapla.jawn.core.spi.Filters;
 
@@ -21,7 +19,7 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
 
     private final List<FilterBuilder<? extends Filter>> builders;
     
-    private DatabaseConnection databaseConnection;
+//    private DatabaseConnection databaseConnection;
 //    private SecurityFilterFactory security;
     
     public FiltersHandler() {

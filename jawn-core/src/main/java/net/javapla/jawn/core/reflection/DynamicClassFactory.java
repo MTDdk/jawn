@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.reflection;
 
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -56,13 +56,11 @@ public abstract class DynamicClassFactory {
     
     public static <T> T createInstance(Class<?> clazz, Class<T> expectedType) throws ClassLoadException {
         try {
-            Object o = clazz.newInstance();
+            Object o = createInstance(clazz);
             return expectedType.cast(o);
         } catch (ClassCastException e) {
             //from cast()
             throw new ClassLoadException("Class: " + clazz + " is not the expected type, are you sure it extends " + expectedType.getName() + "?");
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new ClassLoadException(e);
         }
     }
     

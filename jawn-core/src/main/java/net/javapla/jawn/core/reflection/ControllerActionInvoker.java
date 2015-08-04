@@ -4,9 +4,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import net.javapla.jawn.core.ApplicationController;
-import net.javapla.jawn.core.DynamicClassFactory;
-import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.ControllerException;
@@ -43,9 +42,9 @@ public class ControllerActionInvoker {
             injectControllerWithContext(controller, context, injector);
 
             //find the method name and run it
-            String methodName = route.getAction().toLowerCase();
+            String methodName = route.getAction();
             for (Method method : controller.getClass().getMethods()) {
-                if (methodName.equals( method.getName().toLowerCase() )) {
+                if (methodName.equals( method.getName())) {
                     method.invoke(controller);//route.getController());
                     return controller.getControllerResponse();
                 }
@@ -88,13 +87,11 @@ public class ControllerActionInvoker {
     }
     
     public static boolean isAllowedAction(Class<? extends ApplicationController> controller, String actionMethodName) {
-        String lowerCaseActionName = actionMethodName.toLowerCase();
         for (Method method : controller.getMethods()) {
-            if (lowerCaseActionName.equals( method.getName().toLowerCase() )) {
+            if (actionMethodName.equals(method.getName())) {
                 return true;
             }
         }
-        //README: it might not actually be necessary to do this lowercasing
         return false;
     }
 }

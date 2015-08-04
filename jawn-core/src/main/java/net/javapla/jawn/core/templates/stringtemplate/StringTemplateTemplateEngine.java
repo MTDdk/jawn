@@ -120,6 +120,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
       
       final ErrorBuffer error = new ErrorBuffer();
       ST contentTemplate = locateTemplate(group, template);
+      if (contentTemplate == null) throw new ViewException("Could not find the template " + template + ". Is it spelled correctly?");
 
       try (Writer writer = stream.getWriter()) {
 
