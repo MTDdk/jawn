@@ -77,6 +77,9 @@ class FileName {
     public String extension() {
         return this.ext;
     }
+    public void updateExtension(String ext) {
+        this.ext = ext;
+    }
 
     /**
      * gets filename without extension

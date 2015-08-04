@@ -1,6 +1,9 @@
 package net.javapla.jawn.core.images;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
@@ -49,6 +52,18 @@ public class ImageHandlerBuilder {
         try {
             this.image = ImageIO.read(file);
             fn.updateNameAndExtension(file.getName());
+            
+            if (this.image == null)
+                throw new ControllerException("The extension '" + fn.extension() + "' could not be read");
+        } catch (IOException e) {
+            throw new ControllerException(e);
+        }
+    }
+    public ImageHandlerBuilder(ResponseHolder holder, Context context, byte[] bytes, String fileName) throws ControllerException {
+        this(holder, context);
+        try {
+            this.image = ImageIO.read(new ByteArrayInputStream(bytes));
+            fn.updateNameAndExtension(fileName);
             
             if (this.image == null)
                 throw new ControllerException("The extension '" + fn.extension() + "' could not be read");
@@ -229,6 +244,21 @@ public class ImageHandlerBuilder {
              throw new ControllerException(e);
          }
          return uploadFolder + File.separatorChar + imagename;
+     }
+     
+     public ImageHandlerBuilder clone() {
+         ImageHandlerBuilder builder = new ImageHandlerBuilder(holder, context);
+         builder.fn.updateName(this.fn.filename());
+         builder.fn.updateExtension(this.fn.extension());
+         builder.image = deepCopy(this.image);
+         return builder;
+     }
+     
+     public static final BufferedImage deepCopy(BufferedImage bi) {
+         ColorModel cm = bi.getColorModel();
+         boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+         WritableRaster raster = bi.copyData(bi.getRaster().createCompatibleWritableRaster());
+         return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
      }
 
      /**

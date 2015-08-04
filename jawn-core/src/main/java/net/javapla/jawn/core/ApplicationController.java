@@ -1024,8 +1024,9 @@ public abstract class ApplicationController implements ResponseHolder {
             throw new PathNotFoundException(file.getPath());
         return new ImageHandlerBuilder(this, context, file);
     }
-    
-    
+    protected ImageHandlerBuilder image(byte[] bytes, String fileName) throws ControllerException {
+        return new ImageHandlerBuilder(this, context, bytes, fileName);
+    }
     
     
     /**
