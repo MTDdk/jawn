@@ -1,8 +1,8 @@
 package net.javapla.jawn.security.spi;
 
-import net.javapla.jawn.core.ApplicationController;
+import net.javapla.jawn.core.Controller;
 
-public class LoginHandlingController extends ApplicationController {
+public class LoginHandlingController extends Controller {
         /*public void getLogin() {
             //render().layout("login");
             //render().layout("/admin/login/index");
