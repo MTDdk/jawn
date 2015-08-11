@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
+import com.sun.corba.se.impl.corba.ContextImpl;
 
 /**
  * Subclass this class to create application controllers. A controller is a main component of a web
@@ -56,7 +57,7 @@ import com.google.inject.Injector;
  *
  * @author MTD
  */
-public abstract class ApplicationController implements ResponseHolder {
+public abstract class Controller implements ResponseHolder {
     
  // Standard behaviour is to look for HTML template
     protected Response response = ResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
@@ -287,10 +288,10 @@ public abstract class ApplicationController implements ResponseHolder {
      * Class name looses the "Controller" suffix and gets converted to underscore format, while packages stay unchanged.
      *
      * @param controllerClass class of a controller.
-     * @param <T> class extending {@link ApplicationController}
+     * @param <T> class extending {@link Controller}
      * @return standard path for a controller.
      */
-    static <T extends ApplicationController> String getControllerPath(Class<T> controllerClass) {
+    static <T extends Controller> String getControllerPath(Class<T> controllerClass) {
         String simpleName = controllerClass.getSimpleName();
         if (!simpleName.endsWith("Controller")) {
             throw new ControllerException("controller name must end with 'Controller' suffix");
@@ -469,12 +470,12 @@ public abstract class ApplicationController implements ResponseHolder {
      * Convenience method for {@link #redirect(Class, java.util.Map)}.
      *
      * @param controllerClass controller class where to send redirect.
-     * @param <T> class extending {@link ApplicationController}
+     * @param <T> class extending {@link Controller}
      * @param action action to redirect to.
      * @param id id to redirect to.
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected <T extends ApplicationController> void redirect(Class<T> controllerClass, String action, Object id){
+    protected <T extends Controller> void redirect(Class<T> controllerClass, String action, Object id){
         redirect(controllerClass, CollectionUtil.map("action", action, "id", id));
     }
 
@@ -482,11 +483,11 @@ public abstract class ApplicationController implements ResponseHolder {
      * Convenience method for {@link #redirect(Class, java.util.Map)}.
      *
      * @param controllerClass controller class where to send redirect.
-     * @param <T> class extending {@link ApplicationController}
+     * @param <T> class extending {@link Controller}
      * @param id id to redirect to.
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected <T extends ApplicationController> /*HttpBuilder*/void redirect(Class<T> controllerClass, Object id){
+    protected <T extends Controller> /*HttpBuilder*/void redirect(Class<T> controllerClass, Object id){
         /*return */redirect(controllerClass, CollectionUtil.map("id", id));
     }
 
@@ -494,11 +495,11 @@ public abstract class ApplicationController implements ResponseHolder {
      * Convenience method for {@link #redirect(Class, java.util.Map)}.
      *
      * @param controllerClass controller class where to send redirect.
-     * @param <T> class extending {@link ApplicationController}
+     * @param <T> class extending {@link Controller}
      * @param action action to redirect to.
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected <T extends ApplicationController> void redirect(Class<T> controllerClass, String action){
+    protected <T extends Controller> void redirect(Class<T> controllerClass, String action){
         redirect(controllerClass, CollectionUtil.map("action", action));
     }
 
@@ -530,10 +531,10 @@ public abstract class ApplicationController implements ResponseHolder {
      * Redirects to given controller, action "index" without any parameters.
      *
      * @param controllerClass controller class where to send redirect.
-     * @param <T> class extending {@link ApplicationController}
+     * @param <T> class extending {@link Controller}
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected <T extends ApplicationController> void redirect(Class<T> controllerClass){
+    protected <T extends Controller> void redirect(Class<T> controllerClass){
         redirect(controllerClass, new HashMap<String, String>());
     }
 
@@ -568,11 +569,11 @@ public abstract class ApplicationController implements ResponseHolder {
      *
      *
      * @param controllerClass controller class
-     * @param <T> class extending {@link ApplicationController}
+     * @param <T> class extending {@link Controller}
      * @param params map with request parameters.
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
-    protected <T extends ApplicationController> /*HttpBuilder*/void redirect(Class<T> controllerClass, Map<String, String> params){
+    protected <T extends Controller> /*HttpBuilder*/void redirect(Class<T> controllerClass, Map<String, String> params){
         String controllerPath = RouterHelper.getReverseRoute(controllerClass);
         String contextPath = context.contextPath();
         String action = params.get("action") != null? params.get("action") : null;

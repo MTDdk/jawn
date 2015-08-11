@@ -3,7 +3,7 @@ package net.javapla.jawn.core.reflection;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import net.javapla.jawn.core.ApplicationController;
+import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.Route;
@@ -37,7 +37,7 @@ public class ControllerActionInvoker {
         Route route = context.getRoute();
 
         try {
-            ApplicationController controller = loadController(route.getController());
+            Controller controller = loadController(route.getController());
 
             injectControllerWithContext(controller, context, injector);
 
@@ -67,7 +67,7 @@ public class ControllerActionInvoker {
     }
     
     
-    private ApplicationController loadController(Class<? extends ApplicationController> controller) throws ClassLoadException {
+    private Controller loadController(Class<? extends Controller> controller) throws ClassLoadException {
         try {
             return DynamicClassFactory.createInstance(controller);
         } catch (ClassLoadException e) {
@@ -77,7 +77,7 @@ public class ControllerActionInvoker {
         }
     }
 
-    private void injectControllerWithContext(ApplicationController controller, Context context, Injector injector) {
+    private void injectControllerWithContext(Controller controller, Context context, Injector injector) {
         controller.init(context, injector);
         
         //Inject dependencies
@@ -86,7 +86,7 @@ public class ControllerActionInvoker {
         }
     }
     
-    public static boolean isAllowedAction(Class<? extends ApplicationController> controller, String actionMethodName) {
+    public static boolean isAllowedAction(Class<? extends Controller> controller, String actionMethodName) {
         for (Method method : controller.getMethods()) {
             if (actionMethodName.equals(method.getName())) {
                 return true;

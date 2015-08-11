@@ -1,8 +1,8 @@
 package app.controllers;
 
-import net.javapla.jawn.core.ApplicationController;
+import net.javapla.jawn.core.Controller;
 
-public class KageController extends ApplicationController {
+public class KageController extends Controller {
 
     public void getBolle(){}
 }

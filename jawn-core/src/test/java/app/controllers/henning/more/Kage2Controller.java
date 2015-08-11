@@ -1,8 +1,8 @@
 package app.controllers.henning.more;
 
-import net.javapla.jawn.core.ApplicationController;
+import net.javapla.jawn.core.Controller;
 
-public class Kage2Controller extends ApplicationController {
+public class Kage2Controller extends Controller {
 
     public void getBolle(){}
 }

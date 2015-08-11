@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Map;
 
-import net.javapla.jawn.core.ApplicationController;
+import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.http.HttpMethod;
 
@@ -18,7 +18,7 @@ import app.controllers.KageController;
 import app.controllers.henning.more.Kage2Controller;
 
 public class RouteTest {
-    private static ApplicationController c;
+    private static Controller c;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {

@@ -62,7 +62,7 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
 //        
 //    }
     
-    public List<Filter> compileFilters(Class<? extends ApplicationController> controller, String action) {
+    public List<Filter> compileFilters(Class<? extends Controller> controller, String action) {
         List<Filter> list = new ArrayList<>();
         for (FilterBuilder<? extends Filter> bob : builders) {
             Filter filter = bob.get(controller, action);
@@ -72,7 +72,7 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
         
         return list;
     }
-    public List<Filter> compileFilters(Class<? extends ApplicationController> controller) {
+    public List<Filter> compileFilters(Class<? extends Controller> controller) {
         List<Filter> list = new ArrayList<>();
         for (FilterBuilder<? extends Filter> bob : builders) {
             Filter filter = bob.get(controller);
@@ -120,7 +120,7 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
 
     public static class FilterBuilder<T extends Filter> {
         T filter;
-        Class<? extends ApplicationController>[] controllers;
+        Class<? extends Controller>[] controllers;
         String[] actionNames;
         
         
@@ -129,13 +129,13 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
         }
         
         @SafeVarargs
-        public FilterBuilder(Class<? extends ApplicationController>... classes) {
+        public FilterBuilder(Class<? extends Controller>... classes) {
             this.controllers = classes;
         }
         
         
         @SafeVarargs
-        public final FilterBuilder<T> to( Class<? extends ApplicationController>... classes) {
+        public final FilterBuilder<T> to( Class<? extends Controller>... classes) {
             this.controllers = classes;
             if (actionNames != null) ensureControllersContainsActions();
             return this;
@@ -146,7 +146,7 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
             if (!packageName.startsWith("app.controllers"))
                 packageName = "app.controllers." + packageName;
             Reflections reflect = new Reflections(packageName);
-            Set<Class<? extends ApplicationController>> classes = reflect.getSubTypesOf(ApplicationController.class);
+            Set<Class<? extends Controller>> classes = reflect.getSubTypesOf(Controller.class);
             this.controllers = classes.toArray(new Class[0]);
             return this;
         }
@@ -165,12 +165,12 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
         }
         
         private void ensureControllersContainsActions() {
-            for (Class<? extends ApplicationController> controller : controllers) {
+            for (Class<? extends Controller> controller : controllers) {
                 if (!doesControllerHaveActions(controller, actionNames))
                     throw new IllegalArgumentException("Controller does not have an action resembling the provided - " + controller.getSimpleName());
             }
         }
-        private boolean doesControllerHaveActions(Class<? extends ApplicationController> controller, String[] actions) {
+        private boolean doesControllerHaveActions(Class<? extends Controller> controller, String[] actions) {
             for (Method method : controller.getDeclaredMethods()) {
                 if (doesMethodResemble(method, actions)) {
                     return true;
@@ -186,7 +186,7 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
             return false;
         }
         
-        Filter get(Class<? extends ApplicationController> controller, String action) {
+        Filter get(Class<? extends Controller> controller, String action) {
             if (actionNames == null) return null;
             
             Filter f = getFilter(controller);
@@ -199,15 +199,15 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
             }
             return null;
         }
-        Filter get(Class<? extends ApplicationController> controller) {
+        Filter get(Class<? extends Controller> controller) {
             if (actionNames != null) return null;
             if (controllers == null) return filter; // the filter it defined globally
             
             return getFilter(controller);
         }
         
-        Filter getFilter(Class<? extends ApplicationController> controller) {
-            for (Class<? extends ApplicationController> con : controllers) {
+        Filter getFilter(Class<? extends Controller> controller) {
+            for (Class<? extends Controller> con : controllers) {
                 if (con.getName().equals(controller.getName())) {
                     return filter;
                 }

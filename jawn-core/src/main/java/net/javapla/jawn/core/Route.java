@@ -19,14 +19,14 @@ public class Route extends InternalRoute {
     
     private final HttpMethod httpMethod;
 //    private AppController controller; //README see ControllerActionInvoker
-    private final Class<? extends ApplicationController> controller;
+    private final Class<? extends Controller> controller;
     private final String action;
     private final String actionName;//without httpMethod
     
     private final FilterChain filterChain; // can be null if no filters are assigned
     
     
-    public Route(String uri, HttpMethod method, Class<? extends ApplicationController> controller, String action, String actionName, FilterChain chain) {
+    public Route(String uri, HttpMethod method, Class<? extends Controller> controller, String action, String actionName, FilterChain chain) {
         super(uri);
         this.httpMethod = method;
         this.controller = controller;
@@ -42,7 +42,7 @@ public class Route extends InternalRoute {
     public HttpMethod getHttpMethod() {
         return httpMethod;
     }
-    public Class<? extends ApplicationController> getController() {
+    public Class<? extends Controller> getController() {
         return controller;
     }
     /**

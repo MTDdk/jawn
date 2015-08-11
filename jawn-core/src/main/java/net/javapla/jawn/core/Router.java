@@ -153,7 +153,7 @@ public class Router implements Routes {
     private Route deduceRoute(InternalRoute route, HttpMethod httpMethod, String requestUri, Injector injector) {
         Map<String, String> params = route.getPathParametersEncoded(requestUri);
         //README it seems wrong that the parameters are calculated at this point and not stored somehow in the resulting Route
-        Controller c = new Controller(params);
+        ControllerMeta c = new ControllerMeta(params);
         
         // find a route that actually exists
         try {
@@ -178,7 +178,7 @@ public class Router implements Routes {
         if (actionName == null) {
             // try to infer the action
             Map<String, String> params = route.getPathParametersEncoded(requestUri);
-            Controller c = new Controller(params);
+            ControllerMeta c = new ControllerMeta(params);
             actionName = c.getAction();
         }
         return actionName;
@@ -189,7 +189,7 @@ public class Router implements Routes {
         if (route.getController() == null) {
             // try to infer the controller
             Map<String, String> params = route.getPathParametersEncoded(requestUri);
-            Controller c = new Controller(params);
+            ControllerMeta c = new ControllerMeta(params);
             controllerName = c.getControllerClassName();
         } else  {
             controllerName = route.getController().getName();
@@ -198,18 +198,18 @@ public class Router implements Routes {
     }
     
     private RouteBuilder loadController(String controllerName, HttpMethod httpMethod, String uri, String actionName, boolean useCache) throws CompilationException, ClassLoadException {
-        Class<? extends ApplicationController> controller = 
-                DynamicClassFactory.getCompiledClass(controllerName, ApplicationController.class, useCache);
+        Class<? extends Controller> controller = 
+                DynamicClassFactory.getCompiledClass(controllerName, Controller.class, useCache);
         RouteBuilder bob = RouteBuilder.method(httpMethod);
         bob.route(uri);
         bob.to(controller, actionName);
         return bob;
     }
 
-    private class Controller {
+    private class ControllerMeta {
         public final Map<String,String> params;
         
-        public Controller(Map<String,String> params) {
+        public ControllerMeta(Map<String,String> params) {
             this.params = params;
         }
         

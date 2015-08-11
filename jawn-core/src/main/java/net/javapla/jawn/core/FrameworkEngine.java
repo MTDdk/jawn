@@ -56,10 +56,10 @@ public class FrameworkEngine {
         String format = null;
         String uri;
         // look for any format in the request
-        if(path.contains(".")){
+        if (path.contains(".")) {
             uri = path.substring(0, path.lastIndexOf('.'));
             format = path.substring(path.lastIndexOf('.') + 1);
-        }else{
+        } else {
             uri = path;
         }
         

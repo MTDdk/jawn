@@ -26,10 +26,10 @@ public class RouterHelper {
      * Class name looses the "Controller" suffix and gets converted to underscore format, while packages stay unchanged.
      *
      * @param controllerClass class of a controller.
-     * @param <T> class extending {@link ApplicationController}
+     * @param <T> class extending {@link Controller}
      * @return standard path for a controller.
      */
-    public static String getReverseRoute(Class<? extends ApplicationController> clazz) {
+    public static String getReverseRoute(Class<? extends Controller> clazz) {
         String simpleName = clazz.getSimpleName();
         if (! simpleName.endsWith("Controller")) {
             throw new ControllerException("controller name must end with 'Controller' suffix");
