@@ -179,11 +179,13 @@ public class ImageHandlerBuilder {
      /**
       * Resize the image to a given height, maintaining the original proportions of the image
       * and setting the width accordingly.
+      * If the height of the image is smaller than the provided size, then the image is not scaled.
       * @param size
       * @return
       */
      public ImageHandlerBuilder resizeToHeight(int size) {
-         BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_TO_HEIGHT, size);
+         if (image.getHeight() < size) return this;
+         BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_TO_HEIGHT, Math.min(size, image.getHeight()));
          image.flush();
          image = resize;
          return this;
@@ -191,10 +193,12 @@ public class ImageHandlerBuilder {
      /**
       * Resize the image to a given width, maintaining the original proportions of the image
       * and setting the height accordingly.
+      * If the width of the image is smaller than the provided size, then the image is not scaled.
       * @param size
       * @return
       */
      public ImageHandlerBuilder resizeToWidth(int size) {
+         if (image.getWidth() < size) return this;
          BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_TO_WIDTH, size);
          image.flush();
          image = resize;
