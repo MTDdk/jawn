@@ -21,8 +21,8 @@ import javax.ws.rs.core.HttpHeaders;
 import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.exceptions.InitException;
-import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.templates.TemplateEngine;
+import net.javapla.jawn.core.util.SearchTrie;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,17 +38,23 @@ public class RequestDispatcher implements Filter {
     private ServletContext servletContext;
     private String[] exclusions;
 
-    private Injector injector;
+    private final Injector injector;
 
-    private FrameworkBootstrap bootstrapper;
+    private final FrameworkBootstrap bootstrapper;
+    private final FrameworkEngine engine;
+    
+    
+    public RequestDispatcher() {
+        bootstrapper = new FrameworkBootstrap();
+        bootstrapper.boot();
+        injector = bootstrapper.getInjector();
+        engine = injector.getInstance(FrameworkEngine.class);
+    }
     
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         this.servletContext = filterConfig.getServletContext();
         
-        bootstrapper = new FrameworkBootstrap();
-        bootstrapper.boot();
-        injector = bootstrapper.getInjector();
         
         // find paths inside webapp, that are NOT WEB-INF
         Set<String> exclusionPaths = findExclusionPaths();
@@ -67,6 +73,8 @@ public class RequestDispatcher implements Filter {
 //        logger.debug("Setting encoding: " + enc);
         
 //        root_controller = filterConfig.getInitParameter("root_controller");
+        
+        
         logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(PropertiesImpl.class).getMode());
     }
 
@@ -125,9 +133,9 @@ public class RequestDispatcher implements Filter {
         //MTD: filtering resources
         if (filteringResources(request, response, chain, path)) return;
 
-        ContextImpl context = (ContextImpl) injector.getInstance(Context.class);
+        ContextInternal context = injector.getInstance(ContextInternal.class);
         context.init(/*servletContext, */request, response);
-        FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
+        
         engine.runRequest(context);
     }
 
@@ -204,26 +212,35 @@ public class RequestDispatcher implements Filter {
      * @author MTD
      */
     private String translateResource(String servletPath) {
-        // TODO look at the necessity of this line. 
-        // Its purpose is to serve single files not in a folder of the root webapp - like favicon.ico
+        // This looks at the start of the of the URL to check for resource paths in the root webapp.
         // Example: exclusions = ['/images','/css','/favicon.ico']
+        //         servletPath = /images/bootstrap/cursor.gif
         for (String path : exclusions)
-            if (path.equals(servletPath))
+            if (servletPath.startsWith(path)) // startsWith uses its internal array without any copying
                 return servletPath;
         
-        int start = 0, end = servletPath.indexOf('/',1);
+        // If nothing was found, then perhaps the URL had a language prefix
+        int start = servletPath.indexOf('/',1);
+        String segment = servletPath.substring(start);
+        for (String path : exclusions) { // this is most likely faster than Arrays#binarySearch as exclusions is extremely small
+            if (segment.startsWith(path))
+                return segment;
+        }
+        
+        // If we have to look past for more than a single URL segment
+        /*int start = servletPath.indexOf('/',1), end = start;
         String segment;
         while (end > -1) { // fail fast
-            segment = servletPath.substring(start, end);
-            for (String path : exclusions) // this is most likely faster than Arrays#binarySearch as exclusions is extremely small
-                if (path.equals(segment))
-                    return servletPath.substring(start);
+            segment = servletPath.substring(start);
+            for (String path : exclusions) { 
+                if (segment.startsWith(path))
+                    return segment;
+            }
             start = end;
             end = servletPath.indexOf('/',start+1);
-        }
+        }*/
         return null;
     }
-    
     
     @Override
     public void destroy() {

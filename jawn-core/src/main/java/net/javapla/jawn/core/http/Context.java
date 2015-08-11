@@ -28,7 +28,6 @@ public interface Context {
      */
     interface Internal extends Context {
         public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException;
-//        public void init(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response);
     }
     
     /**

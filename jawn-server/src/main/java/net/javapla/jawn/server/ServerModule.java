@@ -26,6 +26,7 @@ public class ServerModule extends AbstractModule {
         bind(Router.class).toInstance(router);
         
         bind(Context.class).to(ContextImpl.class);
+        bind(ContextInternal.class).to(ContextImpl.class);
     }
 
 }

@@ -45,7 +45,7 @@ import com.google.inject.Inject;
 /**
  * @author MTD
  */
-class ContextImpl implements Context.Internal {
+class ContextImpl implements ContextInternal {
     
     private final PropertiesImpl properties;
     private final ParserEngineManager parserManager;
@@ -70,7 +70,7 @@ class ContextImpl implements Context.Internal {
         this.parserManager = parserManager;
     }
     
-    void init(/*ServletContext servletContext, */HttpServletRequest request, HttpServletResponse response) {
+    public void init(/*ServletContext servletContext, */HttpServletRequest request, HttpServletResponse response) {
         this.servletContext = request.getServletContext();//servletContext;
         this.request = request;
         this.response = response;
