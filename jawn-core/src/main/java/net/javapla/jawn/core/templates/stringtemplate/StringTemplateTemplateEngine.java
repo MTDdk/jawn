@@ -129,7 +129,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
               renderContentTemplate(contentTemplate, writer, values, language, error);
 
           } else { // with layout
-              String controller = template;
+              String controller = template; //TODO this ought to be the calling controller and not just the template's parent folder 
               if (template.charAt(0) == '/')
                   controller = template.substring(1, template.lastIndexOf('/')); // remove leading '/'
 

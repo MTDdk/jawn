@@ -61,8 +61,7 @@ public class FrameworkBootstrap {
         
         // Read all the configuration from the user
         ApplicationConfig appConfig = new ApplicationConfig();
-//        SecurityFilterFactory security = new SecurityFilterFactory();
-        FiltersHandler filters = new FiltersHandler(/*security*/);
+        FiltersHandler filters = new FiltersHandler();
         Router router = new Router(filters);
         DatabaseConnections connections = new DatabaseConnections();
         
@@ -172,7 +171,7 @@ public class FrameworkBootstrap {
     
     private ApplicationBootstrap readConfiguration(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {
         
-        Reflections reflections = new Reflections("app.config");
+        Reflections reflections = new Reflections("app.config");//TODO write into some properties file
         
         //TODO if multiple implementations were found - write something in the log
         
@@ -264,16 +263,4 @@ public class FrameworkBootstrap {
         return list.get(0).getMessage();
     }
     
-    private void initiateFilters(FiltersHandler filters, Injector localInjector/*, SecurityFilterFactory security*/) {
-        // Get current database connection (if any)
-//        DatabaseConnection connection = localInjector.getInstance(DatabaseConnection.class);
-//        filters.setDatabaseConnection(connection);
-        
-        
-        // Create and inject the security framework
-//        Context context = localInjector.getInstance(Context.class); //README Context is NOT fully ready at this point, as it needs request,response
-//        security.initialiseSecurityManager(connection, context);
-//        SecurityFilterFactory security = new SecurityFilterFactory(connection, context);
-//        filters.setSecurityFilterFactory(security);
-    }
 }
