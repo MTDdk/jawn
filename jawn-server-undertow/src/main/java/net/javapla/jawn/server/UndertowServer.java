@@ -70,23 +70,26 @@ public class UndertowServer implements JawnServer {
     
     private void configureServerPerformance(Builder serverBuilder, ServerConfig config) {
         // TODO investigate serverBuilder.setWorkerThreads
-        // Per default it gets set to ioThreads * 8, but it does not get updated, when setting ioThreads,
-        // so we need to set it explicitly
+        // Per default Builder#setWorkerThreads gets set to ioThreads * 8, but it does not get updated, when setting ioThreads,
+        // so we need to set worker threads explicitly
+        
+        
+        int undertow_minimum = 2;//may not be less than 2 because of the inner workings of Undertow
         switch (config.getServerPerformance()) {
             case HIGHEST:
-                serverBuilder.setIoThreads(Runtime.getRuntime().availableProcessors() * 2);
+                serverBuilder.setIoThreads(Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum));
                 break;
             case HIGH:
-                serverBuilder.setIoThreads(Runtime.getRuntime().availableProcessors());
+                serverBuilder.setIoThreads(Math.max(Runtime.getRuntime().availableProcessors(), undertow_minimum));
                 break;
             case MEDIUM:
-                serverBuilder.setIoThreads(Math.max(Runtime.getRuntime().availableProcessors() / 2, 2));
+                serverBuilder.setIoThreads(Math.max(Runtime.getRuntime().availableProcessors() / 2, undertow_minimum));
                 break;
             case MINIMAL:
-                serverBuilder.setIoThreads(2);//may not be less than 2 because of the inner workings of Undertow 
+                serverBuilder.setIoThreads(undertow_minimum); 
                 break;
             case CUSTOM:
-                serverBuilder.setIoThreads(Math.max(config.getIoThreads(), 2));
+                serverBuilder.setIoThreads(Math.max(config.getIoThreads(), undertow_minimum));
                 break;
         }
     }
