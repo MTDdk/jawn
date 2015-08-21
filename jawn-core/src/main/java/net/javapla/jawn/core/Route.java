@@ -9,8 +9,10 @@ import net.javapla.jawn.core.spi.FilterChain;
  * 
  * This class cannot hold state within the context of a request, as this class is
  * just a simple representation of a possible route in the system.
- *  
+ * 
  * @author MTD
+ * @implSpec
+ *      This class is immutable and thread-safe
  */
 public class Route extends InternalRoute {
 //    public static final String ROOT_CONTROLLER_NAME = "index";//README could be set in filter.init()
