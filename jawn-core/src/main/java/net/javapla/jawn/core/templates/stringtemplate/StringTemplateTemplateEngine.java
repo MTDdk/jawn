@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
@@ -120,18 +120,18 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
       
       final ErrorBuffer error = new ErrorBuffer();
       ST contentTemplate = locateTemplate(group, template);
-      if (contentTemplate == null) throw new ViewException("Could not find the template " + template + ". Is it spelled correctly?");
 
       try (Writer writer = stream.getWriter()) {
 
           if (layout == null) { // no layout
-
+              // both layout and template cannot be null
+              if (contentTemplate == null) throw new ViewException("Could not find the template " + contentTemplate + ". Is it spelled correctly?");
               renderContentTemplate(contentTemplate, writer, values, language, error);
 
           } else { // with layout
-              String controller = template; //TODO this ought to be the calling controller and not just the template's parent folder 
-              if (template.charAt(0) == '/')
-                  controller = template.substring(1, template.lastIndexOf('/')); // remove leading '/'
+              // Get the calling controller and not just rely on the folder for the template.
+              // An action might specify a template that is not a part of the controller.
+              String controller = TemplateEngineHelper.getControllerForResult(context.getRoute());
 
               String content = renderContentTemplate(contentTemplate, values, language, error);
 
@@ -192,6 +192,9 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         // forces it to read templates from disk
         if (! useCache)
             group.unload();
+        //README apparently this *might* be called multiple times during first reads (maybe even other times as well),
+        // resulting in a ConcurrentModicifationException from the ArrayList internal of StringTemplate.
+        // Something needs to be done about this.
     }
     
     private ST locateTemplate(STGroupDir group, String template) {
@@ -261,19 +264,22 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         
         SiteConfiguration conf = configReader.read(getTemplateFolder(ctx), controller, useCache);
         Site site = new Site(
-                    //add title
-                    conf.title,
-                    
-                    //add language (if any)
-                    language,
-                    
-                    //add scripts
-                    readLinks(StringTemplateTemplate.SCRIPTS_TEMPLATE, conf.scripts, error),
-                    readLinks(StringTemplateTemplate.STYLES_TEMPLATE, conf.styles, error),
-                    
-                    // put the rendered content into the main template
-                    content
-                );
+            //add the URL
+            ctx.requestUrl(),
+                
+            //add title
+            conf.title,
+            
+            //add language (if any)
+            language,
+            
+            //add scripts
+            readLinks(StringTemplateTemplate.SCRIPTS_TEMPLATE, conf.scripts, error),
+            readLinks(StringTemplateTemplate.STYLES_TEMPLATE, conf.styles, error),
+            
+            // put the rendered content into the main template
+            content
+        );
         
         // put everything into the reserved keyword
         layoutTemplate.add("site", site);
