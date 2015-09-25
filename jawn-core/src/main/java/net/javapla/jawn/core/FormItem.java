@@ -19,6 +19,8 @@ package net.javapla.jawn.core;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.google.common.base.Charsets;
+
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.util.StreamUtil;
 
@@ -160,7 +162,7 @@ public class FormItem {
      */
     public String getStreamAsString(){
         try (InputStream is = fileItemStream.openStream()) {
-            return StreamUtil.read(is);
+            return StreamUtil.read(is,Charsets.UTF_8);
         } catch (Exception e) {
             throw new ControllerException(e);
         }

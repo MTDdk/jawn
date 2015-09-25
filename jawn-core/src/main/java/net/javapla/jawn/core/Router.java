@@ -13,6 +13,7 @@ import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.spi.Routes;
+import net.javapla.jawn.core.util.RouteTrie;
 import net.javapla.jawn.core.util.StringUtil;
 
 import com.google.inject.Injector;
@@ -39,12 +40,33 @@ public class Router implements Routes {
     
     private final List<RouteBuilder> builders;
     private final FiltersHandler filters;
+    private final boolean isDev;
+    
+    // This is a difficult and potential harmful one.
+    // It is very possible to fill the tries with extremely large amounts of routes.
+    // These routes can be expensive to hold in constant memory, so a mechanism
+    // for similar routes pointing at the same Route instance needs to be thought up TODO
+//    private final Map<HttpMethod, RouteTrie> cachedRoutes;
+    private final RouteTrie cachedGetRoutes;
     
     private List<Route> routes;
     
-    public Router(FiltersHandler filters) {
+    
+    public Router(FiltersHandler filters, PropertiesImpl properties) {
         builders = new ArrayList<>();
         this.filters = filters;
+        
+        this.isDev = properties.isDev();
+        
+        /*if (!isDev) {
+            this.cachedRoutes = new HashMap<>();
+            for(HttpMethod method : HttpMethod.values()) {
+                cachedRoutes.put(method, new RouteTrie());
+            }
+        } else {
+            cachedRoutes = null;
+        }*/
+        cachedGetRoutes = new RouteTrie();
     }
     
     public RouteBuilder GET() {
@@ -72,31 +94,59 @@ public class Router implements Routes {
         builders.add(bob);
         return bob;
     }
+
     
+    public Route retrieveRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
+        // only do some caching if we are not in dev mode and the request is a GET
+//        if (isDev || HttpMethod.GET != httpMethod) 
+            return calculateRoute(httpMethod, requestUri, injector);
+        
+        //RouteTrie trie = cachedRoutes.get(httpMethod);
+        /*Route route = cachedGetRoutes.findRoute(requestUri.toCharArray());
+        if (route == null) {
+            route = getRoute(httpMethod, requestUri, injector);
+            cachedGetRoutes.insert(requestUri, route);
+//            cachedGetRoutes.insert(route.uri, route);
+        }
+        return route;*/
+    }
     
     //TODO we need to have the injector somewhere else.
     //It is not consistent that this particular injector handles implementations from both core and server
-    public Route getRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
+    private Route calculateRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
         if (routes == null) compileRoutes(injector); // used to throw an illegalstateexception
         
         // go through custom user routes
+        // TODO surely do we want to store the routes based on HttpMethod, so we do not need to go through ALL of them
         for (Route route : routes) {
             if (route.matches(httpMethod, requestUri)) {
                 
                 // if the route only has an URI defined, then we process the route as if it was an InternalRoute
-                if (route.getActionName() == null && route.getController() == null) {
-                    Route deferred = deduceRoute(route, httpMethod, requestUri, injector);
-                    if (deferred != null) return deferred;
-                    return route;
+                if (route.getActionName() == null) {
+                    if (route.getController() == null) {
+                        Route deferred = deduceRoute(route, httpMethod, requestUri, injector);
+                        if (deferred != null) return deferred;
+                        return route;
+                    } else {
+                        String actionName = deduceActionName(route, requestUri);
+                        return RouteBuilder.build(route, actionName);
+                    }
+                    
+                    /*else {
+                        RouteBuilder bob = RouteBuilder.method(httpMethod);
+                        bob.route(requestUri);
+                        bob.to(route.getController(), deduceAction(route, requestUri));
+                        return bob.build(filters, injector);
+                    }*/
                 }
 
                 // reload the controller, if we are not in production mode
-                boolean isDev = injector.getInstance(PropertiesImpl.class).isDev();
+                //boolean isDev = injector.getInstance(PropertiesImpl.class).isDev();
                 if (isDev) {
                     try {
                         // a route might not have the actionName or controller set by the user, so 
                         // we try to infer it from the URI
-                        String actionName = deduceAction(route, requestUri);
+                        String actionName = deduceActionName(route, requestUri);
                         String controllerName = deduceControllerName(route, requestUri);
                         
                         RouteBuilder bob = loadController(controllerName, httpMethod, route.uri, actionName, false);
@@ -126,9 +176,16 @@ public class Router implements Routes {
         if (routes != null) return; // used to throw an illegalstateexception
         
         List<Route> r = new ArrayList<>();
+        
+        // Build the user attributed routes
         for (RouteBuilder builder : builders) {
             r.add(builder.build(filters, injector));
         }
+        
+        // Build the built in routes
+//        ControllerFinder finder = new ControllerFinder("app.controllers");
+//        System.out.println("?????????????    :::  " + finder.controllers.keySet());
+        
         routes = Collections.unmodifiableList(r);
     }
     
@@ -158,7 +215,7 @@ public class Router implements Routes {
         // find a route that actually exists
         try {
             String className = c.getControllerClassName();
-            boolean isDev = injector.getInstance(PropertiesImpl.class).isDev();
+            //boolean isDev = injector.getInstance(PropertiesImpl.class).isDev();
             RouteBuilder bob = loadController(className, httpMethod, route.uri, c.getAction(), !isDev);
             
             //TODO cache the routes if !isDev
@@ -173,7 +230,7 @@ public class Router implements Routes {
         return null;
     }
     
-    private String deduceAction(Route route, String requestUri) {
+    private String deduceActionName(Route route, String requestUri) {
         String actionName = route.getActionName();
         if (actionName == null) {
             // try to infer the action
@@ -184,6 +241,7 @@ public class Router implements Routes {
         return actionName;
     }
     
+    //TODO do not deduce action and controllername seperately (even though it is only during DEV)
     private String deduceControllerName(Route route, String requestUri) {
         String controllerName;
         if (route.getController() == null) {
@@ -198,8 +256,7 @@ public class Router implements Routes {
     }
     
     private RouteBuilder loadController(String controllerName, HttpMethod httpMethod, String uri, String actionName, boolean useCache) throws CompilationException, ClassLoadException {
-        Class<? extends Controller> controller = 
-                DynamicClassFactory.getCompiledClass(controllerName, Controller.class, useCache);
+        Class<? extends Controller> controller = DynamicClassFactory.getCompiledClass(controllerName, Controller.class, useCache);
         RouteBuilder bob = RouteBuilder.method(httpMethod);
         bob.route(uri);
         bob.to(controller, actionName);

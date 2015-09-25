@@ -4,6 +4,7 @@ import java.text.MessageFormat;
 import java.util.List;
 
 import net.javapla.jawn.core.exceptions.ControllerException;
+import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ControllerActionInvoker;
 import net.javapla.jawn.core.spi.Filter;
@@ -68,24 +69,11 @@ public class RouteBuilder {
     
     public RouteBuilder to(Class<? extends Controller> type) {
         this.type = type;
-        this.actionName = DEFAULT_ACTION_NAME;
-//        try {
-//            this.controller = type.newInstance();
-//        } catch (InstantiationException | IllegalAccessException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
+        //this.actionName = DEFAULT_ACTION_NAME;
         return this;
     }
     
     public RouteBuilder to(Class<? extends Controller> type, String action) /*throws ControllerException*/{
-//        try {
-//            this.controller = type.newInstance();
-//        } catch (InstantiationException | IllegalAccessException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-        
         // verify that the controller has the corresponding action
         // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
 //        if ( ! controller.isAllowedAction(NewRoute.constructAction(action, httpMethod)) )
@@ -112,8 +100,8 @@ public class RouteBuilder {
     
     
     /**
-     * Build the route
-     * @return
+     * Build the route.
+     * @return the built route
      */
     Route build(FiltersHandler filters, Injector injector) throws IllegalStateException, ControllerException {
 //        if (controller == null) throw new IllegalStateException("Route not with a controller");
@@ -134,10 +122,18 @@ public class RouteBuilder {
         if (/*actionName != null && */type != null)
         // verify that the controller has the corresponding action
         // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
-        if ( ! ControllerActionInvoker.isAllowedAction(type, action/*route.getAction()*/))//controller.isAllowedAction(route.getAction()) )
-            throw new ControllerException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
+        if ( ! ControllerActionInvoker.isAllowedAction(type, action/*route.getAction()*/))
+            throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
         
         return route;
+    }
+    
+    final static Route build(Route route, String actionName) {
+        String action = constructAction(actionName, route.getHttpMethod());
+        if ( ! ControllerActionInvoker.isAllowedAction(route.getController(), action/*route.getAction()*/))
+            throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", route.getController(), route.getAction()));
+        
+        return new Route(route.uri, route.getHttpMethod(), route.getController(), action, actionName, route.getFilterChain());
     }
     
     private FilterChain buildFilterChain(FilterChain chainEnd,/*Injector injector, */List<Filter> filters, Class<? extends Controller> controller/*, boolean isProduction*/) {
@@ -149,7 +145,19 @@ public class RouteBuilder {
         }
     }
     
-    private String constructAction(String actionName, HttpMethod method) {
+    /**
+     * Creates the action signature for the given action name and http method.
+     * E.g.: actionName = video
+     *       method = GET
+     *       action = getVideo
+     *       
+     * <p>
+     * Special case for actionName = index, as this should be the same for the action itself.
+     * @param actionName
+     * @param method
+     * @return
+     */
+    private static final String constructAction(String actionName, HttpMethod method) {
         if (StringUtil.blank(actionName)) return DEFAULT_ACTION_NAME;
         if (DEFAULT_ACTION_NAME.equals(actionName) && method == HttpMethod.GET)
             return actionName;

@@ -16,13 +16,13 @@ public class RouterHelper {
     /**
      * Generates a path to a controller based on its package and class name. The path always starts with a slash: "/".
      * Examples:
-     * <p></p>
+     * <p>
      * <ul>
      * <li>For class: <code>app.controllers.Simple</code> the path will be: <code>/simple</code>.</li>
      * <li>For class: <code>app.controllers.admin.PeopleAdmin</code> the path will be: <code>/admin/people_admin</code>.</li>
      * <li>For class: <code>app.controllers.admin.simple.PeopleAdmin</code> the path will be: <code>/admin/simple/people_admin</code>.</li>
      * </ul>
-     * <p></p>
+     * <p>
      * Class name looses the "Controller" suffix and gets converted to underscore format, while packages stay unchanged.
      *
      * @param controllerClass class of a controller.

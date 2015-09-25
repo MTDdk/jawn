@@ -24,7 +24,7 @@ public class ResponseBuilder {
     
     
     public static Response ok() {
-        return new Response(Status.OK.getStatusCode());
+        return new Response(Status.OK.getStatusCode());//.renderable(new NoHttpBody());
     }
     public static Response noContent() {
         return new Response(Status.NO_CONTENT.getStatusCode()).renderable(new NoHttpBody());
@@ -174,7 +174,7 @@ public class ResponseBuilder {
         public ResponseBuilder ok() {
 //            this.builder.controllerResponse.setStatus(javax.ws.rs.core.Response.Status.OK.getStatusCode());
 //            return builder;
-            builder.setStatus(Status.OK.getStatusCode());
+            builder.setStatus(Status.OK.getStatusCode()).setNoContent();
             return builder;
         }
         /**

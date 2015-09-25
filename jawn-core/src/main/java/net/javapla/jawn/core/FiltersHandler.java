@@ -3,12 +3,20 @@ package net.javapla.jawn.core;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import net.javapla.jawn.core.reflection.ControllerFinder;
 import net.javapla.jawn.core.spi.Filter;
 import net.javapla.jawn.core.spi.Filters;
 
+import org.reflections.ReflectionUtils;
 import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+
+import com.google.common.collect.Multimap;
 
 /**
  * FilterHandler
@@ -145,9 +153,40 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
         public final FilterBuilder<T> toPackage( String packageName ) {
             if (!packageName.startsWith("app.controllers"))
                 packageName = "app.controllers." + packageName;
-            Reflections reflect = new Reflections(packageName);
+            /*Reflections reflect = new Reflections(packageName/*, new SubTypesScanner() {
+                @Override
+                public void scan(Object cls) {
+                    super.scan(cls);
+
+                    // adding an extra level to the hierarchy (EXTREMELY and ridiculously bad implementation)
+                    String className = getMetadataAdapter().getClassName(cls);
+                    String superclass = getMetadataAdapter().getSuperclassName(cls);
+                    if (acceptResult(superclass)) {
+                        String supersuperclass = cls.getClass().getSuperclass().getSuperclass().getName();
+                        getStore().put(supersuperclass, className);
+                    }
+                }
+            });*/
+            /*Reflections reflect = new Reflections(
+                    new ConfigurationBuilder()
+                        .setUrls(ClasspathHelper.forPackage(packageName))
+                        .setScanners(new SubTypesScanner(false))
+                        .filterInputsBy(new org.reflections.util.FilterBuilder().includePackage(packageName)));
+            
+            //TODO Create custom subtype scanner to include all classes with a Controller in the hierarchy
+            // and not just as a direct descender.
             Set<Class<? extends Controller>> classes = reflect.getSubTypesOf(Controller.class);
-            this.controllers = classes.toArray(new Class[0]);
+            System.out.println("-----------" + classes);
+            ArrayList<String> cc = new ArrayList<>();
+            Set<String> keys = reflect.getStore().keySet();
+            for (String key : keys) {
+                Multimap<String, String> multimap = reflect.getStore().get(key);
+                for (Entry<String, String> entry : multimap.entries()) {
+                    cc.add(entry.getValue());
+                }
+            }*/
+            ControllerFinder cf = new ControllerFinder(packageName);
+            this.controllers = cf.controllers.values().toArray(new Class[cf.controllers.size()]);//classes.toArray(new Class[classes.size()]);
             return this;
         }
         

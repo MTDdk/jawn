@@ -338,13 +338,26 @@ public abstract class Controller implements ResponseHolder {
             view(key, values.get(key));
         }
     }
-
+    
+    @SuppressWarnings("unchecked")
+    protected void view(Object value) {
+        if (value instanceof Map) {
+            view((Map<String, Object>)value);
+        } else if (value instanceof String) {
+            view(value, value);
+        } else if (value instanceof Object[]) {
+            throw new ControllerException("Name of the value could not be guessed");
+        } else {
+            view(value.getClass().getSimpleName(), value);
+        }
+    }
+    
     /**
-     * Convenience method, calls {@link #assign(String, Object)} internally.
+     * Convenience method, calls {@link #view(Map)} internally.
      *
      * @param values An even list of key/value pairs
      */
-    protected void view(Object ... values){
+    protected void view(Object ... values) {
         view(CollectionUtil.map(values));
     }
 
@@ -1372,59 +1385,59 @@ public abstract class Controller implements ResponseHolder {
         return context.method();
     }
 
-    /**
-     * True if this request uses HTTP GET method, false otherwise.
-     *
-     * @return True if this request uses HTTP GET method, false otherwise.
-     */
-    protected boolean isGet() {
-        return "GET".equalsIgnoreCase(method());
-    }
-
-
-    /**
-     * True if this request uses HTTP POST method, false otherwise.
-     *
-     * @return True if this request uses HTTP POST method, false otherwise.
-     */
-    protected boolean isPost() {
-        return "POST".equalsIgnoreCase(method());
-    }
-
-
-    /**
-     * True if this request uses HTTP PUT method, false otherwise.
-     *
-     * @return True if this request uses HTTP PUT method, false otherwise.
-     */
-    protected boolean isPut() {
-        return "PUT".equalsIgnoreCase(method());//return RequestUtils.isPut();
-    }
-
-
-    /**
-     * True if this request uses HTTP DELETE method, false otherwise.
-     *
-     * @return True if this request uses HTTP DELETE method, false otherwise.
-     */
-    protected boolean isDelete() {
-        return "DELETE".equalsIgnoreCase(method());///return RequestUtils.isDelete();
-    }
-
-
-    /*private boolean isMethod(String method){
-        return RequestUtils.isMethod(method);
-    }*/
-
-
-    /**
-     * True if this request uses HTTP HEAD method, false otherwise.
-     *
-     * @return True if this request uses HTTP HEAD method, false otherwise.
-     */
-    protected boolean isHead() {
-        return "HEAD".equalsIgnoreCase(method());//RequestUtils.isHead();
-    }
+//    /**
+//     * True if this request uses HTTP GET method, false otherwise.
+//     *
+//     * @return True if this request uses HTTP GET method, false otherwise.
+//     */
+//    protected boolean isGet() {
+//        return "GET".equalsIgnoreCase(method());
+//    }
+//
+//
+//    /**
+//     * True if this request uses HTTP POST method, false otherwise.
+//     *
+//     * @return True if this request uses HTTP POST method, false otherwise.
+//     */
+//    protected boolean isPost() {
+//        return "POST".equalsIgnoreCase(method());
+//    }
+//
+//
+//    /**
+//     * True if this request uses HTTP PUT method, false otherwise.
+//     *
+//     * @return True if this request uses HTTP PUT method, false otherwise.
+//     */
+//    protected boolean isPut() {
+//        return "PUT".equalsIgnoreCase(method());//return RequestUtils.isPut();
+//    }
+//
+//
+//    /**
+//     * True if this request uses HTTP DELETE method, false otherwise.
+//     *
+//     * @return True if this request uses HTTP DELETE method, false otherwise.
+//     */
+//    protected boolean isDelete() {
+//        return "DELETE".equalsIgnoreCase(method());///return RequestUtils.isDelete();
+//    }
+//
+//
+//    /*private boolean isMethod(String method){
+//        return RequestUtils.isMethod(method);
+//    }*/
+//
+//
+//    /**
+//     * True if this request uses HTTP HEAD method, false otherwise.
+//     *
+//     * @return True if this request uses HTTP HEAD method, false otherwise.
+//     */
+//    protected boolean isHead() {
+//        return "HEAD".equalsIgnoreCase(method());//RequestUtils.isHead();
+//    }
 
     /**
      * Provides a context of the request - usually an app name (as seen on URL of request). Example:

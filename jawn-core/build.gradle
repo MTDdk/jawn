@@ -33,7 +33,8 @@ dependencies {
 	
 	/* Template Engines */
 	//StringTemplate
-	compile 'org.antlr:ST4:4.0.8'
+	compile('org.antlr:ST4:4.0.8')// { exclude module: 'antlr-runtime'}
+    
 
 	
 	//ImgScalr (image manipulation)
@@ -48,8 +49,4 @@ dependencies {
     
     //Test
     testCompile 'junit:junit:4.12'
-}
-
-test {
-	ignoreFailures true
 }

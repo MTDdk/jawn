@@ -31,7 +31,7 @@ class InternalRoute {
     
     
     /**
-     * Matches /index to /index or /me/1 to /person/{id}
+     * Matches /index to /index or /person/1 to /person/{id}
      *
      * @return True if the actual route matches a raw route. False if not.
      */
@@ -48,14 +48,26 @@ class InternalRoute {
      * Most likely with:
      * http://docs.oracle.com/javase/6/docs/api/java/net/URI.html
      *
-     * @param uri The whole encoded uri.
+     * @param requestUri The whole encoded uri.
      * @return A map with all parameters of that uri. Encoded in => encoded out.
      */
-    public Map<String, String> getPathParametersEncoded(String uri) {
-        Map<String, String> map = new HashMap<>();
-
-        Matcher m = regex.matcher(uri);
+    public Map<String, String> getPathParametersEncoded(String requestUri) {
         
+        Matcher m = regex.matcher(requestUri);
+        
+        return mapParametersFromPath(requestUri, parameters, m);
+    }
+    
+    public static Map<String, String> mapPathParameters(String requestUri) {
+        List<String> parameters = parseParameters(requestUri);
+        
+        Pattern regex = Pattern.compile(convertRawUriToRegex(requestUri));
+        Matcher m = regex.matcher(requestUri);
+        
+        return mapParametersFromPath(requestUri, parameters, m);
+    }
+    private final static Map<String, String> mapParametersFromPath(String requestUri, List<String> parameters, Matcher m) {
+        Map<String, String> map = new HashMap<>();
         if (m.matches()) {
             for (int i = 1; i < m.groupCount() + 1; i++) {
                 map.put(parameters.get(i - 1), m.group(i));
@@ -63,17 +75,6 @@ class InternalRoute {
         }
         return map;
     }
-//    @Deprecated
-//    protected Map<String, String> getPathParametersEncoded(Matcher m, List<String> parameters) {
-//        Map<String, String> map = new HashMap<>();
-//
-//        if (m.matches()) {
-//            for (int i = 1; i < m.groupCount() + 1; i++) {
-//                map.put(parameters.get(i - 1), m.group(i));
-//            }
-//        }
-//        return map;
-//    }
     
     protected static List<String> parseParameters(String uri) {
         List<String> params = new ArrayList<>();
@@ -136,5 +137,10 @@ class InternalRoute {
     @Override
     public String toString() {
         return uri;
+    }
+    
+    @Override
+    public int hashCode() {
+        return uri.hashCode();
     }
 }

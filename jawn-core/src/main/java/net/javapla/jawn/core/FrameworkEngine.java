@@ -86,8 +86,13 @@ public class FrameworkEngine {
         }
         
         try {
-            
-            Route route = router.getRoute(context.getHttpMethod(), uri, injector);
+
+//            long time = System.nanoTime();
+            /*68318*/
+//            Route route = router.getRoute(context.getHttpMethod(), uri, injector);
+            /*16062*/
+            Route route = router.retrieveRoute(context.getHttpMethod(), uri, injector);
+//            System.out.println("Timing :: " + (System.nanoTime() - time));
             context.setRouteInformation(route, format, language, uri);
             
             if (route != null) {
@@ -159,7 +164,7 @@ public class FrameworkEngine {
                 logger.error("Failed to render a template: '" + template
                         + "' because templates are rendered with Writer, but you probably already used OutputStream");
             } else {
-                logger.error("Java-web-planet internal error: ", t);
+                logger.error("java-web-planet internal error: ", t);
             }
             try {
                 Response renderable = ResponseBuilder.ok().contentType(MediaType.TEXT_HTML)
@@ -174,9 +179,9 @@ public class FrameworkEngine {
     private void logRequestProperties(Context context, int status, Throwable e) {
         String requestProperties = getRequestProperties(context);
         if (status == 404) {
-            logger.warn("Java-web-planet 404 WARNING: \n" + requestProperties, e);
+            logger.warn("java-web-planet 404 WARNING: {} \n{}", e.getMessage(), requestProperties);
         } else {
-            logger.error("Java-web-planet ERROR: \n" + requestProperties, e);
+            logger.error("java-web-planet ERROR: \n" + requestProperties, e);
         }
     }
     

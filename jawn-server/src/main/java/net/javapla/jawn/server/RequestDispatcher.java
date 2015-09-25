@@ -22,7 +22,6 @@ import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.templates.TemplateEngine;
-import net.javapla.jawn.core.util.SearchTrie;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,7 +141,7 @@ public class RequestDispatcher implements Filter {
     
     
     private boolean redirectUrlEndingWithSlash(String path, HttpServletResponse response) throws IOException {
-        if (path.length() > 1 && path.endsWith("/")) { 
+        if (path.length() > 1 && path.charAt(path.length()-1) == '/') {  //ends with
             response.sendRedirect(path.substring(0, path.length()-1));
             return true;
         }
@@ -221,6 +220,10 @@ public class RequestDispatcher implements Filter {
         
         // If nothing was found, then perhaps the URL had a language prefix
         int start = servletPath.indexOf('/',1);
+        
+        // Do not even try
+        if (start < 0) return null;
+        
         String segment = servletPath.substring(start);
         for (String path : exclusions) { // this is most likely faster than Arrays#binarySearch as exclusions is extremely small
             if (segment.startsWith(path))

@@ -19,13 +19,3 @@ dependencies {
 	compile 'org.eclipse.jetty:jetty-webapp:9.2.10.v20150310'
 }
 
-/* ****************** */
-/*    Eclipse         */
-/* ****************** */
-eclipse {
-	classpath {
-		// we need the output dir to be the same as the one gradle uses when running Jetty
-		// or else the dynamic loading does not apply
-		defaultOutputDir = file('build/classes/main')
-	}
-}

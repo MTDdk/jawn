@@ -14,14 +14,3 @@ dependencies {
 	
 	compile 'javax.servlet:javax.servlet-api:3.1.0'
 }
-
-/* ****************** */
-/*    Eclipse         */
-/* ****************** */
-eclipse {
-	classpath {
-		// we need the output dir to be the same as the one gradle uses when running Jetty
-		// or else the dynamic loading does not apply
-		defaultOutputDir = file('build/classes/main')
-	}
-}

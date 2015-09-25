@@ -83,7 +83,7 @@ class SecurityFilterImpl implements SecurityFilter {
         String password = context.getParameter("password");
         String remember = context.getParameter("rememberMe"); //TODO handle cookie independently with framework
         
-        System.out.println(MessageFormat.format("username {0} + pass {1} + remember {2} --  ip {3}", username, password, remember, context.remoteHost()));
+        System.out.println(MessageFormat.format("username {0} + pass {1} + remember {2} --  ip {3}", username, password, remember, context.ipAddress()));
 
         // get the current user
         // if not already existing, create and save user
@@ -132,7 +132,6 @@ class SecurityFilterImpl implements SecurityFilter {
             System.out.println("not AUTH");
             
             if (context.getHttpMethod() == HttpMethod.POST) {
-                
             
                 UsernamePasswordToken token = new UsernamePasswordToken(username, password);
                 token.setHost(context.host());

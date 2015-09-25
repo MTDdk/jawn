@@ -18,7 +18,7 @@ public class SiteConfiguration implements Cloneable {
     
     @Override
     public String toString() {
-        return "SiteConfiguration: " + title;
+        return String.format("SiteConfiguration: %s %s %s", title, scripts, styles);
     }
     
     @Override

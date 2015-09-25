@@ -24,7 +24,7 @@ import net.javapla.jawn.core.spi.ApplicationFilters;
 import net.javapla.jawn.core.spi.ApplicationRoutes;
 import net.javapla.jawn.core.spi.Filters;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.ModeHelper;
+import net.javapla.jawn.core.util.Modes;
 
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class FrameworkBootstrap {
     private ApplicationBootstrap[] plugins;
 
     public FrameworkBootstrap() {
-        properties = new PropertiesImpl(ModeHelper.determineModeFromSystem());
+        properties = new PropertiesImpl(Modes.determineModeFromSystem());
     }
     
     public FrameworkBootstrap(PropertiesImpl conf) {
@@ -62,7 +62,7 @@ public class FrameworkBootstrap {
         // Read all the configuration from the user
         ApplicationConfig appConfig = new ApplicationConfig();
         FiltersHandler filters = new FiltersHandler();
-        Router router = new Router(filters);
+        Router router = new Router(filters, properties);
         DatabaseConnections connections = new DatabaseConnections();
         
         config = readConfiguration(appConfig, router, filters, connections);

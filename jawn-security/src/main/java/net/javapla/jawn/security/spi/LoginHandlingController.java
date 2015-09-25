@@ -13,6 +13,9 @@ public class LoginHandlingController extends Controller {
 /* **********
  * Security
  * ******** */
+    public void postIndex() {
+        
+    }
     public void postLogin() {
 //            System.err.println("postindex");
 //            redirect(AdminController.class);

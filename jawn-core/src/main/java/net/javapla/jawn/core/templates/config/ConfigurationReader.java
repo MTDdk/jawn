@@ -39,10 +39,10 @@ public class ConfigurationReader {
     }
     
     /**
-     * @see #read(String, String, boolean)
+     * @see #read(String, String, String, boolean)
      */
-    public SiteConfiguration read(String templateFolder, String controller) {
-        return read(templateFolder, controller, false);
+    public SiteConfiguration read(String templateFolder, String controller, String layout) {
+        return read(templateFolder, controller, layout, false);
     }
     /**
      * Reads the {@value #SITE_FILE} of the <code>templateFolder</code> and merges with <code>templateFolder/controller</code>,
@@ -55,6 +55,8 @@ public class ConfigurationReader {
      *      The folder for the controller that is executed. This folder might hold an additional {@value #SITE_FILE},
      *      which will be used to merge with the default configuration file.
      *      This takes precedence over the values in default configuration file.
+     * @param layout
+     * 
      * @param useCache
      *      Use caching of the read configuration
      * @return
@@ -62,23 +64,40 @@ public class ConfigurationReader {
      *      This might be the default configuration, or the merged configuration, or only the controller configuration
      *      if the controller configuration has {@link SiteConfiguration#overrideDefault} set to override everything.
      */
-    public SiteConfiguration read(String templateFolder, String controller, boolean useCache) {
+    public SiteConfiguration read(String templateFolder, String controller, String layout, boolean useCache) {
         Path rootFolder = Paths.get(templateFolder);
 
         // find eventual extra configurations in the controller folder
-        // we skip path.controller+'/'+path.method because we only look for other configurations on controller
+        // we skip path.controller+'/'+path.method because we only look for other configurations on controller level
         SiteConfiguration localConf = readSiteFileWithCache(rootFolder.resolve(controller), useCache);
-        
-        if (localConf.overrideDefault) {
+        if (localConf.overrideDefault)
             return localConf;
-        } else {
+            
+        // Use the SITE_FILE near the index.html
+        if (layout.length() > 1) {
+            Path layoutFolder = rootFolder.resolve(layout);
+            SiteConfiguration mergedConf = mergeSiteFilesWithCache(layoutFolder, controller, localConf, useCache);
+            if (mergedConf.overrideDefault) {
+                return mergedConf;
+            }
+            
+            localConf = mergedConf;
+            controller = createPathIdentification(layout, controller);
+        }
+        
+        //SiteConfiguration mergedConf = mergeSiteFilesWithCache(layoutFolder, controller, localConf, useCache);
+            
+        //} else {
             /*// find root site_file and eventual extra configurations of the controller folder
             SiteConfiguration conf = readSiteFileWithCache(rootFolder, useCache);
             
             SiteConfiguration merged = mergeConfigurations(conf, localConf);
             return merged;*/
+            
+            
+            // Or we simply just try to look for it at the very root
             return mergeSiteFilesWithCache(rootFolder, controller, localConf, useCache);
-        }
+        
     }
     
     private SiteConfiguration readSiteFileWithCache(Path folder, boolean useCache) {
@@ -91,7 +110,7 @@ public class ConfigurationReader {
     
     private SiteConfiguration mergeSiteFilesWithCache(Path rootFolder, String controller, SiteConfiguration localConf, boolean useCache) {
         if (useCache) {
-            String rootPlusController = MessageFormat.format("{0}+{1}", rootFolder.toString(), controller);
+            String rootPlusController = createPathIdentification(rootFolder.toString(), controller);
             return configurationCache
                         .computeIfAbsent(rootPlusController, 
                             f -> mergeConfigurations(readSiteFileWithCache(rootFolder, true), localConf)
@@ -102,6 +121,10 @@ public class ConfigurationReader {
             return mergeConfigurations(conf, localConf);
         }
     }
+    
+    private String createPathIdentification(String folder, String controller) {
+        return MessageFormat.format("{0}+{1}", folder, controller);
+    }
 
     private SiteConfiguration readSiteFile(Path folder) {
         Path rootFile = folder.resolve(SITE_FILE);
@@ -110,7 +133,7 @@ public class ConfigurationReader {
         try (Reader r = new FileReader(rootFile.toFile())) {
             return mapper.readValue(r, SiteConfiguration.class);
         } catch (IOException e) {
-            log.error("Reading site_file", e);
+            log.error("Reading site_file {} \n{}", rootFile, e.getMessage());
         }
         return new SiteConfiguration();
     }

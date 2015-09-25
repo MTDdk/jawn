@@ -416,11 +416,18 @@ class ContextImpl implements ContextInternal {
 
     /**
      * IP address of the requesting client.
+     * If the IP of the request seems to come from a local proxy,
+     * then the X-Forwarded-For header is returned.
      *
      * @return IP address of the requesting client.
      */
     public String remoteAddress(){
-        return request.getRemoteAddr();
+        String remoteAddr = request.getRemoteAddr();
+        
+        // This could be a list of proxy IPs, which the developer could
+        // provide via some configuration
+        if ("127.0.0.1".equals(remoteAddr)) remoteAddr = getParameter("X-Forwarded-For");
+        return remoteAddr;
     }
     
     public String getParameter(String name) {

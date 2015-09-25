@@ -8,7 +8,7 @@ subprojects {
 
 	// maven metadata
 	group = "net.javapla.jawn"
-	version = "0.8.9-b01"
+	version = "0.8.9-b02"
 	
 	repositories {
 	    mavenCentral()

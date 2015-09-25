@@ -44,7 +44,13 @@ public class ControllerActionInvoker {
             //find the method name and run it
             String methodName = route.getAction();
             for (Method method : controller.getClass().getMethods()) {
+                //if (method.getReturnType().equals(Response.class)) 
                 if (methodName.equals( method.getName())) {
+                    
+                    // handle if the return type is 'void'
+                    //if (method.getReturnType().equals(Void.TYPE))
+                    //if (response == null) throw 404Exception();
+                    
                     method.invoke(controller);//route.getController());
                     return controller.getControllerResponse();
                 }

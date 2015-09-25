@@ -22,6 +22,7 @@ import net.javapla.jawn.core.templates.config.Site;
 import net.javapla.jawn.core.templates.config.SiteConfiguration;
 import net.javapla.jawn.core.templates.config.TemplateConfig;
 import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
+import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 
 import org.slf4j.Logger;
@@ -53,6 +54,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     
     private final boolean useCache;
     private final boolean outputHtmlIndented;
+    private final Modes mode;
 
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
@@ -77,6 +79,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         
         useCache = !properties.isDev();
         outputHtmlIndented = !properties.isProd();
+        mode = properties.getMode();
         
         this.configReader = configReader;
     }
@@ -127,7 +130,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
               // both layout and template cannot be null
               if (contentTemplate == null) throw new ViewException("Could not find the template " + contentTemplate + ". Is it spelled correctly?");
               renderContentTemplate(contentTemplate, writer, values, language, error);
-
+              
           } else { // with layout
               // Get the calling controller and not just rely on the folder for the template.
               // An action might specify a template that is not a part of the controller.
@@ -184,8 +187,8 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
             config.renderers.forEach((k, v) -> group.registerRenderer(k, v));
             
             // adding a fallback group that will try to serve from resources instead of webapp/WEB-INF/
-            STGroupDir fallbackGroup = new STRawGroupDir("views", config.delimiterStart, config.delimiterEnd);
-            group.importTemplates(fallbackGroup);
+//            STGroupDir fallbackGroup = new STRawGroupDir("views", config.delimiterStart, config.delimiterEnd);
+//            group.importTemplates(fallbackGroup);
         }
         
         // clears the internal cache of StringTemplate
@@ -262,15 +265,15 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     private void readyLayoutTemplate(ST layoutTemplate, Context ctx, String content, Map<String, Object> values, String controller, String language, ErrorBuffer error) {
         injectTemplateValues(layoutTemplate, values);
         
-        SiteConfiguration conf = configReader.read(getTemplateFolder(ctx), controller, useCache);
+        SiteConfiguration conf = configReader.read(getTemplateFolder(ctx), controller, layoutTemplate.impl.prefix.substring(1), useCache);
         Site site = new Site(
-            //add the URL
+            // add the URL
             ctx.requestUrl(),
                 
-            //add title
+            // add title
             conf.title,
             
-            //add language (if any)
+            // add language (if any)
             language,
             
             //add scripts
@@ -278,7 +281,10 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
             readLinks(StringTemplateTemplate.STYLES_TEMPLATE, conf.styles, error),
             
             // put the rendered content into the main template
-            content
+            content,
+            
+            // state the current mode
+            mode
         );
         
         // put everything into the reserved keyword
