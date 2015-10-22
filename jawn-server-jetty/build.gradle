@@ -16,6 +16,6 @@ dependencies {
 
 	// Server
 	// includes jetty-server, jetty-servlet
-	compile 'org.eclipse.jetty:jetty-webapp:9.2.10.v20150310'
+	compile 'org.eclipse.jetty:jetty-webapp:9.3.5.v20151012'
 }
 
