@@ -3,26 +3,28 @@ package net.javapla.jawn.core;
 import java.text.MessageFormat;
 import java.util.List;
 
+import net.javapla.jawn.core.api.Filter;
+import net.javapla.jawn.core.api.FilterChain;
+import net.javapla.jawn.core.api.FilterChainEnd;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ControllerActionInvoker;
-import net.javapla.jawn.core.spi.Filter;
-import net.javapla.jawn.core.spi.FilterChain;
-import net.javapla.jawn.core.spi.FilterChainEnd;
+import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StringUtil;
 
 import com.google.inject.Injector;
 
 public class RouteBuilder {
     
-    public static final String ROOT_CONTROLLER_NAME = "index";//README could be set in filter.init()
-    public static final String DEFAULT_ACTION_NAME = "index";
+//    public static final String ROOT_CONTROLLER_NAME = "index";//README could be set in filter.init()
+//    public static final String DEFAULT_ACTION_NAME = "index";
 
     private final HttpMethod httpMethod;
     private String uri;
 //    private AppController controller; //README see ControllerActionInvoker
     private String actionName; // is not prefixed with the http method
+//    private Method actionMethod;
     private Class<? extends Controller> type;
     
     private RouteBuilder(HttpMethod m) {
@@ -30,27 +32,27 @@ public class RouteBuilder {
 //        actionName = DEFAULT_ACTION_NAME;
     }
     
-    static RouteBuilder get() {
+    public static RouteBuilder get() {
         return new RouteBuilder(HttpMethod.GET);
     }
     
-    static RouteBuilder post() {
+    public static RouteBuilder post() {
         return new RouteBuilder(HttpMethod.POST);
     }
     
-    static RouteBuilder put() {
+    public static RouteBuilder put() {
         return new RouteBuilder(HttpMethod.PUT);
     }
     
-    static RouteBuilder delete() {
+    public static RouteBuilder delete() {
         return new RouteBuilder(HttpMethod.DELETE);
     }
     
-    static RouteBuilder head() {
+    public static RouteBuilder head() {
         return new RouteBuilder(HttpMethod.HEAD);
     }
     
-    static RouteBuilder method(HttpMethod method) {
+    public static RouteBuilder method(HttpMethod method) {
         return new RouteBuilder(method);
     }
     
@@ -98,12 +100,19 @@ public class RouteBuilder {
         return this;
     }
     
+   /* public RouteBuilder to(Class<? extends Controller> type, Method action) {
+        this.type = type;
+        this.actionMethod = action;
+        
+        return this;
+    }*/
+    
     
     /**
      * Build the route.
      * @return the built route
      */
-    Route build(FiltersHandler filters, Injector injector) throws IllegalStateException, ControllerException {
+    public Route build(FiltersHandler filters, Injector injector) throws IllegalStateException, ControllerException {
 //        if (controller == null) throw new IllegalStateException("Route not with a controller");
         if (uri == null) throw new IllegalStateException("Route is not specified");
         
@@ -125,6 +134,10 @@ public class RouteBuilder {
         if ( ! ControllerActionInvoker.isAllowedAction(type, action/*route.getAction()*/))
             throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
         
+        try {
+            route.setActionMethod(route.getController().getMethod(action));
+        } catch (NoSuchMethodException | SecurityException ignore) {}
+        
         return route;
     }
     
@@ -133,7 +146,11 @@ public class RouteBuilder {
         if ( ! ControllerActionInvoker.isAllowedAction(route.getController(), action/*route.getAction()*/))
             throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", route.getController(), route.getAction()));
         
-        return new Route(route.uri, route.getHttpMethod(), route.getController(), action, actionName, route.getFilterChain());
+        Route newRoute = new Route(route.uri, route.getHttpMethod(), route.getController(), action, actionName, route.getFilterChain());
+        try {
+            newRoute.setActionMethod(route.getController().getMethod(action));
+        } catch (NoSuchMethodException | SecurityException ignore) {}
+        return newRoute;
     }
     
     private FilterChain buildFilterChain(FilterChain chainEnd,/*Injector injector, */List<Filter> filters, Class<? extends Controller> controller/*, boolean isProduction*/) {
@@ -151,6 +168,10 @@ public class RouteBuilder {
      *       method = GET
      *       action = getVideo
      *       
+     *       actionName = video-upload
+     *       method = POST
+     *       action = postVideoUpload
+     *       
      * <p>
      * Special case for actionName = index, as this should be the same for the action itself.
      * @param actionName
@@ -158,8 +179,8 @@ public class RouteBuilder {
      * @return
      */
     private static final String constructAction(String actionName, HttpMethod method) {
-        if (StringUtil.blank(actionName)) return DEFAULT_ACTION_NAME;
-        if (DEFAULT_ACTION_NAME.equals(actionName) && method == HttpMethod.GET)
+        if (StringUtil.blank(actionName)) return Constants.DEFAULT_ACTION_NAME;
+        if (Constants.DEFAULT_ACTION_NAME.equals(actionName) && method == HttpMethod.GET)
             return actionName;
         return method.name().toLowerCase() + StringUtil.camelize(actionName.replace('-', '_'), true);
     }

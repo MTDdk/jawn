@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.spi;
+package net.javapla.jawn.core.api;
 
 
 public interface ApplicationFilters {

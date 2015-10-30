@@ -79,6 +79,19 @@ public class ResponseBuilder {
         return text(MessageFormat.format(text, objects));
     }
     
+    public Response text(byte[] text) {
+        Response response = ok();
+        holder.setControllerResponse(response);
+        response.contentType(MediaType.TEXT_PLAIN).renderable(text);
+        return response;
+    }
+    public Response text(char[] text) {
+        Response response = ok();
+        holder.setControllerResponse(response);
+        response.contentType(MediaType.TEXT_PLAIN).renderable(text);
+        return response;
+    }
+    
     /**
      * This method will send a JSON response to the client.
      * It will not use any layouts.
@@ -88,8 +101,8 @@ public class ResponseBuilder {
      * @return {@link Response}, to accept additional information. The response is automatically
      * has its content type set to "application/json"
      */
-    public Response json(Object obj) {
-        Response response = ok();
+    public final Response json(Object obj) {
+        final Response response = ok();
         holder.setControllerResponse(response);
         response.contentType(MediaType.APPLICATION_JSON).renderable(obj);
         return response;

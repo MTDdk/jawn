@@ -422,7 +422,7 @@ public abstract class Controller implements ResponseHolder {
     }
     
 
-    protected ResponseBuilder respond() {
+    protected final ResponseBuilder respond() {
         return new ResponseBuilder(this);
     }
 

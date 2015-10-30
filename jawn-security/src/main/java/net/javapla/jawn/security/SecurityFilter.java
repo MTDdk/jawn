@@ -1,6 +1,6 @@
 package net.javapla.jawn.security;
 
-import net.javapla.jawn.core.spi.Filter;
+import net.javapla.jawn.core.api.Filter;
 
 public interface SecurityFilter extends Filter {
 

@@ -37,7 +37,7 @@ public abstract class DynamicClassFactory {
      * @throws CompilationException If the class could not be successfully compiled
      * @throws ClassLoadException 
      */
-    public static <T> T createInstance(String className, Class<T> expectedType, boolean useCache) throws CompilationException, ClassLoadException {
+    public final static <T> T createInstance(String className, Class<T> expectedType, boolean useCache) throws CompilationException, ClassLoadException {
         try {
             Object o = getCompiledClass(className, useCache).newInstance(); // a check to see if the class exists
             T instance = expectedType.cast(o); // a check to see if the class is actually a correct subclass
@@ -54,7 +54,7 @@ public abstract class DynamicClassFactory {
         }
     }
     
-    public static <T> T createInstance(Class<?> clazz, Class<T> expectedType) throws ClassLoadException {
+    public final static <T> T createInstance(Class<?> clazz, Class<T> expectedType) throws ClassLoadException {
         try {
             Object o = createInstance(clazz);
             return expectedType.cast(o);
@@ -64,7 +64,7 @@ public abstract class DynamicClassFactory {
         }
     }
     
-    public static <T> T createInstance(Class<? extends T> clazz) throws ClassLoadException {
+    public final static <T> T createInstance(Class<? extends T> clazz) throws ClassLoadException {
         try {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
@@ -80,7 +80,7 @@ public abstract class DynamicClassFactory {
      * @throws CompilationException
      * @throws ClassLoadException
      */
-    public static Class<?> getCompiledClass(String className, boolean useCache) throws CompilationException, ClassLoadException {
+    public final static Class<?> getCompiledClass(String className, boolean useCache) throws CompilationException, ClassLoadException {
         try {
             if (! useCache) {
                 
@@ -105,7 +105,7 @@ public abstract class DynamicClassFactory {
         }
     }
     
-    public static <T> Class<? extends T> getCompiledClass(String className, Class<T> expected, boolean useCache) throws CompilationException, ClassLoadException {
+    public final static <T> Class<? extends T> getCompiledClass(String className, Class<T> expected, boolean useCache) throws CompilationException, ClassLoadException {
         return getCompiledClass(className, useCache).asSubclass(expected);
     }
     
@@ -124,7 +124,7 @@ public abstract class DynamicClassFactory {
         }
     };
 
-    protected synchronized static String compileClass(String className) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    protected synchronized static final String compileClass(String className) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         String controllerFileName = className.replace(".", System.getProperty("file.separator")) + ".java";
 
@@ -151,7 +151,7 @@ public abstract class DynamicClassFactory {
         return writer.toString();
     }
 
-    private static String getClasspath(URL[] urls) {
+    private static final String getClasspath(URL[] urls) {
         String classpath = "";
         for (URL url : urls) {
             String path = url.getPath();

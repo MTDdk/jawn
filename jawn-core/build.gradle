@@ -1,10 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'eclipse'
-
-// compiler options
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
 
 repositories {
     mavenCentral()
@@ -13,10 +7,10 @@ repositories {
 dependencies {
 
 	compile 'com.google.inject:guice:4.0'
-	compile 'commons-fileupload:commons-fileupload:1.3'
+	compile 'commons-fileupload:commons-fileupload:1.3.1'
 
-	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.5.4'
-	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.5.4' // faster data binding
+	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.6.3'
+	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.6.3' // faster data binding
 	compile 'org.codehaus.woodstox:woodstox-core-asl:4.4.1' // faster XML parsing
     compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
     //compile 'javax.servlet:javax.servlet-api:3.1.0'
@@ -27,7 +21,7 @@ dependencies {
 
     
     // Database
-    compile 'mysql:mysql-connector-java:5.1.36'
+    compile 'mysql:mysql-connector-java:5.1.37'
     compile 'com.mchange:c3p0:0.9.5.1'
 	
 	
@@ -39,7 +33,7 @@ dependencies {
 	
 	//ImgScalr (image manipulation)
 	compile 'org.imgscalr:imgscalr-lib:4.2'
-
+    
 
 	//Compiler
     runtime files("${System.env['JAVA_HOME']}/lib/tools.jar")

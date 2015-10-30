@@ -1,4 +1,4 @@
-package net.javapla.jawn.server.spi;
+package net.javapla.jawn.server.api;
 
 import java.net.ServerSocket;
 
@@ -7,6 +7,14 @@ import net.javapla.jawn.core.util.Modes;
 public class ServerConfig {
     
     /**
+     * Default value is the same as for {@link ServerSocket#bind(java.net.SocketAddress, int)}
+     * @see ServerSocket#bind(java.net.SocketAddress, int)
+     */
+    public static final int BACKLOG_DEFAULT = 50; 
+    
+    /**
+     * Holds default values for common performance modes.
+     * 
      * <p><code>HIGHEST</code> Sets the server to use best configuration for highest possible performance
      * <p><code>HIGH</code> Sets the server to use configuration for high performance
      * <p><code>MEDIUM</code> 
@@ -14,7 +22,13 @@ public class ServerConfig {
      * <p><code>CUSTOM</code> Use the user-inputted configuration, like {@link ServerConfig#setIoThreads(int)}
      *
      */
-    public enum PERFORMANCE_MODE { HIGHEST, HIGH, MEDIUM, MINIMAL, CUSTOM }
+    public enum PERFORMANCE_MODE { HIGHEST(512), HIGH(256), MEDIUM(50), MINIMAL(5), CUSTOM(BACKLOG_DEFAULT);
+        private final int backlog;
+        private PERFORMANCE_MODE(final int backlog) {
+            this.backlog = backlog;
+        }
+        public int getBacklogValue() { return backlog; }
+    }
     
     private String contextPath = "/";
     private int port = 8080;
@@ -26,8 +40,9 @@ public class ServerConfig {
     
     private int ioThreads = 1;
     
-    private int backlog = 50; // default value used in ServerSocket
     private PERFORMANCE_MODE performance = PERFORMANCE_MODE.MEDIUM;
+    private int backlog = 0;
+    private boolean backlogSet = false;
     
     
     public String getContextPath() {
@@ -72,7 +87,7 @@ public class ServerConfig {
     /**
      * Automatically set server performance to PERFORMANCE_MODE#CUSTOM
      * @param number
-     * @return 
+     * @return this for chaining
      */
     public ServerConfig setIoThreads(int number) {
         this.performance = PERFORMANCE_MODE.CUSTOM;
@@ -84,29 +99,27 @@ public class ServerConfig {
     }
     
     /**
-     * Automatically set server performance to PERFORMANCE_MODE#CUSTOM.
-     * 
-     * Default value is the same as for {@link ServerSocket#bind(java.net.SocketAddress, int)}
+     * Sets the backlog value for the ServerSocket.
      * 
      * @see ServerSocket#bind(java.net.SocketAddress, int)
      * @param backlog
+     * @return this for chaining
      */
     public ServerConfig setBacklog(int backlog) {
-        this.performance = PERFORMANCE_MODE.CUSTOM;
-        
         this.backlog = backlog;
-        
+        backlogSet = true;
         return this;
     }
     public int getBacklog() {
-        return backlog;
+        return backlogSet ? backlog : performance.getBacklogValue();
     }
     
     public PERFORMANCE_MODE getServerPerformance() {
         return performance;
     }
-    public void setServerPerformance(PERFORMANCE_MODE mode) {
+    public ServerConfig setServerPerformance(PERFORMANCE_MODE mode) {
         this.performance = mode;
+        return this;
     }
 
     private boolean useauthentication = false;

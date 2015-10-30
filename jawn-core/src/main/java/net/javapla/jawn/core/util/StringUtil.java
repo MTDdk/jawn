@@ -112,6 +112,23 @@ public class StringUtil {
         }        
         return capitalizeFirstChar? result :result.substring(0, 1).toLowerCase() + result.substring(1);            
     }
+    
+    /**
+     * Extracts the first part of a camel_cased string.
+     * 
+     * @param camelcased A camel_cased string that may or may not start with an upper cased letter.
+     * @return "get" from "getVideo" or "post" from "postVideoUpload" or "Get" from "GetVideo"
+     */
+    public static String firstPartOfCamelCase(String camelcased) {
+        // by starting to count before the isUpperCase-check,
+        // we do not care if the strings starts with a lower- or uppercase
+        int end = 0;
+        while (++end < camelcased.length()) {
+            if (Character.isUpperCase(camelcased.charAt(end)))
+                break;
+        }
+        return camelcased.substring(0,end);
+    }
 
     /**
      * Capitalizes a word  - only a first character is converted to upper case.
@@ -185,6 +202,25 @@ public class StringUtil {
         }
         
         return bob.toString();
+    }
+    
+    public static final boolean startsWith(String string, char ... ca) {
+        int l = ca.length;
+        for (int i = 0; i < l; i++) {
+            if (string.charAt(i) != ca[i]) return false;
+        }
+        return true;
+    }
+    public static final boolean startsWith(String string, char ca, char cb) {
+        if (string.charAt(0) != ca) return false;
+        if (string.charAt(1) != cb) return false;
+        return true;
+    }
+    public static final boolean startsWith(String string, char ca, char cb, char cc) {
+        if (string.charAt(0) != ca) return false;
+        if (string.charAt(1) != cb) return false;
+        if (string.charAt(1) != cc) return false;
+        return true;
     }
     
     /**

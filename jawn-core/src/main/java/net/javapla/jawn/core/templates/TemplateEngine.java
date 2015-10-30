@@ -18,7 +18,7 @@ public interface TemplateEngine {
      * @param result
      *      The result to render
      */
-    public void invoke(Context context, Response response/*, Result result*/) throws ViewException;
+    public void invoke(final Context context, final Response response/*, Result result*/) throws ViewException;
     
     
     /**
@@ -30,7 +30,7 @@ public interface TemplateEngine {
      * @param stream
      *      The stream to render to
      */
-    public void invoke(Context context, Response response, ResponseStream stream) throws ViewException;
+    public void invoke(final Context context, final Response response, final ResponseStream stream) throws ViewException;
 
     /**
      * For instance returns ".ftl.html" Or .ftl.json.

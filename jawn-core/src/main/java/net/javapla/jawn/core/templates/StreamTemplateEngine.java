@@ -12,16 +12,16 @@ import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
 
-class StreamTemplateEngine implements TemplateEngine {
+final class StreamTemplateEngine implements TemplateEngine {
 
     @Override
-    public void invoke(Context context, Response response) {
-        ResponseStream stream = context.finalizeResponse(response);
+    public final void invoke(Context context, Response response) {
+        ResponseStream stream = context.finalizeResponse(response, false);
         invoke(context, response, stream);
     }
     
     @Override
-    public void invoke(Context context, Response response, ResponseStream stream) {
+    public final void invoke(Context context, Response response, ResponseStream stream) {
         Object object = response.renderable();
         if (object instanceof InputStream) {
             try (   InputStream  in  = (InputStream) object;

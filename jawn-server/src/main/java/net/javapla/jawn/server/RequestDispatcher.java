@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -34,7 +35,7 @@ import com.google.inject.Injector;
 public class RequestDispatcher implements Filter {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
-    private ServletContext servletContext;
+//    private ServletContext servletContext;
     private String[] exclusions;
 
     private final Injector injector;
@@ -52,11 +53,11 @@ public class RequestDispatcher implements Filter {
     
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        this.servletContext = filterConfig.getServletContext();
+//        this.servletContext = filterConfig.getServletContext();
         
         
         // find paths inside webapp, that are NOT WEB-INF
-        Set<String> exclusionPaths = findExclusionPaths();
+        Set<String> exclusionPaths = findExclusionPaths(filterConfig.getServletContext());
         // and convert them to an array for fast lookup
         exclusions = exclusionPaths.toArray(new String[exclusionPaths.size()]);
         logger.debug("Letting the server take care of providing resources from: {}", exclusionPaths);
@@ -79,9 +80,10 @@ public class RequestDispatcher implements Filter {
 
     /**
      * Actually sorts the paths, which is not appreciated and not even used anywhere
+     * @param servletContext2 
      * @return
      */
-    private Set<String> findExclusionPaths() {
+    private Set<String> findExclusionPaths(ServletContext servletContext) {
         Set<String> exclusions = new TreeSet<String>();
         
         // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF
@@ -113,7 +115,7 @@ public class RequestDispatcher implements Filter {
 
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
+    public void doFilter(final ServletRequest req, final ServletResponse resp, final FilterChain chain) throws ServletException, IOException {
         try {
             doFilter((HttpServletRequest) req, (HttpServletResponse) resp, chain);
         } catch (ClassCastException e) {
@@ -122,15 +124,16 @@ public class RequestDispatcher implements Filter {
         }
     }
     
-    public void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain)  throws ServletException, IOException {
+    public final void doFilter(final HttpServletRequest request, final HttpServletResponse response, final FilterChain chain)  throws ServletException, IOException {
 
-        String path = request.getServletPath();
+        final String path = request.getServletPath();
+        
 
         // redirect if the path ends with a slash - URLS cannot end with a slash - they should not do such a thing - why would they?
         if (redirectUrlEndingWithSlash(path, response)) return;
 
         //MTD: filtering resources
-        if (filteringResources(request, response, chain, path)) return;
+        if (filteringResources(request, response, chain, path, resource -> translateResource(resource))) return;
 
         ContextInternal context = injector.getInstance(ContextInternal.class);
         context.init(/*servletContext, */request, response);
@@ -140,8 +143,8 @@ public class RequestDispatcher implements Filter {
 
     
     
-    private boolean redirectUrlEndingWithSlash(String path, HttpServletResponse response) throws IOException {
-        if (path.length() > 1 && path.charAt(path.length()-1) == '/') {  //ends with
+    private static final boolean redirectUrlEndingWithSlash(final String path, final HttpServletResponse response) throws IOException {
+        if (path.charAt(path.length()-1) == '/' && path.length() > 1) {  //ends with
             response.sendRedirect(path.substring(0, path.length()-1));
             return true;
         }
@@ -158,8 +161,9 @@ public class RequestDispatcher implements Filter {
      * @author MTD
      * @return true, if a filtering has happened and nothing else should be done by this current dispatcher
      */
-    private boolean filteringResources(HttpServletRequest req, HttpServletResponse resp, FilterChain chain, String path) throws ServletException, IOException {
-        String translated = translateResource(path);
+    private static final boolean filteringResources(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain chain, final String path, final Function<String,String> needsTranslation) throws ServletException, IOException {
+        String translated = needsTranslation.apply(path);
+//        String translated = translateResource(path);
         if (translated != null) {
 //            logger.debug("URI excluded: {}", path);
             
@@ -174,7 +178,7 @@ public class RequestDispatcher implements Filter {
             
             // setting default headers for static files
             resp.setHeader(HttpHeaders.CACHE_CONTROL, "max-age=86400"); // 24 hours
-            File file = new File(servletContext.getRealPath(translated));
+            File file = new File(req.getServletContext().getRealPath(translated));
             if (file.canRead())
                 resp.setHeader(HttpHeaders.ETAG, String.valueOf(file.lastModified()));
             
@@ -191,7 +195,7 @@ public class RequestDispatcher implements Filter {
      * 
      * @author MTD
      */
-    private HttpServletRequest createServletRequest(HttpServletRequest req, String translatedPath) {
+    private final static HttpServletRequest createServletRequest(final HttpServletRequest req, final String translatedPath) {
         return new HttpServletRequestWrapper(req){
             @Override
             public String getServletPath() {
@@ -209,8 +213,10 @@ public class RequestDispatcher implements Filter {
      *      http://localhost/en/images/something.jpg,
      *      http://localhost/images/something.jpg
      * @author MTD
+     * 
+     * @return The full <code>servletPath</code> if can be seen as a resource from any of the exclusions
      */
-    private String translateResource(String servletPath) {
+    private final String translateResource(String servletPath) {
         // This looks at the start of the of the URL to check for resource paths in the root webapp.
         // Example: exclusions = ['/images','/css','/favicon.ico']
         //         servletPath = /images/bootstrap/cursor.gif
@@ -218,8 +224,15 @@ public class RequestDispatcher implements Filter {
             if (servletPath.startsWith(path)) // startsWith uses its internal array without any copying
                 return servletPath;
         
+        
+        //TODO
+        //Language prefix is no longer used as built-in part of the URL
+        //The language needs to be explicit specified elsewhere
+        /*
         // If nothing was found, then perhaps the URL had a language prefix
         int start = servletPath.indexOf('/',1);
+        
+        
         
         // Do not even try
         if (start < 0) return null;
@@ -228,7 +241,7 @@ public class RequestDispatcher implements Filter {
         for (String path : exclusions) { // this is most likely faster than Arrays#binarySearch as exclusions is extremely small
             if (segment.startsWith(path))
                 return segment;
-        }
+        }*/
         
         // If we have to look past for more than a single URL segment
         /*int start = servletPath.indexOf('/',1), end = start;

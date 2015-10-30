@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,7 +24,7 @@ import com.google.inject.Inject;
  * 
  * @author MTD
  */
-public class ConfigurationReader {
+public class SiteConfigurationReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String SITE_FILE = "site.json";
@@ -33,7 +34,7 @@ public class ConfigurationReader {
     
 
     @Inject
-    public ConfigurationReader(ObjectMapper mapper) {
+    public SiteConfigurationReader(ObjectMapper mapper) {
         this.mapper = mapper;
         this.configurationCache = new ConcurrentHashMap<>();
     }
@@ -126,7 +127,7 @@ public class ConfigurationReader {
         return MessageFormat.format("{0}+{1}", folder, controller);
     }
 
-    private SiteConfiguration readSiteFile(Path folder) {
+    private final SiteConfiguration readSiteFile(Path folder) {
         Path rootFile = folder.resolve(SITE_FILE);
         if ( !Files.exists(rootFile) ) return new SiteConfiguration();
 
@@ -156,8 +157,32 @@ public class ConfigurationReader {
         // clone it instead (or create an entirely new object instead)
         SiteConfiguration topConf = globalConf.clone();
         if (localConf.title != null && !localConf.title.isEmpty()) topConf.title = localConf.title;
-        topConf.scripts.addAll(localConf.scripts);
-        topConf.styles.addAll(localConf.styles);
+        //topConf.scripts.addAll(localConf.scripts);
+        //topConf.styles.addAll(localConf.styles);
+        
+        if (localConf.scripts != null) {
+            if (topConf.scripts != null) {
+                String[] scripts = new String[topConf.scripts.length + localConf.scripts.length];
+                System.arraycopy(topConf.scripts, 0, scripts, 0, topConf.scripts.length);
+                System.arraycopy(localConf.scripts, 0, scripts, topConf.scripts.length, localConf.scripts.length);
+                topConf.scripts = scripts;
+            } else {
+                topConf.scripts = Arrays.copyOf(localConf.scripts, localConf.scripts.length);
+            }
+        }
+        
+        if (localConf.styles != null) {
+            if (topConf.styles != null) {
+                String[] styles = new String[topConf.styles.length + localConf.styles.length];
+                System.arraycopy(topConf.styles, 0, styles, 0, topConf.styles.length);
+                System.arraycopy(localConf.styles, 0, styles, topConf.styles.length, localConf.styles.length);
+                topConf.styles = styles;
+            } else {
+                topConf.styles = Arrays.copyOf(localConf.styles, localConf.styles.length);
+            }
+        }
+        
+        
         
         return topConf;
     }

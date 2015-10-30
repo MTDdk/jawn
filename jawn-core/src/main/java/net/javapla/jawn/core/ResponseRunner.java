@@ -26,13 +26,11 @@ public class ResponseRunner {
         this.templateEngineManager = templateEngineManager;
     }
     
-    public void run(Context context, Response response) throws ViewException, BadRequestException, MediaTypeException {
+    public final void run(final Context context, final Response response) throws ViewException, BadRequestException, MediaTypeException {
         //might already have been handled by the controller or filters
         if (response == null) return;
         
-        
-        
-        Object renderable = response.renderable();
+        final Object renderable = response.renderable();
         if (renderable instanceof NoHttpBody) {
             // This indicates that we do not want to render anything in the body.
             // Can be used e.g. for a 204 No Content response or Redirect
@@ -43,7 +41,7 @@ public class ResponseRunner {
         }
     }
     
-    private void renderWithTemplateEngine(Context context, Response response) throws ViewException, BadRequestException, MediaTypeException {
+    private final void renderWithTemplateEngine(final Context context, final Response response) throws ViewException, BadRequestException, MediaTypeException {
         
         // if the response does not contain a content type, we try to look at the request 'accept' header
         if (response.contentType() == null) {
@@ -54,7 +52,7 @@ public class ResponseRunner {
             }
         }
         
-        TemplateEngine engine = templateEngineManager.getTemplateEngineForContentType(response.contentType());
+        final TemplateEngine engine = templateEngineManager.getTemplateEngineForContentType(response.contentType());
         
         if (engine != null) {
             engine.invoke(context, response);

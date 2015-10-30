@@ -6,13 +6,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import net.javapla.jawn.core.api.Routes;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.CompilationException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
-import net.javapla.jawn.core.spi.Routes;
+import net.javapla.jawn.core.reflection.RoutesDeducer;
+import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.RouteTrie;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -42,14 +44,9 @@ public class Router implements Routes {
     private final FiltersHandler filters;
     private final boolean isDev;
     
-    // This is a difficult and potential harmful one.
-    // It is very possible to fill the tries with extremely large amounts of routes.
-    // These routes can be expensive to hold in constant memory, so a mechanism
-    // for similar routes pointing at the same Route instance needs to be thought up TODO
-//    private final Map<HttpMethod, RouteTrie> cachedRoutes;
-    private final RouteTrie cachedGetRoutes;
     
     private List<Route> routes;
+    private RouteTrie deducedRoutes;
     
     
     public Router(FiltersHandler filters, PropertiesImpl properties) {
@@ -66,7 +63,7 @@ public class Router implements Routes {
         } else {
             cachedRoutes = null;
         }*/
-        cachedGetRoutes = new RouteTrie();
+//        cachedGetRoutes = new RouteTrie();
     }
     
     public RouteBuilder GET() {
@@ -96,24 +93,21 @@ public class Router implements Routes {
     }
 
     
-    public Route retrieveRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
-        // only do some caching if we are not in dev mode and the request is a GET
-//        if (isDev || HttpMethod.GET != httpMethod) 
-            return calculateRoute(httpMethod, requestUri, injector);
-        
-        //RouteTrie trie = cachedRoutes.get(httpMethod);
-        /*Route route = cachedGetRoutes.findRoute(requestUri.toCharArray());
-        if (route == null) {
-            route = getRoute(httpMethod, requestUri, injector);
-            cachedGetRoutes.insert(requestUri, route);
-//            cachedGetRoutes.insert(route.uri, route);
+    public final Route retrieveRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
+        // Try with the deduced routes first
+        // Only do this if we are not in development
+        if (!isDev) {
+            Route route = deducedRoutes.findExact(requestUri, httpMethod);
+            if (route != null) return route;
         }
-        return route;*/
+//        System.out.println("no route found");
+        
+        return calculateRoute(httpMethod, requestUri, injector);
     }
     
     //TODO we need to have the injector somewhere else.
     //It is not consistent that this particular injector handles implementations from both core and server
-    private Route calculateRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
+    private final Route calculateRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
         if (routes == null) compileRoutes(injector); // used to throw an illegalstateexception
         
         // go through custom user routes
@@ -162,12 +156,14 @@ public class Router implements Routes {
         }
         
         // nothing is found - try to deduce a route from controllers
-        try {
-            Route route = matchStandard(httpMethod, requestUri, injector);
-            return route;
-        } catch (ClassLoadException e) {
-            // a route could not be deduced
-        }
+        //if (isDev) {
+            try {
+                Route route = matchStandard(httpMethod, requestUri, injector);
+                return route;
+            } catch (ClassLoadException e) {
+                // a route could not be deduced
+            }
+        //}
         
         throw new RouteException("Failed to map resource to URI: " + requestUri);
     }
@@ -175,17 +171,23 @@ public class Router implements Routes {
     public void compileRoutes(Injector injector) {
         if (routes != null) return; // used to throw an illegalstateexception
         
-        List<Route> r = new ArrayList<>();
+        // Build the built in routes
+        if (!isDev)
+            deducedRoutes = new RoutesDeducer(injector, filters).deduceRoutesFromControllers().getRoutes();
         
         // Build the user attributed routes
+        List<Route> r = new ArrayList<>();
         for (RouteBuilder builder : builders) {
-            r.add(builder.build(filters, injector));
+            
+            // Routes, not containing wildcards or keywords, should be incorporated into the deduced routes
+            Route route = builder.build(filters, injector);
+            if (!isDev && !StringUtil.contains(route.uri,'{')) {
+                deducedRoutes.insert(route.uri, route);
+                System.out.println("deduced : " + route);
+            } else {
+                r.add(route);
+            }
         }
-        
-        // Build the built in routes
-//        ControllerFinder finder = new ControllerFinder("app.controllers");
-//        System.out.println("?????????????    :::  " + finder.controllers.keySet());
-        
         routes = Collections.unmodifiableList(r);
     }
     
@@ -195,8 +197,15 @@ public class Router implements Routes {
     }
     
     
+    /**
+     * Only to be used in DEV mode
+     * @param httpMethod
+     * @param requestUri
+     * @param injector
+     * @return
+     * @throws ClassLoadException
+     */
     private Route matchStandard(HttpMethod httpMethod, String requestUri, Injector injector) throws ClassLoadException {
-        
         // find potential routes
         for (InternalRoute internalRoute : internalRoutes) {
             if (internalRoute.matches(requestUri) ) {
@@ -262,8 +271,8 @@ public class Router implements Routes {
         bob.to(controller, actionName);
         return bob;
     }
-
-    private class ControllerMeta {
+    
+    private final class ControllerMeta {
         public final Map<String,String> params;
         
         public ControllerMeta(Map<String,String> params) {
@@ -277,13 +286,13 @@ public class Router implements Routes {
         }
         public String getController() {
             String p = params.get("controller");
-            if (StringUtil.blank(p)) return RouteBuilder.ROOT_CONTROLLER_NAME;
+            if (StringUtil.blank(p)) return Constants.ROOT_CONTROLLER_NAME;
             return p;
 //            return params.getOrDefault("controller", NewRoute.ROOT_CONTROLLER_NAME);
         }
         public String getAction() {
             String p = params.get("action");
-            if (StringUtil.blank(p)) return RouteBuilder.DEFAULT_ACTION_NAME;
+            if (StringUtil.blank(p)) return Constants.DEFAULT_ACTION_NAME;
             return p;
 //            return params.getOrDefault("action", NewRoute.DEFAULT_ACTION_NAME);
         }
@@ -293,7 +302,7 @@ public class Router implements Routes {
             String packagePrefix = getPackage();
             
             String name = controllerName.replace('-', '_');
-            String temp = "app.controllers"; //README might be a part of some configuration
+            String temp = Constants.CONTROLLER_PACKAGE;
             if (packagePrefix != null) {
                 temp += "." + packagePrefix;
             }

@@ -12,8 +12,6 @@ import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.i18n.Lang;
-import net.javapla.jawn.core.i18n.LanguagesNotSetException;
-import net.javapla.jawn.core.i18n.NotSupportedLanguageException;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -38,14 +36,14 @@ public class FrameworkEngine {
     
     private final Router router;
     private final ResponseRunner runner;
-    private final Lang lang;
+//    private final Lang lang;
     private final Injector injector;
     
     @Inject
     public FrameworkEngine(Router router, ResponseRunner runner, Lang lang, Injector injector) {
         this.router = router;
         this.runner = runner;
-        this.lang = lang;
+//        this.lang = lang;
         this.injector = injector;
     }
     
@@ -56,16 +54,16 @@ public class FrameworkEngine {
         String format = null;
         String uri;
         // look for any format in the request
-        if (path.contains(".")) {
+        /*if (path.contains(".")) {
             uri = path.substring(0, path.lastIndexOf('.'));
             format = path.substring(path.lastIndexOf('.') + 1);
-        } else {
+        } else*/ {
             uri = path;
         }
         
         //README maybe first do this language extraction IFF custom route not found
-        String language;
-        try {
+        String language = null;
+        /*try {
             // if languages are set we try to deduce them
             language = lang.deduceLanguageFromUri(uri);
             if (!StringUtil.blank(language))
@@ -79,7 +77,7 @@ public class FrameworkEngine {
             language = lang.getDefaultLanguage();
             // We cannot be sure that the URI actually contains
             // a language parameter, so we let the router handle this
-        }
+        }*/
             
         if (StringUtil.blank(uri)) {
             uri = "/";//different servlet implementations, damn.
@@ -87,17 +85,19 @@ public class FrameworkEngine {
         
         try {
 
-//            long time = System.nanoTime();
             /*68318*/
 //            Route route = router.getRoute(context.getHttpMethod(), uri, injector);
             /*16062*/
-            Route route = router.retrieveRoute(context.getHttpMethod(), uri, injector);
+//            long time = System.nanoTime();
+//            System.out.println("httpMethod " + (System.nanoTime() - time));
+//            time = System.nanoTime();
+            final Route route = router.retrieveRoute(context.getHttpMethod(), uri, injector);
 //            System.out.println("Timing :: " + (System.nanoTime() - time));
             context.setRouteInformation(route, format, language, uri);
             
             if (route != null) {
                 // run pre-filters
-                Response response = route.getFilterChain().before(context);
+                final Response response = route.getFilterChain().before(context);
                 
                 runner.run(context, response);
                 

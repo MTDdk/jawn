@@ -15,6 +15,17 @@ public interface Constants {
     public static final String CONTROLLER_PACKAGE = "app.controllers";
     
     /**
+     * Default method name of controllers if nothing else is specified
+     */
+    public static final String DEFAULT_ACTION_NAME = "index";
+    
+    /**
+     * Default name of a controller if nothing else is specified.
+     * Of course still with the extension 'Controller'
+     */
+    public static final String ROOT_CONTROLLER_NAME = "index";
+    
+    /**
      * Standard in the resources
      */
     public static final String PROPERTIES_FILE = "jawn_defaults.properties";

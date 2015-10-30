@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.HttpMethod;
@@ -29,7 +30,6 @@ import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
-import net.javapla.jawn.core.spi.Filter;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
 import net.javapla.jawn.core.util.MultiList;
@@ -604,11 +604,11 @@ class ContextImpl implements ContextInternal {
     
 /* ****** */
 
-    public ResponseStream finalizeResponse(Response controllerResponse) {
+    public final ResponseStream finalizeResponse(Response controllerResponse) {
         return finalizeResponse(controllerResponse, true);
     }
     
-    public ResponseStream finalizeResponse(Response controllerResponse, boolean handleFlash) {
+    public final ResponseStream finalizeResponse(Response controllerResponse, boolean handleFlash) {
         // status
         response.setStatus(controllerResponse.status());
         

@@ -2,8 +2,8 @@ package net.javapla.jawn.core.templates;
 
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.RouteBuilder;
 import net.javapla.jawn.core.RouterHelper;
+import net.javapla.jawn.core.util.Constants;
 
 public class TemplateEngineHelper {
 
@@ -29,7 +29,7 @@ public class TemplateEngineHelper {
      * @return
      */
     public static String getControllerForResult(Route route) {
-        if (route == null) return RouteBuilder.ROOT_CONTROLLER_NAME;
+        if (route == null) return Constants.ROOT_CONTROLLER_NAME;
         return RouterHelper.getReverseRoute(route.getController()).substring(1);
     }
     

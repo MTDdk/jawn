@@ -1,8 +1,5 @@
 package net.javapla.jawn.core.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.http.HttpMethod;
 
@@ -15,20 +12,19 @@ public final class RouteTrie {
     public static final char WILDCARD = '*';
     
     private final TrieNode root;
-    private final List<Route> routes;
+//    private final ArrayList<Route> routes;
     
     
     public RouteTrie() {
         root = new TrieNode('#');
-        routes = new ArrayList<>(20);
+//        routes = new ArrayList<>(20);
     }
     
     
-    
-    public void insert(String s, Route route) {
-        insert(s.toCharArray(), route);
+    public void insert(String uri, Route route) {
+        insert(uri.toCharArray(), route);
     }
-    public synchronized void insert(final char[] input, Route route) {
+    /*public synchronized void insert(final char[] input, Route route) {
         TrieNode current = root, child;
         for (char c : input) {
             child = current.nodes[c];
@@ -43,6 +39,33 @@ public final class RouteTrie {
         int index = routes.indexOf(route);
         if (index == -1) { index = routes.size(); routes.add(route);}
         current.routeIndex = index;
+    }*/
+    public synchronized void insert(final char[] input, Route route) {
+        TrieNode current = root, child;
+        for (char c : input) {
+            child = current.nodes[c];
+            if(child == null) {
+                child = new TrieNode(c);
+                current.nodes[c] = child;
+            }
+            current = child;
+        }
+        //current.endNode = true;
+        //current.route = route;
+        /*int index = routes.indexOf(route);
+        if (index == -1) { 
+            index = routes.size(); 
+            routes.add(route);
+            
+            //EnumMap<HttpMethod,Route> map = new EnumMap<>(HttpMethod.class);
+            EnumMapR<HttpMethod,Route> map = new EnumMapR<>(HttpMethod.class);
+            map.put(method, route);
+            enumRoutes.add(map);
+        } else {
+            enumRoutes.get(index).put(method, route);
+        }
+        current.routeIndex = index;*/
+        current.routes[route.getHttpMethod().ordinal()] = route;
     }
     
     public final boolean startsWith(final String input) {
@@ -58,15 +81,15 @@ public final class RouteTrie {
         }
         return true;
     }
-    public final boolean containsExact(final String input) {
-        return containsExact(input.toCharArray());
-    }
+//    public final boolean containsExact(final String input) {
+//        return containsExact(input.toCharArray());
+//    }
     /**
      * Does this structure contain this <b>exact</b> char sequence
      * @param arr
      * @return
      */
-    public final boolean containsExact(final char[] arr) {
+    /*public final boolean containsExact(final char[] arr) {
         TrieNode current = root;
         for(char c : arr) {
             if(current.nodes[c] == null)
@@ -75,9 +98,50 @@ public final class RouteTrie {
                 current = current.nodes[c];
         }
         return current.routeIndex > -1;//current.route != null;
+    }*/
+    
+    /*public final Route findExact(final char[] arr) {
+        TrieNode current = root;
+        for(char c : arr) {
+            if(current.nodes[c] == null)
+                return null;
+            else
+                current = current.nodes[c];
+        }
+        return routes.get(current.routeIndex);//current.route != null;
+    }*/
+    public final Route findExact(final char[] arr, HttpMethod method) {
+        TrieNode current = root;
+        //for(char c : arr) {
+        for (int i = 0; i < arr.length; i++) {
+            char c = arr[i];
+            if(current.nodes[c] == null)
+                return null;
+            else
+                current = current.nodes[c];
+        }
+//        return routes.get(current.routeIndex);//current.route != null;
+        //return enumRoutes.get(current.routeIndex).get(method);
+        return current.routes[method.ordinal()];
+    }
+    public final Route findExact(final String str, final HttpMethod method) {
+        TrieNode current = root;
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if(current.nodes[c] == null)
+                return null;
+            else
+                current = current.nodes[c];
+        }
+        return current.routes[method.ordinal()];
     }
     
-    public final Route findRoute(final char[] arr) {
+    /**
+     * Cannot handle if a route starts with '/'
+     * @param arr
+     * @return
+     */
+    /*public final Route findRoute(final char[] arr) {
         TrieNode current = root;
         char c;
         for (int i = 0; i < arr.length; i++) {
@@ -106,7 +170,7 @@ public final class RouteTrie {
             }
         }
         return routes.get(current.routeIndex);
-    }
+    }*/
     
     /**
      * Whenever a wildcard is detected during ordinary traversal,
@@ -114,7 +178,7 @@ public final class RouteTrie {
      * if not, repeat.
      * @return 
      */
-    private final TrieNode doWildcardSearch(final TrieNode node, final char[] arr, final int i) {
+    /*private final TrieNode doWildcardSearch(final TrieNode node, final char[] arr, final int i) {
         // Start out by jumping to the next URL segment
         int current = i + 1;
         while(current < arr.length && arr[current++] != '/');
@@ -136,18 +200,20 @@ public final class RouteTrie {
         }
         
         return n;
-    }
+    }*/
     
     public static final class TrieNode {
         final TrieNode[] nodes;
         final char content;
-        int routeIndex;
+//        int routeIndex;
+        final Route[] routes;
         
         TrieNode(char c) {
             //nodes = new SearchTrie[255];//extended ascii
             nodes = new TrieNode[128];//ascii
             content = c;
-            routeIndex = -1;
+//            routeIndex = -1;
+            routes = new Route[HttpMethod.values().length];
         }
         
         @Override
@@ -172,14 +238,15 @@ public final class RouteTrie {
         trie.insert("some/*/path/*", new Route("some/*/path/*", HttpMethod.GET, null, null, null, null));
         
         long time = System.nanoTime();
-        System.out.println(trie.findRoute("some/path/resource".toCharArray()));
-        System.out.println(trie.findRoute("some/path/resourcessss".toCharArray()));
-        System.out.println(trie.findRoute("newsome/path/resource".toCharArray()));
-        System.out.println(trie.findRoute("newsome/path/more/resource".toCharArray()));
-        System.out.println(trie.findRoute("news/path/resource".toCharArray()));
-        System.out.println(trie.findRoute("some/diff/path/resource".toCharArray()));
-        System.out.println(trie.findRoute("some/testing/path/more/resource".toCharArray()));
+        System.out.println(trie.findExact("some/path/resource".toCharArray(), HttpMethod.GET));
+//        System.out.println(trie.findRoute("some/path/resourcessss".toCharArray()));
+//        System.out.println(trie.findRoute("newsome/path/resource".toCharArray()));
+//        System.out.println(trie.findRoute("newsome/path/more/resource".toCharArray()));
+//        System.out.println(trie.findRoute("news/path/resource".toCharArray()));
+//        System.out.println(trie.findRoute("some/diff/path/resource".toCharArray()));
+//        System.out.println(trie.findRoute("some/testing/path/more/resource".toCharArray()));
         System.out.println("timing :: " + (System.nanoTime() - time));
     }
+    
 }
 

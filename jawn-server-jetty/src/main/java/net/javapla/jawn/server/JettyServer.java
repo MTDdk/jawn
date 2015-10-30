@@ -4,8 +4,8 @@ import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
-import net.javapla.jawn.server.spi.JawnServer;
-import net.javapla.jawn.server.spi.ServerConfig;
+import net.javapla.jawn.server.api.JawnServer;
+import net.javapla.jawn.server.api.ServerConfig;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -47,37 +47,33 @@ public class JettyServer implements JawnServer {
         QueuedThreadPool pool = new QueuedThreadPool();
         pool.setDetailedDump(false);
         
-        Server server = new Server(pool);
-        ServerConnector connector = new ServerConnector(server);
         
         switch(config.getServerPerformance()) {
             case HIGHEST:
-                connector.setAcceptQueueSize(10000);
                 pool.setMaxThreads(Runtime.getRuntime().availableProcessors() * 8);
                 pool.setMinThreads(Runtime.getRuntime().availableProcessors() * 8);
                 break;
             case HIGH:
-                connector.setAcceptQueueSize(1000);
                 pool.setMaxThreads(Runtime.getRuntime().availableProcessors() * 2);
                 pool.setMinThreads(Math.min(Runtime.getRuntime().availableProcessors(), 4));
                 break;
             case MEDIUM:
-                connector.setAcceptQueueSize(128);
                 pool.setMaxThreads(Math.min(Runtime.getRuntime().availableProcessors(), 4));
                 pool.setMinThreads(4);
                 break;
             case MINIMAL:
-                connector.setAcceptQueueSize(20);
                 pool.setMaxThreads(4);// A minimum of 4 threads are needed for Jetty to run
                 pool.setMinThreads(4);
                 break;
             case CUSTOM:
-                connector.setAcceptQueueSize(config.getBacklog());
                 pool.setMaxThreads(config.getIoThreads());
                 pool.setMinThreads(config.getIoThreads());
                 break;
         }
         
+        Server server = new Server(pool);
+        ServerConnector connector = new ServerConnector(server);
+        connector.setAcceptQueueSize(config.getBacklog());
         connector.setPort(config.getPort());
         server.setConnectors(new ServerConnector[] {connector});
         

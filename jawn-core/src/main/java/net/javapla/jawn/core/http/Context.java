@@ -11,7 +11,7 @@ import java.util.Map;
 
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.spi.Filter;
+import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.util.MultiList;
 
 import org.apache.commons.fileupload.FileItem;

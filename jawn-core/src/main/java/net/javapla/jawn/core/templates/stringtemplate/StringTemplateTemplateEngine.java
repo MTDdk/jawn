@@ -2,11 +2,10 @@ package net.javapla.jawn.core.templates.stringtemplate;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 
@@ -17,9 +16,9 @@ import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineHelper;
-import net.javapla.jawn.core.templates.config.ConfigurationReader;
 import net.javapla.jawn.core.templates.config.Site;
 import net.javapla.jawn.core.templates.config.SiteConfiguration;
+import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
 import net.javapla.jawn.core.templates.config.TemplateConfig;
 import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
 import net.javapla.jawn.core.util.Modes;
@@ -40,14 +39,14 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class StringTemplateTemplateEngine implements TemplateEngine {
+public final class StringTemplateTemplateEngine implements TemplateEngine {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     
     private static final String TEMPLATE_ENDING = ".st";
     
     private final StringTemplateConfiguration config;
-    private final ConfigurationReader configReader;
+    private final SiteConfigurationReader configReader;
     
     // The StringTemplateGroup actually handles some sort of caching internally
     private STGroupDir group;
@@ -58,7 +57,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
 
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
-                                        ConfigurationReader configReader,
+                                        SiteConfigurationReader configReader,
                                         PropertiesImpl properties) {
         log.warn("Starting the StringTemplateTemplateEngine");
         
@@ -85,15 +84,15 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public void invoke(Context context, Response response) throws ViewException {
+    public final void invoke(Context context, Response response) throws ViewException {
         invoke(context, response, context.finalizeResponse(response));
     }
     
     @Override
-    public void invoke(Context context, Response response, ResponseStream stream) throws ViewException {
+    public final void invoke(Context context, Response response, ResponseStream stream) throws ViewException {
         long time = System.currentTimeMillis();
         
-        Map<String, Object> values = response.getViewObjects();//context.getViewObjects();
+        final Map<String, Object> values = response.getViewObjects();//context.getViewObjects();
 //      Object renderable = response.renderable();
       /*if (renderable == null) {
           values = new HashMap<>(); // just use empty map
@@ -117,14 +116,14 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
       setupTemplateGroup(context);
       
       //generate name of the template
-      String template = TemplateEngineHelper.getTemplateForResult(context.getRoute(), response);
+      final String template = TemplateEngineHelper.getTemplateForResult(context.getRoute(), response);
       String layout = response.layout();
-      String language = context.getRouteLanguage();
+      String language = null;//context.getRouteLanguage();
       
       final ErrorBuffer error = new ErrorBuffer();
-      ST contentTemplate = locateTemplate(group, template);
+      final ST contentTemplate = locateTemplate(group, template);
 
-      try (Writer writer = stream.getWriter()) {
+      try (final Writer writer = stream.getWriter()) {
 
           if (layout == null) { // no layout
               // both layout and template cannot be null
@@ -150,9 +149,11 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
           throw new ViewException(e);
       }
 
+      
+      if (log.isInfoEnabled())
       log.info("Rendered template: '{}' with layout: '{}' in  {}ms", template, layout, (System.currentTimeMillis() - time));
       
-      if (!error.errors.isEmpty()) {
+      if (!error.errors.isEmpty() && log.isErrorEnabled()) {
           log.warn(error.errors.toString());
       }
     }
@@ -172,7 +173,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     // though it may be set a few times, but it will always be set to the same value
     // and by not synchronizing it, we might get some form of performance.
     private String realPath;
-    private String getTemplateFolder(Context ctx) {
+    private final String getTemplateFolder(final Context ctx) {
         if (realPath == null)
             realPath = ctx.getRealPath(TEMPLATES_FOLDER);
         return realPath;
@@ -200,7 +201,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         // Something needs to be done about this.
     }
     
-    private ST locateTemplate(STGroupDir group, String template) {
+    private final ST locateTemplate(final STGroupDir group, final String template) {
         return group.getInstanceOf(template);
     }
 
@@ -209,7 +210,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
      * If not found, it looks for the default template within the controller folder
      * then use this to override the root default template
      */
-    private ST locateDefaultLayout(STGroupDir group, String controller, String layout) {
+    private final ST locateDefaultLayout(final STGroupDir group, String controller, final String layout) {
         // the exact path is defined in the controller
 //        ST index = locateTemplate(group, layout);
 //        if (index != null)
@@ -243,7 +244,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
     }
     
     /** Renders template directly to writer */
-    private void renderContentTemplate(ST contentTemplate, Writer writer, Map<String, Object> values, String language, ErrorBuffer error) {
+    private final void renderContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values, final String language, final ErrorBuffer error) {
         injectTemplateValues(contentTemplate, values);
         if (language == null)
             contentTemplate.write(createSTWriter(writer), error);
@@ -262,10 +263,13 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         return "";
     }
 
-    private void readyLayoutTemplate(ST layoutTemplate, Context ctx, String content, Map<String, Object> values, String controller, String language, ErrorBuffer error) {
+    private final void readyLayoutTemplate(
+            final ST layoutTemplate, final Context ctx, final String content, 
+            final Map<String, Object> values, final String controller, final String language, final ErrorBuffer error) {
         injectTemplateValues(layoutTemplate, values);
         
-        SiteConfiguration conf = configReader.read(getTemplateFolder(ctx), controller, layoutTemplate.impl.prefix.substring(1), useCache);
+        SiteConfiguration conf = 
+                configReader.read(getTemplateFolder(ctx), controller, layoutTemplate.impl.prefix.substring(1), useCache);
         Site site = new Site(
             // add the URL
             ctx.requestUrl(),
@@ -291,7 +295,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         layoutTemplate.add("site", site);
     }
     
-    private void injectTemplateValues(ST template, Map<String, Object> values) {
+    private final void injectTemplateValues(final ST template, final Map<String, Object> values) {
         if (values != null) {
             for (Entry<String, Object> entry : values.entrySet()) {
                 try {
@@ -304,15 +308,26 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
         }
     }
     
-    private String readLinks(StringTemplateTemplate template, List<String> links, ErrorBuffer error) {
+    /*private String readLinks(StringTemplateTemplate template, List<String> links, ErrorBuffer error) {
         if (links.isEmpty()) return null;
         
-        ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
+        final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
         
         List<String> prefixed = prefixResourceLinks(links, template.prefix);
         
         linkTemplate.add("links", prefixed);
-        Writer writer = new StringBuilderWriter();
+        final Writer writer = new StringBuilderWriter();
+        linkTemplate.write(createSTWriter(writer), error);
+        return writer.toString();
+    }*/
+    private final String readLinks(final StringTemplateTemplate template, final String[] links, final ErrorBuffer error) {
+        if (links == null) return null;
+        
+        final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
+        
+        linkTemplate.add("links", prefixResourceLinks(links, template.prefix));
+        
+        final Writer writer = new StringBuilderWriter();
         linkTemplate.write(createSTWriter(writer), error);
         return writer.toString();
     }
@@ -321,7 +336,7 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
      * Prefixes local resources with css/ or js/.
      * "Local" is defined by not starting with 'http.*' or 'ftp.*'
      */
-    private List<String> prefixResourceLinks(List<String> links, String prefix) {
+    /*private List<String> prefixResourceLinks(List<String> links, String prefix) {
         return links
                 .parallelStream()
                 .map(link -> { 
@@ -330,13 +345,26 @@ public class StringTemplateTemplateEngine implements TemplateEngine {
                     return link; 
                 })
                 .collect(Collectors.toList());
+    }*/
+    private /*List<String>*/String[] prefixResourceLinks(final String[] links, final String prefix) {
+        
+        return Arrays.stream(links).parallel()
+//        return links
+//                .parallelStream()
+                .map(link -> { 
+                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
+                        link = prefix + link; 
+                    return link; 
+                })
+                .toArray(String[]::new);
+                //.collect(Collectors.toList());
     }
     
-    private void renderTemplate(ST layoutTemplate, Writer writer, ErrorBuffer error) {
+    private final void renderTemplate(final ST layoutTemplate, final Writer writer, final ErrorBuffer error) {
         layoutTemplate.write(createSTWriter(writer), error);
     }
     
-    private STWriter createSTWriter(Writer writer) {
+    private final STWriter createSTWriter(final Writer writer) {
         if (outputHtmlIndented) {
             return new AutoIndentWriter(writer);
         } else {

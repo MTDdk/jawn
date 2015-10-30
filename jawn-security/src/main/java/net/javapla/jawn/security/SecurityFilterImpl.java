@@ -4,11 +4,11 @@ import java.text.MessageFormat;
 
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.ResponseBuilder;
+import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.SessionFacade;
-import net.javapla.jawn.core.spi.FilterChain;
 import net.javapla.jawn.security.interfaces.JawnSubject;
 
 import org.apache.shiro.authc.AuthenticationException;

@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import net.javapla.jawn.core.Controller;
-import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
@@ -17,13 +16,17 @@ import com.google.inject.Injector;
 
 public class ControllerActionInvoker {
 
-    private Injector injector;
+    private final Injector injector;
     
     @Inject
-    public ControllerActionInvoker(/*Class<? extends AppController> controller, boolean useCachedController*/Injector injector, PropertiesImpl properties) {
+    public ControllerActionInvoker(Injector injector) {
         
-            //README this might be necessary if the overhead of creating controllers on runtime exceeds the memory of holding the controller on the Route
-            // if we want to reload the controller, this is a good time to do it
+        //README this might be necessary if the overhead of creating controllers on runtime exceeds the memory of holding the controller on the Route
+        // if we want to reload the controller, this is a good time to do it
+        
+        // OVERRIDE README: We cannot(!) cache the concrete instances, as they are very much stateful
+        // (they hold different Context AND produce different Response)
+        // As long as Context OR Response is held within the controller, a controller cannot be reused
 //            if (!useCachedController) {
 //                controller = loadController(route.getController().getClass().getName(), useCachedController);
 //            } else {
@@ -33,16 +36,16 @@ public class ControllerActionInvoker {
         this.injector = injector;
     }
     
-    public Response executeAction(Context context) {
-        Route route = context.getRoute();
+    public final Response executeAction(final Context context) {
+        final Route route = context.getRoute();
 
         try {
-            Controller controller = loadController(route.getController());
-
+            final Class<? extends Controller> controllerClass = route.getController();
+            final Controller controller = loadController(controllerClass);
             injectControllerWithContext(controller, context, injector);
 
             //find the method name and run it
-            String methodName = route.getAction();
+            /*final String methodName = route.getAction();
             for (Method method : controller.getClass().getMethods()) {
                 //if (method.getReturnType().equals(Response.class)) 
                 if (methodName.equals( method.getName())) {
@@ -56,8 +59,11 @@ public class ControllerActionInvoker {
                 }
             }
             throw new ControllerException(String.format("Action name (%s) not found in controller (%s)", route.getAction(), route.getController().getSimpleName()));
+            */
+            route.getActionMethod().invoke(controller);
+            return controller.getControllerResponse();
 
-        }catch(InvocationTargetException e){
+        } catch (InvocationTargetException e) {
             if(e.getCause() != null && e.getCause() instanceof  WebException){
                 throw (WebException)e.getCause();                
             }else if(e.getCause() != null && e.getCause() instanceof RuntimeException){
@@ -65,15 +71,15 @@ public class ControllerActionInvoker {
 //            }else if(e.getCause() != null){
             }
             throw new ControllerException(e.getCause());
-        }catch(WebException e){
+        } catch(WebException e) {
             throw e;
-        }catch(Exception e){
+        } catch(Exception e) {
             throw new ControllerException(e);
         }
     }
     
     
-    private Controller loadController(Class<? extends Controller> controller) throws ClassLoadException {
+    private final static Controller loadController(final Class<? extends Controller> controller) throws ClassLoadException {
         try {
             return DynamicClassFactory.createInstance(controller);
         } catch (ClassLoadException e) {
@@ -83,7 +89,7 @@ public class ControllerActionInvoker {
         }
     }
 
-    private void injectControllerWithContext(Controller controller, Context context, Injector injector) {
+    private final static void injectControllerWithContext(final Controller controller, final Context context, final Injector injector) {
         controller.init(context, injector);
         
         //Inject dependencies
@@ -92,7 +98,7 @@ public class ControllerActionInvoker {
         }
     }
     
-    public static boolean isAllowedAction(Class<? extends Controller> controller, String actionMethodName) {
+    public final static boolean isAllowedAction(Class<? extends Controller> controller, String actionMethodName) {
         for (Method method : controller.getMethods()) {
             if (actionMethodName.equals(method.getName())) {
                 return true;

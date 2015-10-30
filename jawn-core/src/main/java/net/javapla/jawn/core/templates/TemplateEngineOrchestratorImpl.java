@@ -29,13 +29,14 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
     private final Map<String, Provider<? extends TemplateEngine>> contentTypeToTemplateEngineMap;
     
     @Inject
-    public TemplateEngineOrchestratorImpl(Provider<JsonTemplateEngine>      json,
-                                     Provider<XmlTemplateEngine>            xml,
-                                     Provider<TextTemplateEngine>           text,
-                                     Provider<StreamTemplateEngine>         stream,
-                                     Provider<ImageTemplateEngine>          image,
-                                     Provider<StringTemplateTemplateEngine> html,
-                                     Injector injector) {
+    public TemplateEngineOrchestratorImpl(
+             Provider<JsonTemplateEngine>           json,
+             Provider<XmlTemplateEngine>            xml,
+             Provider<TextTemplateEngine>           text,
+             Provider<StreamTemplateEngine>         stream,
+             Provider<ImageTemplateEngine>          image,
+             Provider<StringTemplateTemplateEngine> html,
+             Injector injector) {
         
         Map<String, Provider<? extends TemplateEngine>> map = 
                                         new HashMap<String, Provider<? extends TemplateEngine>>();
@@ -74,9 +75,8 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
     }
 
     @Override
-    public TemplateEngine getTemplateEngineForContentType(String contentType) {
-        Provider<? extends TemplateEngine> provider = 
-                                            contentTypeToTemplateEngineMap.get(contentType);
+    public final TemplateEngine getTemplateEngineForContentType(String contentType) {
+        Provider<? extends TemplateEngine> provider = contentTypeToTemplateEngineMap.get(contentType);
 
         if (provider != null) {
             return provider.get();

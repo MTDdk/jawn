@@ -14,7 +14,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-class JsonTemplateEngine implements TemplateEngine {
+final class JsonTemplateEngine implements TemplateEngine {
 
     private final ObjectMapper mapper;
     
@@ -24,14 +24,14 @@ class JsonTemplateEngine implements TemplateEngine {
     }
     
     @Override
-    public void invoke(Context context, Response response) {
-        ResponseStream stream = context.finalizeResponse(response);
+    public final void invoke(final Context context, final Response response) {
+        ResponseStream stream = context.finalizeResponse(response, false);
         invoke(context, response, stream);
     }
     
     @Override
-    public void invoke(Context context, Response response, ResponseStream stream) {
-        try (OutputStream output = stream.getOutputStream()) {
+    public final void invoke(final Context context, final Response response, final ResponseStream stream) {
+        try (final OutputStream output = stream.getOutputStream()) {
             
             mapper.writeValue(output, response.renderable());
             

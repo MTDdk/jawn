@@ -1,8 +1,8 @@
 package net.javapla.jawn.core;
 
+import net.javapla.jawn.core.api.FilterChainEnd;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.reflection.ControllerActionInvoker;
-import net.javapla.jawn.core.spi.FilterChainEnd;
 
 import com.google.inject.Inject;
 

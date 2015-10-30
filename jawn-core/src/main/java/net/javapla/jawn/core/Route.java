@@ -1,7 +1,9 @@
 package net.javapla.jawn.core;
 
+import java.lang.reflect.Method;
+
+import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.spi.FilterChain;
 
 
 /**
@@ -36,6 +38,14 @@ public class Route extends InternalRoute {
         this.actionName = actionName;//StringUtil.blank(action) ? DEFAULT_ACTION_NAME : action;
         
         this.filterChain = chain;
+    }
+    
+    private Method actionMethod;
+    public void setActionMethod(Method method) {
+        this.actionMethod = method;
+    }
+    public Method getActionMethod() {
+        return actionMethod;
     }
     
     public String getUri() {

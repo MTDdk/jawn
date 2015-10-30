@@ -4,11 +4,17 @@
 
 subprojects {
 	apply plugin: 'java'
+    apply plugin: 'eclipse'
 	apply from: '../maven.gradle'
+    
+    
+    // compiler options
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
 	// maven metadata
 	group = "net.javapla.jawn"
-	version = "0.8.9-b02"
+	version = "0.8.11-SNAPSHOT"
 	
 	repositories {
 	    mavenCentral()

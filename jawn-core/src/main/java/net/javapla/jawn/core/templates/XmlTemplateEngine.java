@@ -25,7 +25,7 @@ class XmlTemplateEngine implements TemplateEngine {
     
     @Override
     public void invoke(Context context, Response response) {
-        ResponseStream stream = context.finalizeResponse(response);
+        ResponseStream stream = context.finalizeResponse(response, false);
         invoke(context, response, stream);
     }
     

@@ -1,8 +1,8 @@
 package net.javapla.jawn.core;
 
+import net.javapla.jawn.core.api.Filter;
+import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.core.spi.Filter;
-import net.javapla.jawn.core.spi.FilterChain;
 
 
 class FilterChainImpl implements FilterChain {

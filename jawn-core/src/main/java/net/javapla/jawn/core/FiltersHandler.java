@@ -3,20 +3,10 @@ package net.javapla.jawn.core;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 
+import net.javapla.jawn.core.api.Filter;
+import net.javapla.jawn.core.api.Filters;
 import net.javapla.jawn.core.reflection.ControllerFinder;
-import net.javapla.jawn.core.spi.Filter;
-import net.javapla.jawn.core.spi.Filters;
-
-import org.reflections.ReflectionUtils;
-import org.reflections.Reflections;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-
-import com.google.common.collect.Multimap;
 
 /**
  * FilterHandler

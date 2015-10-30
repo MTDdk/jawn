@@ -143,4 +143,9 @@ class InternalRoute {
     public int hashCode() {
         return uri.hashCode();
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        return uri.equals(((Route)obj).uri);
+    }
 }

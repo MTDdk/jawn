@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.spi;
+package net.javapla.jawn.core.api;
 
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.http.Context;

@@ -18,8 +18,8 @@ import javax.servlet.DispatcherType;
 
 import org.xnio.Options;
 
-import net.javapla.jawn.server.spi.JawnServer;
-import net.javapla.jawn.server.spi.ServerConfig;
+import net.javapla.jawn.server.api.JawnServer;
+import net.javapla.jawn.server.api.ServerConfig;
 
 public class UndertowServer implements JawnServer {
     
@@ -30,7 +30,7 @@ public class UndertowServer implements JawnServer {
         DeploymentInfo deployment = Servlets.deployment()
             .setClassLoader(UndertowServer.class.getClassLoader())
             .setContextPath(config.getContextPath())
-            .setDeploymentName("test.war");
+            .setDeploymentName("jawn.war");
             
         // security
         //configureServerAuthentication(deployment, config);
@@ -81,25 +81,26 @@ public class UndertowServer implements JawnServer {
         int undertow_minimum = 2;//may not be less than 2 because of the inner workings of Undertow
         switch (config.getServerPerformance()) {
             case HIGHEST:
-                serverBuilder.setSocketOption(Options.BACKLOG, 10000);
-                serverBuilder.setIoThreads(Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum));
+                int ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum);
+                serverBuilder.setIoThreads(ioThreads);
+                serverBuilder.setWorkerThreads(ioThreads << 5);
+                serverBuilder.setBufferSize(1024 * 16);
                 break;
             case HIGH:
-                serverBuilder.setSocketOption(Options.BACKLOG, 1000);
                 serverBuilder.setIoThreads(Math.max(Runtime.getRuntime().availableProcessors(), undertow_minimum));
                 break;
             case MEDIUM:
-                serverBuilder.setSocketOption(Options.BACKLOG, 128);
                 serverBuilder.setIoThreads(Math.max(Runtime.getRuntime().availableProcessors() / 2, undertow_minimum));
                 break;
             case MINIMAL:
-                serverBuilder.setSocketOption(Options.BACKLOG, 20);
                 serverBuilder.setIoThreads(undertow_minimum); 
                 break;
             case CUSTOM:
-                serverBuilder.setSocketOption(Options.BACKLOG, config.getBacklog());
                 serverBuilder.setIoThreads(Math.max(config.getIoThreads(), undertow_minimum));
                 break;
         }
+        
+        serverBuilder.setSocketOption(Options.BACKLOG, config.getBacklog());
     }
+    
 }
