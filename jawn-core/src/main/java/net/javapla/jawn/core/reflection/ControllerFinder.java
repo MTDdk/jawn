@@ -116,8 +116,12 @@ public final class ControllerFinder {
         final Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
         while (resources.hasMoreElements()) {
             final File file = new File(resources.nextElement().getFile());
-            if (file != null)
-                findClass(file, scannedPackage, classes);
+            if (file != null) {
+                if (file.isDirectory())
+                    findClassInDir(file, scannedPackage, classes);
+                else
+                    findClass(file, scannedPackage, "", classes);
+            }
         }
         return classes;
     }
@@ -130,7 +134,7 @@ public final class ControllerFinder {
                 return classLoader.getResources(scannedPath);
             else  {//we assume the classpath is inside a jar
                 try (JarLoader jar = new JarLoader(scannedPath)) {
-                    return jar.getResourcesFromJarFile();//"/home/mtd/workspace/IbiWebapp/build/install/ibi-application/lib/ibi-application.jar"));
+                    return jar.getResourcesFromJarFile();
                 }
             }
         } catch (IOException e) {
@@ -138,7 +142,7 @@ public final class ControllerFinder {
         }
     }
     
-    private final void findClass(final File file, final String scannedPackage, final Map<String, Class<?>> classes) {
+    private final void findClassInDir(final File file, final String scannedPackage, final Map<String, Class<?>> classes) {
         File[] files = file.listFiles();
         if (files != null)
             for (File nestedFile : files) {
@@ -148,22 +152,17 @@ public final class ControllerFinder {
 
     private final void findClass(final File file, final String scannedPackage, final String subpackage, final Map<String, Class<?>> classes) {
         final String resource = scannedPackage + DOT + subpackage + file.getName();
-//        System.out.println("--resource " + resource);
         if (file.isDirectory()) {
             // file is a package
-//            System.out.println(":: package "+ file.getName() +" :: Directory " + file);
             for (File nestedFile : file.listFiles()) {
-                //System.out.println("nested " + nestedFile);
                 findClass(nestedFile, scannedPackage, subpackage + file.getName()+ DOT , classes);
             }
         } else if (resource.endsWith(CONTROLLER_CLASS_SUFFIX)) {
             final String className = extractClassName(resource);
             final String controllerName = subpackage.replace(DOT, SLASH) + extractControllerName(file);
-//            System.out.println("className " + className + "  _  controllerName " + controllerName);
             
             try {
                 classes.put(controllerName, Class.forName(className));
-                //System.out.println("ClassName " + className + " controllerName " + controllerName);
             } catch (ClassNotFoundException ignore) { log.debug("Class not found: {}-{}",controllerName, className); }
         }
     }

@@ -7,6 +7,7 @@ import java.util.List;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.api.Filters;
 import net.javapla.jawn.core.reflection.ControllerFinder;
+import net.javapla.jawn.core.util.Constants;
 
 /**
  * FilterHandler
@@ -141,8 +142,8 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
         
         @SuppressWarnings("unchecked")
         public final FilterBuilder<T> toPackage( String packageName ) {
-            if (!packageName.startsWith("app.controllers"))
-                packageName = "app.controllers." + packageName;
+            if (!packageName.startsWith(Constants.CONTROLLER_PACKAGE))
+                packageName = Constants.CONTROLLER_PACKAGE + "." + packageName;
             /*Reflections reflect = new Reflections(packageName/*, new SubTypesScanner() {
                 @Override
                 public void scan(Object cls) {

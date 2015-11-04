@@ -27,34 +27,27 @@ public class JarLoader implements AutoCloseable {
     }
 
     public Enumeration<URL> getResourcesFromJarFile() {
-            final List<URL> retval = new ArrayList<>();
-            
-            final Enumeration<JarEntry> e = zf.entries();
-            
-            while(e.hasMoreElements()){
-                final JarEntry ze = (JarEntry) e.nextElement();
-                final String classname = ze.getName();
-                if (classname.startsWith(SCANNED_PATH)/* && classname.endsWith(ControllerFinder.CONTROLLER_CLASS_SUFFIX)*/) {
-                    /*try {
-                            Class.forName(fileName.substring(0, fileName.length() - CLASS_SUFFIX.length()).replace(SLASH, DOT));
-    //                            Class.forName("mtd.ibi.server.services.IndexController");
-                        } catch (ClassNotFoundException e1) {
-                            e1.printStackTrace();
-                        }*/
-                    try {
-                        retval.add(new URL(String.format("jar:file:%s!/%s", JAR_FILE, classname)));
-                    } catch (MalformedURLException e1) {
-                        throw new Error(e1);
-                    }
+        final List<URL> retval = new ArrayList<>();
+
+        final Enumeration<JarEntry> e = zf.entries();
+
+        while(e.hasMoreElements()){
+            final JarEntry ze = (JarEntry) e.nextElement();
+            if (ze.isDirectory()) continue;
+
+            final String classname = ze.getName();
+            if (classname.startsWith(SCANNED_PATH)/* && classname.endsWith(ControllerFinder.CONTROLLER_CLASS_SUFFIX)*/) {
+                try {
+                    URL url = new URL(String.format("jar:file:%s!/%s", JAR_FILE, classname));
+                    retval.add(url);
+                } catch (MalformedURLException e1) {
+                    throw new Error(e1);
                 }
-    //                final boolean accept = pattern.matcher(fileName).matches();
-                /*if(accept){
-                    retval.add(fileName);
-                }*/
             }
-            
-            return Collections.enumeration(retval);
         }
+
+        return Collections.enumeration(retval);
+    }
 
     @Override
     public void close() throws IOException {
