@@ -49,7 +49,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
-import com.sun.corba.se.impl.corba.ContextImpl;
 
 /**
  * Subclass this class to create application controllers. A controller is a main component of a web
