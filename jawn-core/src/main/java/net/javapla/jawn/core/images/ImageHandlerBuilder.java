@@ -158,13 +158,9 @@ public class ImageHandlerBuilder {
              x = Math.abs(original_width - new_width) >> 1; // divide by 2
          }
          
-         System.out.println("width " + width + "\nheight: " + height + "\nnew_w " + new_width + " new_h " + new_height +"\norg_w " + original_width + " "  + original_height);
-
          BufferedImage crop = Scalr.crop(image, x, y, new_width, new_height);
          image.flush();// cannot throw
          image = crop;
-         System.out.println(crop.getWidth() + " " +crop.getHeight());
-         System.out.println(image.getWidth() + " " +image.getHeight());
          
          return this;
      }
@@ -256,14 +252,14 @@ public class ImageHandlerBuilder {
      }
      
      public byte[] asBytes() {
-         System.out.println("asbytes  "+ image.getWidth() + " " +image.getHeight());
-         ByteArrayOutputStream stream = new ByteArrayOutputStream();
          try {
-            ImageIO.write(image, fn.extension(), stream);
-        } catch (IOException e) {
-            throw new ControllerException(e);
-        }
-         return stream.toByteArray();
+             ByteArrayOutputStream stream = new ByteArrayOutputStream();
+             ImageIO.write(image, fn.extension(), stream);
+             byte[] array = stream.toByteArray();
+             return array;
+         } catch (IOException e) {
+             throw new ControllerException(e);
+         }
      }
      
      public ImageHandlerBuilder clone() {
