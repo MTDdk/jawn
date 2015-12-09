@@ -5,15 +5,12 @@ import java.util.List;
 
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.api.FilterChain;
-import net.javapla.jawn.core.api.FilterChainEnd;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ControllerActionInvoker;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StringUtil;
-
-import com.google.inject.Injector;
 
 public class RouteBuilder {
     
@@ -112,7 +109,7 @@ public class RouteBuilder {
      * Build the route.
      * @return the built route
      */
-    public Route build(FiltersHandler filters, Injector injector) throws IllegalStateException, ControllerException {
+    public Route build(FiltersHandler filters/*, Injector injector*/) throws IllegalStateException, ControllerException {
 //        if (controller == null) throw new IllegalStateException("Route not with a controller");
         if (uri == null) throw new IllegalStateException("Route is not specified");
         
@@ -125,8 +122,8 @@ public class RouteBuilder {
         list.addAll(filters.compileFilters(type, action));
         
         
-        FilterChainEnd chainEnd = injector.getInstance(FilterChainEnd.class);
-        Route route = new Route(uri, httpMethod, type, action, actionName, buildFilterChain(chainEnd,/*injector,*/ list, type));
+        //FilterChainEnd chainEnd = injector.getInstance(FilterChainEnd.class);
+        Route route = new Route(uri, httpMethod, type, action, actionName, buildFilterChain(/*injector.getInstance(ControllerActionInvoker.class),*//*chainEnd,*//*injector,*/ list, type));
         
         if (/*actionName != null && */type != null)
         // verify that the controller has the corresponding action
@@ -153,12 +150,13 @@ public class RouteBuilder {
         return newRoute;
     }
     
-    private FilterChain buildFilterChain(FilterChain chainEnd,/*Injector injector, */List<Filter> filters, Class<? extends Controller> controller/*, boolean isProduction*/) {
+    private static final FilterChain filterChainEnd = new FilterChainEnd();
+    private FilterChain buildFilterChain(/*ControllerActionInvoker invoker,*//*FilterChain chainEnd,*//*Injector injector, */List<Filter> filters, Class<? extends Controller> controller/*, boolean isProduction*/) {
         if (filters.isEmpty()) {
-            return chainEnd;//new FilterChainEnd(/*new ControllerActionInvoker(controller, isProduction), *//*injector*/);
+            return filterChainEnd;/*chainEnd;/*///new FilterChainEnd(invoker/*new ControllerActionInvoker(controller, isProduction), *//*injector*/);
         } else {
             Filter filter = filters.remove(0);
-            return new FilterChainImpl(filter, buildFilterChain(chainEnd/*injector*/, filters, controller/*, isProduction*/));
+            return new FilterChainImpl(filter, buildFilterChain(/*invoker,*//*chainEnd,*//*injector*/ filters, controller/*, isProduction*/));
         }
     }
     

@@ -71,12 +71,12 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
     
     @Override
     public Set<String> getContentTypes() {
-        return contentTypeToTemplateEngineMap.keySet();// TODO immutable
+        return contentTypeToTemplateEngineMap.keySet();
     }
 
     @Override
     public final TemplateEngine getTemplateEngineForContentType(String contentType) {
-        Provider<? extends TemplateEngine> provider = contentTypeToTemplateEngineMap.get(contentType);
+        final Provider<? extends TemplateEngine> provider = contentTypeToTemplateEngineMap.get(contentType);
 
         if (provider != null) {
             return provider.get();

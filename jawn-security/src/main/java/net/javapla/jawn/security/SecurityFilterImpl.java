@@ -56,10 +56,14 @@ class SecurityFilterImpl implements SecurityFilter {
         
         if (context.getHttpMethod() == HttpMethod.GET) {
             String path = context.path();
-            if (path.equals(notLoggedInRedirect))
+            if (path.equals(notLoggedInRedirect)) {
+                // redirect to a known location if the user is actually logged in
+                if (session != null && createSubject(context).hasRole(role))
+                    return ResponseBuilder.redirect("/");
+                
+                // fall through as the user is not logged in
                 return chain.before(context);
-            else if (path.equals(logout)) {
-//                SessionFacade session = context.getSession(false);
+            } else if (path.equals(logout)) {
                 if (session != null) {
                     Subject subject = session.get(SESSION_USER, Subject.class);
                     if (subject != null) {
@@ -83,7 +87,7 @@ class SecurityFilterImpl implements SecurityFilter {
         String password = context.getParameter("password");
         String remember = context.getParameter("rememberMe"); //TODO handle cookie independently with framework
         
-        System.out.println(MessageFormat.format("username {0} + pass {1} + remember {2} --  ip {3}", username, password, remember, context.ipAddress()));
+        System.out.println(MessageFormat.format("username {0} + pass {1} + remember {2} --  ip {3},{4},{5}", username, password, remember, context.ipAddress(), context.remoteAddress(), context.remoteHost()));
 
         // get the current user
         // if not already existing, create and save user
@@ -172,7 +176,9 @@ class SecurityFilterImpl implements SecurityFilter {
                 return ResponseBuilder.redirect(location);
             else
                 return chain.before(context);
-        } else
+                //README Redirect to a 'defaultLoginWhenLocationNotFound'?
+                //return ResponseBuilder.redirect("/");
+        }
             //if not auth
         return ResponseBuilder.redirect(notAuthRedirect);
             
@@ -183,7 +189,10 @@ class SecurityFilterImpl implements SecurityFilter {
     public void after(FilterChain chain, Context context) {chain.after(context);}
 
     @Override
-    public void onException(FilterChain chain, Exception e) {chain.onException(e);}
+    public void onException(FilterChain chain, Exception e) {
+        System.out.println("Exception caught in " + this.getClass().getName());
+        chain.onException(e);
+    }
 
     @Override
     public void onRole(String role) {

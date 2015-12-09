@@ -30,7 +30,7 @@ public class Route extends InternalRoute {
     private final FilterChain filterChain; // can be null if no filters are assigned
     
     
-    public Route(String uri, HttpMethod method, Class<? extends Controller> controller, String action, String actionName, FilterChain chain) {
+    public Route(String uri, HttpMethod method, Class<? extends Controller> controller, String action, String actionName,  FilterChain chain) {
         super(uri);
         this.httpMethod = method;
         this.controller = controller;

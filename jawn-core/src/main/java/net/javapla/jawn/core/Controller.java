@@ -755,6 +755,12 @@ public abstract class Controller implements ResponseHolder {
     protected String host() {
         return context.host();
     }
+    protected String scheme() {
+        return context.scheme();
+    }
+    protected String serverName() {
+        return context.serverName();
+    }
 
 
     /**
@@ -989,8 +995,8 @@ public abstract class Controller implements ResponseHolder {
      */
     protected MultiList<FormItem> multipartFormItems(String encoding) {
 
-            if (!context.isRequestMultiPart())
-                throw new MediaTypeException("this is not a multipart request, be sure to add this attribute to the form: ... enctype=\"multipart/form-data\" ...");
+        if (!context.isRequestMultiPart())
+            throw new MediaTypeException("this is not a multipart request, be sure to add this attribute to the form: ... enctype=\"multipart/form-data\" ...");
 
 //            DiskFileItemFactory factory = new DiskFileItemFactory();
 //
@@ -1001,19 +1007,19 @@ public abstract class Controller implements ResponseHolder {
 //            if(encoding != null)
 //                upload.setHeaderEncoding(encoding);
 //            upload.setFileSizeMax(Configuration.getMaxUploadSize());
-            
-            MultiList<FormItem> parts = new MultiList<>();
-            try {
-                List<org.apache.commons.fileupload.FileItem> apacheFileItems = context.parseRequestMultiPartItems(encoding);//upload.parseRequest(context.getHttpRequest());
-                if (apacheFileItems != null) {
-                    for (FileItem apacheItem : apacheFileItems) {
-                        parts.put(apacheItem.getFieldName(), new FormItem(new ApacheFileItemFacade(apacheItem)));
-                    }
+
+        MultiList<FormItem> parts = new MultiList<>();
+        try {
+            List<org.apache.commons.fileupload.FileItem> apacheFileItems = context.parseRequestMultiPartItems(encoding);//upload.parseRequest(context.getHttpRequest());
+            if (apacheFileItems != null) {
+                for (FileItem apacheItem : apacheFileItems) {
+                    parts.put(apacheItem.getFieldName(), new FormItem(new ApacheFileItemFacade(apacheItem)));
                 }
-                return parts;
-            } catch (Exception e) {
-                throw new ControllerException(e);
             }
+            return parts;
+        } catch (Exception e) {
+            throw new ControllerException(e);
+        }
     }
     
     
@@ -1593,10 +1599,9 @@ public abstract class Controller implements ResponseHolder {
     protected OutputStream outputStream(String contentType, Map<String, String> headers, int status) {
 //        context.setControllerResponse(new NopResponse(context, contentType, status));
         //------
-        Response r = new Response(200);
-        r.contentType(contentType).status(status);
+        Response r = ResponseBuilder.noBody(status).contentType(contentType);
 //        context.setControllerResponse(r);
-        response = r;
+        setControllerResponse(r);
         
         try {
             if (headers != null) {

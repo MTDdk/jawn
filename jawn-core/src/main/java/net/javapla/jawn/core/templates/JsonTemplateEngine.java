@@ -10,30 +10,25 @@ import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 final class JsonTemplateEngine implements TemplateEngine {
 
-    private final ObjectMapper mapper;
+    private final ObjectWriter writer;
     
     @Inject
     public JsonTemplateEngine(ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
-    
-    @Override
-    public final void invoke(final Context context, final Response response) {
-        ResponseStream stream = context.finalizeResponse(response, false);
-        invoke(context, response, stream);
+        writer = mapper.writer();
     }
     
     @Override
     public final void invoke(final Context context, final Response response, final ResponseStream stream) {
         try (final OutputStream output = stream.getOutputStream()) {
             
-            mapper.writeValue(output, response.renderable());
+            writer.writeValue(output, response.renderable());
             
         } catch (IOException e) {
             e.printStackTrace();

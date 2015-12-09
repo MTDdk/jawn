@@ -11,9 +11,11 @@ public interface Filter {
      * method if they wish the request to proceed.
      * 
      * @param chain
-     *            The filter chain
+     *      The filter chain
      * @param context
-     *            The context
+     *      The context
+     * @return
+     *      A response if anything needs to be redirected or 404'd
      */
     Response before(FilterChain chain, Context context);
     

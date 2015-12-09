@@ -8,12 +8,13 @@ dependencies {
 
 	compile 'com.google.inject:guice:4.0'
 	compile 'commons-fileupload:commons-fileupload:1.3.1'
+    
+    //compile 'net.sf.trove4j:trove4j:3.0.3'
 
 	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.6.3'
 	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.6.3' // faster data binding
 	compile 'org.codehaus.woodstox:woodstox-core-asl:4.4.1' // faster XML parsing
     compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
-    //compile 'javax.servlet:javax.servlet-api:3.1.0'
     
     
     // https://github.com/ronmamo/reflections
@@ -21,8 +22,12 @@ dependencies {
 
     
     // Database
-    compile 'mysql:mysql-connector-java:5.1.37'
+    //compile 'mysql:mysql-connector-java:5.1.37'
     compile 'com.mchange:c3p0:0.9.5.1'
+    
+    // Cache
+    //compile 'org.ehcache:ehcache:3.0.0.m4'
+    compile 'net.jodah:expiringmap:0.5.1'
 	
 	
 	/* Template Engines */

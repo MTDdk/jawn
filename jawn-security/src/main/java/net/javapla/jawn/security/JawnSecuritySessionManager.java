@@ -7,14 +7,14 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.session.SessionException;
 import org.apache.shiro.session.mgt.SessionContext;
 import org.apache.shiro.session.mgt.SessionKey;
-import org.apache.shiro.session.mgt.SessionManager;
+import org.apache.shiro.web.session.mgt.WebSessionManager;
 
 /**
  * Totally and (almost) shamelessly a re-implementation of Shiros own ServletContainerSessionManager
  * 
  * @author MTD
  */
-public class JawnSecuritySessionManager implements SessionManager {
+public class JawnSecuritySessionManager implements WebSessionManager {
 
 
     public JawnSecuritySessionManager() {
@@ -51,4 +51,15 @@ public class JawnSecuritySessionManager implements SessionManager {
         return new JawnSecuritySession(session, host);
     }
 
+    /**
+     * This implementation always delegates to the servlet container for sessions, so this method returns
+     * {@code true} always.
+     *
+     * @return {@code true} always
+     * @since 1.2
+     */
+    @Override
+    public boolean isServletContainerSessions() {
+        return true;
+    }
 }

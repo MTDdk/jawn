@@ -23,12 +23,6 @@ class XmlTemplateEngine implements TemplateEngine {
         this.mapper = mapper;
     }
     
-    @Override
-    public void invoke(Context context, Response response) {
-        ResponseStream stream = context.finalizeResponse(response, false);
-        invoke(context, response, stream);
-    }
-    
     
     @Override
     public void invoke(Context context, Response response, ResponseStream stream) {

@@ -43,14 +43,10 @@ public class StringBuilderWriter extends Writer {
     }
 
     @Override
-    public void flush() {
-        
-    }
+    public void flush() {}
 
     @Override
-    public void close() {
-        
-    }
+    public void close() {}
     
     @Override
     public String toString() {

@@ -9,11 +9,10 @@ import com.google.inject.Provider;
  * 
  * @author MTD
  */
-public class JsonMapperProvider implements Provider<ObjectMapper> {
+public final class JsonMapperProvider implements Provider<ObjectMapper> {
 
     @Override
     public ObjectMapper get() {
-        System.out.println("-------------- providing a JSON mapper -> " + this.getClass());
         ObjectMapper mapper = new ObjectMapper();
         
         ParserConfiguration.config(mapper);

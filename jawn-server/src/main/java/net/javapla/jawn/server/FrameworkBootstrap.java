@@ -24,6 +24,7 @@ import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseModule;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.JawnSpecificProperties;
 import net.javapla.jawn.core.util.Modes;
 
 import org.reflections.Reflections;
@@ -47,7 +48,7 @@ public class FrameworkBootstrap {
     private ApplicationBootstrap[] plugins;
 
     public FrameworkBootstrap() {
-        properties = new PropertiesImpl(Modes.determineModeFromSystem());
+        this(new PropertiesImpl(Modes.determineModeFromSystem()));
     }
     
     public FrameworkBootstrap(PropertiesImpl conf) {
@@ -88,7 +89,7 @@ public class FrameworkBootstrap {
 
         
         // compiling of routes needs an injector, so this is done after the creation
-        router.compileRoutes(localInjector);
+        router.compileRoutes(/*localInjector*/);
         
         injector = localInjector;
         
@@ -171,7 +172,7 @@ public class FrameworkBootstrap {
     
     private ApplicationBootstrap readConfiguration(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {
         
-        Reflections reflections = new Reflections("app.config");//TODO write into some properties file
+        Reflections reflections = new Reflections(JawnSpecificProperties.CONFIG_PACKAGE);
         
         //TODO if multiple implementations were found - write something in the log
         
@@ -189,7 +190,7 @@ public class FrameworkBootstrap {
     }
     
     private ApplicationBootstrap[] readRegisteredPlugins(ApplicationConfig config) {
-        Reflections reflections = new Reflections("net.javapla.jawn.plugins.modules");
+        Reflections reflections = new Reflections(properties.get(Constants.APPLICATION_PLUGINS_PACKAGE));
         return locateAll(reflections, ApplicationBootstrap.class, impl -> impl.bootstrap(config));
     }
     
@@ -199,16 +200,16 @@ public class FrameworkBootstrap {
      * 
      * @param reflections
      * @param clazz
-     * @param f
+     * @param bootstrapper
      * @return
      */
-    private <T, U> T locate(Reflections reflections, Class<T> clazz, Consumer<T> f) {
+    private <T, U> T locate(Reflections reflections, Class<T> clazz, Consumer<T> bootstrapper) {
         Set<Class<? extends T>> set = reflections.getSubTypesOf(clazz);
         if (!set.isEmpty()) {
             Class<? extends T> c = set.iterator().next();
             try {
                 T locatedImplementation = DynamicClassFactory.createInstance(c, clazz);
-                f.accept(locatedImplementation);
+                bootstrapper.accept(locatedImplementation);
                 logger.debug("Loaded configuration from: " + c);
                 return locatedImplementation;
             } catch (IllegalArgumentException e) {
@@ -222,7 +223,7 @@ public class FrameworkBootstrap {
         return null;
     }
     
-    private <T, U> T[] locateAll(Reflections reflections, Class<T> clazz, Consumer<T> f) {
+    private <T, U> T[] locateAll(Reflections reflections, Class<T> clazz, Consumer<T> bootstrapper) {
         Set<Class<? extends T>> set = reflections.getSubTypesOf(clazz);
         if (!set.isEmpty()) {
             
@@ -236,7 +237,7 @@ public class FrameworkBootstrap {
                 
                 try {
                     T locatedImplementation = DynamicClassFactory.createInstance(c, clazz);
-                    f.accept(locatedImplementation);
+                    bootstrapper.accept(locatedImplementation);
                     logger.debug("Loaded configuration from: " + c);
                     all[index++] = locatedImplementation;
                     

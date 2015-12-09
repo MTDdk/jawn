@@ -115,6 +115,9 @@ public interface Context {
      */
     public String host();
     
+    public String scheme();
+    public String serverName();
+    
     /**
      * Returns local IP address on which request was received.
      *

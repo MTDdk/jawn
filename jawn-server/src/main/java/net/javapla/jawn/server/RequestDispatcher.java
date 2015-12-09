@@ -161,6 +161,7 @@ public class RequestDispatcher implements Filter {
      * @author MTD
      * @return true, if a filtering has happened and nothing else should be done by this current dispatcher
      */
+    //TODO extract to an independent Filter
     private static final boolean filteringResources(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain chain, final String path, final Function<String,String> needsTranslation) throws ServletException, IOException {
         String translated = needsTranslation.apply(path);
 //        String translated = translateResource(path);
@@ -176,8 +177,10 @@ public class RequestDispatcher implements Filter {
             }
             
             
-            // setting default headers for static files
-            resp.setHeader(HttpHeaders.CACHE_CONTROL, "max-age=86400"); // 24 hours
+            // Setting default headers for static files
+            // One week - Google recommendation
+            // https://developers.google.com/speed/docs/insights/LeverageBrowserCaching
+            resp.setHeader(HttpHeaders.CACHE_CONTROL, "public, max-age=604800");
             File file = new File(req.getServletContext().getRealPath(translated));
             if (file.canRead())
                 resp.setHeader(HttpHeaders.ETAG, String.valueOf(file.lastModified()));

@@ -5,11 +5,9 @@ import java.util.Properties;
 
 import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.JawnSpecificProperties;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringUtil;
-
-import com.google.inject.Binder;
-import com.google.inject.name.Names;
 
 /**
  * Read configurations
@@ -22,30 +20,37 @@ public class PropertiesImpl implements JawnProperties {
     
     private final Modes mode;
     
-//    private final Map<Modes, ConnectionSpec<JdbcConnectionSpec>> databaseSpecs;
     
-    
-    public PropertiesImpl(Modes mode) {
+    public PropertiesImpl(Modes mode) throws InitException {
         this.mode = mode;
-//        databaseSpecs = new HashMap<>();
+        this.props = new Properties();
         
+        readProperties();
+        
+        String basePackage = props.getProperty(Constants.APPLICATION_BASE_PACKAGE);
+        System.err.println(Constants.APPLICATION_BASE_PACKAGE + " :: " + basePackage);
+        System.setProperty(Constants.JAWN_APPLICATION_BASE_PACKAGE, basePackage);
+        System.err.println(JawnSpecificProperties.CONTROLLER_PACKAGE);
+        System.err.println(JawnSpecificProperties.CONFIG_PACKAGE);
+    }
+    
+    protected void readProperties() throws InitException {
         try {
             
             //read defaults
-            props = new Properties();
             InputStream in1 = PropertiesImpl.class.getClassLoader().getResourceAsStream(Constants.PROPERTIES_FILE);
             props.load(in1);
 
             //override defaults
-            Properties overrides = new Properties();
             InputStream in2 = PropertiesImpl.class.getClassLoader().getResourceAsStream(Constants.USER_PROPERTIES_FILE);
             if(in2 != null){
+                Properties overrides = new Properties();
                 overrides.load(in2);
+                for (Object name : overrides.keySet()) {
+                    props.put(name, overrides.get(name));
+                }
             }
 
-            for (Object name : overrides.keySet()) {
-                props.put(name, overrides.get(name));
-            }
             checkInitProperties();
             
         } catch (InitException e ) {
@@ -57,9 +62,9 @@ public class PropertiesImpl implements JawnProperties {
     }
     
     
-    private void checkInitProperties(){
-        for(Constants.Params param: Constants.Params.values()){
-            if(props.get(param.toString()) == null){
+    private void checkInitProperties() throws InitException {
+        for (String param: Constants.PROPERTY_PARAMS) {
+            if (props.get(param) == null) {
                 throw new InitException("Must provide property: " + param);
             }
         }
@@ -84,9 +89,9 @@ public class PropertiesImpl implements JawnProperties {
      * Bind all the properties read into the Named("key")
      * @param binder
      */
-    public void bindProperties(Binder binder) {
+    /*public void bindProperties(Binder binder) {
         Names.bindProperties(binder, props);
-    }
+    }*/
     
     
     public String get(String name) {
@@ -128,14 +133,6 @@ public class PropertiesImpl implements JawnProperties {
     public String[] getSupportedLanguages() {
         return get(Constants.SUPPORTED_LANGUAGES, String[].class);
     }
-    
-//    public ConnectionSpec<JdbcConnectionSpec> getDatabaseSpec() {
-//        return databaseSpecs.get(getMode());
-//    }
-//    public void putDatabaseSpec(Modes mode, ConnectionSpec<JdbcConnectionSpec> spec) {
-//        databaseSpecs.put(mode, spec);
-//    }
-    
     
     /**
      * Retrieves object by name. Convenience generic method. 

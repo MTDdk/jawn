@@ -17,7 +17,7 @@ import com.google.inject.Inject;
  * @author MTD
  */
 //perhaps to be called ResponseHandler
-public class ResponseRunner {
+public final class ResponseRunner {
 
     private final TemplateEngineOrchestrator templateEngineManager;
     
@@ -28,7 +28,7 @@ public class ResponseRunner {
     
     public final void run(final Context context, final Response response) throws ViewException, BadRequestException, MediaTypeException {
         //might already have been handled by the controller or filters
-        if (response == null) return;
+        //if (response == null) return;
         
         final Object renderable = response.renderable();
         if (renderable instanceof NoHttpBody) {
@@ -55,7 +55,7 @@ public class ResponseRunner {
         final TemplateEngine engine = templateEngineManager.getTemplateEngineForContentType(response.contentType());
         
         if (engine != null) {
-            engine.invoke(context, response);
+            engine.invoke(context, response, context.finalizeResponse(response, true));
         } else {
             throw new MediaTypeException(
                     MessageFormat.format("Could not find a template engine supporting the content type of the response : {}", response.contentType()));

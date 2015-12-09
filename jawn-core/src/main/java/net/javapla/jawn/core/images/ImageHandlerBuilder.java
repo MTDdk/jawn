@@ -8,7 +8,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.MemoryCacheImageOutputStream;
 
 import net.javapla.jawn.core.FormItem;
 import net.javapla.jawn.core.Response;
@@ -196,13 +200,46 @@ public class ImageHandlerBuilder {
       * and setting the height accordingly.
       * If the width of the image is smaller than the provided size, then the image is not scaled.
       * @param size
-      * @return
+      * @return this
       */
      public ImageHandlerBuilder resizeToWidth(int size) {
          if (image.getWidth() < size) return this;
          BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_TO_WIDTH, size);
          image.flush();
          image = resize;
+         return this;
+     }
+     
+     /**
+      * Uses compression quality of <code>qualityPercent</code>.
+      * Can be applied multiple times
+      * @param qualityPercent the percentage of compression quality wanted. Must be between 0.0 and 1.0
+      * @return this for chaining
+      */
+     public ImageHandlerBuilder reduceQuality(float qualityPercent) {
+         ImageWriter imageWriter = ImageIO.getImageWritersByFormatName(fn.extension()).next();
+         if (imageWriter != null) {
+             ImageWriteParam writeParam = imageWriter.getDefaultWriteParam();
+             writeParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+             writeParam.setCompressionQuality(qualityPercent);
+
+             ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             imageWriter.setOutput(new MemoryCacheImageOutputStream(baos));
+             try {
+                 imageWriter.write(null, new IIOImage(image, null, null), writeParam);
+                 imageWriter.dispose();
+             } catch (IOException e) {
+                 throw new ControllerException(e);
+             }
+             
+             try {
+                BufferedImage lowImage = ImageIO.read(new ByteArrayInputStream(baos.toByteArray()));
+                image.flush();
+                image = lowImage;
+            } catch (IOException e) {
+                throw new ControllerException(e);
+            }
+         }
          return this;
      }
 

@@ -1,10 +1,7 @@
 package net.javapla.jawn.core;
 
-import net.javapla.jawn.core.api.FilterChainEnd;
+import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.core.reflection.ControllerActionInvoker;
-
-import com.google.inject.Inject;
 
 /**
  * Indicates the end of a filter chain.
@@ -14,18 +11,17 @@ import com.google.inject.Inject;
  * 
  * @author MTD
  */
-class FilterChainEndImpl implements FilterChainEnd {
+class FilterChainEnd implements FilterChain {
 
-    private final ControllerActionInvoker invoker;
+    //private final ControllerActionInvoker invoker;
     
-    @Inject
-    public FilterChainEndImpl(ControllerActionInvoker invoker) {
-        this.invoker = invoker;
+    public FilterChainEnd(/*ControllerActionInvoker invoker*/) {
+        //this.invoker = invoker;
     }
     
     @Override
     public Response before(Context context) {
-        return invoker.executeAction(context);
+        return null;//invoker.executeAction(context);
     }
 
     @Override

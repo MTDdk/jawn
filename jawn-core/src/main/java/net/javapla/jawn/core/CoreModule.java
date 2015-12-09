@@ -1,6 +1,7 @@
 package net.javapla.jawn.core;
 
-import net.javapla.jawn.core.api.FilterChainEnd;
+import net.javapla.jawn.core.cache.Cache;
+import net.javapla.jawn.core.cache.CacheProvider;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.ParserEngineManagerImpl;
@@ -17,12 +18,20 @@ import com.google.inject.Singleton;
 
 public class CoreModule extends AbstractModule {
     
+    /*private final PropertiesImpl properties;
+
+    public CoreModule(PropertiesImpl properties) {
+        this.properties = properties;
+    }*/
+
     @Override
     protected void configure() {
         
         // Marshallers
         bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
         bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
+        
+        bind(Cache.class).toProvider(CacheProvider.class).in(Singleton.class);
         
         bind(SiteConfigurationReader.class).in(Singleton.class);
         
@@ -32,8 +41,9 @@ public class CoreModule extends AbstractModule {
         
         bind(ControllerActionInvoker.class).in(Singleton.class);
         
+        // initiate all read properties as something injectable
+        //properties.bindProperties(binder());
         bind(FrameworkEngine.class).in(Singleton.class);
-        bind(FilterChainEnd.class).to(FilterChainEndImpl.class).in(Singleton.class);
     }
 
     

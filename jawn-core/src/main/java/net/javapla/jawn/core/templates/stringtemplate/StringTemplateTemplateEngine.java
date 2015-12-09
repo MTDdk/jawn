@@ -21,6 +21,7 @@ import net.javapla.jawn.core.templates.config.SiteConfiguration;
 import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
 import net.javapla.jawn.core.templates.config.TemplateConfig;
 import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
+import net.javapla.jawn.core.templates.stringtemplate.rewrite.STFastGroupDir;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 
@@ -31,9 +32,10 @@ import org.stringtemplate.v4.Interpreter;
 import org.stringtemplate.v4.NoIndentWriter;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroupDir;
-import org.stringtemplate.v4.STRawGroupDir;
 import org.stringtemplate.v4.STWriter;
 import org.stringtemplate.v4.misc.ErrorBuffer;
+import org.stringtemplate.v4.misc.ErrorType;
+import org.stringtemplate.v4.misc.STMessage;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -84,78 +86,55 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public final void invoke(Context context, Response response) throws ViewException {
-        invoke(context, response, context.finalizeResponse(response));
-    }
-    
-    @Override
     public final void invoke(Context context, Response response, ResponseStream stream) throws ViewException {
         long time = System.currentTimeMillis();
-        
-        final Map<String, Object> values = response.getViewObjects();//context.getViewObjects();
-//      Object renderable = response.renderable();
-      /*if (renderable == null) {
-          values = new HashMap<>(); // just use empty map
-      } else if (renderable instanceof Map) {
-          values = (Map<String, Object>) renderable;
-      } else {
-          // We are getting an arbitrary Object and put that into
-          // the root of the template engine
-          
-          // If you are rendering something like Results.ok().render(new MyObject()) //TODO rephrase
-          // Assume MyObject has a public String name field.            
-          // You can then access the fields in the template like that:
-          // ${myObject.publicField}            
-          
-          String realClassNameLowerCamelCase = StringUtil.decapitalize(renderable.getClass().getSimpleName());
-          
-          values = new HashMap<>();
-          values.put(realClassNameLowerCamelCase, renderable);
-      }*/
-      
-      setupTemplateGroup(context);
-      
-      //generate name of the template
-      final String template = TemplateEngineHelper.getTemplateForResult(context.getRoute(), response);
-      String layout = response.layout();
-      String language = null;//context.getRouteLanguage();
-      
-      final ErrorBuffer error = new ErrorBuffer();
-      final ST contentTemplate = locateTemplate(group, template);
 
-      try (final Writer writer = stream.getWriter()) {
+        final Map<String, Object> values = response.getViewObjects();
 
-          if (layout == null) { // no layout
-              // both layout and template cannot be null
-              if (contentTemplate == null) throw new ViewException("Could not find the template " + contentTemplate + ". Is it spelled correctly?");
-              renderContentTemplate(contentTemplate, writer, values, language, error);
-              
-          } else { // with layout
-              // Get the calling controller and not just rely on the folder for the template.
-              // An action might specify a template that is not a part of the controller.
-              String controller = TemplateEngineHelper.getControllerForResult(context.getRoute());
+        setupTemplateGroup(context);
 
-              String content = renderContentTemplate(contentTemplate, values, language, error);
+        //generate name of the template
+        final String template = TemplateEngineHelper.getTemplateForResult(context.getRoute(), response);
+        String layout = response.layout();
+        final String language = null;//context.getRouteLanguage();
 
-              ST layoutTemplate = locateDefaultLayout(group, controller, layout);
-              if (layoutTemplate == null) throw new ViewException("index.html.st is not to be found anywhere");
-              
-              layout = layoutTemplate.getName(); // for later logging
-              readyLayoutTemplate(layoutTemplate, context, content, values, controller, language, error);
+        final ErrorBuffer error = new ErrorBuffer();
+        final ST contentTemplate = locateTemplate(group, template);
 
-              renderTemplate(layoutTemplate, writer, error);
-          }
-      } catch (IOException e) {
-          throw new ViewException(e);
-      }
+        try (final Writer writer = stream.getWriter()) {
 
-      
-      if (log.isInfoEnabled())
-      log.info("Rendered template: '{}' with layout: '{}' in  {}ms", template, layout, (System.currentTimeMillis() - time));
-      
-      if (!error.errors.isEmpty() && log.isErrorEnabled()) {
-          log.warn(error.errors.toString());
-      }
+            //System.out.println(contentTemplate.getName() + " - " + contentTemplate.impl.formalArguments + " .. " + contentTemplate.getAttributes());
+
+            if (layout == null) { // no layout
+                // both layout and template cannot be null
+                if (contentTemplate == null) throw new ViewException("Could not find the template " + contentTemplate + ". Is it spelled correctly?");
+                renderContentTemplate(contentTemplate, writer, values, language, error);
+
+            } else { // with layout
+
+                String content = renderContentTemplate(contentTemplate, values, language, error);
+
+                // Get the calling controller and not just rely on the folder for the template.
+                // An action might specify a template that is not a part of the controller.
+                final String controller = TemplateEngineHelper.getControllerForResult(context.getRoute());
+                ST layoutTemplate = locateDefaultLayout(group, controller, layout);
+                if (layoutTemplate == null) throw new ViewException("index.html.st is not to be found anywhere");
+
+                layout = layoutTemplate.getName(); // for later logging
+                injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller, language, error);
+
+                renderTemplate(layoutTemplate, writer, error);
+            }
+        } catch (IOException e) {
+            throw new ViewException(e);
+        }
+
+
+        if (log.isInfoEnabled())
+            log.info("Rendered template: '{}' with layout: '{}' in  {}ms", template, layout, (System.currentTimeMillis() - time));
+
+        if (!error.errors.isEmpty() && log.isWarnEnabled())
+            log.warn(error.errors.toString());
     }
 
     @Override
@@ -179,9 +158,17 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
         return realPath;
     }
     
-    private void setupTemplateGroup(Context ctx) {
+    private final void setupTemplateGroup(Context ctx) {
         if (group == null) {
-            group = new STRawGroupDir(getTemplateFolder(ctx), config.delimiterStart, config.delimiterEnd);
+            
+            //if in production or test
+            // when reading the template from disk, do the minification at this point
+            // so the STWriter does not have to handle that.
+            // (This probably means something like extending STGroup and handle its caching
+            // a little differently)
+            boolean minimise = mode != Modes.DEV; // probably just as outputHtmlIndented
+            
+            group = new STFastGroupDir/*STRawGroupDir*/(getTemplateFolder(ctx), config.delimiterStart, config.delimiterEnd, minimise);
             
             // add the user configurations
             config.adaptors.forEach((k, v) -> group.registerModelAdaptor(k, v));
@@ -192,16 +179,66 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
 //            group.importTemplates(fallbackGroup);
         }
         
-        // clears the internal cache of StringTemplate
-        // forces it to read templates from disk
         if (! useCache)
-            group.unload();
+            reloadGroup();
+        
         //README apparently this *might* be called multiple times during first reads (maybe even other times as well),
         // resulting in a ConcurrentModicifationException from the ArrayList internal of StringTemplate.
         // Something needs to be done about this.
     }
     
+    private final void reloadGroup() {
+        // clears the internal cache of StringTemplate
+        // forces it to read templates from disk
+        group.unload();
+    }
+    
     private final ST locateTemplate(final STGroupDir group, final String template) {
+        /*
+         * strawgroupdir
+group.getInstanceOf 6114
+group.getInstanceOf 2885
+group.getInstanceOf 1439
+group.getInstanceOf 1941
+
+group.getInstanceOf 6597
+group.getInstanceOf 2771
+group.getInstanceOf 1941
+group.getInstanceOf 2486
+
+group.getInstanceOf 6743
+group.getInstanceOf 2367
+group.getInstanceOf 1144
+group.getInstanceOf 1403
+
+group.getInstanceOf 6063
+group.getInstanceOf 2911
+group.getInstanceOf 4238
+group.getInstanceOf 3198
+         */
+        
+        /*
+         * stfastgroupdir
+group.getInstanceOf 6746
+group.getInstanceOf 3640
+group.getInstanceOf 2003
+group.getInstanceOf 2620
+
+group.getInstanceOf 5348
+group.getInstanceOf 2622
+group.getInstanceOf 1220
+group.getInstanceOf 1583
+
+group.getInstanceOf 6039
+group.getInstanceOf 5386
+group.getInstanceOf 2191
+group.getInstanceOf 2733
+
+group.getInstanceOf 4922
+group.getInstanceOf 2887
+group.getInstanceOf 1886
+group.getInstanceOf 2422 
+         */
         return group.getInstanceOf(template);
     }
 
@@ -254,16 +291,35 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
 
     /** Renders template into string
      * @return The rendered template if exists, or empty string */
-    private String renderContentTemplate(ST contentTemplate, Map<String, Object> values, String language, final ErrorBuffer error) {
+    private final String renderContentTemplate(final ST contentTemplate, final Map<String, Object> values, final String language, final ErrorBuffer error) {
         if (contentTemplate != null) { // it has to be possible to use a layout without defining a template
             Writer sw = new StringBuilderWriter();
-            renderContentTemplate(contentTemplate, sw, values, language, error);
+            
+            final ErrorBuffer templateErrors = new ErrorBuffer();
+            renderContentTemplate(contentTemplate, sw, values, language, templateErrors);
+            
+            // handle potential errors
+            if (!templateErrors.errors.isEmpty()) {
+                for (STMessage err : templateErrors.errors) {
+                    if (err.error == ErrorType.INTERNAL_ERROR) {
+                        log.warn("Reloading GroupDir as we have found a problem during rendering of template \"{}\"\n{}",contentTemplate.getName(), templateErrors.errors.toString());
+                        //README when errors occur, try to reload the specified templates and try the whole thing again
+                        // this often rectifies the problem
+                        reloadGroup();
+                        ST reloadedContentTemplate = locateTemplate(group, contentTemplate.getName());
+                        sw = new StringBuilderWriter();
+                        renderContentTemplate(reloadedContentTemplate, sw, values, language, error);
+                        break;
+                    }
+                }
+            }
+
             return sw.toString();
         }
         return "";
     }
-
-    private final void readyLayoutTemplate(
+    
+    private final void injectValuesIntoLayoutTemplate(
             final ST layoutTemplate, final Context ctx, final String content, 
             final Map<String, Object> values, final String controller, final String language, final ErrorBuffer error) {
         injectTemplateValues(layoutTemplate, values);
@@ -281,8 +337,8 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
             language,
             
             //add scripts
-            readLinks(StringTemplateTemplate.SCRIPTS_TEMPLATE, conf.scripts, error),
-            readLinks(StringTemplateTemplate.STYLES_TEMPLATE, conf.styles, error),
+            readLinks(Templates.SCRIPTS_TEMPLATE, conf.scripts, error),
+            readLinks(Templates.STYLES_TEMPLATE, conf.styles, error),
             
             // put the rendered content into the main template
             content,
@@ -308,19 +364,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
         }
     }
     
-    /*private String readLinks(StringTemplateTemplate template, List<String> links, ErrorBuffer error) {
-        if (links.isEmpty()) return null;
-        
-        final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
-        
-        List<String> prefixed = prefixResourceLinks(links, template.prefix);
-        
-        linkTemplate.add("links", prefixed);
-        final Writer writer = new StringBuilderWriter();
-        linkTemplate.write(createSTWriter(writer), error);
-        return writer.toString();
-    }*/
-    private final String readLinks(final StringTemplateTemplate template, final String[] links, final ErrorBuffer error) {
+    private final String readLinks(final Templates template, final String[] links, final ErrorBuffer error) {
         if (links == null) return null;
         
         final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
@@ -336,28 +380,14 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
      * Prefixes local resources with css/ or js/.
      * "Local" is defined by not starting with 'http.*' or 'ftp.*'
      */
-    /*private List<String> prefixResourceLinks(List<String> links, String prefix) {
-        return links
-                .parallelStream()
-                .map(link -> { 
-                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
-                        link = prefix + link; 
-                    return link; 
-                })
-                .collect(Collectors.toList());
-    }*/
-    private /*List<String>*/String[] prefixResourceLinks(final String[] links, final String prefix) {
-        
+    private final String[] prefixResourceLinks(final String[] links, final String prefix) {
         return Arrays.stream(links).parallel()
-//        return links
-//                .parallelStream()
                 .map(link -> { 
                     if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
                         link = prefix + link; 
                     return link; 
                 })
                 .toArray(String[]::new);
-                //.collect(Collectors.toList());
     }
     
     private final void renderTemplate(final ST layoutTemplate, final Writer writer, final ErrorBuffer error) {

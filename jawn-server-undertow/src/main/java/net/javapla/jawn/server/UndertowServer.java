@@ -81,9 +81,9 @@ public class UndertowServer implements JawnServer {
         int undertow_minimum = 2;//may not be less than 2 because of the inner workings of Undertow
         switch (config.getServerPerformance()) {
             case HIGHEST:
-                int ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum);
+                int ioThreads = Math.max(Runtime.getRuntime().availableProcessors() << 1, undertow_minimum);
                 serverBuilder.setIoThreads(ioThreads);
-                serverBuilder.setWorkerThreads(ioThreads << 5);
+                serverBuilder.setWorkerThreads(ioThreads * 8);
                 serverBuilder.setBufferSize(1024 * 16);
                 break;
             case HIGH:

@@ -11,13 +11,14 @@ public abstract class FilterAdapter implements Filter {
     
     @Override
     public Response before(FilterChain chain, Context context) {
-        before(context);
-        return chain.before(context);
+        Response response = chain.before(context);
+        try { before(context); } catch (Exception e) {}
+        return response;
     }
     
     @Override
     public void after(FilterChain chain, Context context) {
-        after(context);
+        try { after(context); } catch (Exception e) {}
         chain.after(context);
     }
     

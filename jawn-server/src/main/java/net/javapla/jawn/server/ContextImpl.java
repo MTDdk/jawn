@@ -348,6 +348,14 @@ class ContextImpl implements ContextInternal {
         return request.getLocalName();
     }
     
+    public String scheme() {
+        return request.getScheme();
+    }
+    
+    public String serverName() {
+        return request.getServerName();
+    }
+    
     /**
      * Returns local IP address on which request was received.
      *
@@ -426,7 +434,7 @@ class ContextImpl implements ContextInternal {
         
         // This could be a list of proxy IPs, which the developer could
         // provide via some configuration
-        if ("127.0.0.1".equals(remoteAddr)) remoteAddr = getParameter("X-Forwarded-For");
+        if ("127.0.0.1".equals(remoteAddr)) remoteAddr = requestHeader("X-Forwarded-For");
         return remoteAddr;
     }
     
@@ -494,7 +502,7 @@ class ContextImpl implements ContextInternal {
      */
     public List<FileItem> parseRequestMultiPartItems(String encoding) {
         DiskFileItemFactory factory = new DiskFileItemFactory();
-        factory.setSizeThreshold(properties.getInt(Constants.Params.maxUploadSize.name()));//Configuration.getMaxUploadSize());
+        factory.setSizeThreshold(properties.getInt(Constants.UPLOADS_MAX_SIZE/*Constants.Params.maxUploadSize.name()*/));//Configuration.getMaxUploadSize());
         factory.setRepository(new File(System.getProperty("java.io.tmpdir"))); //Configuration.getTmpDir());
         //README the file for tmpdir *MIGHT* need to go into Properties
         
@@ -502,7 +510,7 @@ class ContextImpl implements ContextInternal {
         
         if(encoding != null)
             upload.setHeaderEncoding(encoding);
-        upload.setFileSizeMax(properties.getInt(Constants.Params.maxUploadSize.name()));//Configuration.getMaxUploadSize());
+        upload.setFileSizeMax(properties.getInt(Constants.UPLOADS_MAX_SIZE));//Configuration.getMaxUploadSize());
         
         try {
             return upload.parseRequest(request);
@@ -608,7 +616,7 @@ class ContextImpl implements ContextInternal {
         return finalizeResponse(controllerResponse, true);
     }
     
-    public final ResponseStream finalizeResponse(Response controllerResponse, boolean handleFlash) {
+    public final ResponseStream finalizeResponse(final Response controllerResponse, boolean handleFlash) {
         // status
         response.setStatus(controllerResponse.status());
         

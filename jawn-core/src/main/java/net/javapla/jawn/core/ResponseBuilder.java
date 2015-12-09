@@ -3,6 +3,7 @@ package net.javapla.jawn.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.text.MessageFormat;
+import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -15,7 +16,7 @@ import net.javapla.jawn.core.exceptions.PathNotFoundException;
  * @author MTD
  */
 //Results
-public class ResponseBuilder {
+public final class ResponseBuilder {
 
     private final ResponseHolder holder;
     public ResponseBuilder(ResponseHolder holder) {
@@ -105,6 +106,12 @@ public class ResponseBuilder {
         final Response response = ok();
         holder.setControllerResponse(response);
         response.contentType(MediaType.APPLICATION_JSON).renderable(obj);
+        return response;
+    }
+    public final Response json(Callable<Object> c) {
+        final Response response = ok();
+        holder.setControllerResponse(response);
+        response.contentType(MediaType.APPLICATION_JSON).renderable(c);
         return response;
     }
     

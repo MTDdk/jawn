@@ -15,11 +15,6 @@ import net.javapla.jawn.core.http.ResponseStream;
 class ImageTemplateEngine implements TemplateEngine {
 
     @Override
-    public void invoke(Context context, Response response) {
-        invoke(context, response, context.finalizeResponse(response));
-    }
-
-    @Override
     public void invoke(Context context, Response response, ResponseStream stream) {
         // We assume the content type to be of the form "image/{extension}"
         // This is what we extract, as the image ought to be of the same format

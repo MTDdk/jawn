@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.javapla.jawn.core.http.ResponseStream;
 
-public class ResponseStreamServlet implements ResponseStream {
+public final class ResponseStreamServlet implements ResponseStream {
 
     private final HttpServletResponse response;
     
@@ -17,12 +17,12 @@ public class ResponseStreamServlet implements ResponseStream {
     }
     
     @Override
-    public OutputStream getOutputStream() throws IOException {
+    public final OutputStream getOutputStream() throws IOException {
         return response.getOutputStream();
     }
 
     @Override
-    public Writer getWriter() throws IOException {
+    public final Writer getWriter() throws IOException {
         return response.getWriter();
     }
 

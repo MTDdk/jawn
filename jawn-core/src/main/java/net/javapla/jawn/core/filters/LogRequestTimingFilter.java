@@ -15,6 +15,7 @@ public class LogRequestTimingFilter extends FilterAdapter {
 
     @Override
     public void after(Context context) {
+        if (time.get()!= null)
         logger.info("Processed request in: " + (System.currentTimeMillis() - time.get() + " milliseconds, path: " + context.path() + ", method: " + context.method()));
     }
 

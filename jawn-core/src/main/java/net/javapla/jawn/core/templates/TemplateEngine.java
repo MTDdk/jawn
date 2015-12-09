@@ -15,10 +15,10 @@ public interface TemplateEngine {
      * 
      * @param context
      *      The context to render to
-     * @param result
-     *      The result to render
      */
-    public void invoke(final Context context, final Response response/*, Result result*/) throws ViewException;
+    /*default void invoke(final Context context, final Response response) throws ViewException {
+        invoke(context, response, context.finalizeResponse(response, false));
+    }*/
     
     
     /**

@@ -11,18 +11,16 @@ import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.core.i18n.Lang;
+import net.javapla.jawn.core.reflection.ControllerActionInvoker;
 import net.javapla.jawn.core.util.CollectionUtil;
-import net.javapla.jawn.core.util.StringUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 
 //NinjaDefault
-public class FrameworkEngine {
+public final class FrameworkEngine {
     
     private static final String FRAMEWORK_SPLASH = "\n" 
             + "     ____.  _____  __      _________   \n"
@@ -36,22 +34,24 @@ public class FrameworkEngine {
     
     private final Router router;
     private final ResponseRunner runner;
+    private final ControllerActionInvoker invoker;
 //    private final Lang lang;
-    private final Injector injector;
+//    private final Injector injector;
     
     @Inject
-    public FrameworkEngine(Router router, ResponseRunner runner, Lang lang, Injector injector) {
+    public FrameworkEngine(Router router, ResponseRunner runner, ControllerActionInvoker invoker /*Lang lang,*/ /*Injector injector*/) {
         this.router = router;
         this.runner = runner;
+        this.invoker = invoker;
 //        this.lang = lang;
-        this.injector = injector;
+//        this.injector = injector;
     }
     
     //onRouteRequest
-    public void runRequest(Context.Internal context) {
-        String path = context.path();
+    public final void runRequest(Context.Internal context) {
+        final String path = context.path();
         
-        String format = null;
+        //String format = null;
         String uri;
         // look for any format in the request
         /*if (path.contains(".")) {
@@ -62,8 +62,8 @@ public class FrameworkEngine {
         }
         
         //README maybe first do this language extraction IFF custom route not found
-        String language = null;
-        /*try {
+        /*String language = null;
+        try {
             // if languages are set we try to deduce them
             language = lang.deduceLanguageFromUri(uri);
             if (!StringUtil.blank(language))
@@ -79,36 +79,36 @@ public class FrameworkEngine {
             // a language parameter, so we let the router handle this
         }*/
             
-        if (StringUtil.blank(uri)) {
+        if (uri.length() == 0) {
             uri = "/";//different servlet implementations, damn.
         }
         
         try {
 
-            /*68318*/
-//            Route route = router.getRoute(context.getHttpMethod(), uri, injector);
             /*16062*/
-//            long time = System.nanoTime();
-//            System.out.println("httpMethod " + (System.nanoTime() - time));
-//            time = System.nanoTime();
-            final Route route = router.retrieveRoute(context.getHttpMethod(), uri, injector);
-//            System.out.println("Timing :: " + (System.nanoTime() - time));
-            context.setRouteInformation(route, format, language, uri);
+            /*8799*/
+            //long time = System.nanoTime();
+            final Route route = router.retrieveRoute(context.getHttpMethod(), uri/*, injector*/);
+            //System.out.println("Timing :: " + (System.nanoTime() - time));
+            context.setRouteInformation(route, null/*format*/, null/*language*/, uri);
             
-            if (route != null) {
+            //if (route != null) {
                 // run pre-filters
-                final Response response = route.getFilterChain().before(context);
+                Response response = route.getFilterChain().before(context);
                 
+                //might already have been handled by the controller or filters
+                if (response == null)
+                    response = invoker.executeAction(context);
                 runner.run(context, response);
                 
                 // run post-filters
                 route.getFilterChain().after(context);
-            } else {
+            /*} else {
                 
                 // This scenario ought not happen as the Router#getRoute() would have thrown an exception
                 // if no route is found
                 logger.warn("No matching route for servlet path: " + context.path() + ", passing down to container.");
-            }
+            }*/
             
         } catch (RouteException e) {
             // 404
@@ -192,7 +192,9 @@ public class FrameworkEngine {
         sb.append("Query String: ").append(context.queryString()).append("\n");
         sb.append("URI Full Path: ").append(context.requestUri()).append("\n");
         sb.append("URI Path: ").append(context.path()).append("\n");
-        sb.append("Method: ").append(context.method()).append("\n");
+        sb.append("Method: ").append(context.method()).append("\n");    
+        sb.append("IP: ").append(context.remoteAddress()).append("\n");
+        sb.append("Protocol: ").append(context.protocol()).append("\n");
         return sb.toString();
     }
     

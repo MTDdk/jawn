@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.javapla.jawn.core.exceptions.ControllerException;
-import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.JawnSpecificProperties;
 import net.javapla.jawn.core.util.StringUtil;
 
 public class RouterHelper {
@@ -36,10 +36,10 @@ public class RouterHelper {
         }
 
         String className = clazz.getName();
-        if (!className.startsWith(Constants.CONTROLLER_PACKAGE)) {
+        if (!className.startsWith(JawnSpecificProperties.CONTROLLER_PACKAGE)) {
             throw new ControllerException("controller must be in the 'app.controllers' package");
         }
-        String packageSuffix = className.substring(Constants.CONTROLLER_PACKAGE.length(), className.lastIndexOf("."));
+        String packageSuffix = className.substring(JawnSpecificProperties.CONTROLLER_PACKAGE.length(), className.lastIndexOf("."));
         packageSuffix = packageSuffix.replace(".", "/");
         if (packageSuffix.startsWith("/"))
             packageSuffix = packageSuffix.substring(1);

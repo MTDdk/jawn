@@ -15,10 +15,9 @@ import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.reflection.RoutesDeducer;
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.JawnSpecificProperties;
 import net.javapla.jawn.core.util.RouteTrie;
 import net.javapla.jawn.core.util.StringUtil;
-
-import com.google.inject.Injector;
 
 public class Router implements Routes {
     
@@ -31,10 +30,10 @@ public class Router implements Routes {
                     , new InternalRoute("/{controller}/{action}")
                     //, new InternalRoute("/{controller}/{id}")
                     , new InternalRoute("/{controller}")
-                    , new InternalRoute("/{package: .*?}/{controller}/{action}/{id}")
                     , new InternalRoute("/{package: .*?}/{controller}/{action}")
                     //, new InternalRoute("/{package: .*?}/{controller}/{id}")
                     , new InternalRoute("/{package: .*?}/{controller}")
+                    , new InternalRoute("/{package: .*?}/{controller}/{action}/{id}")
                 )
             );
     }
@@ -93,22 +92,21 @@ public class Router implements Routes {
     }
 
     
-    public final Route retrieveRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
+    public final Route retrieveRoute(HttpMethod httpMethod, String requestUri/*, Injector injector*/) throws RouteException {
         // Try with the deduced routes first
         // Only do this if we are not in development
         if (!isDev) {
-            Route route = deducedRoutes.findExact(requestUri, httpMethod);
+            final Route route = deducedRoutes.findExact(requestUri, httpMethod);
             if (route != null) return route;
         }
-//        System.out.println("no route found");
         
-        return calculateRoute(httpMethod, requestUri, injector);
+        return calculateRoute(httpMethod, requestUri/*, injector*/);
     }
     
     //TODO we need to have the injector somewhere else.
     //It is not consistent that this particular injector handles implementations from both core and server
-    private final Route calculateRoute(HttpMethod httpMethod, String requestUri, Injector injector) throws RouteException {
-        if (routes == null) compileRoutes(injector); // used to throw an illegalstateexception
+    private final Route calculateRoute(HttpMethod httpMethod, String requestUri/*, Injector injector*/) throws RouteException {
+        //if (routes == null) compileRoutes(/*injector*/); // used to throw an illegalstateexception
         
         // go through custom user routes
         // TODO surely do we want to store the routes based on HttpMethod, so we do not need to go through ALL of them
@@ -118,7 +116,7 @@ public class Router implements Routes {
                 // if the route only has an URI defined, then we process the route as if it was an InternalRoute
                 if (route.getActionName() == null) {
                     if (route.getController() == null) {
-                        Route deferred = deduceRoute(route, httpMethod, requestUri, injector);
+                        Route deferred = deduceRoute(route, httpMethod, requestUri/*, injector*/);
                         if (deferred != null) return deferred;
                         return route;
                     } else {
@@ -145,7 +143,7 @@ public class Router implements Routes {
                         
                         RouteBuilder bob = loadController(controllerName, httpMethod, route.uri, actionName, false);
                         
-                        return bob.build(filters, injector); // this ought not throw, as we already have done the checks for action presence
+                        return bob.build(filters/*, injector*/); // this ought not throw, as we already have done the checks for action presence
                     } catch (CompilationException | ClassLoadException ignore) {
                         // If anything happens during reload, then we simply do not reload
                     }
@@ -158,7 +156,7 @@ public class Router implements Routes {
         // nothing is found - try to deduce a route from controllers
         //if (isDev) {
             try {
-                Route route = matchStandard(httpMethod, requestUri, injector);
+                Route route = matchStandard(httpMethod, requestUri/*, injector*/);
                 return route;
             } catch (ClassLoadException e) {
                 // a route could not be deduced
@@ -168,19 +166,19 @@ public class Router implements Routes {
         throw new RouteException("Failed to map resource to URI: " + requestUri);
     }
     
-    public void compileRoutes(Injector injector) {
+    public void compileRoutes(/*Injector injector*/) {
         if (routes != null) return; // used to throw an illegalstateexception
         
         // Build the built in routes
         if (!isDev)
-            deducedRoutes = new RoutesDeducer(injector, filters).deduceRoutesFromControllers().getRoutes();
+            deducedRoutes = new RoutesDeducer(/*injector,*/ filters).deduceRoutesFromControllers().getRoutes();
         
         // Build the user attributed routes
         List<Route> r = new ArrayList<>();
         for (RouteBuilder builder : builders) {
             
             // Routes, not containing wildcards or keywords, should be incorporated into the deduced routes
-            Route route = builder.build(filters, injector);
+            Route route = builder.build(filters/*, injector*/);
             if (!isDev && !StringUtil.contains(route.uri,'{')) {
                 deducedRoutes.insert(route.uri, route);
                 System.out.println("deduced : " + route);
@@ -205,18 +203,18 @@ public class Router implements Routes {
      * @return
      * @throws ClassLoadException
      */
-    private Route matchStandard(HttpMethod httpMethod, String requestUri, Injector injector) throws ClassLoadException {
+    private Route matchStandard(HttpMethod httpMethod, String requestUri/*, Injector injector*/) throws ClassLoadException {
         // find potential routes
         for (InternalRoute internalRoute : internalRoutes) {
             if (internalRoute.matches(requestUri) ) {
-                Route deferred = deduceRoute(internalRoute, httpMethod, requestUri, injector);
+                Route deferred = deduceRoute(internalRoute, httpMethod, requestUri/*, injector*/);
                 if (deferred != null) return deferred;
             }
         }
         throw new ClassLoadException("A route for request " + requestUri + " could not be deduced");
     }
     
-    private Route deduceRoute(InternalRoute route, HttpMethod httpMethod, String requestUri, Injector injector) {
+    private Route deduceRoute(InternalRoute route, HttpMethod httpMethod, String requestUri/*, Injector injector*/) {
         Map<String, String> params = route.getPathParametersEncoded(requestUri);
         //README it seems wrong that the parameters are calculated at this point and not stored somehow in the resulting Route
         ControllerMeta c = new ControllerMeta(params);
@@ -228,7 +226,7 @@ public class Router implements Routes {
             RouteBuilder bob = loadController(className, httpMethod, route.uri, c.getAction(), !isDev);
             
             //TODO cache the routes if !isDev
-            return bob.build(filters, injector); // this might throw if the controller does not have the action
+            return bob.build(filters/*, injector*/); // this might throw if the controller does not have the action
         } catch (ControllerException e) {
             //to() failed - the controller does not contain the corresponding action
         } catch (IllegalStateException e) {
@@ -302,7 +300,7 @@ public class Router implements Routes {
             String packagePrefix = getPackage();
             
             String name = controllerName.replace('-', '_');
-            String temp = Constants.CONTROLLER_PACKAGE;
+            String temp = JawnSpecificProperties.CONTROLLER_PACKAGE;
             if (packagePrefix != null) {
                 temp += "." + packagePrefix;
             }

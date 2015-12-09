@@ -2,7 +2,6 @@ package net.javapla.jawn.security;
 
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.security.interfaces.ContextSource;
-import net.javapla.jawn.security.interfaces.JWebSecurityManager;
 import net.javapla.jawn.security.interfaces.JawnSubject;
 
 import org.apache.shiro.session.mgt.SessionKey;
@@ -10,7 +9,7 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 
-class JawnSecurityManager extends DefaultWebSecurityManager implements JWebSecurityManager {
+class JawnSecurityManager extends DefaultWebSecurityManager /*implements JWebSecurityManager */{
     
 
     public JawnSecurityManager() {
@@ -50,4 +49,6 @@ class JawnSecurityManager extends DefaultWebSecurityManager implements JWebSecur
             super.removeRequestIdentity(subject);
         }
     }
+
+
 }

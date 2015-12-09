@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 //Result
 public class Response {
@@ -63,7 +70,25 @@ public class Response {
         this.renderable = obj;
         return this;
     }
+    private static final int cpuCount = Runtime.getRuntime().availableProcessors();
+
+    // todo: parameterize multipliers
+    private final static ExecutorService EXECUTOR =
+      new ThreadPoolExecutor(
+        cpuCount, cpuCount * 2, 200, TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<Runnable>(cpuCount * 100),
+        new ThreadPoolExecutor.CallerRunsPolicy());
+    public Response renderable(Callable<Object> c) {
+        this.renderable = EXECUTOR.submit(c);
+        return this;
+    }
     public Object renderable() {
+        if (renderable instanceof Future)
+            try {
+                return ((Future<?>) renderable).get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
         return renderable;
     }
     

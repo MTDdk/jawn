@@ -16,12 +16,6 @@ import net.javapla.jawn.core.http.ResponseStream;
 final class TextTemplateEngine implements TemplateEngine {
 
     @Override
-    public final void invoke(final Context context, final Response response) {
-        ResponseStream stream = context.finalizeResponse(response, false);
-        invoke(context, response, stream);
-    }
-    
-    @Override
     public final void invoke(final Context context, final Response response, final ResponseStream stream) {
         Object obj = response.renderable();
         if (obj == null) return;
