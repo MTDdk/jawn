@@ -1,5 +1,6 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.routes;
 
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.http.Context;

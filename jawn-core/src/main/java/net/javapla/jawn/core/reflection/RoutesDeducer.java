@@ -5,12 +5,12 @@ import java.util.Optional;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.FiltersHandler;
-import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.RouteBuilder;
 import net.javapla.jawn.core.http.HttpMethod;
+import net.javapla.jawn.core.routes.Route;
+import net.javapla.jawn.core.routes.RouteBuilder;
+import net.javapla.jawn.core.routes.RouteTrie;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.JawnSpecificProperties;
-import net.javapla.jawn.core.util.RouteTrie;
+import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringUtil;
 
 public class RoutesDeducer {
@@ -19,17 +19,19 @@ public class RoutesDeducer {
     private String controller_action = "/{0}/{1}";
     
     RouteTrie trie = new RouteTrie();
+    private final FiltersHandler filters;
 //    private Injector injector;
-    private FiltersHandler filters;
+    private final ActionInvoker invoker;
 
-    public RoutesDeducer(/*Injector injector,*/ FiltersHandler filters) {
-//        this.injector = injector;
+    public RoutesDeducer(/*,*/ FiltersHandler filters, ActionInvoker invoker/*, Injector injector*/) {
         this.filters = filters;
+//        this.injector = injector;
+        this.invoker = invoker;
     }
     
     public RoutesDeducer deduceRoutesFromControllers() {
         
-        ControllerFinder finder = new ControllerFinder(JawnSpecificProperties.CONTROLLER_PACKAGE);
+        ControllerFinder finder = new ControllerFinder(PropertiesConstants.CONTROLLER_PACKAGE);
         
         finder.controllerActions
             .forEach((controllername,actions) -> {
@@ -95,7 +97,7 @@ public class RoutesDeducer {
             .method(method)
             .to((Class<? extends Controller>) finder.controllers.get(controllername), actionName)
             .route(uri)
-            .build(filters/*, injector*/);
+            .build(filters, invoker/*injector*/);
         trie.insert(uri, route);
     }
     

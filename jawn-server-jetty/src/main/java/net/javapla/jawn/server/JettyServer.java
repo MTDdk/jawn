@@ -31,7 +31,7 @@ public class JettyServer implements JawnServer {
         contextHandler.setParentLoaderPriority(true);
         
         // Add the framework
-        contextHandler.addFilter(RequestDispatcher.class, "/*", EnumSet.allOf(DispatcherType.class));
+        contextHandler.addFilter(JawnFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
         
         // Make the server use the framework
         server.setHandler(contextHandler);

@@ -1,8 +1,12 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.routes;
 
 import java.lang.reflect.Method;
+import java.util.function.Function;
 
+import net.javapla.jawn.core.Controller;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.api.FilterChain;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.HttpMethod;
 
 
@@ -17,17 +21,13 @@ import net.javapla.jawn.core.http.HttpMethod;
  *      This class is immutable and thread-safe
  */
 public class Route extends InternalRoute {
-//    public static final String ROOT_CONTROLLER_NAME = "index";//README could be set in filter.init()
-//    public static final String DEFAULT_ACTION_NAME = "index";
-    
     
     private final HttpMethod httpMethod;
-//    private AppController controller; //README see ControllerActionInvoker
-    private final Class<? extends Controller> controller;
+    private Class<? extends Controller> controller;
     private final String action;
     private final String actionName;//without httpMethod
     
-    private final FilterChain filterChain; // can be null if no filters are assigned
+    private final FilterChain filterChain;
     
     
     public Route(String uri, HttpMethod method, Class<? extends Controller> controller, String action, String actionName,  FilterChain chain) {
@@ -57,6 +57,10 @@ public class Route extends InternalRoute {
     public Class<? extends Controller> getController() {
         return controller;
     }
+    public void reloadController(Function<Class<? extends Controller>, Class<? extends Controller>> reloadFunction) {
+        if (this.controller != null)
+            this.controller = reloadFunction.apply(controller);
+    }
     /**
      * @return The action on the controller including the HTTP method. E.g. getMovie, postMovie
      */
@@ -74,6 +78,13 @@ public class Route extends InternalRoute {
         return filterChain;
     }
     
+    ResponseFunction func;
+    public void setResponseFunction(ResponseFunction func) {
+        this.func = func;
+    }
+    public Response executeRouteAndRetrieveResponse(Context context) {
+        return func.handle(context);
+    }
     
     /**
      * Matches /index to /index or /me/1 to /person/{id}
@@ -82,8 +93,7 @@ public class Route extends InternalRoute {
      */
     public boolean matches(HttpMethod httpMethod, String requestUri) {
         if (this.httpMethod.equals(httpMethod)) {
-            boolean matches = matches(requestUri);
-            return matches;
+            return matches(requestUri);
         }
         return false;
     }

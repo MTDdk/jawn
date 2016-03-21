@@ -2,11 +2,13 @@ package net.javapla.jawn.core;
 
 import net.javapla.jawn.core.cache.Cache;
 import net.javapla.jawn.core.cache.CacheProvider;
+import net.javapla.jawn.core.i18n.Lang;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.ParserEngineManagerImpl;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
-import net.javapla.jawn.core.reflection.ControllerActionInvoker;
+import net.javapla.jawn.core.reflection.ActionInvoker;
+import net.javapla.jawn.core.routes.Router;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestratorImpl;
 import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
@@ -18,14 +20,17 @@ import com.google.inject.Singleton;
 
 public class CoreModule extends AbstractModule {
     
-    /*private final PropertiesImpl properties;
-
-    public CoreModule(PropertiesImpl properties) {
+    
+    private final PropertiesImpl properties;
+    private final Router router;
+    CoreModule(PropertiesImpl properties, Router router) {
         this.properties = properties;
-    }*/
+        this.router = router;
+    }
 
     @Override
     protected void configure() {
+        bind(PropertiesImpl.class).toInstance(properties);
         
         // Marshallers
         bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
@@ -39,11 +44,15 @@ public class CoreModule extends AbstractModule {
         bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
         bind(ResponseRunner.class).in(Singleton.class);
         
-        bind(ControllerActionInvoker.class).in(Singleton.class);
+        bind(ActionInvoker.class).in(Singleton.class);
+        //bind(FilterChain.class).to(InvokerFilterChainEnd.class);
         
         // initiate all read properties as something injectable
         //properties.bindProperties(binder());
         bind(FrameworkEngine.class).in(Singleton.class);
+        
+        bind(Router.class).toInstance(router);
+        bind(Lang.class).in(Singleton.class);
     }
 
     

@@ -1,6 +1,6 @@
 package net.javapla.jawn.core.api;
 
-import net.javapla.jawn.core.RouteBuilder;
+import net.javapla.jawn.core.routes.RouteBuilder;
 
 public interface Routes {
     RouteBuilder GET();

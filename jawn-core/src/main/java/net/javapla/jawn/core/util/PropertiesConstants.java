@@ -19,8 +19,10 @@ import net.javapla.jawn.core.PropertiesImpl;
  * @author MTD
  *
  */
-public interface JawnSpecificProperties {
+public interface PropertiesConstants {
     
-    public static final String CONTROLLER_PACKAGE = System.getProperty(Constants.JAWN_APPLICATION_BASE_PACKAGE) + '.' + Constants.APPLICATION_CONTROLLER_PACKAGE;
-    public static final String CONFIG_PACKAGE = System.getProperty(Constants.JAWN_APPLICATION_BASE_PACKAGE) + '.' + Constants.APPLICATION_CONFIGURATION_PACKAGE;
+    public static final String CONTROLLER_PACKAGE = 
+            System.getProperty(Constants.SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE) + '.' + Constants.APPLICATION_CONTROLLER_PACKAGE;
+    public static final String CONFIG_PACKAGE = 
+            System.getProperty(Constants.SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE) + '.' + Constants.APPLICATION_CONFIGURATION_PACKAGE;
 }

@@ -1,6 +1,5 @@
-package net.javapla.jawn.core.util;
+package net.javapla.jawn.core.routes;
 
-import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.http.HttpMethod;
 
 /**

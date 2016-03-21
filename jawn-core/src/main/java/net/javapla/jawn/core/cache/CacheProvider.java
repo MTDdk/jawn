@@ -19,14 +19,14 @@ public class CacheProvider implements Provider<Cache> {
     
     @Inject
     public CacheProvider(PropertiesImpl properties) {
-        String cacheClassName = properties.get(Constants.CACHE_IMPLEMENTATION);
+        String cacheClassName = properties.get(Constants.PROPERTY_CACHE_IMPLEMENTATION);
         Cache foundCache = null;
         
         if (!StringUtil.blank(cacheClassName)) {
             try {
                 foundCache = DynamicClassFactory.createInstance(cacheClassName, Cache.class, false);
             } catch (CompilationException | ClassLoadException e) {
-                System.out.println(Constants.CACHE_IMPLEMENTATION + " could not be read from properties :: " + cacheClassName);  
+                System.out.println(Constants.PROPERTY_CACHE_IMPLEMENTATION + " could not be read from properties :: " + cacheClassName);  
             }
         }
         
@@ -35,7 +35,7 @@ public class CacheProvider implements Provider<Cache> {
         else
             cache = foundCache;
         
-        String expiration = properties.get(Constants.CACHE_DEFAULT_EXPIRATION);
+        String expiration = properties.get(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION);
         if (!StringUtil.blank(expiration)) {
             cache.setDefaultCacheExpiration(TimeUtil.parse(expiration));
         }

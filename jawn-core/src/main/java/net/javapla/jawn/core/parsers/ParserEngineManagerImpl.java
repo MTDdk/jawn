@@ -22,6 +22,7 @@ public class ParserEngineManagerImpl implements ParserEngineManager {
     // don't have to be singleton if they don't want
     private final Map<String, Provider<? extends ParserEngine>> contentTypeToParserMap;
     
+    
     @Inject
     public ParserEngineManagerImpl(Provider<JsonParserEngine> json,
                                    Provider<XmlParserEngine>  xml) {

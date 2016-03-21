@@ -3,6 +3,8 @@ package net.javapla.jawn.core.templates.config;
 import java.util.Iterator;
 import java.util.Set;
 
+import net.javapla.jawn.core.util.PropertiesConstants;
+
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +29,7 @@ public class TemplateConfigProvider<T> implements Provider<TemplateConfig<T>> {
     private TemplateConfig<T> locateTemplateConfig() {
         log.debug("????? Trying to find the user specified configuration");
         
-        Reflections reflections = new Reflections("app.config");
+        Reflections reflections = new Reflections(PropertiesConstants.CONFIG_PACKAGE);
         Set<Class<? extends TemplateConfig>> set = reflections.getSubTypesOf(TemplateConfig.class);
         Iterator<Class<? extends TemplateConfig>> iterator = set.iterator();
         while (iterator.hasNext()) {

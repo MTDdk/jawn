@@ -7,7 +7,7 @@ import java.util.List;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.api.Filters;
 import net.javapla.jawn.core.reflection.ControllerFinder;
-import net.javapla.jawn.core.util.JawnSpecificProperties;
+import net.javapla.jawn.core.util.PropertiesConstants;
 
 /**
  * FilterHandler
@@ -142,8 +142,8 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
         
         @SuppressWarnings("unchecked")
         public final FilterBuilder<T> toPackage( String packageName ) {
-            if (!packageName.startsWith(JawnSpecificProperties.CONTROLLER_PACKAGE))
-                packageName = JawnSpecificProperties.CONTROLLER_PACKAGE + "." + packageName;
+            if (!packageName.startsWith(PropertiesConstants.CONTROLLER_PACKAGE))
+                packageName = PropertiesConstants.CONTROLLER_PACKAGE + "." + packageName;
             /*Reflections reflect = new Reflections(packageName/*, new SubTypesScanner() {
                 @Override
                 public void scan(Object cls) {

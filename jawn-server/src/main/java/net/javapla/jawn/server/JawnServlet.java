@@ -1,27 +1,22 @@
 package net.javapla.jawn.server;
-
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 
 import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.exceptions.InitException;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.templates.TemplateEngine;
 
 import org.slf4j.Logger;
@@ -29,35 +24,35 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 
-/**
- * @author MTD
- */
-public class RequestDispatcher implements Filter {
-    private final Logger logger = LoggerFactory.getLogger(getClass().getName());
+
+public class JawnServlet extends HttpServlet {
+    private static final long serialVersionUID = 5010901670613409779L;
+
+    protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
-//    private ServletContext servletContext;
     private String[] exclusions;
 
-    private final Injector injector;
+    protected final Injector injector;
 
-    private final FrameworkBootstrap bootstrapper;
-    private final FrameworkEngine engine;
+    protected final ServerBootstrap bootstrapper;
+    protected final FrameworkEngine engine;
     
-    
-    public RequestDispatcher() {
-        bootstrapper = new FrameworkBootstrap();
+    public JawnServlet() {
+        bootstrapper = new ServerBootstrap();
         bootstrapper.boot();
         injector = bootstrapper.getInjector();
         engine = injector.getInstance(FrameworkEngine.class);
     }
     
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-//        this.servletContext = filterConfig.getServletContext();
-        
-        
-        // find paths inside webapp, that are NOT WEB-INF
-        Set<String> exclusionPaths = findExclusionPaths(filterConfig.getServletContext());
+    public void init() throws ServletException {
+        super.init();
+        config(getServletContext());
+    }
+    
+    protected void config(ServletContext servletContext) {
+     // find paths inside webapp, that are NOT WEB-INF
+        Set<String> exclusionPaths = findExclusionPaths(servletContext);
         // and convert them to an array for fast lookup
         exclusions = exclusionPaths.toArray(new String[exclusionPaths.size()]);
         logger.debug("Letting the server take care of providing resources from: {}", exclusionPaths);
@@ -77,7 +72,31 @@ public class RequestDispatcher implements Filter {
         
         logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(PropertiesImpl.class).getMode());
     }
+    
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        final String path = request.getServletPath();
+        
 
+//        if (response.isCommitted()) return;
+//        if (path.isEmpty()) return;
+        
+        //System.err.println(path + "  ---------------  "  + translateResource(path));
+        
+        //MTD: filtering resources
+        //if (translateResource(path) != null) return;
+        
+        
+        // redirect if the path ends with a slash - URLS cannot end with a slash - they should not do such a thing - why would they?
+        //if (redirectUrlEndingWithSlash(path, response)) return;
+        
+        ContextImpl context = (ContextImpl) injector.getInstance(Context.class);
+        context.init(/*servletContext, */request, response);
+        
+        engine.runRequest(context);
+    }
+    
+    
     /**
      * Actually sorts the paths, which is not appreciated and not even used anywhere
      * @param servletContext2 
@@ -112,100 +131,15 @@ public class RequestDispatcher implements Filter {
         
         return exclusions;
     }
-
-
-    @Override
-    public void doFilter(final ServletRequest req, final ServletResponse resp, final FilterChain chain) throws ServletException, IOException {
-        try {
-            doFilter((HttpServletRequest) req, (HttpServletResponse) resp, chain);
-        } catch (ClassCastException e) {
-            // ought not be possible
-            throw new ServletException("non-HTTP request or response", e);
-        }
-    }
     
-    public final void doFilter(final HttpServletRequest request, final HttpServletResponse response, final FilterChain chain)  throws ServletException, IOException {
-
-        final String path = request.getServletPath();
-        
-
-        // redirect if the path ends with a slash - URLS cannot end with a slash - they should not do such a thing - why would they?
-        if (redirectUrlEndingWithSlash(path, response)) return;
-
-        //MTD: filtering resources
-        if (filteringResources(request, response, chain, path, resource -> translateResource(resource))) return;
-
-        ContextInternal context = injector.getInstance(ContextInternal.class);
-        context.init(/*servletContext, */request, response);
-        
-        engine.runRequest(context);
-    }
-
-    
-    
-    private static final boolean redirectUrlEndingWithSlash(final String path, final HttpServletResponse response) throws IOException {
-        if (path.charAt(path.length()-1) == '/' && path.length() > 1) {  //ends with
+    protected static final boolean redirectUrlEndingWithSlash(final String path, final HttpServletResponse response) throws IOException {
+        if (path.length() > 1 && path.charAt(path.length()-1) == '/') {  //ends with
             response.sendRedirect(path.substring(0, path.length()-1));
             return true;
         }
         return false;
     }
 
-    /**/
-
-
-    /**
-     * A problem arises when the server tries to serve a resource, which does not start with an excluded path,
-     * and the server just sees it as a route to handle itself, when it actually ought to send it up the chain
-     * 
-     * @author MTD
-     * @return true, if a filtering has happened and nothing else should be done by this current dispatcher
-     */
-    //TODO extract to an independent Filter
-    private static final boolean filteringResources(final HttpServletRequest req, final HttpServletResponse resp, final FilterChain chain, final String path, final Function<String,String> needsTranslation) throws ServletException, IOException {
-        String translated = needsTranslation.apply(path);
-//        String translated = translateResource(path);
-        if (translated != null) {
-//            logger.debug("URI excluded: {}", path);
-            
-            HttpServletRequest r = req;
-            if (path.length() != translated.length()) {//!path.startsWith(translated)) {
-//                int indexOfExcluded = path.indexOf(translated);
-//                String t = path.substring(indexOfExcluded);
-                r = createServletRequest(req, translated);
-//                logger.debug(".. and translated -> {}", translated);
-            }
-            
-            
-            // Setting default headers for static files
-            // One week - Google recommendation
-            // https://developers.google.com/speed/docs/insights/LeverageBrowserCaching
-            resp.setHeader(HttpHeaders.CACHE_CONTROL, "public, max-age=604800");
-            File file = new File(req.getServletContext().getRealPath(translated));
-            if (file.canRead())
-                resp.setHeader(HttpHeaders.ETAG, String.valueOf(file.lastModified()));
-            
-            chain.doFilter(r, resp);
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * Creates a new HttpServletRequest object.
-     * Useful, as we cannot modify an existing ServletRequest.
-     * Used when resources needs to have the {controller} stripped from the servletPath.
-     * 
-     * @author MTD
-     */
-    private final static HttpServletRequest createServletRequest(final HttpServletRequest req, final String translatedPath) {
-        return new HttpServletRequestWrapper(req){
-            @Override
-            public String getServletPath() {
-                return translatedPath;
-            }
-        };
-    }
 
     /**
      * Instead of just verifying if a path contains an exclusion, the method returns the exclusion.
@@ -219,13 +153,23 @@ public class RequestDispatcher implements Filter {
      * 
      * @return The full <code>servletPath</code> if can be seen as a resource from any of the exclusions
      */
-    private final String translateResource(String servletPath) {
+    protected final String translateResource(String servletPath) {
         // This looks at the start of the of the URL to check for resource paths in the root webapp.
-        // Example: exclusions = ['/images','/css','/favicon.ico']
+        // Example: exclusions = ['/images','/css','/js,'/favicon.ico']
         //         servletPath = /images/bootstrap/cursor.gif
-        for (String path : exclusions)
-            if (servletPath.startsWith(path)) // startsWith uses its internal array without any copying
+        //
+        // It must not interfere with substrings, like so:
+        //         servletPath = /json
+        // This starts with /js, which is a part of the exclusions, so we need to ensure that either
+        // the servletPath is exactly the same as the exclusion (like '/favicon.ico')
+        // or the servletPath has higher length and the next character after the exclusion has to be a separator, 
+        // so we know it is a folder to look up
+        for (String path : exclusions) {
+            if ( servletPath.startsWith(path) // startsWith uses its internal array without any copying (fast)
+                 && (servletPath.length() == path.length() || // they are equal
+                     servletPath.charAt(path.length()) == '/')) // servletPath MUST be larger, and the next char needs to be a separator
                 return servletPath;
+        }
         
         
         //TODO

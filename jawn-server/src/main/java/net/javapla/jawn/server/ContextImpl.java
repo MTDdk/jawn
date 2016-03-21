@@ -21,7 +21,6 @@ import javax.servlet.http.HttpSession;
 
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
-import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
@@ -30,6 +29,7 @@ import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
+import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
 import net.javapla.jawn.core.util.MultiList;
@@ -46,6 +46,9 @@ import com.google.inject.Inject;
  * @author MTD
  */
 class ContextImpl implements ContextInternal {
+    
+    private static final String X_POWERED_BY = "X-Powered-By";
+    
     
     private final PropertiesImpl properties;
     private final ParserEngineManager parserManager;
@@ -70,14 +73,15 @@ class ContextImpl implements ContextInternal {
         this.parserManager = parserManager;
     }
     
-    public void init(/*ServletContext servletContext, */HttpServletRequest request, HttpServletResponse response) {
-        this.servletContext = request.getServletContext();//servletContext;
+    public void init(HttpServletRequest request, HttpServletResponse response) {
+        this.servletContext = request.getServletContext();
         this.request = request;
         this.response = response;
         
         // Set the encoding according to the user defined
-        setEncoding(properties.get(Constants.DEFINED_ENCODING));
-        response.addHeader("X-Powered-By", "java-web-planet / jawn");
+        
+        setEncoding(properties.get(Constants.DEFINED_ENCODING)); //TODO extract staticly somehow
+        addResponseHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
     }
     
     public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException {
@@ -502,7 +506,7 @@ class ContextImpl implements ContextInternal {
      */
     public List<FileItem> parseRequestMultiPartItems(String encoding) {
         DiskFileItemFactory factory = new DiskFileItemFactory();
-        factory.setSizeThreshold(properties.getInt(Constants.UPLOADS_MAX_SIZE/*Constants.Params.maxUploadSize.name()*/));//Configuration.getMaxUploadSize());
+        factory.setSizeThreshold(properties.getInt(Constants.PROPERTY_UPLOADS_MAX_SIZE/*Constants.Params.maxUploadSize.name()*/));//Configuration.getMaxUploadSize());
         factory.setRepository(new File(System.getProperty("java.io.tmpdir"))); //Configuration.getTmpDir());
         //README the file for tmpdir *MIGHT* need to go into Properties
         
@@ -510,7 +514,7 @@ class ContextImpl implements ContextInternal {
         
         if(encoding != null)
             upload.setHeaderEncoding(encoding);
-        upload.setFileSizeMax(properties.getInt(Constants.UPLOADS_MAX_SIZE));//Configuration.getMaxUploadSize());
+        upload.setFileSizeMax(properties.getInt(Constants.PROPERTY_UPLOADS_MAX_SIZE));//Configuration.getMaxUploadSize());
         
         try {
             return upload.parseRequest(request);

@@ -5,7 +5,6 @@ import java.util.Properties;
 
 import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.JawnSpecificProperties;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -27,27 +26,26 @@ public class PropertiesImpl implements JawnProperties {
         
         readProperties();
         
-        String basePackage = props.getProperty(Constants.APPLICATION_BASE_PACKAGE);
-        System.err.println(Constants.APPLICATION_BASE_PACKAGE + " :: " + basePackage);
-        System.setProperty(Constants.JAWN_APPLICATION_BASE_PACKAGE, basePackage);
-        System.err.println(JawnSpecificProperties.CONTROLLER_PACKAGE);
-        System.err.println(JawnSpecificProperties.CONFIG_PACKAGE);
+        String basePackage = props.getProperty(Constants.PROPERTY_APPLICATION_BASE_PACKAGE);
+        System.setProperty(Constants.SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE, basePackage);
     }
     
     protected void readProperties() throws InitException {
         try {
             
             //read defaults
-            InputStream in1 = PropertiesImpl.class.getClassLoader().getResourceAsStream(Constants.PROPERTIES_FILE);
-            props.load(in1);
+            try (InputStream in1 = PropertiesImpl.class.getClassLoader().getResourceAsStream(Constants.PROPERTIES_FILE_DEFAULT)){
+                props.load(in1);
+            }
 
             //override defaults
-            InputStream in2 = PropertiesImpl.class.getClassLoader().getResourceAsStream(Constants.USER_PROPERTIES_FILE);
-            if(in2 != null){
-                Properties overrides = new Properties();
-                overrides.load(in2);
-                for (Object name : overrides.keySet()) {
-                    props.put(name, overrides.get(name));
+            try (InputStream in2 = PropertiesImpl.class.getClassLoader().getResourceAsStream(Constants.PROPERTIES_FILE_USER)) {
+                if(in2 != null){
+                    Properties overrides = new Properties();
+                    overrides.load(in2);
+                    for (Object name : overrides.keySet()) {
+                        props.put(name, overrides.get(name));
+                    }
                 }
             }
 

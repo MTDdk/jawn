@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.routes;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+//README is this class obsolete with the new structure of routing?
 class InternalRoute {
     
     protected final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
@@ -16,9 +17,7 @@ class InternalRoute {
     final static String VARIABLE_ROUTES_DEFAULT_REGEX = "([^/]*)";
 
     protected final String uri;
-    
     protected final List<String> parameters;
-    
     protected final Pattern regex;
     
     public InternalRoute(String uri) {

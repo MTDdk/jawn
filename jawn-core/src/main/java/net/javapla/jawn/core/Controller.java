@@ -36,11 +36,14 @@ import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.images.ImageHandlerBuilder;
+import net.javapla.jawn.core.routes.Route;
+import net.javapla.jawn.core.routes.RouterHelper;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.MultiList;
+import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -91,7 +94,7 @@ public abstract class Controller implements ResponseHolder {
 
     
     // index is always available
-    public void index() {}
+    public void index() { };
 
 
     /**
@@ -297,10 +300,10 @@ public abstract class Controller implements ResponseHolder {
         }
 
         String className = controllerClass.getName();
-        if (!className.startsWith("app.controllers")) {
-            throw new ControllerException("controller must be in the 'app.controllers' package");
+        if (!className.startsWith(PropertiesConstants.CONTROLLER_PACKAGE)) {
+            throw new ControllerException("controller must be in the '"+PropertiesConstants.CONTROLLER_PACKAGE+"' package");
         }
-        String packageSuffix = className.substring("app.controllers".length(), className.lastIndexOf("."));
+        String packageSuffix = className.substring(PropertiesConstants.CONTROLLER_PACKAGE.length(), className.lastIndexOf("."));
         packageSuffix = packageSuffix.replace(".", "/");
         if (packageSuffix.startsWith("/"))
             packageSuffix = packageSuffix.substring(1);

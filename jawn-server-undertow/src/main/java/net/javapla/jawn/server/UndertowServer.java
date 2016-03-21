@@ -18,6 +18,8 @@ import javax.servlet.DispatcherType;
 
 import org.xnio.Options;
 
+import com.google.inject.servlet.GuiceFilter;
+
 import net.javapla.jawn.server.api.JawnServer;
 import net.javapla.jawn.server.api.ServerConfig;
 
@@ -38,12 +40,22 @@ public class UndertowServer implements JawnServer {
             
         // Add the framework
         deployment
-            .addFilter(Servlets.filter(filtername, RequestDispatcher.class))
+            .addFilter(Servlets.filter(filtername, JawnFilter.class).setAsyncSupported(true))
             .addFilterUrlMapping(filtername, "/*", DispatcherType.REQUEST)
+            
+//            .addFilter(Servlets.filter(filtername, GuiceFilter.class))
+//            .addFilterUrlMapping(filtername, "/*", DispatcherType.REQUEST)
+//            .addServlet(
+//                Servlets
+//                    .servlet(JawnServlet.class)
+//                    .addMapping("/")
+//                )
             
             
             // The resource folder to read from
-            .setResourceManager(new FileResourceManager(new File(config.getWebappPath()), 100));
+            .setResourceManager(new FileResourceManager(new File(config.getWebappPath()), 100))
+            .setEagerFilterInit(true)
+            ;
         
         // Make the server use the framework
         DeploymentManager manager = Servlets.defaultContainer().addDeployment(deployment);

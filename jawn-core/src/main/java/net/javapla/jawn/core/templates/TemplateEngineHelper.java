@@ -1,8 +1,8 @@
 package net.javapla.jawn.core.templates;
 
 import net.javapla.jawn.core.Response;
-import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.RouterHelper;
+import net.javapla.jawn.core.routes.Route;
+import net.javapla.jawn.core.routes.RouterHelper;
 import net.javapla.jawn.core.util.Constants;
 
 public class TemplateEngineHelper {

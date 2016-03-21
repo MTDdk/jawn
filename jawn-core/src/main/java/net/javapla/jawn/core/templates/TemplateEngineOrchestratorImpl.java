@@ -27,6 +27,12 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
     // Keep a reference of providers rather than instances, so template engines
     // don't have to be singleton if they don't want
     private final Map<String, Provider<? extends TemplateEngine>> contentTypeToTemplateEngineMap;
+    //TODO
+    // This map NEEDS to be of a different type, as the HashMap#get is fairly slow.
+    // A suggested modification could be to introduce enums as Content Types for TemplateEngine#getContentType.
+    // This would make the lookup of providers to be close to O(1).
+    // Even better if the providers are sorted into some array of size Enum.values().length.
+    // How to handle user defined content types has not yet been devised
     
     @Inject
     public TemplateEngineOrchestratorImpl(

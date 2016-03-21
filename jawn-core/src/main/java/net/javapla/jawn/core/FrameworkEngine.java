@@ -11,7 +11,8 @@ import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.core.reflection.ControllerActionInvoker;
+import net.javapla.jawn.core.routes.Route;
+import net.javapla.jawn.core.routes.Router;
 import net.javapla.jawn.core.util.CollectionUtil;
 
 import org.slf4j.Logger;
@@ -34,17 +35,18 @@ public final class FrameworkEngine {
     
     private final Router router;
     private final ResponseRunner runner;
-    private final ControllerActionInvoker invoker;
-//    private final Lang lang;
+//    private final ActionInvoker invoker;
 //    private final Injector injector;
+
+//    private final Lang lang;
     
     @Inject
-    public FrameworkEngine(Router router, ResponseRunner runner, ControllerActionInvoker invoker /*Lang lang,*/ /*Injector injector*/) {
+    public FrameworkEngine(Router router, ResponseRunner runner/*, ActionInvoker invoker*//*, Injector injector *//*Lang lang*/) {
         this.router = router;
         this.runner = runner;
-        this.invoker = invoker;
-//        this.lang = lang;
+//        this.invoker = invoker;
 //        this.injector = injector;
+//        this.lang = lang;
     }
     
     //onRouteRequest
@@ -88,7 +90,7 @@ public final class FrameworkEngine {
             /*16062*/
             /*8799*/
             //long time = System.nanoTime();
-            final Route route = router.retrieveRoute(context.getHttpMethod(), uri/*, injector*/);
+            final Route route = router.retrieveRoute(context.getHttpMethod(), uri/*, invoker*//*injector*/);
             //System.out.println("Timing :: " + (System.nanoTime() - time));
             context.setRouteInformation(route, null/*format*/, null/*language*/, uri);
             
@@ -98,7 +100,8 @@ public final class FrameworkEngine {
                 
                 //might already have been handled by the controller or filters
                 if (response == null)
-                    response = invoker.executeAction(context);
+                    //response = invoker.executeAction(context);
+                    response = route.executeRouteAndRetrieveResponse(context);
                 runner.run(context, response);
                 
                 // run post-filters
@@ -179,9 +182,9 @@ public final class FrameworkEngine {
     private void logRequestProperties(Context context, int status, Throwable e) {
         String requestProperties = getRequestProperties(context);
         if (status == 404) {
-            logger.warn("java-web-planet 404 WARNING: {} \n{}", e.getMessage(), requestProperties);
+            logger.warn("java-web-planet 404 WARNING:\n{}\n{}", requestProperties, e.getMessage());
         } else {
-            logger.error("java-web-planet ERROR: \n" + requestProperties, e);
+            logger.error("java-web-planet ERROR:\n{}\n{}", requestProperties, e.getMessage());
         }
     }
     

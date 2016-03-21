@@ -106,8 +106,13 @@ public abstract class DynamicClassFactory {
     }
     
     public final static <T> Class<? extends T> getCompiledClass(String className, Class<T> expected, boolean useCache) throws CompilationException, ClassLoadException {
-        return getCompiledClass(className, useCache).asSubclass(expected);
+        Class<?> compiledClass = getCompiledClass(className, useCache);
+        return compiledClass.asSubclass(expected);
     }
+    
+//    public final static <T> Class<? extends T> reloadClass(Class<T> clazz, boolean useCache) throws CompilationException, ClassLoadException {
+//        return getCompiledClass(clazz.getName(), useCache).asSubclass(clazz);
+//    }
     
     
     /**

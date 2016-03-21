@@ -1,4 +1,4 @@
-package net.javapla.jawn.server;
+package net.javapla.jawn.core;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -8,12 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import net.javapla.jawn.core.ApplicationConfig;
-import net.javapla.jawn.core.CoreModule;
-import net.javapla.jawn.core.FiltersHandler;
-import net.javapla.jawn.core.FrameworkEngine;
-import net.javapla.jawn.core.PropertiesImpl;
-import net.javapla.jawn.core.Router;
 import net.javapla.jawn.core.api.ApplicationBootstrap;
 import net.javapla.jawn.core.api.ApplicationDatabaseBootstrap;
 import net.javapla.jawn.core.api.ApplicationFilters;
@@ -22,10 +16,12 @@ import net.javapla.jawn.core.api.Filters;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseModule;
+import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
+import net.javapla.jawn.core.routes.Router;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.JawnSpecificProperties;
 import net.javapla.jawn.core.util.Modes;
+import net.javapla.jawn.core.util.PropertiesConstants;
 
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -41,46 +37,42 @@ import com.google.inject.util.Modules;
 public class FrameworkBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
-    final PropertiesImpl properties;
-    Injector injector;
+    protected final PropertiesImpl properties;
+    protected final ApplicationConfig appConfig;
+    private final List<Module> combinedModules;
+    
+    protected Injector injector;
+    
+    protected ApplicationBootstrap config;
+    protected ApplicationBootstrap[] plugins;
 
-    private ApplicationBootstrap config;
-    private ApplicationBootstrap[] plugins;
-
+    
     public FrameworkBootstrap() {
         this(new PropertiesImpl(Modes.determineModeFromSystem()));
     }
     
     public FrameworkBootstrap(PropertiesImpl conf) {
         properties = conf;
+        appConfig = new ApplicationConfig();
+        combinedModules = new ArrayList<>();
     }
     
     public synchronized void boot() {
-        if (injector != null) throw new RuntimeException(FrameworkBootstrap.class.getSimpleName() + " already initialised");
+        if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
         long startupTime = System.currentTimeMillis();
         
-        // Read all the configuration from the user
-        ApplicationConfig appConfig = new ApplicationConfig();
-        FiltersHandler filters = new FiltersHandler();
-        Router router = new Router(filters, properties);
-        DatabaseConnections connections = new DatabaseConnections();
-        
-        config = readConfiguration(appConfig, router, filters, connections);
-        
-        // supported languages are needed in the creation of the injector
-        properties.setSupportedLanguages(appConfig.getSupportedLanguages());
-        properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
-        
-        // create a single injector for both the framework and the user registered modules
-        List<AbstractModule> userModules = appConfig.getRegisteredModules();//appConfig.getRegisteredModules() == null ? null : Arrays.asList(appConfig.getRegisteredModules());
+        configure();
         
         // read plugins
         ApplicationConfig pluginConfig = new ApplicationConfig();
         plugins = readRegisteredPlugins(pluginConfig);
         List<AbstractModule> pluginModules = pluginConfig.getRegisteredModules();
         
-        Injector localInjector = initInjector(userModules, router, connections, pluginModules);
+        // create a single injector for both the framework and the user registered modules
+        List<AbstractModule> userModules = appConfig.getRegisteredModules();
+        
+        Injector localInjector = initInjector(userModules, pluginModules);
         
         
         // If any initialisation of filters needs to be done, like injecting ServletContext,
@@ -88,8 +80,8 @@ public class FrameworkBootstrap {
         //initiateFilters(filters, localInjector/*, security*/);
 
         
-        // compiling of routes needs an injector, so this is done after the creation
-        router.compileRoutes(/*localInjector*/);
+        // compiling of routes needs element from the injector, so this is done after the creation
+        initRouter(localInjector);
         
         injector = localInjector;
         
@@ -97,6 +89,10 @@ public class FrameworkBootstrap {
         engine.onFrameworkStartup(); // signal startup
         
         logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
+    }
+    
+    public Injector getInjector() {
+        return injector;
     }
     
     public synchronized void shutdown() {
@@ -125,22 +121,31 @@ public class FrameworkBootstrap {
         }
     }
     
-    public Injector getInjector() {
-        return injector;
+    protected void addModule(Module module) {
+        this.combinedModules.add(module);
     }
-
-    private Injector initInjector(final List<AbstractModule> userModules, Router router, DatabaseConnections connections, List<AbstractModule> pluginModules) {
-        // this class is a part of the server project
+    
+    protected void configure() {
+        // Read all the configuration from the user
+        FiltersHandler filters = new FiltersHandler();
+        Router router = new Router(filters, properties);
+        DatabaseConnections connections = new DatabaseConnections();
+        
+        this.config = readConfigurations(appConfig, router, filters, connections);
+        
+        // supported languages are needed in the creation of the injector
+        properties.setSupportedLanguages(appConfig.getSupportedLanguages());
+        properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
+        
+        
+        addModule(new CoreModule(properties, router));
+        addModule(new DatabaseModule(connections, properties));
+    }
+    
+    private Injector initInjector(final List<AbstractModule> userModules, List<AbstractModule> pluginModules) {
+        // this class is a part of the core project
         // configure all the needed dependencies for the server
         // this includes injecting templatemanager
-        
-        List<AbstractModule> combinedModules = new ArrayList<>();
-        
-        combinedModules.add(new CoreModule());
-        
-        combinedModules.add(new ServerModule(properties, router));
-        
-        combinedModules.add(new DatabaseModule(connections, properties));
         
         /*combinedModules.add(new AbstractModule() {
             @Override
@@ -170,9 +175,16 @@ public class FrameworkBootstrap {
         return Guice.createInjector(Stage.PRODUCTION, combined);
     }
     
-    private ApplicationBootstrap readConfiguration(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {
+    private void initRouter(Injector localInjector) {
+        //router.compileRoutes(localInjector.getInstance(ActionInvoker.class)/*localInjector*/);
+        Router router = localInjector.getInstance(Router.class);
+        ActionInvoker invoker = localInjector.getInstance(ActionInvoker.class);
+        router.compileRoutes(invoker);
+    }
+    
+    private ApplicationBootstrap readConfigurations(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {
         
-        Reflections reflections = new Reflections(JawnSpecificProperties.CONFIG_PACKAGE);
+        Reflections reflections = new Reflections(PropertiesConstants.CONFIG_PACKAGE);
         
         //TODO if multiple implementations were found - write something in the log
         
@@ -189,8 +201,9 @@ public class FrameworkBootstrap {
         return locate(reflections, ApplicationBootstrap.class, impl -> impl.bootstrap(configuration));
     }
     
+    
     private ApplicationBootstrap[] readRegisteredPlugins(ApplicationConfig config) {
-        Reflections reflections = new Reflections(properties.get(Constants.APPLICATION_PLUGINS_PACKAGE));
+        Reflections reflections = new Reflections(properties.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
         return locateAll(reflections, ApplicationBootstrap.class, impl -> impl.bootstrap(config));
     }
     
@@ -254,7 +267,7 @@ public class FrameworkBootstrap {
         }
         return null;
     }
-
+    
     private String getCauseMessage(Throwable throwable) {
         List<Throwable> list = new ArrayList<Throwable>();
         while (throwable != null && list.contains(throwable) == false) {
@@ -263,5 +276,5 @@ public class FrameworkBootstrap {
         }
         return list.get(0).getMessage();
     }
-    
+
 }

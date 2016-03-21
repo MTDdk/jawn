@@ -5,21 +5,23 @@ import java.lang.reflect.Method;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.Response;
-import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.WebException;
 import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.routes.ResponseFunction;
+import net.javapla.jawn.core.routes.Route;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-public class ControllerActionInvoker {
+public class ActionInvoker implements ResponseFunction {
 
     private final Injector injector;
+//    private final boolean isDev;
     
     @Inject
-    public ControllerActionInvoker(Injector injector) {
+    public ActionInvoker(Injector injector/*, PropertiesImpl properties*/) {
         
         //README this might be necessary if the overhead of creating controllers on runtime exceeds the memory of holding the controller on the Route
         // if we want to reload the controller, this is a good time to do it
@@ -34,14 +36,30 @@ public class ControllerActionInvoker {
 //            }
             
         this.injector = injector;
+//        this.isDev = properties.isDev();
+    }
+    
+    @Override
+    public Response handle(Context context) {
+        return executeAction(context);
     }
     
     public final Response executeAction(final Context context) {
         final Route route = context.getRoute();
 
         try {
-            final Class<? extends Controller> controllerClass = route.getController();
-            final Controller controller = loadController(controllerClass);
+            //route.reloadController(controller -> DynamicClassFactory.reloadClass(controller, !isDev));
+            //final Class<? extends Controller> controllerClass;// = route.getController();
+            //final Method action;
+            /*if (isDev) { 
+                controllerClass = DynamicClassFactory.getCompiledClass(route.getController().getName(), Controller.class, false);
+                action = controllerClass.getMethod(route.getActionMethod().getName());
+            } else*/ { 
+                //controllerClass = route.getController();
+                //action = route.getActionMethod();
+            }
+            
+            final Controller controller = loadController(/*controllerClass*/route.getController());
             injectControllerWithContext(controller, context, injector);
 
             //find the method name and run it
@@ -60,7 +78,7 @@ public class ControllerActionInvoker {
             }
             throw new ControllerException(String.format("Action name (%s) not found in controller (%s)", route.getAction(), route.getController().getSimpleName()));
             */
-            route.getActionMethod().invoke(controller);
+            /*return (Response) *//*route.getActionMethod()*/route.getActionMethod().invoke(controller);
             return controller.getControllerResponse();
 
         } catch (InvocationTargetException e) {
@@ -106,4 +124,5 @@ public class ControllerActionInvoker {
         }
         return false;
     }
+    
 }

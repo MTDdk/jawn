@@ -1,5 +1,6 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.routes;
 
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.http.Context;
 
@@ -13,15 +14,22 @@ import net.javapla.jawn.core.http.Context;
  */
 class FilterChainEnd implements FilterChain {
 
+    private final Response response;
+
     //private final ControllerActionInvoker invoker;
     
     public FilterChainEnd(/*ControllerActionInvoker invoker*/) {
         //this.invoker = invoker;
+        this(null);
+    }
+    public FilterChainEnd(Response response) {
+        this.response = response;
     }
     
     @Override
     public Response before(Context context) {
-        return null;//invoker.executeAction(context);
+        // When returning null, the ControllerActionInvoker is called instead
+        return response;//invoker.executeAction(context);
     }
 
     @Override

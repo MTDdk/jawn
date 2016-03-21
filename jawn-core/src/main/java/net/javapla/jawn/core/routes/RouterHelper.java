@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.routes;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -6,8 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.exceptions.ControllerException;
-import net.javapla.jawn.core.util.JawnSpecificProperties;
+import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringUtil;
 
 public class RouterHelper {
@@ -36,10 +37,10 @@ public class RouterHelper {
         }
 
         String className = clazz.getName();
-        if (!className.startsWith(JawnSpecificProperties.CONTROLLER_PACKAGE)) {
+        if (!className.startsWith(PropertiesConstants.CONTROLLER_PACKAGE)) {
             throw new ControllerException("controller must be in the 'app.controllers' package");
         }
-        String packageSuffix = className.substring(JawnSpecificProperties.CONTROLLER_PACKAGE.length(), className.lastIndexOf("."));
+        String packageSuffix = className.substring(PropertiesConstants.CONTROLLER_PACKAGE.length(), className.lastIndexOf("."));
         packageSuffix = packageSuffix.replace(".", "/");
         if (packageSuffix.startsWith("/"))
             packageSuffix = packageSuffix.substring(1);
