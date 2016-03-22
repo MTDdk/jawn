@@ -527,7 +527,6 @@ class JawnServletContext implements Context.Internal {
             return Optional.of(items);
         } catch (FileUploadException e) {
             //"Error while trying to process mulitpart file upload"
-//            throw new ControllerException(e);
             //README: perhaps some logging
         }
         return Optional.empty();
