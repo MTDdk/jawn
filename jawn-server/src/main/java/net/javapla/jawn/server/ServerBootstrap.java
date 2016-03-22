@@ -16,8 +16,7 @@ public class ServerBootstrap extends FrameworkBootstrap {
         addModule(new AbstractModule() {
             @Override
             protected void configure() {
-                bind(Context.class).to(ContextImpl.class);
-                bind(ContextInternal.class).to(ContextImpl.class);
+                bind(Context.class).to(JawnServletContext.class);
             }
         });
     }

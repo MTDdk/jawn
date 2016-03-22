@@ -181,10 +181,10 @@ public final class FrameworkEngine {
     
     private void logRequestProperties(Context context, int status, Throwable e) {
         String requestProperties = getRequestProperties(context);
-        if (status == 404) {
-            logger.warn("java-web-planet 404 WARNING:\n{}\n{}", requestProperties, e.getMessage());
+        if (status < 500) {
+            logger.warn("java-web-planet {} WARNING:\n{}\n{}", status, requestProperties, e.getMessage());
         } else {
-            logger.error("java-web-planet ERROR:\n{}\n{}", requestProperties, e.getMessage());
+            logger.error("java-web-planet {} ERROR:\n{}\n{}", status, requestProperties, e.getCause());
         }
     }
     

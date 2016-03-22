@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -30,11 +32,11 @@ import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.routes.Route;
+import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
 import net.javapla.jawn.core.util.MultiList;
 
-import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -45,7 +47,7 @@ import com.google.inject.Inject;
 /**
  * @author MTD
  */
-class ContextImpl implements ContextInternal {
+class JawnServletContext implements Context.Internal {
     
     private static final String X_POWERED_BY = "X-Powered-By";
     
@@ -68,7 +70,7 @@ class ContextImpl implements ContextInternal {
     // servletcontext, appcontext (what the hell is the difference?)
     // requestcontext - the hell, man??
     @Inject
-    ContextImpl(PropertiesImpl properties, ParserEngineManager parserManager) {
+    JawnServletContext(PropertiesImpl properties, ParserEngineManager parserManager) {
         this.properties = properties;
         this.parserManager = parserManager;
     }
@@ -504,7 +506,7 @@ class ContextImpl implements ContextInternal {
      * @return the FileItemIterator of the request or null if there was an
      *         error.
      */
-    public List<FileItem> parseRequestMultiPartItems(String encoding) {
+    public Optional<List<FormItem>> parseRequestMultiPartItems(String encoding) {
         DiskFileItemFactory factory = new DiskFileItemFactory();
         factory.setSizeThreshold(properties.getInt(Constants.PROPERTY_UPLOADS_MAX_SIZE/*Constants.Params.maxUploadSize.name()*/));//Configuration.getMaxUploadSize());
         factory.setRepository(new File(System.getProperty("java.io.tmpdir"))); //Configuration.getTmpDir());
@@ -514,16 +516,20 @@ class ContextImpl implements ContextInternal {
         
         if(encoding != null)
             upload.setHeaderEncoding(encoding);
-        upload.setFileSizeMax(properties.getInt(Constants.PROPERTY_UPLOADS_MAX_SIZE));//Configuration.getMaxUploadSize());
+        upload.setFileSizeMax(properties.getInt(Constants.PROPERTY_UPLOADS_MAX_SIZE));
         
         try {
-            return upload.parseRequest(request);
+            List<FormItem> items = upload.parseRequest(request)
+                    .stream()
+                    .map(item -> new ApacheFileItemFormItem(item))
+                    .collect(Collectors.toList());
+            return Optional.of(items);
         } catch (FileUploadException e) {
             //"Error while trying to process mulitpart file upload"
 //            throw new ControllerException(e);
             //README: perhaps some logging
-            return null;
         }
+        return Optional.empty();
     }
     
     

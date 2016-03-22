@@ -8,13 +8,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.routes.Route;
+import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.MultiList;
-
-import org.apache.commons.fileupload.FileItem;
 
 public interface Context {
     
@@ -236,7 +236,7 @@ public interface Context {
      * @return the FileItemIterator of the request or null if there was an
      *         error.
      */
-    public List<FileItem> parseRequestMultiPartItems(String encoding);
+    public Optional<List<FormItem>> parseRequestMultiPartItems(String encoding);
     
 /* *************** */
 /*   RESPONSE      */

@@ -25,7 +25,7 @@ public class Param {
     
     final String param;
 
-    Param(String param) {
+    public Param(String param) {
         this.param = param;
     }
     

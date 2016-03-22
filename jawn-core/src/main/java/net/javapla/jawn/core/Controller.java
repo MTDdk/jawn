@@ -40,6 +40,7 @@ import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.routes.RouterHelper;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
+import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.MultiList;
@@ -47,7 +48,6 @@ import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 import net.javapla.jawn.core.util.StringUtil;
 
-import org.apache.commons.fileupload.FileItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -939,12 +939,13 @@ public abstract class Controller implements ResponseHolder {
     * @param fieldName name of form field from the  <code>multipart/form-data</code> request corresponding to the uploaded file.
     * @param formItems form items retrieved from <code>multipart/form-data</code> request.
     * @return <code>InputStream</code> from which to read content of uploaded file.
+     * @throws IOException, WebException  
     * @throws WebException in case field name is not found in the request.
     */
-    protected InputStream getFileInputStream(String fieldName, List<FormItem> formItems){
+    protected InputStream getFileInputStream(String fieldName, List<FormItem> formItems) throws IOException, WebException {
         for (FormItem formItem : formItems) {
             if(formItem.isFile() && formItem.getFieldName().equals(fieldName)){
-                return formItem.getInputStream();
+                return formItem.openStream();
             }
         }
         throw new WebException("File with field named: '" + fieldName + "' not found");
@@ -1001,28 +1002,18 @@ public abstract class Controller implements ResponseHolder {
         if (!context.isRequestMultiPart())
             throw new MediaTypeException("this is not a multipart request, be sure to add this attribute to the form: ... enctype=\"multipart/form-data\" ...");
 
-//            DiskFileItemFactory factory = new DiskFileItemFactory();
-//
-//            factory.setSizeThreshold(Configuration.getMaxUploadSize());
-//            factory.setRepository(Configuration.getTmpDir());
-//
-//            ServletFileUpload upload = new ServletFileUpload(factory);
-//            if(encoding != null)
-//                upload.setHeaderEncoding(encoding);
-//            upload.setFileSizeMax(Configuration.getMaxUploadSize());
-
         MultiList<FormItem> parts = new MultiList<>();
         try {
-            List<org.apache.commons.fileupload.FileItem> apacheFileItems = context.parseRequestMultiPartItems(encoding);//upload.parseRequest(context.getHttpRequest());
-            if (apacheFileItems != null) {
-                for (FileItem apacheItem : apacheFileItems) {
-                    parts.put(apacheItem.getFieldName(), new FormItem(new ApacheFileItemFacade(apacheItem)));
-                }
-            }
-            return parts;
+            context.parseRequestMultiPartItems(encoding)
+                .ifPresent(items -> {
+                    for (FormItem item : items) {
+                        parts.put(item.getFieldName(), item);
+                    }
+                });
         } catch (Exception e) {
             throw new ControllerException(e);
         }
+        return parts;
     }
     
     

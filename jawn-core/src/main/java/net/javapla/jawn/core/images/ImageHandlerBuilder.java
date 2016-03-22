@@ -14,13 +14,13 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
 
-import net.javapla.jawn.core.FormItem;
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.ResponseBuilder;
 import net.javapla.jawn.core.ResponseHolder;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.uploads.FormItem;
 
 import org.imgscalr.Scalr;
 
@@ -43,8 +43,8 @@ public class ImageHandlerBuilder {
     public ImageHandlerBuilder(ResponseHolder holder, Context context, FormItem item) throws ControllerException {
         this(holder, context);
         try {
-            this.image = ImageIO.read(item.getInputStream());
-            fn.updateNameAndExtension(item.getFileName());
+            this.image = ImageIO.read(item.openStream()); // also closes the stream
+            fn.updateNameAndExtension(item.getName());
             
             if (this.image == null)
                 throw new ControllerException("The extension '" + fn.extension() + "' could not be read");

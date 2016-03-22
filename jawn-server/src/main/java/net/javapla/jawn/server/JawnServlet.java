@@ -90,7 +90,7 @@ public class JawnServlet extends HttpServlet {
         // redirect if the path ends with a slash - URLS cannot end with a slash - they should not do such a thing - why would they?
         //if (redirectUrlEndingWithSlash(path, response)) return;
         
-        ContextImpl context = (ContextImpl) injector.getInstance(Context.class);
+        JawnServletContext context = (JawnServletContext) injector.getInstance(Context.class);
         context.init(/*servletContext, */request, response);
         
         engine.runRequest(context);
