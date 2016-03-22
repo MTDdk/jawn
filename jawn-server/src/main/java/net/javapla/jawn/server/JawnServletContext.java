@@ -497,6 +497,7 @@ class JawnServletContext implements Context.Internal {
     public boolean isRequestMultiPart() {
         return ServletFileUpload.isMultipartContent(request);
     }
+    
     /**
      * Gets the FileItemIterator of the input.
      * 
