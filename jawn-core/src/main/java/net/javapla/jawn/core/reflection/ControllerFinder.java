@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  * @author mtd
  */
 public final class ControllerFinder {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(ControllerFinder.class);
 
     private final static char DOT = '.';
     private final static char SLASH = '/';
@@ -108,7 +108,7 @@ public final class ControllerFinder {
         return getControllerMethod(urlpath.controller, urlpath.args.size(), urlpath.method);
     }*/
 
-    private final Map<String, Class<?>> find(final String scannedPackage) throws IllegalArgumentException {
+    private static final Map<String, Class<?>> find(final String scannedPackage) throws IllegalArgumentException {
         final String scannedPath = scannedPackage.replace(DOT, SLASH);
         
         final Enumeration<URL> resources = retrieveResourcesFromPath(scannedPackage, scannedPath);
@@ -126,7 +126,7 @@ public final class ControllerFinder {
         return classes;
     }
 
-    private Enumeration<URL> retrieveResourcesFromPath(final String scannedPackage, final String scannedPath) throws IllegalArgumentException {
+    private static Enumeration<URL> retrieveResourcesFromPath(final String scannedPackage, final String scannedPath) throws IllegalArgumentException {
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try {
             File scannedFile = new File(classLoader.getResource(scannedPath).getFile());
@@ -142,7 +142,7 @@ public final class ControllerFinder {
         }
     }
     
-    private final void findClassInDir(final File file, final String scannedPackage, final Map<String, Class<?>> classes) {
+    private static final void findClassInDir(final File file, final String scannedPackage, final Map<String, Class<?>> classes) {
         File[] files = file.listFiles();
         if (files != null)
             for (File nestedFile : files) {
@@ -150,7 +150,7 @@ public final class ControllerFinder {
             }
     }
 
-    private final void findClass(final File file, final String scannedPackage, final String subpackage, final Map<String, Class<?>> classes) {
+    private static final void findClass(final File file, final String scannedPackage, final String subpackage, final Map<String, Class<?>> classes) {
         final String resource = scannedPackage + DOT + subpackage + file.getName();
         if (file.isDirectory()) {
             // file is a package

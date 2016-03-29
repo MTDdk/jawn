@@ -17,13 +17,13 @@ import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseModule;
 import net.javapla.jawn.core.reflection.ActionInvoker;
+import net.javapla.jawn.core.reflection.ClassLocator;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.routes.Router;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.PropertiesConstants;
 
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,27 +184,29 @@ public class FrameworkBootstrap {
     
     private ApplicationBootstrap readConfigurations(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {
         
-        Reflections reflections = new Reflections(PropertiesConstants.CONFIG_PACKAGE);
+        //Reflections reflections = new Reflections(PropertiesConstants.CONFIG_PACKAGE);
+        ClassLocator locatr = new ClassLocator(PropertiesConstants.CONFIG_PACKAGE);
         
         //TODO if multiple implementations were found - write something in the log
         
         // filters
-        locate(reflections, ApplicationFilters.class, impl -> impl.filters(filters));
+        locate(/*reflections,*/locatr, ApplicationFilters.class, impl -> impl.filters(filters));
         
         // routes
-        locate(reflections, ApplicationRoutes.class, impl -> impl.router(router));
+        locate(/*reflections,*/locatr, ApplicationRoutes.class, impl -> impl.router(router));
         
         // database
-        locate(reflections, ApplicationDatabaseBootstrap.class, impl -> impl.dbConnections(connections));
+        locate(/*reflections,*/locatr, ApplicationDatabaseBootstrap.class, impl -> impl.dbConnections(connections));
         
         // bootstrap
-        return locate(reflections, ApplicationBootstrap.class, impl -> impl.bootstrap(configuration));
+        return locate(/*reflections,*/locatr, ApplicationBootstrap.class, impl -> impl.bootstrap(configuration));
     }
     
     
     private ApplicationBootstrap[] readRegisteredPlugins(ApplicationConfig config) {
-        Reflections reflections = new Reflections(properties.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
-        return locateAll(reflections, ApplicationBootstrap.class, impl -> impl.bootstrap(config));
+        //Reflections reflections = new Reflections(properties.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+        ClassLocator locator = new ClassLocator(properties.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+        return locateAll(/*reflections,*/locator,  ApplicationBootstrap.class, impl -> impl.bootstrap(config));
     }
     
     /**
@@ -216,8 +218,13 @@ public class FrameworkBootstrap {
      * @param bootstrapper
      * @return
      */
-    private <T, U> T locate(Reflections reflections, Class<T> clazz, Consumer<T> bootstrapper) {
-        Set<Class<? extends T>> set = reflections.getSubTypesOf(clazz);
+    private <T, U> T locate(/*Reflections reflections,*/final ClassLocator locator, Class<T> clazz, Consumer<T> bootstrapper) {
+        //Set<Class<? extends T>> set = reflections.getSubTypesOf(clazz);
+        //logger.debug("\n.................\n{}\n{}", set, ClassLocator.scanPackage(PropertiesConstants.CONFIG_PACKAGE, clazz));
+//        Set<Class<? extends T>> set = ClassLocator.scanPackage(PropertiesConstants.CONFIG_PACKAGE, clazz);
+//        logger.debug("\n.................\n{}\n{}", set, new ClassLocator(PropertiesConstants.CONFIG_PACKAGE).subTypeOf(clazz));
+        Set<Class<? extends T>> set = locator.subtypeOf(clazz);
+        
         if (!set.isEmpty()) {
             Class<? extends T> c = set.iterator().next();
             try {
@@ -236,8 +243,8 @@ public class FrameworkBootstrap {
         return null;
     }
     
-    private <T, U> T[] locateAll(Reflections reflections, Class<T> clazz, Consumer<T> bootstrapper) {
-        Set<Class<? extends T>> set = reflections.getSubTypesOf(clazz);
+    private <T, U> T[] locateAll(/*Reflections reflections,*/ClassLocator locator, Class<T> clazz, Consumer<T> bootstrapper) {
+        Set<Class<? extends T>> set = locator.subtypeOf(clazz);
         if (!set.isEmpty()) {
             
             @SuppressWarnings("unchecked")
