@@ -61,6 +61,11 @@ uploadArchives {
           developerConnection 'scm:git:git@github.com:MTDdk/jawn.git'
           url 'https://github.com/MTDdk/jawn'
         }
+        
+        issueManagement {
+            system 'Github Issues'
+            url 'https://github.com/MTDdk/jawn/issues'
+        }
 
         licenses {
           license {
