@@ -6,7 +6,7 @@ import java.util.List;
 
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.api.Filters;
-import net.javapla.jawn.core.reflection.ControllerFinder;
+import net.javapla.jawn.core.reflection.ControllerLocator;
 import net.javapla.jawn.core.util.PropertiesConstants;
 
 /**
@@ -176,8 +176,9 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
                     cc.add(entry.getValue());
                 }
             }*/
-            ControllerFinder cf = new ControllerFinder(packageName);
-            this.controllers = cf.controllers.values().toArray(new Class[cf.controllers.size()]);//classes.toArray(new Class[classes.size()]);
+            //ControllerFinder cf = new ControllerFinder(packageName);
+            //this.controllers = cf.controllers.values().toArray(new Class[cf.controllers.size()]);//classes.toArray(new Class[classes.size()]);
+            this.controllers = new ControllerLocator(packageName).controllersAsArray();
             return this;
         }
         

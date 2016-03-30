@@ -1,5 +1,7 @@
 package net.javapla.jawn.core.http;
 
+import java.util.Arrays;
+
 import net.javapla.jawn.core.util.StringUtil;
 
 
@@ -9,6 +11,10 @@ import net.javapla.jawn.core.util.StringUtil;
  */
 public enum HttpMethod {
     GET, POST, PUT, DELETE, HEAD;
+    
+    public static String[] listHttpMethods() {
+        return Arrays.stream(HttpMethod.values()).map(method -> method.name().toLowerCase()).toArray(String[]::new);
+    }
 
     /**
      * Detects an HTTP method from a request.

@@ -8,6 +8,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,17 +23,18 @@ import org.slf4j.LoggerFactory;
  * 
  * @author MTD
  */
-public final class ClassLocator {
+public class ClassLocator {
     private static final Logger log = LoggerFactory.getLogger(ClassLocator.class);
     
-    private final static char DOT = '.';
-    private final static char SLASH = '/';
-    private final static String CLASS_SUFFIX = ".class";
-    private final static int CLASS_SUFFIX_LENGTH = CLASS_SUFFIX.length();
+    protected final static char DOT = '.';
+    protected final static char SLASH = '/';
+    protected final static String CLASS_SUFFIX = ".class";
+    protected final static int CLASS_SUFFIX_LENGTH = CLASS_SUFFIX.length();
     
-    private final String packageToScan;
-    private final Map<String, Set<Class<?>>> store;
+    protected final String packageToScan;
+    protected final Map<String, Set<Class<?>>> store;
     
+    //TODO: throw if package is not reachable 
     public ClassLocator(String packageToScan) {
         this.packageToScan = packageToScan;
         this.store = new HashMap<>();
@@ -93,8 +95,13 @@ public final class ClassLocator {
             try {
                 Class<?> c = Class.forName(className);
                 
-                putIntoStore(ReflectionMetadata.getSuperclassName(c), c);
+                Optional<Class<?>> superclass = ReflectionMetadata.getSuperclass(c);
+                while (superclass.isPresent()) {
+                    putIntoStore(superclass.get().getName(), c);
+                    superclass = ReflectionMetadata.getSuperclass(superclass.get());
+                }
                 
+                //README: ought the interfaces also be recursive as the superclass?
                 for (String interfaceName : ReflectionMetadata.getInterfacesNames(c)) {
                     putIntoStore(interfaceName, c);
                 }
@@ -119,8 +126,16 @@ public final class ClassLocator {
         return store.values().stream().flatMap(cls -> cls.stream()).collect(Collectors.toSet());
     }
     
+    public Set<Class<?>> foundClassesWithSuffix(String suffix) {
+        return extractClassesWithSuffix(foundClasses(), suffix);
+    }
+    
     public static final <T> Set<Class<? extends T>> subtypesFromPackage(Class<T> clazz, String packageToScan) {
         return new ClassLocator(packageToScan).subtypeOf(clazz);
+    }
+    
+    protected static final <T> Set<Class<? extends T>> extractClassesWithSuffix(Set<Class<? extends T>> classes, String suffix) {
+        return classes.stream().filter(cls -> cls.getName().endsWith(suffix)).collect(Collectors.toSet());
     }
     
     

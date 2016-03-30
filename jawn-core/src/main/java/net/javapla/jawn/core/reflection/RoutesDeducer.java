@@ -31,12 +31,16 @@ public class RoutesDeducer {
     
     public RoutesDeducer deduceRoutesFromControllers() {
         
-        ControllerFinder finder = new ControllerFinder(PropertiesConstants.CONTROLLER_PACKAGE);
+        //ControllerFinder finder = new ControllerFinder(PropertiesConstants.CONTROLLER_PACKAGE);
+        ControllerLocator locator = new ControllerLocator(PropertiesConstants.CONTROLLER_PACKAGE);
         
-        finder.controllerActions
+//        System.out.println(finder.controllerActions.keySet());
+//        System.out.println(locator.controllerActions.keySet());
+        
+        /*finder*/locator.controllerActions
             .forEach((controllername,actions) -> {
                 // /{controller}
-                constructControllerRoute(finder, controllername);
+                constructControllerRoute(locator, controllername);
                 
                 // /{controller}/{action}
                 actions.forEach(action -> {
@@ -53,7 +57,7 @@ public class RoutesDeducer {
                                 .route(uri)
                                 .build(filters, injector);
                         trie.insert(uri, actionroute, method);*/
-                        constructActionRoute(finder, controllername, actionName, method);
+                        constructActionRoute(locator, controllername, actionName, method);
                     });
                     /*try {
                     HttpMethod method;
@@ -68,8 +72,8 @@ public class RoutesDeducer {
             });
         
         // insert IndexController
-        if (finder.controllerExists(Constants.ROOT_CONTROLLER_NAME)) {
-            constructRoute(finder, "/", Constants.ROOT_CONTROLLER_NAME, Constants.DEFAULT_ACTION_NAME, HttpMethod.GET);
+        if (locator.containsControllerPath(Constants.ROOT_CONTROLLER_NAME)) {//finder.controllerExists(Constants.ROOT_CONTROLLER_NAME)) {
+            constructRoute(locator, "/", Constants.ROOT_CONTROLLER_NAME, Constants.DEFAULT_ACTION_NAME, HttpMethod.GET);
         }
         
         return this;
@@ -80,22 +84,22 @@ public class RoutesDeducer {
     }
     
     
-    private void constructControllerRoute(ControllerFinder finder, String controllername) {
+    private void constructControllerRoute(ControllerLocator locator, String controllername) {
         String uri = MessageFormat.format(controller, controllername);
-        constructRoute(finder, uri, controllername, Constants.DEFAULT_ACTION_NAME, HttpMethod.GET);
+        constructRoute(locator, uri, controllername, Constants.DEFAULT_ACTION_NAME, HttpMethod.GET);
     }
     
-    private void constructActionRoute(ControllerFinder finder, String controllername, String actionName, HttpMethod method) {
+    private void constructActionRoute(ControllerLocator locator, String controllername, String actionName, HttpMethod method) {
         String uri = MessageFormat.format(controller_action, controllername, actionName);
-        constructRoute(finder, uri, controllername, actionName, method);
+        constructRoute(locator, uri, controllername, actionName, method);
     }
 
     @SuppressWarnings("unchecked")
-    private void constructRoute(ControllerFinder finder, String uri, String controllername, String actionName, HttpMethod method) {
+    private void constructRoute(ControllerLocator locator, String uri, String controllername, String actionName, HttpMethod method) {
 //        System.out.println("+ " +uri + " -> " + controllername + " / " + actionName + " <- "  + method);
         Route route = RouteBuilder
             .method(method)
-            .to((Class<? extends Controller>) finder.controllers.get(controllername), actionName)
+            .to((Class<? extends Controller>) locator.controllers.get(controllername), actionName)
             .route(uri)
             .build(filters, invoker/*injector*/);
         trie.insert(uri, route);

@@ -2,16 +2,20 @@ package net.javapla.jawn.core.reflection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ReflectionMetadata {
+    
+    public static final Optional<Class<?>> getSuperclass(Class<?> cls) {
+        return Optional.ofNullable(cls.getSuperclass());
+    }
 
     public static final String getClassName(Class<?> cls) {
         return cls.getName();
     }
 
     public static final String getSuperclassName(Class<?> cls) {
-        Class<?> superclass = cls.getSuperclass();
-        return superclass != null ? superclass.getName() : "";
+        return getSuperclass(cls).map(c -> c.getName()).orElse("");
     }
     
     public static final List<String> getInterfacesNames(Class<?> cls) {
@@ -23,9 +27,17 @@ public class ReflectionMetadata {
     
     public static final boolean isAssignableFrom(Class<?> cls, Class<?> superCls) {
         String superClsName = superCls.getName();
-        if (cls.getName().equals(superClsName)) return true;
-        if (superClsName.equals(getSuperclassName(cls))) return true;
         
+        // are the two equal?
+        if (cls.getName().equals(superClsName)) return true;
+        
+        // does it have the superclass in its hierarchy?
+        Optional<Class<?>> superclass = getSuperclass(cls);
+        while (superclass.isPresent()) {
+            if (superClsName.equals(superclass.get().getName())) return true;
+        }
+        
+        // does it have it as an interface?
         for (String interfaceName : getInterfacesNames(cls)) {
             if (interfaceName.equals(superClsName)) {
                 return true;
