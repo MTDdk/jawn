@@ -3,7 +3,6 @@ package net.javapla.jawn.security;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.annotation.Nullable;
 import javax.sql.DataSource;
 
 import org.apache.shiro.SecurityUtils;
@@ -37,7 +36,7 @@ class JawnSecurityManagerFactory /*extends AbstractFactory<SecurityManager>*/ {
 //    }
     
     @Inject
-    JawnSecurityManagerFactory(@Nullable DataSource spec/*, Context context*/) {
+    JawnSecurityManagerFactory(DataSource spec/*, Context context*/) {
         super();
         this.dataSource = spec;
 //        this.context = context;
