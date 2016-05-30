@@ -23,7 +23,9 @@ import org.slf4j.LoggerFactory;
  * This class is very much not optimised for speed
  * 
  * @author mtd
+ * @deprecated instead use {@link ControllerLocator}
  */
+@Deprecated
 public final class ControllerFinder {
     private static final Logger log = LoggerFactory.getLogger(ControllerFinder.class);
 

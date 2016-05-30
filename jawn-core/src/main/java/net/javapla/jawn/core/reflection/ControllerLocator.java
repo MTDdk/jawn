@@ -27,7 +27,7 @@ public class ControllerLocator extends ClassLocator {
     public final Map<String, Class<? extends Controller>> controllers;
     //TODO: having these public is of course not viable
     
-    public ControllerLocator(String packageToScan) {
+    public ControllerLocator(String packageToScan) throws IllegalArgumentException {
         super(packageToScan);
         
         // build the structures

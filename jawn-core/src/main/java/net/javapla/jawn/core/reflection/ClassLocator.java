@@ -34,8 +34,7 @@ public class ClassLocator {
     protected final String packageToScan;
     protected final Map<String, Set<Class<?>>> store;
     
-    //TODO: throw if package is not reachable 
-    public ClassLocator(String packageToScan) {
+    public ClassLocator(String packageToScan) throws IllegalArgumentException {
         this.packageToScan = packageToScan;
         this.store = new HashMap<>();
         
@@ -49,8 +48,12 @@ public class ClassLocator {
     
     private Enumeration<URL> retrieveResourcesFromPath(final String scannedPackage, final String scannedPath) throws IllegalArgumentException {
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        URL resource = classLoader.getResource(scannedPath);
+        if (resource == null) 
+            throw new IllegalArgumentException(String.format("Unable to get resources from path '%s'. Are you sure the given '%s' package exists?", scannedPath, scannedPackage));
+        
         try {
-            File scannedFile = new File(classLoader.getResource(scannedPath).getFile());
+            File scannedFile = new File(resource.getFile());
             if (scannedFile.isDirectory())
                 return classLoader.getResources(scannedPath);
             else  {//we assume the classpath is inside a jar

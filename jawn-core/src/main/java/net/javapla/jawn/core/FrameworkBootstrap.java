@@ -203,8 +203,12 @@ public class FrameworkBootstrap {
     
     
     private ApplicationBootstrap[] readRegisteredPlugins(ApplicationConfig config) {
-        ClassLocator locator = new ClassLocator(properties.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
-        return locateAll(locator,  ApplicationBootstrap.class, impl -> impl.bootstrap(config));
+        try {
+            ClassLocator locator = new ClassLocator(properties.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+            return locateAll(locator,  ApplicationBootstrap.class, impl -> impl.bootstrap(config));
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
     
     /**
