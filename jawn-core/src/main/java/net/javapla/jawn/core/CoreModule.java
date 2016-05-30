@@ -11,7 +11,6 @@ import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.routes.Router;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestratorImpl;
-import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -37,8 +36,6 @@ public class CoreModule extends AbstractModule {
         bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
         
         bind(Cache.class).toProvider(CacheProvider.class).in(Singleton.class);
-        
-        bind(SiteConfigurationReader.class).in(Singleton.class);
         
         bind(TemplateEngineOrchestrator.class).to(TemplateEngineOrchestratorImpl.class).in(Singleton.class);
         bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);

@@ -37,6 +37,7 @@ import org.stringtemplate.v4.misc.ErrorBuffer;
 import org.stringtemplate.v4.misc.ErrorType;
 import org.stringtemplate.v4.misc.STMessage;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -59,8 +60,8 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
 
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
-                                        SiteConfigurationReader configReader,
-                                        PropertiesImpl properties) {
+                                        PropertiesImpl properties,
+                                        ObjectMapper jsonMapper) {
         log.warn("Starting the StringTemplateTemplateEngine");
         
         STGroupDir.verbose = false;
@@ -82,7 +83,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
         outputHtmlIndented = !properties.isProd();
         mode = properties.getMode();
         
-        this.configReader = configReader;
+        this.configReader = new SiteConfigurationReader(jsonMapper);
     }
 
     @Override

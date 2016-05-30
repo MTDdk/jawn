@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.Inject;
 
 /**
  * 
@@ -33,7 +32,6 @@ public class SiteConfigurationReader {
     private final Map<String, SiteConfiguration> configurationCache;
     
 
-    @Inject
     public SiteConfigurationReader(ObjectMapper mapper) {
         this.mapper = mapper;
         this.configurationCache = new ConcurrentHashMap<>();
