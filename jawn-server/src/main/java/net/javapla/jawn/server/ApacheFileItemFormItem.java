@@ -44,5 +44,10 @@ public class ApacheFileItemFormItem implements FormItem {
     public InputStream openStream() throws IOException {
         return fileItem.getInputStream();
     }
+    
+    @Override
+    public String toString() {
+        return getStreamAsString();
+    }
 
 }

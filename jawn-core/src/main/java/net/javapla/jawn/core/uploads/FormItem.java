@@ -22,21 +22,21 @@ public interface FormItem {
      * File name.
      * @return file name.
      */
-    public String getName();
+    String getName();
 
     /**
      * Form field name.
      *
      * @return form field name
      */
-    public String getFieldName();
+    String getFieldName();
 
     /**
      * Returns true if this is a file, false if not.
      *
      * @return true if this is a file, false if not.
      */
-    public boolean isFile();
+    boolean isFile();
     
 
     /**
@@ -59,7 +59,7 @@ public interface FormItem {
      *
      * @return content type of this form field.
      */
-    public String getContentType();
+    String getContentType();
     //public void setContentType(String type);
 
     /**
@@ -67,21 +67,22 @@ public interface FormItem {
      *
      * @return true if this is a form field, false if not.
      */
-    public boolean isFormField();
+    boolean isFormField();
 
     /**
      * Returns input stream to read uploaded file contents from.
      *
      * @return input stream to read uploaded file contents from.
      */
-    public InputStream openStream() throws IOException;
+    InputStream openStream() throws IOException;
 
     /**
      * Converts entire content of this item to String.
      *
      * @return content streamed from this field as string.
+     * @see #toString()
      */
-    public default String getStreamAsString() {
+    default String getStreamAsString() {
         try (InputStream is = openStream()) {
             return StreamUtil.read(is,Charsets.UTF_8);
         } catch (Exception e) {
@@ -96,7 +97,7 @@ public interface FormItem {
      * @return
      *      The content as a representation as Param
      */
-    public default Param asParam() {
+    default Param asParam() {
         return new Param(getStreamAsString());
     }
 
@@ -105,7 +106,7 @@ public interface FormItem {
      *
      * @return contents of a file as byte array.
      */
-    public default byte[] getBytes() {
+    default byte[] getBytes() {
         try (InputStream is = openStream()) {
             return StreamUtil.bytes(is);
         } catch (Exception e) {
@@ -120,9 +121,15 @@ public interface FormItem {
      * @param path to file
      * @throws IOException
      */
-    public default void saveTo(String path) throws IOException {
+    default void saveTo(String path) throws IOException {
         try (InputStream in = openStream()) {
             StreamUtil.saveTo(path, in);
         }
     }
+    
+    /**
+     * Converts entire content of this item to String.
+     * @return content streamed from this field as string.
+     */
+    String toString();
 }
