@@ -1,5 +1,6 @@
 package net.javapla.jawn.core;
 
+import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.cache.Cache;
 import net.javapla.jawn.core.cache.CacheProvider;
 import net.javapla.jawn.core.i18n.Lang;
@@ -8,7 +9,7 @@ import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.ParserEngineManagerImpl;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
 import net.javapla.jawn.core.reflection.ActionInvoker;
-import net.javapla.jawn.core.routes.Router;
+import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestratorImpl;
 
@@ -21,8 +22,8 @@ public class CoreModule extends AbstractModule {
     
     
     private final PropertiesImpl properties;
-    private final Router router;
-    CoreModule(PropertiesImpl properties, Router router) {
+    private final RouterImpl router;
+    CoreModule(PropertiesImpl properties, RouterImpl router) {
         this.properties = properties;
         this.router = router;
     }

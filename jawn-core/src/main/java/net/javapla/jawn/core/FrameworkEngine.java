@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 
+import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.exceptions.BadRequestException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.RouteException;
@@ -13,7 +14,6 @@ import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.exceptions.WebException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.routes.Route;
-import net.javapla.jawn.core.routes.Router;
 import net.javapla.jawn.core.util.CollectionUtil;
 
 import org.slf4j.Logger;
@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-//NinjaDefault
 public final class FrameworkEngine {
     
     private static final String FRAMEWORK_SPLASH = "\n" 

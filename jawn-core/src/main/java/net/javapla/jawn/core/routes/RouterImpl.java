@@ -9,7 +9,7 @@ import java.util.Map;
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.FiltersHandler;
 import net.javapla.jawn.core.PropertiesImpl;
-import net.javapla.jawn.core.api.Routes;
+import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.CompilationException;
 import net.javapla.jawn.core.exceptions.ControllerException;
@@ -22,7 +22,7 @@ import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringUtil;
 
-public class Router implements Routes {
+public class RouterImpl implements Router {
     
     private static final List<InternalRoute> internalRoutes;
     static {
@@ -51,7 +51,7 @@ public class Router implements Routes {
     private ActionInvoker invoker;
     
     
-    public Router(FiltersHandler filters, PropertiesImpl properties) {
+    public RouterImpl(FiltersHandler filters, PropertiesImpl properties) {
         builders = new ArrayList<>();
         this.filters = filters;
         

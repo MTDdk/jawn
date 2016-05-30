@@ -13,13 +13,14 @@ import net.javapla.jawn.core.api.ApplicationDatabaseBootstrap;
 import net.javapla.jawn.core.api.ApplicationFilters;
 import net.javapla.jawn.core.api.ApplicationRoutes;
 import net.javapla.jawn.core.api.Filters;
+import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseModule;
 import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.reflection.ClassLocator;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
-import net.javapla.jawn.core.routes.Router;
+import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.PropertiesConstants;
@@ -128,7 +129,7 @@ public class FrameworkBootstrap {
     protected void configure() {
         // Read all the configuration from the user
         FiltersHandler filters = new FiltersHandler();
-        Router router = new Router(filters, properties);
+        RouterImpl router = new RouterImpl(filters, properties);
         DatabaseConnections connections = new DatabaseConnections();
         
         this.config = readConfigurations(appConfig, router, filters, connections);
@@ -177,7 +178,7 @@ public class FrameworkBootstrap {
     
     private void initRouter(Injector localInjector) {
         //router.compileRoutes(localInjector.getInstance(ActionInvoker.class)/*localInjector*/);
-        Router router = localInjector.getInstance(Router.class);
+        RouterImpl router = (RouterImpl)localInjector.getInstance(Router.class);
         ActionInvoker invoker = localInjector.getInstance(ActionInvoker.class);
         router.compileRoutes(invoker);
     }
