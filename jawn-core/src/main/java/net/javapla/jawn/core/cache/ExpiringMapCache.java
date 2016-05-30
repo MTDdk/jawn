@@ -18,13 +18,13 @@ import net.jodah.expiringmap.ExpiringMap;
  * 
  * @author MTD
  */
-class CacheExpiringMap implements Cache {
+class ExpiringMapCache implements Cache {
     
     private final ExpiringMap<String, Object> cache;
     
     //TODO probably needs to be provided, so it can be for specific purposes
     // the instagrammanager does not need to be slowed by the calls to video caches.
-    public CacheExpiringMap() {
+    public ExpiringMapCache() {
         this.cache = 
             ExpiringMap
                 .builder()

@@ -31,7 +31,7 @@ public class CacheProvider implements Provider<Cache> {
         }
         
         if (foundCache == null)
-            cache = new CacheExpiringMap();
+            cache = new ExpiringMapCache();
         else
             cache = foundCache;
         
