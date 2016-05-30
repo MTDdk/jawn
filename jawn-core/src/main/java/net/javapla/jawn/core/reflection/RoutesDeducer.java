@@ -94,7 +94,6 @@ public class RoutesDeducer {
         constructRoute(locator, uri, controllername, actionName, method);
     }
 
-    @SuppressWarnings("unchecked")
     private void constructRoute(ControllerLocator locator, String uri, String controllername, String actionName, HttpMethod method) {
 //        System.out.println("+ " +uri + " -> " + controllername + " / " + actionName + " <- "  + method);
         Route route = RouteBuilder
