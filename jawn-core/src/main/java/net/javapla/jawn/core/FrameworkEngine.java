@@ -10,6 +10,7 @@ import net.javapla.jawn.core.exceptions.BadRequestException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.exceptions.ViewException;
+import net.javapla.jawn.core.exceptions.WebException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.routes.Router;
@@ -122,6 +123,8 @@ public final class FrameworkEngine {
         } catch (BadRequestException | MediaTypeException e) {
             // 400
             renderSystemError(context, "/system/400", "index", 400, e);
+        } catch (WebException e){
+            renderSystemError(context, "/system/"+e.getHttpCode(), "index", e.getHttpCode(), e);
         } catch (Exception e) {
             // 500
             renderSystemError(context, "/system/500", "index", 500, e);
@@ -184,7 +187,7 @@ public final class FrameworkEngine {
         if (status < 500) {
             logger.warn("java-web-planet {} WARNING:\n{}\n{}", status, requestProperties, e.getMessage());
         } else {
-            logger.error("java-web-planet {} ERROR:\n{}\n{}", status, requestProperties, e.getCause());
+            logger.error("java-web-planet {} ERROR:\n{}", status, requestProperties, e);
         }
     }
     
@@ -202,8 +205,9 @@ public final class FrameworkEngine {
     }
     
     private Map<String, Object> getMapWithExceptionDataAndSession(Throwable e) {
-        return CollectionUtil.map("message", e.getMessage() == null ? e.toString() : e.getMessage(),
-                   "stack_trace", getStackTraceString(e));
+        return CollectionUtil.map(
+                "message", e.getMessage() == null ? e.toString() : e.getMessage(),
+                "stack_trace", getStackTraceString(e));
     }
     
     private String getStackTraceString(Throwable e) {

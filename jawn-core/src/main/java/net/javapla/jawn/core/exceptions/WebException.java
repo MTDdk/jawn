@@ -1,40 +1,47 @@
-/*
-Copyright 2009-2014 Igor Polevoy
-
-Licensed under the Apache License, Version 2.0 (the "License"); 
-you may not use this file except in compliance with the License. 
-You may obtain a copy of the License at 
-
-http://www.apache.org/licenses/LICENSE-2.0 
-
-Unless required by applicable law or agreed to in writing, software 
-distributed under the License is distributed on an "AS IS" BASIS, 
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-See the License for the specific language governing permissions and 
-limitations under the License. 
-*/
 package net.javapla.jawn.core.exceptions;
+
 
 /**
  * @author Igor Polevoy
+ * @author MTD
  */
 public class WebException extends RuntimeException {
     private static final long serialVersionUID = 8102288824861312266L;
+    
+    public static final int DEFAULT_CODE = 500;
+    
+    protected final int http_code;
 
     public WebException() {
-        super();    
+        this(DEFAULT_CODE);
+    }
+    public WebException(int http_code) {
+        super();
+        this.http_code = http_code;
     }
 
     public WebException(String message) {
-        super(message);    
+        this(message, DEFAULT_CODE);
+    }
+    public WebException(String message, int http_code) {
+        super(message);
+        this.http_code = http_code;
     }
 
     public WebException(String message, Throwable cause) {
-        super(message, cause);    
+        this(message, cause, DEFAULT_CODE);
+    }
+    public WebException(String message, Throwable cause, int http_code) {
+        super(message, cause);
+        this.http_code = http_code;
     }
 
     public WebException(Throwable cause) {
-        super(cause);    
+        this(cause, DEFAULT_CODE);
+    }
+    public WebException(Throwable cause, int http_code) {
+        super(cause);
+        this.http_code = http_code;
     }
 
     @Override
@@ -44,5 +51,9 @@ public class WebException extends RuntimeException {
             message += "; " + getCause().getMessage(); 
         }
         return message;
+    }
+    
+    public int getHttpCode() {
+        return http_code;
     }
 }
