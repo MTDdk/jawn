@@ -6,13 +6,13 @@ repositories {
 
 dependencies {
 
-	compile 'com.google.inject:guice:4.0'
+	compile 'com.google.inject:guice:4.1.0'
 	//compile 'commons-fileupload:commons-fileupload:1.3.1'
     
     //compile 'net.sf.trove4j:trove4j:3.0.3'
 
-	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.7.3'
-	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.7.3' // faster data binding
+	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.8.1'
+	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.8.1' // faster data binding
 	compile 'org.codehaus.woodstox:woodstox-core-asl:4.4.1' // faster XML parsing
     compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
     
@@ -27,7 +27,7 @@ dependencies {
     
     // Cache
     //compile 'org.ehcache:ehcache:3.0.0.m4'
-    compile 'net.jodah:expiringmap:0.5.3'
+    compile 'net.jodah:expiringmap:0.5.6'
 	
 	
 	/* Template Engines */
@@ -44,7 +44,7 @@ dependencies {
     runtime files("${System.env['JAVA_HOME']}/lib/tools.jar")
 	
 	//Logging
-    compile 'org.slf4j:slf4j-api:1.7.20'
+    compile 'org.slf4j:slf4j-api:1.7.21'
     
     //Test
     testCompile 'junit:junit:4.12'
