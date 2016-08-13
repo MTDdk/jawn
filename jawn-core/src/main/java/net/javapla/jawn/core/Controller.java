@@ -1330,7 +1330,7 @@ public abstract class Controller implements ResponseHolder {
      * @param value value of cookie.
      */
     public void sendCookie(String name, String value) {
-        context.addCookie(new Cookie(name, value));
+        context.addCookie(Cookie.builder(name, value).build());
     }
 
 
@@ -1341,9 +1341,7 @@ public abstract class Controller implements ResponseHolder {
      * @param value value of cookie.
      */
     public void sendPermanentCookie(String name, String value) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setMaxAge(Cookie.ONE_YEAR * 20);
-        context.addCookie(cookie);
+        context.addCookie(Cookie.builder(name, value).setMaxAge(Cookie.ONE_YEAR * 20).build());
     }
 
     /**
