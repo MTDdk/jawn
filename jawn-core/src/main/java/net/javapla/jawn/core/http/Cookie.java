@@ -114,6 +114,9 @@ public class Cookie {
     public static Builder builder(String name, String value) {
         return new Builder(name, value);
     }
+    public static Builder builder(Cookie cookie) {
+        return new Builder(cookie);
+    }
 
     public static class Builder {
         private final String name;

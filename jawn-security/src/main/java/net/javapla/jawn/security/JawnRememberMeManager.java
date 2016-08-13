@@ -31,11 +31,7 @@ public class JawnRememberMeManager extends AbstractRememberMeManager {
      * Constructs a new {@code CookieRememberMeManager} with a default {@code rememberMe} cookie template.
      */
     public JawnRememberMeManager() {
-        Cookie cookie = new Cookie(DEFAULT_REMEMBER_ME_COOKIE_NAME);
-        cookie.setHttpOnly();
-        cookie.setMaxAge(Cookie.ONE_DAY);
-        
-        this.cookie = cookie;
+        this.cookie = Cookie.builder(DEFAULT_REMEMBER_ME_COOKIE_NAME, "").setHttpOnly().setMaxAge(Cookie.ONE_DAY).build();
     }
     
     /**
@@ -101,9 +97,7 @@ public class JawnRememberMeManager extends AbstractRememberMeManager {
         //base 64 encode it and store as a cookie
         String base64 = Base64.encodeToString(serialized); // could be java.util.Base64
         
-        Cookie cookie = getCookie().clone();
-        cookie.setValue(base64);
-        context.addCookie(cookie);// save the cookie
+        context.addCookie(Cookie.builder(getCookie()).setValue(base64).build()); // save the cookie
     }
 
     /**
