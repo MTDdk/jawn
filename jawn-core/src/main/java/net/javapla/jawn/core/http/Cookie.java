@@ -1,27 +1,13 @@
-/*
-Copyright 2009-2014 Igor Polevoy
-
-Licensed under the Apache License, Version 2.0 (the "License"); 
-you may not use this file except in compliance with the License. 
-You may obtain a copy of the License at 
-
-http://www.apache.org/licenses/LICENSE-2.0 
-
-Unless required by applicable law or agreed to in writing, software 
-distributed under the License is distributed on an "AS IS" BASIS, 
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-See the License for the specific language governing permissions and 
-limitations under the License. 
-*/
 package net.javapla.jawn.core.http;
 
-
 /**
- * @author Igor Polevoy
+ * We need an internal Cookie representation, as this will make it agnostic to
+ * implementation specifics such as a Servlet Cookie.
+ * 
  * @author MTD
  */
 public class Cookie {
-    
+
     /**
      * The number of seconds in one day (= 60 * 60 * 24).
      */
@@ -35,99 +21,183 @@ public class Cookie {
      */
     public static final int HALF_YEAR = ONE_YEAR / 2;
 
-    private java.lang.String name;
-    private java.lang.String value;
+    private final String name;
+    private final String value;
+    private final String comment;
+    private final int maxAge;
+    private final String domain;
+    private final String path;
+    private final boolean secure;
+    private final boolean httpOnly;
+    private final int version;
 
-    private int maxAge = -1;
-    private String domain = null;
-    private String path = "/";
-    private boolean secure;
-    private boolean httpOnly;
-    private int version;
-    
-    public Cookie(String name) {
-        this.name = name;
-    }
-
-    public Cookie(String name, String value) {
+    public Cookie(
+                String name, 
+                String value, 
+                String comment, 
+                int maxAge, 
+                String domain, 
+                String path, 
+                boolean secure, 
+                boolean httpOnly, 
+                int version) {
         this.name = name;
         this.value = value;
-    }
-
-    public Cookie(String name, String value, boolean httpOnly) {
-        this.name = name;
-        this.value = value;
+        this.comment = comment;
+        this.maxAge = maxAge;
+        this.domain = domain;
+        this.path = path;
+        this.secure = secure;
         this.httpOnly = httpOnly;
+        this.version = version;
     }
 
-    public void setMaxAge(int maxAge) {this.maxAge = maxAge;}
+    public int getMaxAge() {
+        return maxAge;
+    }
 
-    public int getMaxAge() {return maxAge;}
+    public String getPath() {
+        return path;
+    }
 
-    public void setPath(String path) {this.path = path;}
+    public String getComment() {
+        return comment;
+    }
 
-    public String getPath() {return path;}
+    public String getDomain() {
+        return domain;
+    }
 
-    public void setDomain(String domain) {this.domain = domain;}
+    public boolean isSecure() {
+        return secure;
+    }
 
-    public String getDomain() {return domain;}
+    public String getName() {
+        return name;
+    }
 
-    public void setSecure(boolean secure) {this.secure = secure;}
+    public String getValue() {
+        return value;
+    }
 
-    public boolean isSecure() {return secure;}
-
-    public String getName() { return name;}
-
-    public void setValue(String value) {this.value = value;}
-
-    public String getValue() { return value; }
-
-    public int getVersion() { return version; }
-
-    public void setVersion(int version) { this.version = version;}
-
-    /**
-     * Sets this cookie to be HTTP only.
-     *
-     * This will only work with Servlet 3
-     */
-    public void setHttpOnly(){httpOnly = true;}
+    public int getVersion() {
+        return version;
+    }
 
     /**
      * Tells if a cookie HTTP only or not.
      *
      * This will only work with Servlet 3
      */
-    public boolean isHttpOnly(){return httpOnly;}
-
-    /**
-     * Sets this cookie to be Http only or not
-     */
-    public void setHttpOnly(boolean httpOnly){
-        this.httpOnly = httpOnly;
+    public boolean isHttpOnly() {
+        return httpOnly;
     }
-    
+
     @Override
     public Cookie clone() {
-        Cookie clone = new Cookie(this.name, this.value, this.httpOnly);
-        clone.domain = this.domain;
-        clone.path = this.path;
-        clone.maxAge = this.maxAge;
-        clone.version = this.version;
-        clone.secure = this.secure;
-        return clone;
+        return new Builder(this).build();
     }
 
     @Override
     public String toString() {
-        return "Cookie{" +
-                "name='" + name + '\'' +
-                ", value='" + value + '\'' +
-                ", maxAge=" + maxAge +
-                ", domain='" + domain + '\'' +
-                ", path='" + path + '\'' +
-                ", secure=" + secure +
-                ", version=" + version +
-                '}';
+        return "Cookie {"
+                +   "name='" + name + '\''
+                + ", value='" + value + '\''
+                + ", comment='" + comment + '\''
+                + ", maxAge=" + maxAge + '\''
+                + ", domain='" + domain + '\''
+                + ", path='" + path + '\''
+                + ", secure=" + secure + '\''
+                + ", version=" + version + '}';
+    }
+    
+    public static Builder builder(String name, String value) {
+        return new Builder(name, value);
+    }
+
+    public static class Builder {
+        private final String name;
+        private String value;
+        private String comment;
+        private int maxAge = -1;
+        private String domain;
+        private String path = "/";
+        private boolean secure;
+        private boolean httpOnly;
+        private int version;
+
+        private Builder(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        private Builder(Cookie cookie) {
+            name = cookie.name;
+            value = cookie.value;
+            comment = cookie.comment;
+            maxAge = cookie.maxAge;
+            domain = cookie.domain;
+            path = cookie.path;
+            secure = cookie.secure;
+            httpOnly = cookie.httpOnly;
+            version = cookie.version;
+        }
+        
+        public Cookie build() {
+            return new Cookie(name, value, comment, maxAge, domain, path, secure, httpOnly, version);
+        }
+
+        public Builder setValue(String value) {
+            this.value = value;
+            return this;
+        }
+
+        public Builder setComment(String comment) {
+            this.comment = comment;
+            return this;
+        }
+
+        public Builder setDomain(String domain) {
+            this.domain = domain;
+            return this;
+        }
+        
+        public Builder setMaxAge(int maxAge) {
+            this.maxAge = maxAge;
+            return this;
+        }
+
+        public Builder setPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        public Builder setSecure(boolean secure) {
+            this.secure = secure;
+            return this;
+        }
+
+        public Builder setVersion(int version) {
+            this.version = version;
+            return this;
+        }
+
+        /**
+         * Sets this cookie to be HTTP only.
+         *
+         * This will only work with Servlet 3
+         */
+        public Builder setHttpOnly() {
+            httpOnly = true;
+            return this;
+        }
+
+        /**
+         * Sets this cookie to be Http only or not
+         */
+        public Builder setHttpOnly(boolean httpOnly) {
+            this.httpOnly = httpOnly;
+            return this;
+        }
     }
 }

@@ -1342,7 +1342,7 @@ public abstract class Controller implements ResponseHolder {
      */
     public void sendPermanentCookie(String name, String value) {
         Cookie cookie = new Cookie(name, value);
-        cookie.setMaxAge(60*60*24*365*20);
+        cookie.setMaxAge(Cookie.ONE_YEAR * 20);
         context.addCookie(cookie);
     }
 
