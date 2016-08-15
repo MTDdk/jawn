@@ -20,12 +20,14 @@ public class CryptoTest {
 
     @Test
     public void test() {
-        assertEquals("f0f591a35650937c9559ee8f98cc29dac46c3fcb",
-                crypto.hmac().sign("Sentence to sign", "Fxu6U5BTGIJZ06c8bD1xkhHc3Ct5JZXlst8tJ1K5uJJPaLdceDo6CUz0iWpjjQUY"));
-        assertEquals("ba864c24a2a80a639d4f76bb44fd71650dcd4904",
-                crypto.hmac().sign("Another sentence to sign","Fxu6U5BTGIJZ06c8bD1xkhHc3Ct5JZXlst8tJ1K5uJJPaLdceDo6CUz0iWpjjQUY"));
-        assertEquals("4ad5fb0895dbc0c7172f9fc85d59f74b69f99b8b",
-                crypto.hmac().sign("Yet another sentence to sign","Fxu6U5BTGIJZ06c8bD1xkhHc3Ct5JZXlst8tJ1K5uJJPaLdceDo6CUz0iWpjjQUY"));
+        String key = "SomeRandomLongString";
+        
+        assertEquals("017da2e74dc43aba138082680b6f5928512f0535",
+                crypto.hmac().sign("But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain", key));
+        assertEquals("2cdc4a0cddf55fcb4b5e004e4aa745a0977a90d6",
+                crypto.hmac().sign("was born and I will give you a complete account of the system",key));
+        assertEquals("a9b9ac4ab6e74f9e650c9985e798b2e5bb6766ac",
+                crypto.hmac().sign("and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness",key));
     }
 
 }
