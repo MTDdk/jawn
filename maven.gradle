@@ -31,11 +31,36 @@ signing {
     sign configurations.archives
 }
 
+task ensurePropertiesFile() {
+  if (!project.hasProperty('ossrhUsername')) {
+  	println 'Could not find credentials for deploying archives - if you do not need this, don\'t sweat it, we\'ve got you covered!'
+  
+    def properties = new Properties()
+    properties.setProperty('ossrhUsername','')
+    properties.setProperty('ossrhPassword','')
+	def fos = new FileOutputStream("gradle.properties")
+	properties.store(fos,"")
+	fos.close()
+
+    // set the properties manually for now
+    // so the build does not fail because
+    // the properties file is only read at startup
+    project.ext.setProperty('ossrhUsername','')
+    project.ext.setProperty('ossrhPassword','')
+  }
+}
+
 // ========================
 //     Maven deploy
 // https://oss.sonatype.org
 // ========================
 uploadArchives {
+
+  // This is not exactly how we want to do it,
+  // because it gets called multiple times during builds
+  // but it works so we will leave it for now
+  ensurePropertiesFile
+
   repositories {
     mavenDeployer {
       beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
