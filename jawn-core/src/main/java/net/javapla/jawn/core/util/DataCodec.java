@@ -26,14 +26,8 @@ import java.util.Map;
  * Enables us to use the same sessions as Play Framework if
  * the secret is the same.
  * 
- * Also really important because we want to make sure that our client
- * side session mechanism is widely used and stable.
- * We don't want to reinvent 
- * the wheel of securely encoding / decoding and signing cookie data.
- * 
- * All praise goes to Play Framework and their awesome work.
  */
-public class CookieDataCodec {
+public class DataCodec {
     
     /**
      * @param map  the map to decode data into.
