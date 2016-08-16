@@ -95,8 +95,8 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
         setupTemplateGroup(context);
 
         //generate name of the template
-        final String template = TemplateEngineHelper.getTemplateForResult(context.getRoute(), response);
-        String layout = response.layout();
+        final String template = TemplateEngineHelper.getTemplateForResult(context.getRoute(), response, TEMPLATE_ENDING);
+        String layout = handleLayoutEndings(response);
         final String language = null;//context.getRouteLanguage();
 
         final ErrorBuffer error = new ErrorBuffer();
@@ -401,5 +401,16 @@ group.getInstanceOf 2422
         } else {
             return new NoIndentWriter(writer);//no indents for less HTML as a result
         }
+    }
+    
+    private static final String handleLayoutEndings(Response response) {
+        String layout = response.layout();
+        if (layout != null) {
+            if (layout.endsWith(TEMPLATE_ENDING))
+                layout = layout.substring(0, layout.length()-3);
+            if (!layout.endsWith(".html"))
+                layout += ".html";
+        }
+        return layout;
     }
 }

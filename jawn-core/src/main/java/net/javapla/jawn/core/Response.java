@@ -67,7 +67,7 @@ public class Response {
     }
     /*private static final int cpuCount = Runtime.getRuntime().availableProcessors();
 
-    // todo: parameterize multipliers
+    // TODO: parameterize multipliers
     private final static ExecutorService EXECUTOR =
       new ThreadPoolExecutor(
         cpuCount, cpuCount * 2, 200, TimeUnit.MILLISECONDS,
@@ -113,28 +113,28 @@ public class Response {
     }
     
     
-    public Response template(String template) {
-        this.template = template;
-        if (template.endsWith(".st"))
-            this.template = template.substring(0, template.length()-3);//FIXME this ought to be up to the templateengine to remove
-        return this;
-    }
+    /**
+     * It is up to the caller to handle template suffixes such as .html, .st, or .ftl.html
+     * @return
+     */
     public String template() {
         return template;
     }
-    
-    public Response layout(String layout) {
-        this.layout = layout;
-        if (layout != null) {
-            if (layout.endsWith(".st"))
-                this.layout = layout.substring(0, layout.length()-3);
-            if (!this.layout.endsWith(".html"))
-                this.layout += ".html";
-        }
+    public Response template(String template) {
+        this.template = template;
         return this;
     }
+    
+    /**
+     * It is up to the caller to handle template suffixes such as .html, .st, or ftl.html
+     * @return
+     */
     public String layout() {
         return layout;
+    }
+    public Response layout(String layout) {
+        this.layout = layout;
+        return this;
     }
     
     public Map<String, String> headers() {
