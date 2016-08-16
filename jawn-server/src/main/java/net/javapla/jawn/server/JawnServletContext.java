@@ -81,8 +81,7 @@ class JawnServletContext implements Context.Internal {
         this.response = response;
         
         // Set the encoding according to the user defined
-        
-        setEncoding(properties.get(Constants.DEFINED_ENCODING)); //TODO extract staticly somehow
+        setEncoding(properties.get(Constants.DEFINED_ENCODING)); //TODO extract staticly somehow - or is it actually static *enough* as it is?
         addResponseHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
     }
     
