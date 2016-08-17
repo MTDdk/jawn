@@ -76,7 +76,7 @@ public class Response {
     private final static ExecutorService EXECUTOR =
       new ThreadPoolExecutor(
         cpuCount, cpuCount * 2, 200, TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<Runnable>(cpuCount * 100),
+        new LinkedBlockingQueue<Runnable>(cpuCount * 20), //TODO: do some calculations on the best configuration for this
         new ThreadPoolExecutor.CallerRunsPolicy());
     public Response renderable(Callable<Object> c) {
         this.renderable = EXECUTOR.submit(c);
