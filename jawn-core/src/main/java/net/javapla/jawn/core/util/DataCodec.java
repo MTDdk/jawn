@@ -20,8 +20,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
- * CookieDataCodec and CookieDataCodecTest are imported 
- * (with slight alterations) from Play Framework.
+ * DataCodec and DataCodecTest are imported 
+ * (with slight alterations) from Play Framework
+ * (originally CookieDataCodec and CookieDataCodecTest respectively).
  * 
  * Enables us to use the same sessions as Play Framework if
  * the secret is the same.
