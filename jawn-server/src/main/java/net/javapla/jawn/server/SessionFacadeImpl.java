@@ -18,7 +18,9 @@ import net.javapla.jawn.core.http.SessionFacade;
  *
  * @author Igor Polevoy
  * @author MTD
+ * @deprecated Use {@link Session}
  */
+@Deprecated
 public class SessionFacadeImpl implements SessionFacade {
     
     private final HttpSession session;

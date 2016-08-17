@@ -452,10 +452,10 @@ class JawnServletContext implements Context.Internal {
     }
     
     public Cookie getCookie(String cookieName) {
-        List<Cookie> cookies = getCookies();
-        for (Cookie cookie : cookies) {
+        javax.servlet.http.Cookie[] servletCookies = request.getCookies();
+        for (javax.servlet.http.Cookie cookie : servletCookies) {
             if (cookie.getName().equals(cookieName)) {
-                return cookie;
+                return CookieHelper.fromServletCookie(cookie);
             }
         }
         return null;

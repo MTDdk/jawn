@@ -1,22 +1,37 @@
 package net.javapla.jawn.core.crypto;
 
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.Objects;
 
+import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.google.inject.Singleton;
+
+@Singleton
 public class HmacSha1Crypto implements Crypto {
     
-    public final Signer HMAC_SHA1;
+    private final Signer HMAC_SHA1;
+    private final Encrypter AES;
     
     public HmacSha1Crypto() {
         HMAC_SHA1 = new HmacSHA1();
+        AES = new AesEncryption();
     }
     
     @Override
     public Signer hmac() {
         return HMAC_SHA1;
+    }
+    
+    @Override
+    public Encrypter encrypter() {
+        return AES;
     }
 
     private static class HmacSHA1 implements Signer {
@@ -54,6 +69,82 @@ public class HmacSha1Crypto implements Crypto {
                 r[index++] = hexCode[(b & 0xF)];
             }
             return new String(r);
+        }
+    }
+    
+    private static class AesEncryption implements Encrypter {
+        static final String ALGORITHM = "AES";
+        private final String applicationSecret;
+        
+        private final SecretKeySpec secretKeySpec;
+        
+        public AesEncryption() {
+            //TODO read as property
+            applicationSecret = "gawdDamnSecretThisIs!";
+            
+            try {
+                int maxKeyLengthBits = Cipher.getMaxAllowedKeyLength(ALGORITHM);
+                if (maxKeyLengthBits == Integer.MAX_VALUE) {
+                    maxKeyLengthBits = 256;
+                }
+
+                secretKeySpec = new SecretKeySpec(applicationSecret.getBytes(), 0, maxKeyLengthBits / Byte.SIZE, ALGORITHM);
+                
+                //logger.info("Session encryption is using {} / {} bit.", secretKeySpec.get().getAlgorithm(), maxKeyLengthBits);
+
+            } catch (Exception exception) {
+                //logger.error("Can not create class to encrypt.", exception);
+                throw new RuntimeException(exception);
+            }
+        }
+
+
+        @Override
+        public String encrypt(String data) {
+            Objects.requireNonNull(data, "Data to be encrypted");
+
+            try {
+                // encrypt data
+                Cipher cipher = Cipher.getInstance(ALGORITHM);
+                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+                byte[] encrypted = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
+
+                // convert encrypted bytes to string in base64
+                return Base64.getEncoder().encodeToString(encrypted);
+
+            } catch (InvalidKeyException ex) {
+                //logger.error(getHelperLogMessage(), ex);
+                throw new RuntimeException(ex);
+            } catch (GeneralSecurityException ex) {
+                //logger.error("Failed to encrypt data.", ex);
+                throw new RuntimeException(ex);
+            }
+        }
+
+
+        @Override
+        public String decrypt(String data) {
+            Objects.requireNonNull(data, "Data to be decrypted");
+
+
+            // convert base64 encoded string to bytes
+            byte[] decoded = Base64.getDecoder().decode(data);
+            try {
+                // decrypt bytes
+                Cipher cipher = Cipher.getInstance(ALGORITHM);
+                cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+                byte[] decrypted = cipher.doFinal(decoded);
+
+                // convert bytes to string
+                return new String(decrypted, StandardCharsets.UTF_8);
+
+            } catch (InvalidKeyException ex) {
+                //logger.error(getHelperLogMessage(), ex);
+                throw new RuntimeException(ex);
+            } catch (GeneralSecurityException ex) {
+                //logger.error("Failed to decrypt data.", ex);
+                throw new RuntimeException(ex);
+            }
         }
     }
 }

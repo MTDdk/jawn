@@ -3,6 +3,8 @@ package net.javapla.jawn.core;
 import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.cache.Cache;
 import net.javapla.jawn.core.cache.CacheProvider;
+import net.javapla.jawn.core.http.RealSession;
+import net.javapla.jawn.core.http.Session;
 import net.javapla.jawn.core.i18n.Lang;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
@@ -51,6 +53,7 @@ public class CoreModule extends AbstractModule {
         
         bind(Router.class).toInstance(router);
         bind(Lang.class).in(Singleton.class);
+        bind(Session.class).to(RealSession.class);
     }
 
     
