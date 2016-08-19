@@ -13,7 +13,6 @@ dependencies {
 
 	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.8.1'
 	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.8.1' // faster data binding
-	compile 'org.codehaus.woodstox:woodstox-core-asl:4.4.1' // faster XML parsing
     compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
     
     
