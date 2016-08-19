@@ -52,5 +52,5 @@ public interface TemplateEngine {
      *      The content type this template engine renders
      */
     public String[] getContentType();
-
+//    public ContentType[] getContentType2();
 }

@@ -59,5 +59,9 @@ public class Responses {
         return ok().contentType(MediaType.APPLICATION_JSON).renderable(o);
     }
     
+    public static final Response gzip() {
+        return null; //TODO
+    }
+    
     //TODO asynchronous responses
 }

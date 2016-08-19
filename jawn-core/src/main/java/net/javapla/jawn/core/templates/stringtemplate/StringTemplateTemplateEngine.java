@@ -9,22 +9,6 @@ import java.util.Map.Entry;
 
 import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.core.PropertiesImpl;
-import net.javapla.jawn.core.Response;
-import net.javapla.jawn.core.exceptions.ViewException;
-import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.core.http.ResponseStream;
-import net.javapla.jawn.core.templates.TemplateEngine;
-import net.javapla.jawn.core.templates.TemplateEngineHelper;
-import net.javapla.jawn.core.templates.config.Site;
-import net.javapla.jawn.core.templates.config.SiteConfiguration;
-import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
-import net.javapla.jawn.core.templates.config.TemplateConfig;
-import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
-import net.javapla.jawn.core.templates.stringtemplate.rewrite.STFastGroupDir;
-import net.javapla.jawn.core.util.Modes;
-import net.javapla.jawn.core.util.StringBuilderWriter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.stringtemplate.v4.AutoIndentWriter;
@@ -40,6 +24,22 @@ import org.stringtemplate.v4.misc.STMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.exceptions.ViewException;
+import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.http.ResponseStream;
+import net.javapla.jawn.core.templates.TemplateEngine;
+import net.javapla.jawn.core.templates.TemplateEngineHelper;
+import net.javapla.jawn.core.templates.config.Site;
+import net.javapla.jawn.core.templates.config.SiteConfiguration;
+import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
+import net.javapla.jawn.core.templates.config.TemplateConfig;
+import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
+import net.javapla.jawn.core.templates.stringtemplate.rewrite.STFastGroupDir;
+import net.javapla.jawn.core.util.Modes;
+import net.javapla.jawn.core.util.StringBuilderWriter;
 
 @Singleton
 public final class StringTemplateTemplateEngine implements TemplateEngine {
@@ -147,6 +147,10 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
     public String[] getContentType() {
         return new String[]{MediaType.TEXT_HTML};
     }
+    /*@Override
+    public ContentType[] getContentType2() {
+        return new ContentType[]{ContentType.TEXT_HTML};
+    }*/
     
     
     // It is not necessary to do complex synchronization on this

@@ -45,6 +45,10 @@ class XmlTemplateEngine implements TemplateEngine {
     public String[] getContentType() {
         return new String[]{MediaType.APPLICATION_XML};
     }
+    /*@Override
+    public ContentType[] getContentType2() {
+        return new ContentType[]{ContentType.APPLICATION_XML};
+    }*/
 
     
 }

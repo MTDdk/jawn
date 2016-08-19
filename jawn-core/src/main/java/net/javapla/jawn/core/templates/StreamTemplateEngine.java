@@ -61,5 +61,9 @@ final class StreamTemplateEngine implements TemplateEngine {
     public String[] getContentType() {
         return new String[]{MediaType.APPLICATION_OCTET_STREAM};
     }
+    /*@Override
+    public ContentType[] getContentType2() {
+        return new ContentType[]{ContentType.APPLICATION_OCTET_STREAM};
+    }*/
 
 }

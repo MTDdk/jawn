@@ -44,9 +44,8 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
              Provider<StringTemplateTemplateEngine> html,
              Injector injector) {
         
-        Map<String, Provider<? extends TemplateEngine>> map = 
-                                        new HashMap<String, Provider<? extends TemplateEngine>>();
-        
+        Map<String, Provider<? extends TemplateEngine>> map = new HashMap<String, Provider<? extends TemplateEngine>>();
+
         // Map built in content type bindings
         mapEngine(map, json);
         mapEngine(map, xml);
@@ -68,7 +67,6 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
                 mapEngine(map, provider);
             }
         }
-        
         
         this.contentTypeToTemplateEngineMap = Collections.unmodifiableMap(map);
         
@@ -106,7 +104,7 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
     
     private void logEngines() {
         Set<String> types = getContentTypes();
-        
+
         int maxContentTypeLen = 0;
         int maxParserEngineLen = 0;
 
@@ -114,10 +112,8 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
 
             TemplateEngine engine = getTemplateEngineForContentType(contentType);
 
-            maxContentTypeLen = Math.max(maxContentTypeLen,
-                    contentType.length());
-            maxParserEngineLen = Math.max(maxParserEngineLen,
-                    engine.getClass().getName().length());
+            maxContentTypeLen = Math.max(maxContentTypeLen, contentType.length());
+            maxParserEngineLen = Math.max(maxParserEngineLen, engine.getClass().getName().length());
 
         }
 
@@ -129,12 +125,8 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
         log.info(border);
 
         for (String contentType : types) {
-
             TemplateEngine engine = getTemplateEngineForContentType(contentType);
-            log.info("{}  =>  {}",
-                    StringUtil.padEnd(contentType, maxContentTypeLen, ' '),
-                    engine.getClass().getName());
-
+            log.info("{}  =>  {}", StringUtil.padEnd(contentType, maxContentTypeLen, ' '), engine.getClass().getName());
         }
     }
 

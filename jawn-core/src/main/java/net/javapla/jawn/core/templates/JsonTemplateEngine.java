@@ -5,14 +5,14 @@ import java.io.OutputStream;
 
 import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.core.Response;
-import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.core.http.ResponseStream;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
+import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.http.ResponseStream;
 
 @Singleton
 final class JsonTemplateEngine implements TemplateEngine {
@@ -45,6 +45,10 @@ final class JsonTemplateEngine implements TemplateEngine {
     public String[] getContentType() {
         return new String[]{MediaType.APPLICATION_JSON};
     }
+    /*@Override
+    public ContentType[] getContentType2() {
+        return new ContentType[]{ContentType.APPLICATION_JSON};
+    }*/
 
     
 }

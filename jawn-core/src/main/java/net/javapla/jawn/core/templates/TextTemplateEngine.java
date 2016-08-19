@@ -55,5 +55,9 @@ final class TextTemplateEngine implements TemplateEngine {
     public String[] getContentType() {
         return new String[]{MediaType.TEXT_PLAIN};
     }
+    /*@Override
+    public ContentType[] getContentType2() {
+        return new ContentType[]{ContentType.TEXT_PLAIN};
+    }*/
 
 }
