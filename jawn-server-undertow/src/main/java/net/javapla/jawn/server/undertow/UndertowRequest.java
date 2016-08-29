@@ -29,6 +29,7 @@ import io.undertow.util.HeaderValues;
 import io.undertow.util.HttpString;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.Cookie.Builder;
+import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.Req;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.URLCodec;
@@ -51,8 +52,8 @@ public class UndertowRequest implements Req {
     }
 
     @Override
-    public String method() {
-        return exchange.getRequestMethod().toString();
+    public HttpMethod method() {
+        return HttpMethod.valueOf(exchange.getRequestMethod().toString());
     }
 
     @Override

@@ -8,7 +8,7 @@ import net.javapla.jawn.core.util.MultiList;
 
 public interface Req {
     
-    String method();
+    HttpMethod method();
     String path();
     String queryString();
     Optional<String> param(String name);

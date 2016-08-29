@@ -2,10 +2,12 @@ package net.javapla.jawn.server.undertow;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -29,6 +31,8 @@ import net.javapla.jawn.core.http.Resp;
 public class UndertowResponse implements Resp {
     
     private final HttpServerExchange exchange;
+    
+    private Optional<Charset> charset = Optional.empty();
 
     public UndertowResponse(final HttpServerExchange exchange) {
         this.exchange = exchange;
@@ -87,7 +91,24 @@ public class UndertowResponse implements Resp {
     public void statusCode(int code) {
         exchange.setStatusCode(code);
     }
+    
+    /*public String contentType() {
+        return exchange.getres
+    }*/
+    
+    public void contentType(String contentType) {
+        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, contentType);
+    }
+    
+    public void characterEncoding(String encoding) {
+        charset = Optional.ofNullable(Charset.forName(encoding));
+    }
 
+    @Override
+    public OutputStream outputStream() {
+        return exchange.getOutputStream();
+    }
+    
     @Override
     public boolean committed() {
         return exchange.isResponseStarted();

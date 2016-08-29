@@ -29,6 +29,10 @@ public interface Context {
     interface Internal extends Context {
         public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException;
     }
+    interface Internal2 extends Internal {
+        Req request();
+        Resp response();
+    }
     
     /**
      * @return An instance of the Request interface

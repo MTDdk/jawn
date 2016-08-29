@@ -17,6 +17,7 @@ import com.google.inject.Injector;
 import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.exceptions.InitException;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Req;
 import net.javapla.jawn.core.http.Resp;
 import net.javapla.jawn.core.templates.TemplateEngine;
@@ -188,6 +189,10 @@ protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
     public void handle(Req request, Resp response) throws Exception {
         System.out.println(request.path());
         System.out.println(response);
+        
+        ServerContext context = (ServerContext) injector.getInstance(Context.class);
+        context.init(request, response);
+        engine.onRouteRequest(context);
     }
 
 }

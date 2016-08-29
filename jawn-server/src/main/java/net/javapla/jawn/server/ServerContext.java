@@ -9,7 +9,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Map.Entry;
 
+import com.google.inject.Inject;
+
+import io.undertow.util.Headers;
+import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
@@ -19,15 +24,60 @@ import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.http.Resp;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
+import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.uploads.FormItem;
+import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.MultiList;
 
-public class ServerContext implements Context {
+public class ServerContext implements Context.Internal2 {
     
+private static final String X_POWERED_BY = "X-Powered-By";
+    
+    
+    private final PropertiesImpl properties;
+    private final ParserEngineManager parserManager;
+    
+    private Req request;
+    private Resp response;
+    
+    private Route route;
+    private String format, language;
+    /**
+     * Holds the actual routed path used in this (request)context.
+     * This might differ from requestUri as routedPath is stripped from any language
+     */
+    private String routedPath;
+    
+    @Inject
+    ServerContext(PropertiesImpl properties, ParserEngineManager parserManager) {
+        this.properties = properties;
+        this.parserManager = parserManager;
+    }
     
     public void init(Req request, Resp response) {
+        this.request = request;
+        this.response = response;
+    }
+    
+    @Override
+    public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException {
+        if (route == null)
+            throw new IllegalArgumentException("Route could not be null");
+        this.route = route;
         
+        this.format = format;
+        this.language = language;
+        this.routedPath = routedPath;
+    }
+    
+    @Override
+    public Req request() {
+        return request;
+    }
+    @Override
+    public Resp response() {
+        return response;
     }
 
     @Override
@@ -234,6 +284,7 @@ public class ServerContext implements Context {
 
     @Override
     public String getResponseEncoding() {
+        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, getContentType());
         return null;
     }
 
@@ -270,12 +321,45 @@ public class ServerContext implements Context {
 
     @Override
     public ResponseStream finalizeResponse(Response controllerResponse) {
-        return null;
+        return finalizeResponse(controllerResponse, true);
     }
 
     @Override
     public ResponseStream finalizeResponse(Response controllerResponse, boolean handleFlash) {
-        return null;
+        // status
+        response.statusCode(controllerResponse.status());
+        
+        // content type
+        if (response.getContentType() == null && controllerResponse.contentType() != null)
+            response.setContentType(controllerResponse.contentType());
+        
+        // encoding
+        if (response.getCharacterEncoding() == null) { // encoding is already set in the controller
+            if (controllerResponse.charset() != null)
+                response.setCharacterEncoding(controllerResponse.charset()); // the response has an encoding
+            else 
+                response.setCharacterEncoding(Constants.DEFAULT_ENCODING); // use default
+        }
+        
+        // flash
+        if (handleFlash) {
+            SessionFacade session = getSession(false);
+            if (session != null && session.containsKey(FLASH_SESSION_KEYWORD)) {
+                Object object = session.get(FLASH_SESSION_KEYWORD);
+                controllerResponse.addViewObject(FLASH_KEYWORD, object);
+                session.remove(FLASH_SESSION_KEYWORD);
+            }
+        }
+        
+        // copy headers
+        if (!controllerResponse.headers().isEmpty()) {
+           for (Entry<String, String> entry : controllerResponse.headers().entrySet()) {
+               response.header(entry.getKey(), entry.getValue());
+           }
+        }
+        
+        return new ServerResponseStream(response);
     }
+
 
 }

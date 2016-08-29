@@ -49,6 +49,55 @@ public final class FrameworkEngine {
 //        this.lang = lang;
     }
     
+    public final void onRouteRequest(Context.Internal2 context) {
+        final String path = context.request().path();
+        String uri = path;
+        
+        if (uri.length() == 0) {
+            uri = "/";//different servlet implementations, damn.
+        }
+        
+        try {
+
+            final Route route = router.retrieveRoute(context.request().method(), uri/*, invoker*//*injector*/);
+            context.setRouteInformation(route, null/*format*/, null/*language*/, uri);
+            
+            //if (route != null) {
+                // run pre-filters
+                Response response = route.getFilterChain().before(context);
+                
+                //might already have been handled by the controller or filters
+                if (response == null)
+                    //response = invoker.executeAction(context);
+                    response = route.executeRouteAndRetrieveResponse(context);
+                runner.run(context, response);
+                
+                // run post-filters
+                route.getFilterChain().after(context);
+            /*} else {
+                
+                // This scenario ought not happen as the Router#getRoute() would have thrown an exception
+                // if no route is found
+                logger.warn("No matching route for servlet path: " + context.path() + ", passing down to container.");
+            }*/
+            
+        } catch (RouteException e) {
+            // 404
+            renderSystemError(context, "/system/404", "index", 404, e);
+        } catch (ViewException e) {
+            // 501
+            renderSystemError(context, "/system/500", "index", 501, e);
+        } catch (BadRequestException | MediaTypeException e) {
+            // 400
+            renderSystemError(context, "/system/400", "index", 400, e);
+        } catch (WebException e){
+            renderSystemError(context, "/system/"+e.getHttpCode(), "index", e.getHttpCode(), e);
+        } catch (Exception e) {
+            // 500
+            renderSystemError(context, "/system/500", "index", 500, e);
+        }
+    }
+    
     //onRouteRequest
     public final void runRequest(Context.Internal context) {
         final String path = context.path();

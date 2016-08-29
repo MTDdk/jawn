@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.http;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
@@ -21,5 +22,6 @@ public interface Resp {
     boolean committed();
     void end();
     void reset();
+    OutputStream outputStream();
 
 }
