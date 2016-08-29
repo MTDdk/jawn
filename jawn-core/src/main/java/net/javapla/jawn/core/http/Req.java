@@ -10,6 +10,7 @@ public interface Req {
     
     String method();
     String path();
+    String queryString();
     Optional<String> param(String name);
     MultiList<String> params();
     List<String> params(String name) throws Exception;

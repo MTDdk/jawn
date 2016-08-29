@@ -1,12 +1,12 @@
 package net.javapla.jawn.server;
+
+import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
@@ -17,14 +17,16 @@ import com.google.inject.Injector;
 import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.exceptions.InitException;
-import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.http.Req;
+import net.javapla.jawn.core.http.Resp;
 import net.javapla.jawn.core.templates.TemplateEngine;
+import net.javapla.jawn.server.api.HttpHandler;
+import net.javapla.jawn.server.api.Server;
 
-
-public class JawnServlet extends HttpServlet {
-    private static final long serialVersionUID = 5010901670613409779L;
-
-    protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
+public class ServerJawnFTW implements HttpHandler {
+    
+    
+protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
     private String[] exclusions;
 
@@ -33,22 +35,20 @@ public class JawnServlet extends HttpServlet {
     protected final ServerBootstrap bootstrapper;
     protected final FrameworkEngine engine;
     
-    public JawnServlet() {
-        bootstrapper = new ServerBootstrap();
+    public ServerJawnFTW() throws Exception {
+        bootstrapper = new ServerBootstrap(this);
         bootstrapper.boot();
         injector = bootstrapper.getInjector();
         engine = injector.getInstance(FrameworkEngine.class);
+        
+        injector.getInstance(Server.class).start();
+        
+        config();
     }
     
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        config(getServletContext());
-    }
-    
-    protected void config(ServletContext servletContext) {
-     // find paths inside webapp, that are NOT WEB-INF
-        Set<String> exclusionPaths = findExclusionPaths(servletContext);
+    void config() {
+        // find paths inside webapp, that are NOT WEB-INF
+        Set<String> exclusionPaths = findExclusionPaths();
         // and convert them to an array for fast lookup
         exclusions = exclusionPaths.toArray(new String[exclusionPaths.size()]);
         logger.debug("Letting the server take care of providing resources from: {}", exclusionPaths);
@@ -69,45 +69,23 @@ public class JawnServlet extends HttpServlet {
         logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(PropertiesImpl.class).getMode());
     }
     
-    @Override
-    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        final String path = request.getServletPath();
-        
-
-//        if (response.isCommitted()) return;
-//        if (path.isEmpty()) return;
-        
-        //System.err.println(path + "  ---------------  "  + translateResource(path));
-        
-        //MTD: filtering resources
-        //if (translateResource(path) != null) return;
-        
-        
-        // redirect if the path ends with a slash - URLS cannot end with a slash - they should not do such a thing - why would they?
-        //if (redirectUrlEndingWithSlash(path, response)) return;
-        
-        JawnServletContext context = (JawnServletContext) injector.getInstance(Context.class);
-        context.init(/*servletContext, */request, response);
-        
-        engine.runRequest(context);
-    }
-    
-    
     /**
      * Actually sorts the paths, which is not appreciated and not even used anywhere
      * @param servletContext2 
      * @return
      */
-    private Set<String> findExclusionPaths(ServletContext servletContext) {
+    private Set<String> findExclusionPaths() {
         Set<String> exclusions = new TreeSet<String>();
         
         // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF
-        Set<String> resourcePaths = servletContext.getResourcePaths("/");
+        List<String> collect = Arrays.asList(new File("webapp").list());
         
         // This most certainly should not be null!
         // It means that the server cannot read files at all
-        if (resourcePaths == null) throw new InitException("ServletContext cannot read files. Reason is unknown");
+        if (collect == null || collect.isEmpty()) throw new InitException("ServletContext cannot read files. Reason is unknown");
+
         
+        Set<String> resourcePaths = new TreeSet<>(collect);//servletContext.getResourcePaths("/");
         resourcePaths.removeIf( path -> path.contains("-INF") || path.contains("-inf"));
     
         // We still need to also remove the views folder from being processed by other handlers
@@ -135,8 +113,7 @@ public class JawnServlet extends HttpServlet {
         }
         return false;
     }
-
-
+    
     /**
      * Instead of just verifying if a path contains an exclusion, the method returns the exclusion.
      * This takes care of some resources being prepended with the language prefix.
@@ -201,9 +178,16 @@ public class JawnServlet extends HttpServlet {
         return null;
     }
     
-    @Override
+    //@Override
     public void destroy() {
         bootstrapper.shutdown();
 //        appBootstrap.destroy(appContext);
     }
+
+    @Override
+    public void handle(Req request, Resp response) throws Exception {
+        System.out.println(request.path());
+        System.out.println(response);
+    }
+
 }
