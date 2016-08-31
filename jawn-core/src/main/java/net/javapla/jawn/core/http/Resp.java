@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,5 +24,9 @@ public interface Resp {
     void end();
     void reset();
     OutputStream outputStream();
+    String contentType();
+    void contentType(String contentType);
+    void characterEncoding(String encoding);
+    Optional<Charset> characterEncoding();
 
 }

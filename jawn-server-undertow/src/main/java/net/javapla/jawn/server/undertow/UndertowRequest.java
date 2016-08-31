@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,7 +23,6 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
-import io.undertow.servlet.spec.HttpServletRequestImpl;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.HttpString;
 import net.javapla.jawn.core.http.Cookie;
@@ -45,8 +43,8 @@ public class UndertowRequest implements Req {
     public UndertowRequest(final HttpServerExchange exchange) throws IOException {
         this.exchange = exchange;
         
-        this.form = parseForm(exchange, System.getProperty("java.io.tmpdir")+"/jawn-test", "UTF-8");//conf.getString("application.tmpdir"), conf.getString("application.charset"));
         this.blocking = new MemoizingSupplier<>(() -> this.exchange.startBlocking());
+        this.form = parseForm(exchange, System.getProperty("java.io.tmpdir")+"/jawn-test", "UTF-8");//conf.getString("application.tmpdir"), conf.getString("application.charset"));
         
         this.path = URLCodec.decode(exchange.getRequestPath(), StandardCharsets.UTF_8);
     }
@@ -70,19 +68,20 @@ public class UndertowRequest implements Req {
     public MultiList<String> params() {
         MultiList<String> params = new MultiList<>();
         
-        // TODO let's just try this§
-        HttpServletRequestImpl requestImpl = new HttpServletRequestImpl(exchange, null);
-        Map<String, String[]> parameterMap = requestImpl.getParameterMap();
-        for (Entry<String, String[]> entry : parameterMap.entrySet()) {
-            params.put(entry.getKey(), entry.getValue());
+        // query params
+        Map<String, Deque<String>> query = exchange.getQueryParameters();
+        if (query != null) {
+          query.entrySet().stream().forEach(entry -> params.put(entry.getKey(), entry.getValue()));
         }
-        
-        
-        /*Map<String, Deque<String>> queryParameters = exchange.getQueryParameters();
-        for (Entry<String, Deque<String>> entry : queryParameters.entrySet()) {
-            params.put(entry.getKey(), entry.getValue());
-        }*/
-
+        // form params
+        form.forEach(element -> {
+            form.get(element).stream()
+                .filter(value -> !value.isFile())
+                .forEach(
+                    value -> params.put(element, value.getValue()
+                )
+            );
+        });
         
         return params;
     }
@@ -95,6 +94,7 @@ public class UndertowRequest implements Req {
         if (query != null) {
           query.forEach(list::add);
         }
+        
         // form params
         Optional.ofNullable(form.get(name)).ifPresent(values -> {
           values.forEach(value -> {
@@ -108,7 +108,8 @@ public class UndertowRequest implements Req {
     
     @Override
     public Optional<String> param(String name) {
-        return Optional.ofNullable(params(name).get(0)); // TODO redo
+        List<String> params = params(name);
+        return params.stream().findFirst(); // TODO redo
     }
 
     @Override
@@ -172,14 +173,13 @@ public class UndertowRequest implements Req {
     private FormData parseForm(final HttpServerExchange exchange, final String tmpdir, final String charset) throws IOException {
         String value = exchange.getRequestHeaders().getFirst("Content-Type");
         if (value != null) {
-            MediaType type = MediaType.valueOf(value);
-            if (MediaType.APPLICATION_FORM_URLENCODED_TYPE.equals(type)) {
+            if (value.startsWith(MediaType.APPLICATION_FORM_URLENCODED)) {
                 blocking.get();
                 return new FormEncodedDataDefinition()
                         .setDefaultEncoding(charset)
                         .create(exchange)
                         .parseBlocking();
-            } else if (MediaType.MULTIPART_FORM_DATA_TYPE.equals(type)) {
+            } else if (value.startsWith(MediaType.MULTIPART_FORM_DATA)) {
                 blocking.get();
                 return new MultiPartParserDefinition()
                         .setTempFileLocation(new File(tmpdir).toPath())

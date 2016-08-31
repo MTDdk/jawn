@@ -1,13 +1,19 @@
 package net.javapla.jawn.server;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,11 +194,58 @@ protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
     @Override
     public void handle(Req request, Resp response) throws Exception {
         System.out.println(request.path());
+        System.out.println(request.params());
         System.out.println(response);
+        
+        if (filteringResources(response, request.path(), resource -> translateResource(resource))) return;
         
         ServerContext context = (ServerContext) injector.getInstance(Context.class);
         context.init(request, response);
         engine.onRouteRequest(context);
     }
 
+    
+    /**
+     * A problem arises when the server tries to serve a resource, which does not start with an excluded path,
+     * and the server just sees it as a route to handle itself, when it actually ought to send it up the chain
+     * 
+     * @author MTD
+     * @return true, if a filtering has happened and nothing else should be done by this current dispatcher
+     */
+    //TODO extract to an independent Filter
+    protected static final boolean filteringResources(Resp response, final String path, final Function<String,String> needsTranslation) throws ServletException, IOException {
+        String translated = needsTranslation.apply(path);
+//        String translated = translateResource(path);
+        if (translated != null) {
+//            logger.debug("URI excluded: {}", path);
+            
+            /*HttpServletRequest r = req;
+            if (path.length() != translated.length()) {//!path.startsWith(translated)) {
+//                int indexOfExcluded = path.indexOf(translated);
+//                String t = path.substring(indexOfExcluded);
+                r = createServletRequest(req, translated);
+//                logger.debug(".. and translated -> {}", translated);
+            }*/
+            
+            
+            // Setting default headers for static files
+            // One week - Google recommendation
+            // https://developers.google.com/speed/docs/insights/LeverageBrowserCaching
+            response.header(HttpHeaders.CACHE_CONTROL, "public, max-age=604800");
+            File file = new File("webapp/" + translated);
+            if (file.canRead())
+                response.header(HttpHeaders.ETAG, String.valueOf(file.lastModified()));
+            
+            //chain.doFilter(r, resp);
+            try {
+                response.send(new FileInputStream(file));
+                response.end();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            return true;
+        }
+        return false;
+    }
 }

@@ -8,12 +8,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import com.google.inject.Inject;
 
-import io.undertow.util.Headers;
 import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.http.Context;
@@ -87,12 +86,14 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public Route getRoute() {
-        return null;
+        return route;
     }
 
     @Override
     public String getRouteLanguage() {
-        return null;
+        String routeLang = getRouteParam("lang");
+        if (routeLang != null) return routeLang;
+        return language;
     }
 
     @Override
@@ -102,7 +103,8 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String getRouteParam(String name) {
-        return null;
+        if (route == null) return null;
+        return route.getPathParametersEncoded(routedPath).get(name);
     }
 
     @Override
@@ -116,7 +118,11 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String contextPath() {
-        return null;
+        // will most often be "/" and shall therefore be
+        // translated to "".
+        // this is set when starting the server, and probably
+        // *should* be up to the user
+        return "";
     }
 
     @Override
@@ -201,7 +207,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String getRealPath(String path) {
-        return null;
+        return "webapp/" + path;
     }
 
     @Override
@@ -211,7 +217,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String param(String name) {
-        return null;
+        return request.param(name).orElse(getRouteParam(name));
     }
 
     @Override
@@ -284,8 +290,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String getResponseEncoding() {
-        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, getContentType());
-        return null;
+        return response.characterEncoding().map(ct -> ct.name()).orElse(null);
     }
 
     @Override
@@ -330,15 +335,15 @@ private static final String X_POWERED_BY = "X-Powered-By";
         response.statusCode(controllerResponse.status());
         
         // content type
-        if (response.getContentType() == null && controllerResponse.contentType() != null)
-            response.setContentType(controllerResponse.contentType());
+        if (response.contentType() == null && controllerResponse.contentType() != null)
+            response.contentType(controllerResponse.contentType());
         
         // encoding
-        if (response.getCharacterEncoding() == null) { // encoding is already set in the controller
+        if (!response.characterEncoding().isPresent()) { // encoding is already set in the controller
             if (controllerResponse.charset() != null)
-                response.setCharacterEncoding(controllerResponse.charset()); // the response has an encoding
+                response.characterEncoding(controllerResponse.charset()); // the response has an encoding
             else 
-                response.setCharacterEncoding(Constants.DEFAULT_ENCODING); // use default
+                response.characterEncoding(Constants.DEFAULT_ENCODING); // use default
         }
         
         // flash

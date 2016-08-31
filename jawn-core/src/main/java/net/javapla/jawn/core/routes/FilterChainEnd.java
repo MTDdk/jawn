@@ -33,7 +33,9 @@ class FilterChainEnd implements FilterChain {
     }
 
     @Override
-    public void after(Context context) {}
+    public void after(Context context) {
+        if (context instanceof Context.Internal2) ((Context.Internal2) context).response().end();
+    }
     
     @Override
     public void onException(Exception e) {}

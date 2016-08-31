@@ -32,6 +32,7 @@ public class UndertowResponse implements Resp {
     
     private final HttpServerExchange exchange;
     
+    private String contentType;
     private Optional<Charset> charset = Optional.empty();
 
     public UndertowResponse(final HttpServerExchange exchange) {
@@ -92,20 +93,31 @@ public class UndertowResponse implements Resp {
         exchange.setStatusCode(code);
     }
     
-    /*public String contentType() {
-        return exchange.getres
-    }*/
-    
-    public void contentType(String contentType) {
-        exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, contentType);
+    @Override
+    public String contentType() {
+        return contentType;
     }
     
+    @Override
+    public void contentType(String contentType) {
+        this.contentType = contentType;
+        setContentType();
+    }
+    
+    @Override
     public void characterEncoding(String encoding) {
         charset = Optional.ofNullable(Charset.forName(encoding));
+        setContentType();
+    }
+    
+    @Override
+    public Optional<Charset> characterEncoding() {
+        return charset;
     }
 
     @Override
     public OutputStream outputStream() {
+        exchange.startBlocking();
         return exchange.getOutputStream();
     }
     
@@ -137,6 +149,11 @@ public class UndertowResponse implements Resp {
         exchange.getResponseHeaders().clear();
     }
 
+    private void setContentType() {
+        if (contentType != null) {
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, contentType + charset.map(ch -> "; charset=" + ch).orElse("") );
+        }
+    }
     
     static class ChunkedStream implements IoCallback, Runnable {
 
