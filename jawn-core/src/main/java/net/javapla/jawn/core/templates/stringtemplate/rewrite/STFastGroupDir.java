@@ -50,13 +50,17 @@ public final class STFastGroupDir extends STRawGroupDir {
         //if ( code==null ) code = lookupImportedTemplate(name);
         if ( code==null ) templates.put(name, NOT_FOUND_ST);
         
+        //TODO rewrite in order to not use 'templates', which is synchronized
+        // we can probably manage with only synchronising writes and not all reads
+        
         return code;
     }
     
     @Override
     protected final CompiledST load(String name) {
         String unqualifiedName = getFileName(name);//Misc.getFileName(name);
-        return loadTemplateFile(Misc.getPrefix(name), unqualifiedName+TEMPLATE_FILE_EXTENSION); // load t.st file
+        String prefix = Misc.getPrefix(name);
+        return loadTemplateFile(prefix, unqualifiedName+TEMPLATE_FILE_EXTENSION); // load t.st file
     }
     
     /**
@@ -66,7 +70,7 @@ public final class STFastGroupDir extends STRawGroupDir {
      * @return
      */
     private static final String getFileName(String path) {
-        int index = path.lastIndexOf(File.separatorChar);
+        int index = path.lastIndexOf('/');//stop using File.separatorChar as we are not even remotely close to be using that ANYwhere else - apparently. This makes it fail on Windows systems
         int prefixLength = prefixLength(path);
         if (index < prefixLength) return path.substring(prefixLength);
         return path.substring(index + 1);
@@ -96,8 +100,9 @@ public final class STFastGroupDir extends STRawGroupDir {
                     skipLF ? 
                     new ANTLRNoNewLineStream(f, encoding) : //removing \r and \n and trimming lines
                     new ANTLRInputStream(f.openStream(), encoding); //reading templates as is
+                    //TODO adding a HTML character converter here
                     
-            fs.name = unqualifiedFileName; //most likely extremely unnecessary
+            //fs.name = unqualifiedFileName; //most likely extremely unnecessary
 
             return loadTemplateFile(prefix, unqualifiedFileName, fs);
 

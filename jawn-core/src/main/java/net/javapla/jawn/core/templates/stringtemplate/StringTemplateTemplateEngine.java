@@ -119,7 +119,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
                 // An action might specify a template that is not a part of the controller.
                 final String controller = TemplateEngineHelper.getControllerForResult(context.getRoute());
                 ST layoutTemplate = locateDefaultLayout(group, controller, layout);
-                if (layoutTemplate == null) throw new ViewException("index.html.st is not to be found anywhere");
+                if (layoutTemplate == null) throw new ViewException(LAYOUT_DEFAULT + ".st is not to be found anywhere");
 
                 layout = layoutTemplate.getName(); // for later logging
                 injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller, language, error);
