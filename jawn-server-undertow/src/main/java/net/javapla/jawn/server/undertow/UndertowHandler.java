@@ -5,9 +5,9 @@ import io.undertow.server.HttpServerExchange;
 
 public class UndertowHandler implements HttpHandler {
     
-    private final net.javapla.jawn.server.api.HttpHandler handler;
+    private final net.javapla.jawn.core.server.HttpHandler handler;
 
-    public UndertowHandler(net.javapla.jawn.server.api.HttpHandler handler) {
+    public UndertowHandler(net.javapla.jawn.core.server.HttpHandler handler) {
         
         this.handler = handler;
         

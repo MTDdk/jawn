@@ -1,4 +1,4 @@
-package net.javapla.jawn.server.api;
+package net.javapla.jawn.core.server;
 
 import net.javapla.jawn.core.http.Req;
 import net.javapla.jawn.core.http.Resp;

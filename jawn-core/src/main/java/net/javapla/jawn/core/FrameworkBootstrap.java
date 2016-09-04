@@ -17,10 +17,13 @@ import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseModule;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.reflection.ClassLocator;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.routes.RouterImpl;
+import net.javapla.jawn.core.server.HttpHandler;
+import net.javapla.jawn.core.server.ServerContext;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.PropertiesConstants;
@@ -32,6 +35,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Singleton;
 import com.google.inject.Stage;
 import com.google.inject.util.Modules;
 
@@ -141,6 +145,15 @@ public class FrameworkBootstrap {
         
         addModule(new CoreModule(properties, router));
         addModule(new DatabaseModule(connections, properties));
+        addModule(new AbstractModule() {
+            //ServerModule
+            @Override
+            protected void configure() {
+              //bind(Context.class).to(JawnServletContext.class);
+                bind(Context.class).to(ServerContext.class);
+                bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
+            }
+        });
     }
     
     private Injector initInjector(final List<AbstractModule> userModules, List<AbstractModule> pluginModules) {

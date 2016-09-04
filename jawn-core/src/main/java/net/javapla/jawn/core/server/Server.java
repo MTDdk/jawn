@@ -1,4 +1,4 @@
-package net.javapla.jawn.server.api;
+package net.javapla.jawn.core.server;
 
 public interface Server {
 

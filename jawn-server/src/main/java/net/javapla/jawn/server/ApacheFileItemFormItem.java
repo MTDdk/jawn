@@ -36,11 +36,6 @@ public class ApacheFileItemFormItem implements FormItem {
     }
 
     @Override
-    public boolean isFormField() {
-        return fileItem.isFormField();
-    }
-
-    @Override
     public InputStream openStream() throws IOException {
         return fileItem.getInputStream();
     }

@@ -26,6 +26,7 @@ public interface Resp {
     OutputStream outputStream();
     String contentType();
     void contentType(String contentType);
+    void addCookie(Cookie cookie);
     void characterEncoding(String encoding);
     Optional<Charset> characterEncoding();
 

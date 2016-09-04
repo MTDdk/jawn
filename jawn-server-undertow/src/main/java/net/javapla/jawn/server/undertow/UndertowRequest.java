@@ -29,6 +29,7 @@ import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.Cookie.Builder;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.Req;
+import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.URLCodec;
 
@@ -44,7 +45,10 @@ public class UndertowRequest implements Req {
         this.exchange = exchange;
         
         this.blocking = new MemoizingSupplier<>(() -> this.exchange.startBlocking());
-        this.form = parseForm(exchange, System.getProperty("java.io.tmpdir")+"/jawn-test", "UTF-8");//conf.getString("application.tmpdir"), conf.getString("application.charset"));
+        String tmpdir = System.getProperty("java.io.tmpdir")+"/jawn-test";
+        File tmpdirFile = new File(tmpdir);
+        if (!tmpdirFile.exists()) tmpdirFile.mkdir();
+        this.form = parseForm(exchange, tmpdir, StandardCharsets.UTF_8.name());//conf.getString("application.tmpdir"), conf.getString("application.charset"));
         
         this.path = URLCodec.decode(exchange.getRequestPath(), StandardCharsets.UTF_8);
     }
@@ -109,7 +113,20 @@ public class UndertowRequest implements Req {
     @Override
     public Optional<String> param(String name) {
         List<String> params = params(name);
-        return params.stream().findFirst(); // TODO redo
+        return params.stream().findFirst(); //TODO can it be revised somehow? Bettered?
+    }
+    
+    @Override
+    public List<FormItem> files() {
+        ArrayList<FormItem> list = new ArrayList<>();
+        form.forEach(fieldName -> {
+            form.get(fieldName).stream().forEach(value -> {
+//                if (value.isFile()) {
+                list.add(new UndertowFormItem(value, fieldName));
+//                }
+            });
+        });
+        return list;
     }
 
     @Override
@@ -158,10 +175,19 @@ public class UndertowRequest implements Req {
     public String protocol() {
         return exchange.getProtocol().toString();
     }
-
+    
     @Override
+    public int port() {
+        return exchange.getHostPort();
+    }
+
+    /*@Override
     public boolean secure() {
         return exchange.getRequestScheme().equalsIgnoreCase("https");
+    }*/
+    @Override
+    public String scheme() {
+        return exchange.getRequestScheme();
     }
 
     @Override

@@ -651,7 +651,7 @@ public abstract class Controller implements ResponseHolder {
     protected List<String> params(String name, List<FormItem> formItems){
         List<String> vals = new ArrayList<String>();
         for (FormItem formItem : formItems) {
-            if(formItem.isFormField() && name.equals(formItem.getFieldName())){
+            if(!formItem.isFile() && name.equals(formItem.getFieldName())){
                 vals.add(formItem.getStreamAsString());
             }
         }
@@ -721,7 +721,7 @@ public abstract class Controller implements ResponseHolder {
     protected MultiList<String> params(List<FormItem> formItems) {
         MultiList<String> params = new MultiList<>();
         for (FormItem formItem : formItems) {
-            if(formItem.isFormField() && !params.contains(formItem.getFieldName())){
+            if(!formItem.isFile() && !params.contains(formItem.getFieldName())){
                 params.put(formItem.getFieldName(), formItem.getStreamAsString());
             }
         }
@@ -1011,6 +1011,7 @@ public abstract class Controller implements ResponseHolder {
                     }
                 });
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ControllerException(e);
         }
         return parts;

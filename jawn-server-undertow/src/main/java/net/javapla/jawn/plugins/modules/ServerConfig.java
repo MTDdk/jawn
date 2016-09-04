@@ -6,7 +6,7 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.ApplicationConfig;
 import net.javapla.jawn.core.api.ApplicationBootstrap;
-import net.javapla.jawn.server.api.Server;
+import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.server.undertow.UndertowServer2;
 
 public class ServerConfig implements ApplicationBootstrap {

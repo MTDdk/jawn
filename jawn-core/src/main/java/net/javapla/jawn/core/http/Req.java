@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
+import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.MultiList;
 
 public interface Req {
@@ -19,11 +20,18 @@ public interface Req {
     List<String> headerNames();
     List<Cookie> cookies();
     //something handling upload
-    //files(String name) throws Exception;
+    List<FormItem> files();//throws Exception
     InputStream in() throws Exception;
     String ip();
     String protocol();
-    boolean secure();
+    
+    /**
+     * Host port
+     * @return The port part of the destination request
+     */
+    int port();
+    String scheme();
+    //boolean secure();
     /**
      * Upgrade the request to something else...like a web socket.
      *

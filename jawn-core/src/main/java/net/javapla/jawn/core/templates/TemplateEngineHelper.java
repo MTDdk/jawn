@@ -1,5 +1,7 @@
 package net.javapla.jawn.core.templates;
 
+import java.io.File;
+
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.routes.RouterHelper;
@@ -21,7 +23,12 @@ public class TemplateEngineHelper {
             if (route != null) {
                 String controllerPath = RouterHelper.getReverseRoute(route.getController());
                 
-              //TODO Route(r).reverseRoute
+                // Look for a controller named template first
+                if (new File("webapp/"+TemplateEngine.TEMPLATES_FOLDER+controllerPath+templateSuffix).exists()) {
+                    return controllerPath;
+                }
+                
+                //TODO Route(r).reverseRoute
                 template =  controllerPath + "/" + route.getActionName();
                 return template;
             } else {

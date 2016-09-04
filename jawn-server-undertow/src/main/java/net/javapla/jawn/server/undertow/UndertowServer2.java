@@ -7,8 +7,8 @@ import com.google.inject.Inject;
 import io.undertow.Undertow;
 import io.undertow.Undertow.Builder;
 import io.undertow.server.handlers.GracefulShutdownHandler;
-import net.javapla.jawn.server.api.HttpHandler;
-import net.javapla.jawn.server.api.Server;
+import net.javapla.jawn.core.server.HttpHandler;
+import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.server.api.ServerConfig;
 
 public class UndertowServer2 implements Server {

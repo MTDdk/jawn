@@ -63,13 +63,6 @@ public interface FormItem {
     //public void setContentType(String type);
 
     /**
-     * returns true if this is a form field, false if not.
-     *
-     * @return true if this is a form field, false if not.
-     */
-    boolean isFormField();
-
-    /**
      * Returns input stream to read uploaded file contents from.
      *
      * @return input stream to read uploaded file contents from.

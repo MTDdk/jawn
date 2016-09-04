@@ -22,10 +22,12 @@ import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.ServerConnection;
+import io.undertow.server.handlers.CookieImpl;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
+import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.Resp;
 
 public class UndertowResponse implements Resp {
@@ -105,6 +107,11 @@ public class UndertowResponse implements Resp {
     }
     
     @Override
+    public void addCookie(Cookie cookie) {
+        exchange.setResponseCookie(cookie(cookie));
+    }
+    
+    @Override
     public void characterEncoding(String encoding) {
         charset = Optional.ofNullable(Charset.forName(encoding));
         setContentType();
@@ -172,73 +179,84 @@ public class UndertowResponse implements Resp {
         private int chunk;
 
         public void send(final ReadableByteChannel source, final HttpServerExchange exchange,
-            final IoCallback callback) {
-          this.source = source;
-          this.exchange = exchange;
-          this.callback = callback;
-          this.sender = exchange.getResponseSender();
-          ServerConnection connection = exchange.getConnection();
-          this.pooled = connection.getByteBufferPool().allocate();
-          this.bufferSize = connection.getBufferSize();
+                final IoCallback callback) {
+            this.source = source;
+            this.exchange = exchange;
+            this.callback = callback;
+            this.sender = exchange.getResponseSender();
+            ServerConnection connection = exchange.getConnection();
+            this.pooled = connection.getByteBufferPool().allocate();
+            this.bufferSize = connection.getBufferSize();
 
-          onComplete(exchange, sender);
+            onComplete(exchange, sender);
         }
 
         @Override
         public void run() {
-          ByteBuffer buffer = pooled.getBuffer();
-          chunk += 1;
-          try {
-            buffer.clear();
-            int count = source.read(buffer);
-            if (count == -1) {
-              done();
-              callback.onComplete(exchange, sender);
-            } else {
-              if (chunk == 1) {
-                if (count < bufferSize) {
-                  HeaderMap headers = exchange.getResponseHeaders();
-                  if (!headers.contains(Headers.CONTENT_LENGTH)) {
-                    headers.put(Headers.CONTENT_LENGTH, count);
-                    headers.remove(Headers.TRANSFER_ENCODING);
-                  }
+            ByteBuffer buffer = pooled.getBuffer();
+            chunk += 1;
+            try {
+                buffer.clear();
+                int count = source.read(buffer);
+                if (count == -1) {
+                    done();
+                    callback.onComplete(exchange, sender);
                 } else {
-                  HeaderMap headers = exchange.getResponseHeaders();
-                  // just check if
-                  if (!headers.contains(Headers.CONTENT_LENGTH)) {
-                    headers.put(Headers.TRANSFER_ENCODING, "chunked");
-                  }
+                    if (chunk == 1) {
+                        if (count < bufferSize) {
+                            HeaderMap headers = exchange.getResponseHeaders();
+                            if (!headers.contains(Headers.CONTENT_LENGTH)) {
+                                headers.put(Headers.CONTENT_LENGTH, count);
+                                headers.remove(Headers.TRANSFER_ENCODING);
+                            }
+                        } else {
+                            HeaderMap headers = exchange.getResponseHeaders();
+                            // just check if
+                            if (!headers.contains(Headers.CONTENT_LENGTH)) {
+                                headers.put(Headers.TRANSFER_ENCODING, "chunked");
+                            }
+                        }
+                    }
+                    buffer.flip();
+                    sender.send(buffer, this);
                 }
-              }
-              buffer.flip();
-              sender.send(buffer, this);
+            } catch (IOException ex) {
+                onException(exchange, sender, ex);
             }
-          } catch (IOException ex) {
-            onException(exchange, sender, ex);
-          }
         }
 
         @Override
         public void onComplete(final HttpServerExchange exchange, final Sender sender) {
-          if (exchange.isInIoThread()) {
-            exchange.dispatch(this);
-          } else {
-            run();
-          }
+            if (exchange.isInIoThread()) {
+                exchange.dispatch(this);
+            } else {
+                run();
+            }
         }
 
         @Override
         public void onException(final HttpServerExchange exchange, final Sender sender,
-            final IOException ex) {
-          done();
-          callback.onException(exchange, sender, ex);
+                final IOException ex) {
+            done();
+            callback.onException(exchange, sender, ex);
         }
 
         private void done() {
-          pooled.close();
-          pooled = null;
-          IoUtils.safeClose(source);
+            pooled.close();
+            pooled = null;
+            IoUtils.safeClose(source);
         }
 
-      }
+    }
+    
+    private static io.undertow.server.handlers.Cookie cookie(final Cookie cookie) {
+        return new CookieImpl(cookie.getName(),cookie.getValue())
+                .setComment(cookie.getComment())
+                .setDomain(cookie.getDomain())
+                .setPath(cookie.getPath())
+                .setVersion(cookie.getVersion())
+                .setMaxAge(cookie.getMaxAge())
+                .setHttpOnly(cookie.isHttpOnly())
+                .setSecure(cookie.isSecure());
+    }
 }

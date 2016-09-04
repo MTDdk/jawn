@@ -100,7 +100,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
         final String language = null;//context.getRouteLanguage();
 
         final ErrorBuffer error = new ErrorBuffer();
-        final ST contentTemplate = locateTemplate(group, template);
+        final ST contentTemplate = readTemplate(group, template);
 
         try (final Writer writer = stream.getWriter()) {
 
@@ -176,8 +176,8 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
             group = new STFastGroupDir/*STRawGroupDir*/(getTemplateFolder(ctx), config.delimiterStart, config.delimiterEnd, minimise);
             
             // add the user configurations
-            config.adaptors.forEach((k, v) -> group.registerModelAdaptor(k, v));
-            config.renderers.forEach((k, v) -> group.registerRenderer(k, v));
+            config.adaptors.forEach(group::registerModelAdaptor);
+            config.renderers.forEach(group::registerRenderer);
             
             // adding a fallback group that will try to serve from resources instead of webapp/WEB-INF/
 //            STGroupDir fallbackGroup = new STRawGroupDir("views", config.delimiterStart, config.delimiterEnd);
@@ -198,7 +198,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
         group.unload();
     }
     
-    private final ST locateTemplate(final STGroupDir group, final String template) {
+    private final ST readTemplate(final STGroupDir group, final String template) {
         /*
          * strawgroupdir
 group.getInstanceOf 6114
@@ -259,7 +259,7 @@ group.getInstanceOf 2422
 //            return index;
         
         // look for a layout of a given name within the controller folder
-        ST index = locateTemplate(group, controller + '/' + layout);
+        ST index = readTemplate(group, controller + '/' + layout);
         if (index != null)
             return index;
         
@@ -267,7 +267,7 @@ group.getInstanceOf 2422
         // going for defaults
         // look for the default layout in controller folder
         // and bubble up one folder if nothing is found
-        while ((index = locateTemplate(group, controller + '/' + LAYOUT_DEFAULT)) == null && controller.indexOf('/') > 0) {
+        while ((index = readTemplate(group, controller + '/' + LAYOUT_DEFAULT)) == null && controller.indexOf('/') > 0) {
             controller = controller.substring(0,controller.lastIndexOf('/'));
         }
 //        return index;
@@ -282,7 +282,7 @@ group.getInstanceOf 2422
             return index;
         
         // last resort - this should always be present
-        return locateTemplate(group, LAYOUT_DEFAULT);
+        return readTemplate(group, LAYOUT_DEFAULT);
     }
     
     /** Renders template directly to writer */
@@ -311,7 +311,7 @@ group.getInstanceOf 2422
                         //README when errors occur, try to reload the specified templates and try the whole thing again
                         // this often rectifies the problem
                         reloadGroup();
-                        ST reloadedContentTemplate = locateTemplate(group, contentTemplate.getName());
+                        ST reloadedContentTemplate = readTemplate(group, contentTemplate.getName());
                         sw = new StringBuilderWriter();
                         renderContentTemplate(reloadedContentTemplate, sw, values, language, error);
                         break;

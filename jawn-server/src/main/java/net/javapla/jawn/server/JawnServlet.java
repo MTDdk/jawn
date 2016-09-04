@@ -30,13 +30,14 @@ public class JawnServlet extends HttpServlet {
 
     protected final Injector injector;
 
-    protected final ServerBootstrap bootstrapper;
+    //protected final ServerBootstrap bootstrapper;
     protected final FrameworkEngine engine;
     
     public JawnServlet() {
-        bootstrapper = new ServerBootstrap();
-        bootstrapper.boot();
-        injector = bootstrapper.getInjector();
+        //TODO instantiating Jawn() instead
+//        bootstrapper = new ServerBootstrap();
+//        bootstrapper.boot();
+        injector = null;//bootstrapper.getInjector();
         engine = injector.getInstance(FrameworkEngine.class);
     }
     
@@ -203,7 +204,7 @@ public class JawnServlet extends HttpServlet {
     
     @Override
     public void destroy() {
-        bootstrapper.shutdown();
+//        bootstrapper.shutdown();
 //        appBootstrap.destroy(appContext);
     }
 }

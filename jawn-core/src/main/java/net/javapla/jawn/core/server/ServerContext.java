@@ -1,10 +1,11 @@
-package net.javapla.jawn.server;
+package net.javapla.jawn.core.server;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -36,6 +37,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
     
     private final PropertiesImpl properties;
     private final ParserEngineManager parserManager;
+    //private final SessionManager sessionManager;
     
     private Req request;
     private Resp response;
@@ -47,6 +49,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
      * This might differ from requestUri as routedPath is stripped from any language
      */
     private String routedPath;
+    
     
     @Inject
     ServerContext(PropertiesImpl properties, ParserEngineManager parserManager) {
@@ -98,7 +101,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String getRouteFormat() {
-        return null;
+        return format;
     }
 
     @Override
@@ -109,11 +112,17 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public SessionFacade getSession(boolean createIfNotExists) {
-        return null;
+        return null;//sessionManger.create();/get();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void setFlash(String name, Object value) {
+        SessionFacade session = getSession(true);
+        if (session.get(Context.FLASH_SESSION_KEYWORD) == null) {
+            session.put(Context.FLASH_SESSION_KEYWORD, new HashMap<String, Object>());
+        }
+        ((Map<String, Object>) session.get(Context.FLASH_SESSION_KEYWORD)).put(name, value);
     }
 
     @Override
@@ -127,47 +136,51 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String path() {
-        return null;
+        return request.path();
     }
 
     @Override
+    @Deprecated
     public String requestUrl() {
         return null;
     }
 
     @Override
+    @Deprecated
     public String requestUri() {
         return null;
     }
 
     @Override
     public String queryString() {
-        return null;
+        return request.queryString();
     }
 
     @Override
+    @Deprecated
     public String method() {
         return null;
     }
 
     @Override
     public HttpMethod getHttpMethod() {
-        return null;
+        return request.method();
     }
 
     @Override
     public int port() {
-        return 0;
+        return request.port();
     }
 
     @Override
+    @Deprecated
     public String host() {
         return null;
     }
 
     @Override
     public String scheme() {
-        return null;
+        return request.scheme();
     }
 
     @Override
@@ -177,12 +190,12 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String ipAddress() {
-        return null;
+        return request.ip();
     }
 
     @Override
     public String protocol() {
-        return null;
+        return request.protocol();
     }
 
     @Override
@@ -202,7 +215,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String requestContentType() {
-        return null;
+        return request.header("Content-Type").orElse(null);
     }
 
     @Override
@@ -212,7 +225,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public MultiList<String> params() {
-        return null;
+        return request.params();
     }
 
     @Override
@@ -222,27 +235,29 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public String getParameter(String name) {
-        return null;
+        return request.param(name).orElse(null);
     }
 
     @Override
+    @Deprecated
     public Object getAttribute(String name) {
         return null;
     }
 
     @Override
+    @Deprecated
     public <T> T getAttribute(String name, Class<T> clazz) {
         return null;
     }
 
     @Override
     public Map<String, String> requestHeaders() {
-        return null;
+        return null;//TODO
     }
 
     @Override
     public String requestHeader(String name) {
-        return null;
+        return request.header(name).orElse(null);
     }
 
     @Override
@@ -256,36 +271,54 @@ private static final String X_POWERED_BY = "X-Powered-By";
     }
 
     @Override
+    @Deprecated
     public Cookie getCookie(String cookieName) {
+        //could as well just be in the Controller
+        for (Cookie c : request.cookies()) {
+            if (c.getName().equals(cookieName)) return c;
+        }
         return null;
     }
 
     @Override
+    @Deprecated
     public boolean hasCookie(String cookieName) {
         return false;
     }
 
     @Override
     public List<Cookie> getCookies() {
-        return null;
+        return request.cookies();
     }
 
     @Override
     public void setAttribute(String name, Object value) {
+        //deprecate?
     }
 
     @Override
+    @Deprecated
     public void setRequestCharacterEncoding(String encoding) throws UnsupportedEncodingException {
     }
 
     @Override
     public boolean isRequestMultiPart() {
+        if (getHttpMethod() != HttpMethod.POST) {
+            return false;
+        }
+        String contentType = requestContentType();
+        if (contentType == null) {
+            return false;
+        }
+        if (contentType.toLowerCase().startsWith("multipart/")) {
+            return true;
+        }
         return false;
     }
 
     @Override
     public Optional<List<FormItem>> parseRequestMultiPartItems(String encoding) {
-        return null;
+        return Optional.of(request.files());
     }
 
     @Override
@@ -295,22 +328,27 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public void setEncoding(String encoding) {
+        response.characterEncoding(encoding);
     }
 
     @Override
+    @Deprecated
     public void responseLocale(Locale locale) {
     }
 
     @Override
     public void addCookie(Cookie cookie) {
+        response.addCookie(cookie);
     }
 
     @Override
     public void addResponseHeader(String name, String value) {
+        response.header(name, value);
     }
 
     @Override
     public Collection<String> responseHeaderNames() {
+        //TODO
         return null;
     }
 
