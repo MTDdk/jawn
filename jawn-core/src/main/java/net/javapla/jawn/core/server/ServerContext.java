@@ -368,11 +368,13 @@ private static final String X_POWERED_BY = "X-Powered-By";
     }
 
     @Override
+    @Deprecated
     public PrintWriter responseWriter() throws IOException {
         return null;
     }
 
     @Override
+    @Deprecated
     public OutputStream responseOutputStream() throws IOException {
         return null;
     }

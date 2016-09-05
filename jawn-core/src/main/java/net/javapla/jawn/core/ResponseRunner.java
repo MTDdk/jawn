@@ -7,6 +7,7 @@ import net.javapla.jawn.core.exceptions.BadRequestException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 
@@ -35,7 +36,7 @@ public final class ResponseRunner {
             // This indicates that we do not want to render anything in the body.
             // Can be used e.g. for a 204 No Content response or Redirect
             // and bypasses the rendering engines.
-            context.finalizeResponse(response, false);
+            context.finalizeResponse(response, false).end();
         } else {
             renderWithTemplateEngine(context, response);
         }
@@ -55,7 +56,9 @@ public final class ResponseRunner {
         final TemplateEngine engine = templateEngineManager.getTemplateEngineForContentType(response.contentType());
         
         if (engine != null) {
-            engine.invoke(context, response, context.finalizeResponse(response, true));
+            ResponseStream rsp = context.finalizeResponse(response, true);
+            engine.invoke(context, response, rsp);
+            rsp.end();
         } else {
             throw new MediaTypeException(
                     MessageFormat.format("Could not find a template engine supporting the content type of the response : {}", response.contentType()));

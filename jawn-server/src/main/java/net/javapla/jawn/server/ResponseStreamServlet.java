@@ -25,5 +25,14 @@ public final class ResponseStreamServlet implements ResponseStream {
     public final Writer getWriter() throws IOException {
         return response.getWriter();
     }
+    
+    @Override
+    public void end() {
+        try {
+            response.flushBuffer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
