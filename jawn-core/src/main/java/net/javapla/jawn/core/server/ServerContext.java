@@ -60,6 +60,8 @@ private static final String X_POWERED_BY = "X-Powered-By";
     public void init(Req request, Resp response) {
         this.request = request;
         this.response = response;
+        
+        addResponseHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
     }
     
     @Override

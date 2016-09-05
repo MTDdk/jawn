@@ -2,6 +2,7 @@ package net.javapla.jawn.server.undertow;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.util.HttpString;
 
 public class UndertowHandler implements HttpHandler {
     
@@ -19,6 +20,7 @@ public class UndertowHandler implements HttpHandler {
             exchange.dispatch(this);
             return;
         }
+        //exchange.getResponseHeaders().add(HttpString.tryFromString("Server"), "Undertow");
         
         handler.handle(new UndertowRequest(exchange), new UndertowResponse(exchange));
     }
