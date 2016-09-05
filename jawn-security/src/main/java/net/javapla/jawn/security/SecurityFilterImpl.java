@@ -54,7 +54,7 @@ class SecurityFilterImpl implements SecurityFilter {
     public Response before(FilterChain chain, Context context) {
         SessionFacade session = context.getSession(false);//true?
         
-        if (context.getHttpMethod() == HttpMethod.GET) {
+        if (context.httpMethod() == HttpMethod.GET) {
             String path = context.path();
             if (path.equals(notLoggedInRedirect)) {
                 // redirect to a known location if the user is actually logged in
@@ -135,7 +135,7 @@ class SecurityFilterImpl implements SecurityFilter {
             
             System.out.println("not AUTH");
             
-            if (context.getHttpMethod() == HttpMethod.POST) {
+            if (context.httpMethod() == HttpMethod.POST) {
             
                 UsernamePasswordToken token = new UsernamePasswordToken(username, password);
                 token.setHost(context.host());

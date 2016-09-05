@@ -235,7 +235,7 @@ class JawnServletContext implements Context.Internal {
         return request.getMethod();
     }
     
-    public HttpMethod getHttpMethod() {
+    public HttpMethod httpMethod() {
         return HttpMethod.getMethod(this);
     }
     

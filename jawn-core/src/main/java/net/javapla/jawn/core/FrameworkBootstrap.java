@@ -50,6 +50,8 @@ public class FrameworkBootstrap {
     
     protected ApplicationBootstrap config;
     protected ApplicationBootstrap[] plugins;
+    
+//    private ArrayList<Runnable> onStartup = new ArrayList<>();
 
     
     public FrameworkBootstrap() {
@@ -93,6 +95,8 @@ public class FrameworkBootstrap {
         FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
         engine.onFrameworkStartup(); // signal startup
         
+//        onStartup.forEach(Runnable::run);
+        
         logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
     }
     
@@ -125,6 +129,10 @@ public class FrameworkBootstrap {
             engine = null;
         }
     }
+    
+    /*public void addStartup(Runnable callback) {
+        onStartup.add(callback);
+    }*/
     
     protected void addModule(Module module) {
         this.combinedModules.add(module);

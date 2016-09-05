@@ -17,7 +17,7 @@ public class PropertiesImpl implements JawnProperties {
     
     private final Properties props;
     
-    private final Modes mode;
+    private Modes mode;
     
     
     public PropertiesImpl(Modes mode) throws InitException {
@@ -81,6 +81,9 @@ public class PropertiesImpl implements JawnProperties {
     public boolean isDev() {
         return mode.equals(Modes.DEV);
     }
+    public void set(Modes mode) {
+        this.mode = mode;
+    }
     
     
     /**
@@ -108,6 +111,7 @@ public class PropertiesImpl implements JawnProperties {
         return Boolean.parseBoolean(get(name));
     }
     
+    @Override
     public void set(String name, String value) {
         props.setProperty(name, value);
     }

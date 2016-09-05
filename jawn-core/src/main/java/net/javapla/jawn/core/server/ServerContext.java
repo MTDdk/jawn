@@ -163,7 +163,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
     }
 
     @Override
-    public HttpMethod getHttpMethod() {
+    public HttpMethod httpMethod() {
         return request.method();
     }
 
@@ -189,6 +189,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
     }
 
     @Override
+    @Deprecated
     public String ipAddress() {
         return request.ip();
     }
@@ -203,9 +204,21 @@ private static final String X_POWERED_BY = "X-Powered-By";
         return null;
     }
 
-    @Override
-    public String remoteAddress() {
-        return null;
+    /**
+     * IP address of the requesting client.
+     * If the IP of the request seems to come from a local proxy,
+     * then the X-Forwarded-For header is returned.
+     *
+     * @return IP address of the requesting client.
+     */
+    public String remoteAddress(){
+        String remoteAddr = request.ip();
+        
+        // This could be a list of proxy IPs, which the developer could
+        // provide via some configuration
+        if ("127.0.0.1".equals(remoteAddr) || "0:0:0:0:0:0:0:1".equals(remoteAddr)) 
+            remoteAddr = Optional.ofNullable(requestHeader("X-Forwarded-For")).orElse("localhost");
+        return remoteAddr;
     }
 
     @Override
@@ -303,7 +316,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
 
     @Override
     public boolean isRequestMultiPart() {
-        if (getHttpMethod() != HttpMethod.POST) {
+        if (httpMethod() != HttpMethod.POST) {
             return false;
         }
         String contentType = requestContentType();

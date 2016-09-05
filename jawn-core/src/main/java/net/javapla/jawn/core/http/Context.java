@@ -103,7 +103,7 @@ public interface Context {
     public String queryString();
     
     public String method();
-    public HttpMethod getHttpMethod();
+    public HttpMethod httpMethod();
     
     /**
      * Returns port on which the of the server received current request.

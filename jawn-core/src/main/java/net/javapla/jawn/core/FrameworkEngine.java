@@ -139,7 +139,7 @@ public final class FrameworkEngine {
             /*16062*/
             /*8799*/
             //long time = System.nanoTime();
-            final Route route = router.retrieveRoute(context.getHttpMethod(), uri/*, invoker*//*injector*/);
+            final Route route = router.retrieveRoute(context.httpMethod(), uri/*, invoker*//*injector*/);
             //System.out.println("Timing :: " + (System.nanoTime() - time));
             context.setRouteInformation(route, null/*format*/, null/*language*/, uri);
             
@@ -246,7 +246,7 @@ public final class FrameworkEngine {
         sb.append("Query String: ").append(context.queryString()).append("\n");
         sb.append("URI Full Path: ").append(context.requestUri()).append("\n");
         sb.append("URI Path: ").append(context.path()).append("\n");
-        sb.append("Method: ").append(context.method()).append("\n");    
+        sb.append("Method: ").append(context.httpMethod().name()).append("\n");    
         sb.append("IP: ").append(context.remoteAddress()).append("\n");
         sb.append("Protocol: ").append(context.protocol()).append("\n");
         return sb.toString();
