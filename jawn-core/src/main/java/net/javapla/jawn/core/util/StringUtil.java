@@ -223,6 +223,10 @@ public class StringUtil {
         return true;
     }
     
+    public static final boolean endsWith(String string, char c) {
+        return string.charAt(string.length()-1) == c;
+    }
+    
     /**
      * Sanitizes a URI to conform with the URI standards RFC3986 http://www.ietf.org/rfc/rfc3986.txt.
      * <p>

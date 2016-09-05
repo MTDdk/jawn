@@ -14,6 +14,8 @@ import org.stringtemplate.v4.compiler.CompiledST;
 import org.stringtemplate.v4.misc.ErrorType;
 import org.stringtemplate.v4.misc.Misc;
 
+import net.javapla.jawn.core.util.StringUtil;
+
 /**
  * Overriding STRawGroupDir for a shred of greater performance.
  * 
@@ -59,7 +61,7 @@ public final class STFastGroupDir extends STRawGroupDir {
     @Override
     protected final CompiledST load(String name) {
         String unqualifiedName = getFileName(name);//Misc.getFileName(name);
-        String prefix = Misc.getPrefix(name);
+        String prefix = getPrefix(name);//Misc.getPrefix(name);
         return loadTemplateFile(prefix, unqualifiedName+TEMPLATE_FILE_EXTENSION); // load t.st file
     }
     
@@ -74,6 +76,12 @@ public final class STFastGroupDir extends STRawGroupDir {
         int prefixLength = prefixLength(path);
         if (index < prefixLength) return path.substring(prefixLength);
         return path.substring(index + 1);
+    }
+    private static final String getPrefix(String name) {
+        String parent = Misc.getParent(name);
+        String prefix = parent;
+        if ( !StringUtil.endsWith(parent, '/') ) prefix += '/';
+        return prefix;
     }
 
     /**
