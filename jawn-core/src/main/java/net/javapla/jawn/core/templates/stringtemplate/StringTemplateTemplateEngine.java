@@ -25,8 +25,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
@@ -60,7 +60,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine {
 
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
-                                        PropertiesImpl properties,
+                                        JawnConfigurations properties,
                                         ObjectMapper jsonMapper) {
         log.warn("Starting the StringTemplateTemplateEngine");
         
@@ -324,7 +324,7 @@ group.getInstanceOf 2422
         return "";
     }
     
-    private final void injectValuesIntoLayoutTemplate(
+    protected final void injectValuesIntoLayoutTemplate(
             final ST layoutTemplate, final Context ctx, final String content, 
             final Map<String, Object> values, final String controller, final String language, final ErrorBuffer error) {
         injectTemplateValues(layoutTemplate, values);
@@ -380,19 +380,45 @@ group.getInstanceOf 2422
         linkTemplate.write(createSTWriter(writer), error);
         return writer.toString();
     }
+    protected final String readLinks(final Templates template, final SiteConfiguration.Script[] links, final ErrorBuffer error) {
+        if (links == null) return null;
+        
+        final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
+        
+        linkTemplate.add("links", prefixResourceLinks(links, template.prefix));
+        
+        final Writer writer = new StringBuilderWriter();
+        linkTemplate.write(createSTWriter(writer), error);
+        return writer.toString();
+    }
 
     /**
      * Prefixes local resources with css/ or js/.
      * "Local" is defined by not starting with 'http.*' or 'ftp.*'
      */
-    private final String[] prefixResourceLinks(final String[] links, final String prefix) {
+    private static final String[] prefixResourceLinks(final String[] links, final String prefix) {
         return Arrays.stream(links).parallel()
                 .map(link -> { 
+                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
+                        link = prefix + link;
+                    return link; 
+                })
+                .toArray(String[]::new);
+    }
+    private static final SiteConfiguration.Script[] prefixResourceLinks(final SiteConfiguration.Script[] links, final String prefix) {
+    	Arrays.stream(links).parallel().forEach(link -> {
+    		if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
+                link.url = prefix + link.url;
+    	});
+    	
+    	
+        return links; /*Arrays.stream(links).parallel()
+                .map(SiteConfiguration.Script::getUrl).map(link -> { 
                     if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
                         link = prefix + link; 
                     return link; 
                 })
-                .toArray(String[]::new);
+                .toArray(String[]::new);*/
     }
     
     private final void renderTemplate(final ST layoutTemplate, final Writer writer, final ErrorBuffer error) {

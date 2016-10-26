@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class SiteConfiguration implements Cloneable {
 
     public String title;
-    public String[]/*List<String>*/ scripts;
+    public Script[]/*List<String>*/ scripts;
     public String[]/*List<String>*/ styles;
     
     public boolean overrideDefault;
@@ -32,5 +32,18 @@ public class SiteConfiguration implements Cloneable {
         conf.styles = Arrays.copyOf(this.styles, styles.length);
         conf.overrideDefault = this.overrideDefault;
         return conf;
+    }
+    
+    public static class Script {
+    	public String url;
+    	public boolean async;
+    	
+    	public Script(){}
+    	public Script(String url, boolean async) {
+    		this.url = url;
+    		this.async = async;
+    	}
+    	
+    	public String getUrl() { return url; }
     }
 }

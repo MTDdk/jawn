@@ -160,7 +160,7 @@ public class SiteConfigurationReader {
         
         if (localConf.scripts != null) {
             if (topConf.scripts != null) {
-                String[] scripts = new String[topConf.scripts.length + localConf.scripts.length];
+                SiteConfiguration.Script[] scripts = new SiteConfiguration.Script[topConf.scripts.length + localConf.scripts.length];
                 System.arraycopy(topConf.scripts, 0, scripts, 0, topConf.scripts.length);
                 System.arraycopy(localConf.scripts, 0, scripts, topConf.scripts.length, localConf.scripts.length);
                 topConf.scripts = scripts;
@@ -184,4 +184,5 @@ public class SiteConfigurationReader {
         
         return topConf;
     }
+    
 }
