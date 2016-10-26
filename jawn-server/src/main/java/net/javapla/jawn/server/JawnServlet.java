@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 
 import net.javapla.jawn.core.FrameworkEngine;
-import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.templates.TemplateEngine;
@@ -67,7 +67,7 @@ public class JawnServlet extends HttpServlet {
 //        root_controller = filterConfig.getInitParameter("root_controller");
         
         
-        logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(PropertiesImpl.class).getMode());
+        logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(JawnConfigurations.class).getMode());
     }
     
     @Override

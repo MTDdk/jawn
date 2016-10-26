@@ -3,6 +3,8 @@ package net.javapla.jawn.core;
 import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.cache.Cache;
 import net.javapla.jawn.core.cache.CacheProvider;
+import net.javapla.jawn.core.configuration.Configurations;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.RealSession;
 import net.javapla.jawn.core.http.Session;
 import net.javapla.jawn.core.i18n.Lang;
@@ -23,16 +25,17 @@ import com.google.inject.Singleton;
 public class CoreModule extends AbstractModule {
     
     
-    private final PropertiesImpl properties;
+    private final JawnConfigurations properties;
     private final RouterImpl router;
-    CoreModule(PropertiesImpl properties, RouterImpl router) {
+    CoreModule(JawnConfigurations properties, RouterImpl router) {
         this.properties = properties;
         this.router = router;
     }
 
     @Override
     protected void configure() {
-        bind(PropertiesImpl.class).toInstance(properties);
+        bind(JawnConfigurations.class).toInstance(properties);
+        bind(Configurations.class).toInstance(properties);
         
         // Marshallers
         bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);

@@ -14,8 +14,8 @@ import java.util.Optional;
 
 import com.google.inject.Inject;
 
-import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.HttpMethod;
@@ -35,7 +35,7 @@ public class ServerContext implements Context.Internal2 {
 private static final String X_POWERED_BY = "X-Powered-By";
     
     
-    private final PropertiesImpl properties;
+    private final JawnConfigurations properties;
     private final ParserEngineManager parserManager;
     //private final SessionManager sessionManager;
     
@@ -52,7 +52,7 @@ private static final String X_POWERED_BY = "X-Powered-By";
     
     
     @Inject
-    ServerContext(PropertiesImpl properties, ParserEngineManager parserManager) {
+    ServerContext(JawnConfigurations properties, ParserEngineManager parserManager) {
         this.properties = properties;
         this.parserManager = parserManager;
     }

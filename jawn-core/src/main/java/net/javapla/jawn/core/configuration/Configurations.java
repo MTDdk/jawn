@@ -1,8 +1,8 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.configuration;
 
 import net.javapla.jawn.core.util.Modes;
 
-public interface JawnProperties {
+public interface Configurations {
 
     void set(String name, String value);
 

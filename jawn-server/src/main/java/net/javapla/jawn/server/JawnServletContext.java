@@ -21,9 +21,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.api.Filter;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.HttpMethod;
@@ -52,7 +52,7 @@ class JawnServletContext implements Context.Internal {
     private static final String X_POWERED_BY = "X-Powered-By";
     
     
-    private final PropertiesImpl properties;
+    private final JawnConfigurations properties;
     private final ParserEngineManager parserManager;
     
     private ServletContext servletContext;
@@ -70,7 +70,7 @@ class JawnServletContext implements Context.Internal {
     // servletcontext, appcontext (what the hell is the difference?)
     // requestcontext - the hell, man??
     @Inject
-    JawnServletContext(PropertiesImpl properties, ParserEngineManager parserManager) {
+    JawnServletContext(JawnConfigurations properties, ParserEngineManager parserManager) {
         this.properties = properties;
         this.parserManager = parserManager;
     }

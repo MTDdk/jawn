@@ -14,6 +14,7 @@ import net.javapla.jawn.core.api.ApplicationFilters;
 import net.javapla.jawn.core.api.ApplicationRoutes;
 import net.javapla.jawn.core.api.Filters;
 import net.javapla.jawn.core.api.Router;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseModule;
@@ -42,7 +43,7 @@ import com.google.inject.util.Modules;
 public class FrameworkBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
-    protected final PropertiesImpl properties;
+    protected final JawnConfigurations properties;
     protected final ApplicationConfig appConfig;
     private final List<Module> combinedModules;
     
@@ -55,10 +56,10 @@ public class FrameworkBootstrap {
 
     
     public FrameworkBootstrap() {
-        this(new PropertiesImpl(Modes.determineModeFromSystem()));
+        this(new JawnConfigurations(Modes.determineModeFromSystem()));
     }
     
-    public FrameworkBootstrap(PropertiesImpl conf) {
+    public FrameworkBootstrap(JawnConfigurations conf) {
         properties = conf;
         appConfig = new ApplicationConfig();
         combinedModules = new ArrayList<>();

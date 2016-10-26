@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.util.Modes;
 
@@ -16,14 +17,14 @@ import net.javapla.jawn.core.util.Modes;
 public class Jawn {
     protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
 
-    private final PropertiesImpl properties;
+    private final JawnConfigurations properties;
     private final FrameworkBootstrap bootstrapper;
     private final ArrayList<Runnable> onStartup = new ArrayList<>();
     private final ArrayList<Runnable> onShutdown = new ArrayList<>();
     
     
     public Jawn() {
-        properties = new PropertiesImpl(Modes.determineModeFromSystem());
+        properties = new JawnConfigurations(Modes.determineModeFromSystem());
         bootstrapper = new FrameworkBootstrap(properties);
     }
     
@@ -45,7 +46,7 @@ public class Jawn {
     
     public Jawn env(Modes mode) {
         Objects.requireNonNull(mode);
-        //TODO clearly, this needs to be changed
+        //TODO clearly, this needs to be changed to not set a property like this
         System.setProperty("JAWN_ENV", mode.toString()); 
         properties.set(mode);
         return this;
@@ -57,12 +58,12 @@ public class Jawn {
         try {
             injector.getInstance(Server.class).start();
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); //TODO break when server cannot be found
         }
         
         onStartup.forEach(Runnable::run);
         
-        logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(PropertiesImpl.class).getMode());
+        logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(JawnConfigurations.class).getMode());
     }
     
     public void stop() {
@@ -71,8 +72,8 @@ public class Jawn {
         Injector injector = bootstrapper.getInjector();
         try {
             injector.getInstance(Server.class).stop();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignore) {
+            //at this point the server REALLY should be possible to find
         }
         bootstrapper.shutdown();
     }

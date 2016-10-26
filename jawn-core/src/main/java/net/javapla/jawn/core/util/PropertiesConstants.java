@@ -1,6 +1,6 @@
 package net.javapla.jawn.core.util;
 
-import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 
 /**
  * These constants cannot be a part of {@link Constants}
@@ -14,7 +14,7 @@ import net.javapla.jawn.core.PropertiesImpl;
  * us the advantage that certain read properties can be
  * available to us at runtime.
  * 
- * Just make sure that this class is never read BEFORE {@link PropertiesImpl}
+ * Just make sure that this class is never read BEFORE {@link JawnConfigurations}
  * 
  * @author MTD
  *
