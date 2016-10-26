@@ -26,4 +26,9 @@ public class ServerResponseStream implements ResponseStream {
         return new OutputStreamWriter(getOutputStream());
     }
 
+    @Override
+    public void end() {
+        response.end();
+    }
+    
 }

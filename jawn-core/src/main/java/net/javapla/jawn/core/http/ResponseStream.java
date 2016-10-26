@@ -12,7 +12,9 @@ import java.io.Writer;
  */
 public interface ResponseStream {
 
-    public OutputStream getOutputStream() throws IOException;
+    OutputStream getOutputStream() throws IOException;
     
-    public Writer getWriter() throws IOException;
+    Writer getWriter() throws IOException;
+    
+    void end();
 }

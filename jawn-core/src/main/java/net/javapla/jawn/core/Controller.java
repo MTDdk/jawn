@@ -1727,6 +1727,9 @@ public abstract class Controller implements ResponseHolder {
                     public OutputStream getOutputStream() throws IOException {
                         return null;
                     }
+                    
+                    @Override
+                    public void end() {}
                 });
         
         
