@@ -6,7 +6,7 @@ class Templates {
             "$links:{link|<link rel=\"stylesheet\" type=\"text/css\" href=\"$link$\">}$", "/css/", '$', '$'
     );
     public static final Templates SCRIPTS_TEMPLATE = new Templates(
-            "$links:{link|<script src=\"$link.url$\" $if(link.async)$async defer$endif$></script>}$", "/js/", '$', '$'
+            "$links:{link|<script src=\"$link.url$\" $if(link.async)$async$endif$ $if(link.defer)$defer$endif$></script>}$", "/js/", '$', '$'
     );
             
     

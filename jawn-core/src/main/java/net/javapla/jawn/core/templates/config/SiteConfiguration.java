@@ -37,11 +37,14 @@ public class SiteConfiguration implements Cloneable {
     public static class Script {
     	public String url;
     	public boolean async;
+    	public boolean defer;
     	
     	public Script(){}
-    	public Script(String url, boolean async) {
+    	public Script(String url, boolean all) { this(url, all, all); }
+    	public Script(String url, boolean async, boolean defer) {
     		this.url = url;
     		this.async = async;
+    		this.defer = defer;
     	}
     	
     	public String getUrl() { return url; }
