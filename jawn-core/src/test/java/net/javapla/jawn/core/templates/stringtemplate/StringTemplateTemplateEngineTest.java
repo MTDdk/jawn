@@ -79,7 +79,7 @@ public class StringTemplateTemplateEngineTest {
 		String html = engine.readLinks(Templates.SCRIPTS_TEMPLATE, scripts, error);
 		
 		Assert.assertTrue(error.errors.isEmpty());
-		Assert.assertTrue(html.contains("async>"));
+		Assert.assertTrue(html.contains("async defer>"));
 	}
 
 }
