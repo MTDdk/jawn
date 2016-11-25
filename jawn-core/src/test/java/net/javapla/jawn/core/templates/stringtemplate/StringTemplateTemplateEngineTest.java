@@ -8,9 +8,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.stringtemplate.v4.misc.ErrorBuffer;
 
+import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.templates.config.SiteConfiguration;
+import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
 import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
 import net.javapla.jawn.core.util.Modes;
 
@@ -22,7 +24,7 @@ public class StringTemplateTemplateEngineTest {
 	public static void setUpBeforeClass() throws Exception {
 		
 		JawnConfigurations conf = new JawnConfigurations(Modes.DEV);
-		engine = new StringTemplateTemplateEngine(new TemplateConfigProvider<StringTemplateConfiguration>(), conf, new JsonMapperProvider().get());
+		engine = new StringTemplateTemplateEngine(new TemplateConfigProvider<StringTemplateConfiguration>(), conf, new DeploymentInfo(conf) , new SiteConfigurationReader(new JsonMapperProvider().get()));
 	}
 
 	@AfterClass
@@ -45,7 +47,7 @@ public class StringTemplateTemplateEngineTest {
 		};
 		
 		ErrorBuffer error = new ErrorBuffer();
-		String html = engine.readLinks(Templates.SCRIPTS_TEMPLATE, scripts, error);
+		String html = engine.readLinks(StringTemplateTemplateEngine.SCRIPTS_TEMPLATE, scripts, error);
 		
 		Assert.assertTrue(error.errors.isEmpty());
 		Assert.assertTrue(html.contains("/js/"));
@@ -61,7 +63,7 @@ public class StringTemplateTemplateEngineTest {
 		};
 		
 		ErrorBuffer error = new ErrorBuffer();
-		String html = engine.readLinks(Templates.SCRIPTS_TEMPLATE, scripts, error);
+		String html = engine.readLinks(StringTemplateTemplateEngine.SCRIPTS_TEMPLATE, scripts, error);
 		
 		Assert.assertTrue(error.errors.isEmpty());
 		Assert.assertFalse(html.contains("/js/"));
@@ -76,7 +78,7 @@ public class StringTemplateTemplateEngineTest {
 		};
 		
 		ErrorBuffer error = new ErrorBuffer();
-		String html = engine.readLinks(Templates.SCRIPTS_TEMPLATE, scripts, error);
+		String html = engine.readLinks(StringTemplateTemplateEngine.SCRIPTS_TEMPLATE, scripts, error);
 		
 		Assert.assertTrue(error.errors.isEmpty());
 		Assert.assertTrue(html.contains("async defer>"));

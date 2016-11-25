@@ -35,6 +35,7 @@ import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
+import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
 
 import org.apache.commons.fileupload.FileUploadException;
@@ -621,11 +622,11 @@ class JawnServletContext implements Context.Internal {
     
 /* ****** */
 
-    public final ResponseStream finalizeResponse(Response controllerResponse) {
-        return finalizeResponse(controllerResponse, true);
+    public final ResponseStream readyResponse(Response controllerResponse) {
+        return readyResponse(controllerResponse, true);
     }
     
-    public final ResponseStream finalizeResponse(final Response controllerResponse, boolean handleFlash) {
+    public final ResponseStream readyResponse(final Response controllerResponse, boolean handleFlash) {
         // status
         response.setStatus(controllerResponse.status());
         
@@ -659,6 +660,11 @@ class JawnServletContext implements Context.Internal {
         }
         
         return new ResponseStreamServlet(response);
+    }
+
+    @Override
+    public Modes mode() {
+        return properties.getMode();
     }
 
 }

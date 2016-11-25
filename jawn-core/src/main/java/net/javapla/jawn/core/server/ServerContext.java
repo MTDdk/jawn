@@ -24,19 +24,21 @@ import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.http.Resp;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
-import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
 
 public class ServerContext implements Context.Internal2 {
     
-private static final String X_POWERED_BY = "X-Powered-By";
+
+
+	private static final String X_POWERED_BY = "X-Powered-By";
     
     
     private final JawnConfigurations properties;
-    private final ParserEngineManager parserManager;
+    //private final ParserEngineManager parserManager;
     //private final SessionManager sessionManager;
     
     private Req request;
@@ -52,9 +54,9 @@ private static final String X_POWERED_BY = "X-Powered-By";
     
     
     @Inject
-    ServerContext(JawnConfigurations properties, ParserEngineManager parserManager) {
+    ServerContext(JawnConfigurations properties/*, ParserEngineManager parserManager*/) {
         this.properties = properties;
-        this.parserManager = parserManager;
+        //this.parserManager = parserManager;
     }
     
     public void init(Req request, Resp response) {
@@ -125,6 +127,11 @@ private static final String X_POWERED_BY = "X-Powered-By";
             session.put(Context.FLASH_SESSION_KEYWORD, new HashMap<String, Object>());
         }
         ((Map<String, Object>) session.get(Context.FLASH_SESSION_KEYWORD)).put(name, value);
+    }
+    
+    @Override
+    public Modes mode() {
+        return properties.getMode();
     }
 
     @Override
@@ -233,10 +240,11 @@ private static final String X_POWERED_BY = "X-Powered-By";
         return request.header("Content-Type").orElse(null);
     }
 
-    @Override
+    /*@Override
     public String getRealPath(String path) {
-        return "webapp/" + path;
-    }
+    	if (path == null) return null;
+        return WEBAPP + path;
+    }*/
 
     @Override
     public MultiList<String> params() {
@@ -380,12 +388,12 @@ private static final String X_POWERED_BY = "X-Powered-By";
     }
 
     @Override
-    public ResponseStream finalizeResponse(Response controllerResponse) {
-        return finalizeResponse(controllerResponse, true);
+    public ResponseStream readyResponse(Response controllerResponse) {
+        return readyResponse(controllerResponse, true);
     }
 
     @Override
-    public ResponseStream finalizeResponse(Response controllerResponse, boolean handleFlash) {
+    public ResponseStream readyResponse(Response controllerResponse, boolean handleFlash) {
         // status
         response.statusCode(controllerResponse.status());
         
@@ -420,6 +428,5 @@ private static final String X_POWERED_BY = "X-Powered-By";
         
         return new ServerResponseStream(response);
     }
-
 
 }

@@ -10,11 +10,9 @@ import java.io.Writer;
  * @author MTD
  *
  */
-public interface ResponseStream {
+public interface ResponseStream extends AutoCloseable {
 
     OutputStream getOutputStream() throws IOException;
     
     Writer getWriter() throws IOException;
-    
-    void end();
 }

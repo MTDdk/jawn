@@ -13,6 +13,7 @@ import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.exceptions.WebException;
 import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.util.CollectionUtil;
 
@@ -66,14 +67,19 @@ public final class FrameworkEngine {
                 // run pre-filters
                 Response response = route.getFilterChain().before(context);
                 
-                //might already have been handled by the controller or filters
+                // a filter might return a response, in which case do nothing
                 if (response == null)
                     //response = invoker.executeAction(context);
                     response = route.executeRouteAndRetrieveResponse(context);
-                runner.run(context, response);
                 
+                ResponseStream rsp = runner.run(context, response);
+            
                 // run post-filters
                 route.getFilterChain().after(context);
+                
+                // close response streams in the end
+                rsp.close();
+                
             /*} else {
                 
                 // This scenario ought not happen as the Router#getRoute() would have thrown an exception
@@ -197,7 +203,7 @@ public final class FrameworkEngine {
 
                 try {
                     Response response = ResponseBuilder.text(getStackTraceString(e), status);
-                    runner.run(context, response);
+                    runner.run(context, response).close();
                 } catch (Exception ex) {
                     logger.error("Failed to send error response to client", ex);
                 }
@@ -209,7 +215,7 @@ public final class FrameworkEngine {
                         .layout(layout)
                         .contentType(MediaType.TEXT_HTML);
 
-                runner.run(context, response);
+                runner.run(context, response).close();
                 // ParamCopy.copyInto(resp.values(), request, null);
             }
         } catch (Throwable t) {
@@ -223,7 +229,7 @@ public final class FrameworkEngine {
             try {
                 Response renderable = ResponseBuilder.ok().contentType(MediaType.TEXT_HTML)
                         .renderable("<html><head><title>Sorry!</title></head><body><div style='background-color:pink;'>internal error</div></body>");
-                runner.run(context, renderable);
+                runner.run(context, renderable).close();
             } catch (Exception ex) {
                 logger.error(ex.toString(), ex);
             }

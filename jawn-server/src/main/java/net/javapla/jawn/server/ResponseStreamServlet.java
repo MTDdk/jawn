@@ -27,12 +27,8 @@ public final class ResponseStreamServlet implements ResponseStream {
     }
     
     @Override
-    public void end() {
-        try {
-            response.flushBuffer();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void close() throws IOException {
+        response.flushBuffer();
     }
 
 }
