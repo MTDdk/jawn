@@ -39,7 +39,7 @@ public class SiteConfiguration implements Cloneable {
     	public boolean async;
     	public boolean defer;
     	
-    	public Script(){}
+    	public Script() {}
     	public Script(String url, boolean all) { this(url, all, all); }
     	public Script(String url, boolean async, boolean defer) {
     		this.url = url;
@@ -48,5 +48,9 @@ public class SiteConfiguration implements Cloneable {
     	}
     	
     	public String getUrl() { return url; }
+    	
+    	public Script url(String url) {
+    	    return new Script(url, async, defer);
+    	}
     }
 }

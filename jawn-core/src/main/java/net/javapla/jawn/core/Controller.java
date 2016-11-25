@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MediaType;
 
+import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.exceptions.ActionNotFoundException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
@@ -589,7 +590,7 @@ public abstract class Controller implements ResponseHolder {
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
     protected <T extends Controller> /*HttpBuilder*/void redirect(Class<T> controllerClass, Map<String, String> params){
-        String controllerPath = RouterHelper.getReverseRoute(controllerClass);
+        String controllerPath = RouterHelper.getReverseRouteFast(controllerClass);
         String contextPath = context.contextPath();
         String action = params.get("action") != null? params.get("action") : null;
         String id = params.get("id") != null? params.get("id") : null;
@@ -1025,21 +1026,21 @@ public abstract class Controller implements ResponseHolder {
      * @return the path to the saved image
      */
     protected ImageHandlerBuilder image(FormItem item) throws ControllerException {
-        return new ImageHandlerBuilder(this, context, item);
+        return new ImageHandlerBuilder(this, injector.getInstance(DeploymentInfo.class), item);
     }
     protected ImageHandlerBuilder image(File file) throws PathNotFoundException, ControllerException {
         if (!file.canRead())
             throw new PathNotFoundException(file.getPath());
-        return new ImageHandlerBuilder(this, context, file);
+        return new ImageHandlerBuilder(this, injector.getInstance(DeploymentInfo.class), file);
     }
     protected ImageHandlerBuilder image(String name) throws PathNotFoundException, ControllerException {
         File file = new File(getRealPath(name));
         if (!file.canRead())
             throw new PathNotFoundException(file.getPath());
-        return new ImageHandlerBuilder(this, context, file);
+        return new ImageHandlerBuilder(this, injector.getInstance(DeploymentInfo.class), file);
     }
     protected ImageHandlerBuilder image(byte[] bytes, String fileName) throws ControllerException {
-        return new ImageHandlerBuilder(this, context, bytes, fileName);
+        return new ImageHandlerBuilder(this, injector.getInstance(DeploymentInfo.class), bytes, fileName);
     }
     
     
@@ -1557,7 +1558,7 @@ public abstract class Controller implements ResponseHolder {
      * @return a String specifying the real path, or null if the translation cannot be performed
      */
     protected String getRealPath(String path) {
-        return context.getRealPath(path);
+        return injector.getInstance(DeploymentInfo.class).getRealPath(path);//context.getRealPath(path);
     }
 
     /**
@@ -1729,7 +1730,7 @@ public abstract class Controller implements ResponseHolder {
                     }
                     
                     @Override
-                    public void end() {}
+                    public void close() {}
                 });
         
         

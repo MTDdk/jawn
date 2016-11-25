@@ -61,7 +61,7 @@ public class JawnConfigurations implements Configurations {
     
     
     private void checkInitProperties() throws InitException {
-        for (String param: Constants.PROPERTY_PARAMS) {
+        for (String param: PROPERTY_PARAMS) {
             if (props.get(param) == null) {
                 throw new InitException("Must provide property: " + param);
             }

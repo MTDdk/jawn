@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.util.Modes;
@@ -18,6 +19,7 @@ public class Jawn {
     protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
 
     private final JawnConfigurations properties;
+    private final DeploymentInfo deploymentInfo;
     private final FrameworkBootstrap bootstrapper;
     private final ArrayList<Runnable> onStartup = new ArrayList<>();
     private final ArrayList<Runnable> onShutdown = new ArrayList<>();
@@ -25,7 +27,8 @@ public class Jawn {
     
     public Jawn() {
         properties = new JawnConfigurations(Modes.determineModeFromSystem());
-        bootstrapper = new FrameworkBootstrap(properties);
+        deploymentInfo = new DeploymentInfo(properties);
+        bootstrapper = new FrameworkBootstrap(properties, deploymentInfo);
     }
     
     /*public Jawn(final String contextPath) {

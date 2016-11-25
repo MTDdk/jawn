@@ -7,8 +7,8 @@ import net.javapla.jawn.core.http.ResponseStream;
 
 public interface TemplateEngine {
     
-    static final String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "views");//"WEB-INF/views/");
-    static final String LAYOUT_DEFAULT = "index.html";
+    String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "views");//"WEB-INF/views/");
+    String LAYOUT_DEFAULT = "index.html";
 
     /**
      * Render the given object to the given context
@@ -30,7 +30,7 @@ public interface TemplateEngine {
      * @param stream
      *      The stream to render to
      */
-    public void invoke(final Context context, final Response response, final ResponseStream stream) throws ViewException;
+    void invoke(final Context context, final Response response, final ResponseStream stream) throws ViewException;
 
     /**
      * For instance returns ".ftl.html" Or .ftl.json.
@@ -43,7 +43,7 @@ public interface TemplateEngine {
      * @return
      *      name of suffix or null if engine is not using a template on disk.
      */
-    public String getSuffixOfTemplatingEngine();
+    String getSuffixOfTemplatingEngine();
 
     /**
      * Get the content type this template engine renders
@@ -51,6 +51,16 @@ public interface TemplateEngine {
      * @return
      *      The content type this template engine renders
      */
-    public String[] getContentType();
+    String[] getContentType();
 //    public ContentType[] getContentType2();
+    
+    public static interface StringTemplateEngine<T> extends TemplateEngine {
+        /**
+         * Let the template engine handle lookups of templates and in effect also caching hereof.
+         * @param templatePath
+         * @return
+         */
+        T readTemplate(String templatePath);
+    }
+    
 }

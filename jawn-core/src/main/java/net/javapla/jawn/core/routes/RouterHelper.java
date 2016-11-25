@@ -46,7 +46,26 @@ public class RouterHelper {
             packageSuffix = packageSuffix.substring(1);
 
         return (packageSuffix.equals("") ? "" : "/" + packageSuffix) + "/" + StringUtil.underscore(simpleName.substring(0, simpleName.lastIndexOf("Controller")));
-        
+    }
+    
+    private static final int CONTROLLER_PACKAGE_LENGTH = PropertiesConstants.CONTROLLER_PACKAGE.length();
+    private static final int CONTROLLER_LENGTH = "Controller".length();
+    public static String getReverseRouteFast(Class<? extends Controller> clazz) {
+    	String simpleName = clazz.getSimpleName();
+        if (! simpleName.endsWith("Controller")) {
+            throw new ControllerException("controller name must end with 'Controller' suffix");
+        }
+
+        String className = clazz.getName();
+        if (!className.startsWith(PropertiesConstants.CONTROLLER_PACKAGE)) {
+            throw new ControllerException("controller must be in the 'app.controllers' package");
+        }
+    	String packageSuffix = className.substring(CONTROLLER_PACKAGE_LENGTH, className.lastIndexOf("."));
+        packageSuffix = packageSuffix.replace(".", "/");
+        if (packageSuffix.startsWith("/"))
+            packageSuffix = packageSuffix.substring(1);
+
+        return (packageSuffix.equals("") ? "" : "/" + packageSuffix) + "/" + StringUtil.underscore(simpleName.substring(0, simpleName.length()-CONTROLLER_LENGTH));
     }
     
     /**

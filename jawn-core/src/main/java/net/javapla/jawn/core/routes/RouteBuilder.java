@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.routes;
 
 import java.text.MessageFormat;
+import java.util.LinkedList;
 import java.util.List;
 
 import net.javapla.jawn.core.Controller;
@@ -14,8 +15,6 @@ import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StringUtil;
-
-import com.google.common.collect.Lists;
 
 public class RouteBuilder {
     
@@ -122,7 +121,7 @@ public class RouteBuilder {
         
         String action = constructAction(actionName, httpMethod);
         
-        List<Filter> list = Lists.newArrayList();
+        LinkedList<Filter> list = new LinkedList<>();
         if (type != null) {
             // Find all possible filters
             // First the controller specific
