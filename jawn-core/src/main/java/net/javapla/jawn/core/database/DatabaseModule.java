@@ -2,17 +2,17 @@ package net.javapla.jawn.core.database;
 
 import javax.sql.DataSource;
 
-import net.javapla.jawn.core.PropertiesImpl;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.util.Providers;
+
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 
 public class DatabaseModule extends AbstractModule {
 
     private DatabaseConnections connections;
-    private PropertiesImpl properties;
+    private JawnConfigurations properties;
 
-    public DatabaseModule(DatabaseConnections connections, PropertiesImpl properties) {
+    public DatabaseModule(DatabaseConnections connections, JawnConfigurations properties) {
         this.connections = connections;
         this.properties = properties;
     }

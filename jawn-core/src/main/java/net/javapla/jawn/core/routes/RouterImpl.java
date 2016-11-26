@@ -8,8 +8,8 @@ import java.util.Map;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.FiltersHandler;
-import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.api.Router;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.CompilationException;
 import net.javapla.jawn.core.exceptions.ControllerException;
@@ -51,7 +51,7 @@ public class RouterImpl implements Router {
     private ActionInvoker invoker;
     
     
-    public RouterImpl(FiltersHandler filters, PropertiesImpl properties) {
+    public RouterImpl(FiltersHandler filters, JawnConfigurations properties) {
         builders = new ArrayList<>();
         this.filters = filters;
         

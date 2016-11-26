@@ -13,6 +13,7 @@ import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.exceptions.ViewException;
 import net.javapla.jawn.core.exceptions.WebException;
 import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.util.CollectionUtil;
 
@@ -47,6 +48,60 @@ public final class FrameworkEngine {
 //        this.invoker = invoker;
 //        this.injector = injector;
 //        this.lang = lang;
+    }
+    
+    public final void onRouteRequest(Context.Internal2 context) {
+        final String path = context.request().path();
+        String uri = path;
+        
+        if (uri.length() == 0) {
+            uri = "/";//different servlet implementations, damn.
+        }
+        
+        try {
+
+            final Route route = router.retrieveRoute(context.request().method(), uri/*, invoker*//*injector*/);
+            context.setRouteInformation(route, null/*format*/, null/*language*/, uri);
+            
+            //if (route != null) {
+                // run pre-filters
+                Response response = route.getFilterChain().before(context);
+                
+                // a filter might return a response, in which case do nothing
+                if (response == null)
+                    //response = invoker.executeAction(context);
+                    response = route.executeRouteAndRetrieveResponse(context);
+                
+                ResponseStream rsp = runner.run(context, response);
+            
+                // run post-filters
+                route.getFilterChain().after(context);
+                
+                // close response streams in the end
+                rsp.close();
+                
+            /*} else {
+                
+                // This scenario ought not happen as the Router#getRoute() would have thrown an exception
+                // if no route is found
+                logger.warn("No matching route for servlet path: " + context.path() + ", passing down to container.");
+            }*/
+            
+        } catch (RouteException e) {
+            // 404
+            renderSystemError(context, "/system/404", "index", 404, e);
+        } catch (ViewException e) {
+            // 501
+            renderSystemError(context, "/system/500", "index", 501, e);
+        } catch (BadRequestException | MediaTypeException e) {
+            // 400
+            renderSystemError(context, "/system/400", "index", 400, e);
+        } catch (WebException e){
+            renderSystemError(context, "/system/"+e.getHttpCode(), "index", e.getHttpCode(), e);
+        } catch (Exception e) {
+            // 500
+            renderSystemError(context, "/system/500", "index", 500, e);
+        }
     }
     
     //onRouteRequest
@@ -90,7 +145,7 @@ public final class FrameworkEngine {
             /*16062*/
             /*8799*/
             //long time = System.nanoTime();
-            final Route route = router.retrieveRoute(context.getHttpMethod(), uri/*, invoker*//*injector*/);
+            final Route route = router.retrieveRoute(context.httpMethod(), uri/*, invoker*//*injector*/);
             //System.out.println("Timing :: " + (System.nanoTime() - time));
             context.setRouteInformation(route, null/*format*/, null/*language*/, uri);
             
@@ -148,7 +203,7 @@ public final class FrameworkEngine {
 
                 try {
                     Response response = ResponseBuilder.text(getStackTraceString(e), status);
-                    runner.run(context, response);
+                    runner.run(context, response).close();
                 } catch (Exception ex) {
                     logger.error("Failed to send error response to client", ex);
                 }
@@ -160,7 +215,7 @@ public final class FrameworkEngine {
                         .layout(layout)
                         .contentType(MediaType.TEXT_HTML);
 
-                runner.run(context, response);
+                runner.run(context, response).close();
                 // ParamCopy.copyInto(resp.values(), request, null);
             }
         } catch (Throwable t) {
@@ -174,7 +229,7 @@ public final class FrameworkEngine {
             try {
                 Response renderable = ResponseBuilder.ok().contentType(MediaType.TEXT_HTML)
                         .renderable("<html><head><title>Sorry!</title></head><body><div style='background-color:pink;'>internal error</div></body>");
-                runner.run(context, renderable);
+                runner.run(context, renderable).close();
             } catch (Exception ex) {
                 logger.error(ex.toString(), ex);
             }
@@ -197,7 +252,7 @@ public final class FrameworkEngine {
         sb.append("Query String: ").append(context.queryString()).append("\n");
         sb.append("URI Full Path: ").append(context.requestUri()).append("\n");
         sb.append("URI Path: ").append(context.path()).append("\n");
-        sb.append("Method: ").append(context.method()).append("\n");    
+        sb.append("Method: ").append(context.httpMethod().name()).append("\n");    
         sb.append("IP: ").append(context.remoteAddress()).append("\n");
         sb.append("Protocol: ").append(context.protocol()).append("\n");
         return sb.toString();

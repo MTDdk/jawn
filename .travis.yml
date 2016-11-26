@@ -1,0 +1,8 @@
+language: java
+jdk:
+  - oraclejdk8
+deploy:
+  provider: script
+  script: gradle clean test jacocoTestReport coveralls
+  on:
+    jdk: oraclejdk8

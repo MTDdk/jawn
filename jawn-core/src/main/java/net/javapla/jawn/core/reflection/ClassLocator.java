@@ -3,6 +3,7 @@ package net.javapla.jawn.core.reflection;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -14,6 +15,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.javapla.jawn.core.util.URLCodec;
 
 /**
  * Using reflection to locate classes in a package, and get the classes of a certain type.
@@ -42,7 +45,7 @@ public class ClassLocator {
         
         final Enumeration<URL> resources = retrieveResourcesFromPath(packageToScan, scannedPath);
         while (resources.hasMoreElements()) {
-            processResource(new File(resources.nextElement().getFile()));
+            processResource(new File(URLCodec.decode(resources.nextElement().getFile(), StandardCharsets.UTF_8)));
         }
     }
     
@@ -53,7 +56,7 @@ public class ClassLocator {
             throw new IllegalArgumentException(String.format("Unable to get resources from path '%s'. Are you sure the given '%s' package exists?", scannedPath, scannedPackage));
         
         try {
-            File scannedFile = new File(resource.getFile());
+            File scannedFile = new File(URLCodec.decode(resource.getFile(), StandardCharsets.UTF_8));
             if (scannedFile.isDirectory())
                 return classLoader.getResources(scannedPath);
             else  {//we assume the classpath is inside a jar

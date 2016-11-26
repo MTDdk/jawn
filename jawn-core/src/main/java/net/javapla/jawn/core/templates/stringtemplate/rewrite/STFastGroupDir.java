@@ -14,6 +14,8 @@ import org.stringtemplate.v4.compiler.CompiledST;
 import org.stringtemplate.v4.misc.ErrorType;
 import org.stringtemplate.v4.misc.Misc;
 
+import net.javapla.jawn.core.util.StringUtil;
+
 /**
  * Overriding STRawGroupDir for a shred of greater performance.
  * 
@@ -22,10 +24,19 @@ import org.stringtemplate.v4.misc.Misc;
  */
 public final class STFastGroupDir extends STRawGroupDir {
     
+    protected final URL resourceRoot;
     protected final boolean skipLF;
     public STFastGroupDir(String dirName, char delimiterStartChar, char delimiterStopChar, boolean skipLF) {
         super(dirName, delimiterStartChar, delimiterStopChar);
         this.skipLF = skipLF;
+        
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        resourceRoot = cl.getResource(dirName);
+        if ( resourceRoot==null ) {
+            cl = this.getClass().getClassLoader();
+            root = cl.getResource(dirName);
+        }
+        if ( verbose ) System.out.println("STGroupDir("+dirName+") found via CLASSPATH at "+resourceRoot);
     }
 
     @Override
@@ -45,18 +56,19 @@ public final class STFastGroupDir extends STRawGroupDir {
             if ( verbose ) System.out.println(name+" previously seen as not found");
             return null;
         }
+        
         // try to load from disk and look up again
-        if ( code==null ) code = load(name);
-        //if ( code==null ) code = lookupImportedTemplate(name);
+        String unqualifiedName = getFileName(name);//Misc.getFileName(name);
+        String prefix = getPrefix(name);//Misc.getPrefix(name);
+        
+        if ( code==null ) code = loadTemplateFile(prefix, unqualifiedName+TEMPLATE_FILE_EXTENSION); // load t.st file
+        if ( code == null ) code = loadTemplateResource(prefix, unqualifiedName+TEMPLATE_FILE_EXTENSION); // load t.st resource
         if ( code==null ) templates.put(name, NOT_FOUND_ST);
         
+        //TODO rewrite in order to not use 'templates', which is synchronized
+        // we can probably manage with only synchronising writes and not all reads
+        
         return code;
-    }
-    
-    @Override
-    protected final CompiledST load(String name) {
-        String unqualifiedName = getFileName(name);//Misc.getFileName(name);
-        return loadTemplateFile(Misc.getPrefix(name), unqualifiedName+TEMPLATE_FILE_EXTENSION); // load t.st file
     }
     
     /**
@@ -66,10 +78,16 @@ public final class STFastGroupDir extends STRawGroupDir {
      * @return
      */
     private static final String getFileName(String path) {
-        int index = path.lastIndexOf(File.separatorChar);
+        int index = path.lastIndexOf('/');//stop using File.separatorChar as we are not even remotely close to be using that ANYwhere else - apparently. This makes it fail on Windows systems
         int prefixLength = prefixLength(path);
         if (index < prefixLength) return path.substring(prefixLength);
         return path.substring(index + 1);
+    }
+    private static final String getPrefix(String name) {
+        String parent = Misc.getParent(name);
+        String prefix = parent;
+        if ( !StringUtil.endsWith(parent, '/') ) prefix += '/';
+        return prefix;
     }
 
     /**
@@ -89,27 +107,37 @@ public final class STFastGroupDir extends STRawGroupDir {
 
     @Override
     public final CompiledST loadTemplateFile(String prefix, String unqualifiedFileName) {
+        return loadTemplate(root, prefix, unqualifiedFileName);
+    }
+    
+    public final CompiledST loadTemplateResource(String prefix, String unqualifiedFileName) {
+        return loadTemplate(resourceRoot, prefix, unqualifiedFileName);
+    }
+    
+    private final CompiledST loadTemplate(URL root, String prefix, String unqualifiedFileName) {
         try {
+            
             final URL f = new URL(root+prefix+unqualifiedFileName);
-
-            final ANTLRStringStream fs = 
-                    skipLF ? 
-                    new ANTLRNoNewLineStream(f, encoding) : //removing \r and \n and trimming lines
-                    new ANTLRInputStream(f.openStream(), encoding); //reading templates as is
-                    
-            fs.name = unqualifiedFileName; //most likely extremely unnecessary
-
-            return loadTemplateFile(prefix, unqualifiedFileName, fs);
+            
+            return loadTemplateFile(prefix, unqualifiedFileName, constructStringStream(f));
 
         } catch (MalformedURLException me) {
             errMgr.runTimeError(null, null, ErrorType.INVALID_TEMPLATE_NAME,
                     me, root + unqualifiedFileName);
         } catch (IOException ioe) {
-            if ( verbose ) System.out.println(root+"/"+unqualifiedFileName+" doesn't exist");
+            if ( verbose ) System.out.println(root+prefix+unqualifiedFileName+" doesn't exist");
             //errMgr.IOError(null, ErrorType.NO_SUCH_TEMPLATE, ioe, unqualifiedFileName);
         }
         
         return null;
+    }
+    
+    private final ANTLRStringStream constructStringStream(URL f) throws IOException {
+        return 
+            skipLF ? 
+            new ANTLRNoNewLineStream(f, encoding) : //removing \r and \n and trimming lines
+            new ANTLRInputStream(f.openStream(), encoding); //reading templates as is
+            //TODO adding a HTML character converter here
     }
     
 }

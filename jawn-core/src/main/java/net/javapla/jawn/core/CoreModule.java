@@ -3,6 +3,9 @@ package net.javapla.jawn.core;
 import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.cache.Cache;
 import net.javapla.jawn.core.cache.CacheProvider;
+import net.javapla.jawn.core.configuration.Configurations;
+import net.javapla.jawn.core.configuration.DeploymentInfo;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.RealSession;
 import net.javapla.jawn.core.http.Session;
 import net.javapla.jawn.core.i18n.Lang;
@@ -14,6 +17,7 @@ import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestratorImpl;
+import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -23,16 +27,20 @@ import com.google.inject.Singleton;
 public class CoreModule extends AbstractModule {
     
     
-    private final PropertiesImpl properties;
+    private final JawnConfigurations properties;
+    private final DeploymentInfo deploymentInfo;
     private final RouterImpl router;
-    CoreModule(PropertiesImpl properties, RouterImpl router) {
+    CoreModule(JawnConfigurations properties, DeploymentInfo deploymentInfo, RouterImpl router) {
         this.properties = properties;
+        this.deploymentInfo = deploymentInfo;
         this.router = router;
     }
 
     @Override
     protected void configure() {
-        bind(PropertiesImpl.class).toInstance(properties);
+        bind(JawnConfigurations.class).toInstance(properties);
+        bind(Configurations.class).toInstance(properties);
+        bind(DeploymentInfo.class).toInstance(deploymentInfo);
         
         // Marshallers
         bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
@@ -40,6 +48,7 @@ public class CoreModule extends AbstractModule {
         
         bind(Cache.class).toProvider(CacheProvider.class).in(Singleton.class);
         
+        bind(SiteConfigurationReader.class).in(Singleton.class);
         bind(TemplateEngineOrchestrator.class).to(TemplateEngineOrchestratorImpl.class).in(Singleton.class);
         bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
         bind(ResponseRunner.class).in(Singleton.class);

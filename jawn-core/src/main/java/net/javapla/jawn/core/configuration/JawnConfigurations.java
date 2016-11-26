@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.configuration;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -13,14 +13,14 @@ import net.javapla.jawn.core.util.StringUtil;
  * 
  * @author MTD
  */
-public class PropertiesImpl implements JawnProperties {
+public class JawnConfigurations implements Configurations {
     
     private final Properties props;
     
-    private final Modes mode;
+    private Modes mode;
     
     
-    public PropertiesImpl(Modes mode) throws InitException {
+    public JawnConfigurations(Modes mode) throws InitException {
         this.mode = mode;
         this.props = new Properties();
         
@@ -34,12 +34,12 @@ public class PropertiesImpl implements JawnProperties {
         try {
             
             //read defaults
-            try (InputStream in1 = PropertiesImpl.class.getClassLoader().getResourceAsStream(Constants.PROPERTIES_FILE_DEFAULT)){
+            try (InputStream in1 = JawnConfigurations.class.getClassLoader().getResourceAsStream(Constants.PROPERTIES_FILE_DEFAULT)){
                 props.load(in1);
             }
 
             //override defaults
-            try (InputStream in2 = PropertiesImpl.class.getClassLoader().getResourceAsStream(Constants.PROPERTIES_FILE_USER)) {
+            try (InputStream in2 = JawnConfigurations.class.getClassLoader().getResourceAsStream(Constants.PROPERTIES_FILE_USER)) {
                 if(in2 != null){
                     Properties overrides = new Properties();
                     overrides.load(in2);
@@ -61,7 +61,7 @@ public class PropertiesImpl implements JawnProperties {
     
     
     private void checkInitProperties() throws InitException {
-        for (String param: Constants.PROPERTY_PARAMS) {
+        for (String param: PROPERTY_PARAMS) {
             if (props.get(param) == null) {
                 throw new InitException("Must provide property: " + param);
             }
@@ -80,6 +80,9 @@ public class PropertiesImpl implements JawnProperties {
     }
     public boolean isDev() {
         return mode.equals(Modes.DEV);
+    }
+    public void set(Modes mode) {
+        this.mode = mode;
     }
     
     
@@ -108,6 +111,7 @@ public class PropertiesImpl implements JawnProperties {
         return Boolean.parseBoolean(get(name));
     }
     
+    @Override
     public void set(String name, String value) {
         props.setProperty(name, value);
     }

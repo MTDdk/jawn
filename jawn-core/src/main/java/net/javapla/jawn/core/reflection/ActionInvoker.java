@@ -80,7 +80,6 @@ public class ActionInvoker implements ResponseFunction {
             */
             /*return (Response) *//*route.getActionMethod()*/route.getActionMethod().invoke(controller);
             return controller.getControllerResponse();
-
         } catch (InvocationTargetException e) {
             if(e.getCause() != null && e.getCause() instanceof  WebException){
                 throw (WebException)e.getCause();                

@@ -21,9 +21,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import net.javapla.jawn.core.PropertiesImpl;
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.api.Filter;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.HttpMethod;
@@ -35,6 +35,7 @@ import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
+import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
 
 import org.apache.commons.fileupload.FileUploadException;
@@ -52,7 +53,7 @@ class JawnServletContext implements Context.Internal {
     private static final String X_POWERED_BY = "X-Powered-By";
     
     
-    private final PropertiesImpl properties;
+    private final JawnConfigurations properties;
     private final ParserEngineManager parserManager;
     
     private ServletContext servletContext;
@@ -70,7 +71,7 @@ class JawnServletContext implements Context.Internal {
     // servletcontext, appcontext (what the hell is the difference?)
     // requestcontext - the hell, man??
     @Inject
-    JawnServletContext(PropertiesImpl properties, ParserEngineManager parserManager) {
+    JawnServletContext(JawnConfigurations properties, ParserEngineManager parserManager) {
         this.properties = properties;
         this.parserManager = parserManager;
     }
@@ -235,7 +236,7 @@ class JawnServletContext implements Context.Internal {
         return request.getMethod();
     }
     
-    public HttpMethod getHttpMethod() {
+    public HttpMethod httpMethod() {
         return HttpMethod.getMethod(this);
     }
     
@@ -621,11 +622,11 @@ class JawnServletContext implements Context.Internal {
     
 /* ****** */
 
-    public final ResponseStream finalizeResponse(Response controllerResponse) {
-        return finalizeResponse(controllerResponse, true);
+    public final ResponseStream readyResponse(Response controllerResponse) {
+        return readyResponse(controllerResponse, true);
     }
     
-    public final ResponseStream finalizeResponse(final Response controllerResponse, boolean handleFlash) {
+    public final ResponseStream readyResponse(final Response controllerResponse, boolean handleFlash) {
         // status
         response.setStatus(controllerResponse.status());
         
@@ -659,6 +660,11 @@ class JawnServletContext implements Context.Internal {
         }
         
         return new ResponseStreamServlet(response);
+    }
+
+    @Override
+    public Modes mode() {
+        return properties.getMode();
     }
 
 }

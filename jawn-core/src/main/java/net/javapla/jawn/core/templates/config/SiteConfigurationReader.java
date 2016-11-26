@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.inject.Inject;
 
 /**
  * 
@@ -31,7 +32,7 @@ public class SiteConfigurationReader {
     private final ObjectMapper mapper;
     private final Map<String, SiteConfiguration> configurationCache;
     
-
+    @Inject
     public SiteConfigurationReader(ObjectMapper mapper) {
         this.mapper = mapper;
         this.configurationCache = new ConcurrentHashMap<>();
@@ -160,7 +161,7 @@ public class SiteConfigurationReader {
         
         if (localConf.scripts != null) {
             if (topConf.scripts != null) {
-                String[] scripts = new String[topConf.scripts.length + localConf.scripts.length];
+                SiteConfiguration.Script[] scripts = new SiteConfiguration.Script[topConf.scripts.length + localConf.scripts.length];
                 System.arraycopy(topConf.scripts, 0, scripts, 0, topConf.scripts.length);
                 System.arraycopy(localConf.scripts, 0, scripts, topConf.scripts.length, localConf.scripts.length);
                 topConf.scripts = scripts;
@@ -184,4 +185,5 @@ public class SiteConfigurationReader {
         
         return topConf;
     }
+    
 }

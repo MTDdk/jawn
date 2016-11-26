@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,14 @@ public class MultiList<T> {
         }
         
         for (T p : param) {
+            parts.get(key).add(p);
+        }
+    }
+    
+    public final void put(String key, Collection<T> params) {
+        parts.putIfAbsent(key, new ArrayList<T>());
+        
+        for (T p : params) {
             parts.get(key).add(p);
         }
     }

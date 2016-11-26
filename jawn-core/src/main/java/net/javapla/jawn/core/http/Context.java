@@ -14,6 +14,7 @@ import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.uploads.FormItem;
+import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
 
 public interface Context {
@@ -28,6 +29,10 @@ public interface Context {
      */
     interface Internal extends Context {
         public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException;
+    }
+    interface Internal2 extends Internal {
+        Req request();
+        Resp response();
     }
     
     /**
@@ -57,6 +62,8 @@ public interface Context {
     
     public SessionFacade getSession(boolean createIfNotExists);
     public void setFlash(String name, Object value);
+    
+    public Modes mode();
     
 /* *************** */
 /*   REQUEST       */
@@ -99,7 +106,7 @@ public interface Context {
     public String queryString();
     
     public String method();
-    public HttpMethod getHttpMethod();
+    public HttpMethod httpMethod();
     
     /**
      * Returns port on which the of the server received current request.
@@ -167,7 +174,7 @@ public interface Context {
      * @param path a String specifying a virtual path
      * @return a String specifying the real path, or null if the translation cannot be performed
      */
-    public String getRealPath(String path);
+    //public String getRealPath(String path);
     
     
     
@@ -273,6 +280,6 @@ public interface Context {
     
 /* ****** */
 
-    public ResponseStream finalizeResponse(Response controllerResponse);
-    public ResponseStream finalizeResponse(Response controllerResponse, boolean handleFlash);
+    public ResponseStream readyResponse(Response controllerResponse);
+    public ResponseStream readyResponse(Response controllerResponse, boolean handleFlash);
 }

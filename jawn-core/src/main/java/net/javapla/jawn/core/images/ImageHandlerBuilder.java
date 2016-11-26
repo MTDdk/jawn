@@ -14,15 +14,15 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.MemoryCacheImageOutputStream;
 
+import org.imgscalr.Scalr;
+
 import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.ResponseBuilder;
 import net.javapla.jawn.core.ResponseHolder;
+import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
-import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.uploads.FormItem;
-
-import org.imgscalr.Scalr;
 
 /**
  * 
@@ -30,18 +30,19 @@ import org.imgscalr.Scalr;
  */
 public class ImageHandlerBuilder {
     private final ResponseHolder holder;
-    private final Context context;
+    private final DeploymentInfo info;
     
     private BufferedImage image;
     private final FileName fn = new FileName();
 
-    private ImageHandlerBuilder(ResponseHolder holder, Context context) {
+
+    private ImageHandlerBuilder(ResponseHolder holder, DeploymentInfo info) {
         this.holder = holder;
-        this.context = context;
+        this.info = info;
     }
     
-    public ImageHandlerBuilder(ResponseHolder holder, Context context, FormItem item) throws ControllerException {
-        this(holder, context);
+    public ImageHandlerBuilder(ResponseHolder holder, DeploymentInfo info, FormItem item) throws ControllerException {
+        this(holder, info);
         try {
             this.image = ImageIO.read(item.openStream()); // also closes the stream
             fn.updateNameAndExtension(item.getName());
@@ -52,8 +53,8 @@ public class ImageHandlerBuilder {
             throw new ControllerException(e);
         }
     }
-    public ImageHandlerBuilder(ResponseHolder holder, Context context, File file) throws ControllerException {
-        this(holder, context);
+    public ImageHandlerBuilder(ResponseHolder holder, DeploymentInfo info, File file) throws ControllerException {
+        this(holder, info);
         try {
             this.image = ImageIO.read(file);
             fn.updateNameAndExtension(file.getName());
@@ -64,8 +65,8 @@ public class ImageHandlerBuilder {
             throw new ControllerException(e);
         }
     }
-    public ImageHandlerBuilder(ResponseHolder holder, Context context, byte[] bytes, String fileName) throws ControllerException {
-        this(holder, context);
+    public ImageHandlerBuilder(ResponseHolder holder, DeploymentInfo info, byte[] bytes, String fileName) throws ControllerException {
+        this(holder, info);
         try {
             this.image = ImageIO.read(new ByteArrayInputStream(bytes));
             fn.updateNameAndExtension(fileName);
@@ -274,7 +275,7 @@ public class ImageHandlerBuilder {
       * @throws ControllerException If anything goes wrong during write to disk.
       */
      public String save(String uploadFolder) throws ControllerException {
-         String realPath = context.getRealPath(uploadFolder);
+         String realPath = info.getRealPath(uploadFolder);
 
          fn.sanitise();
 
@@ -300,7 +301,7 @@ public class ImageHandlerBuilder {
      }
      
      public ImageHandlerBuilder clone() {
-         ImageHandlerBuilder builder = new ImageHandlerBuilder(holder, context);
+         ImageHandlerBuilder builder = new ImageHandlerBuilder(holder, info);
          builder.fn.updateName(this.fn.filename());
          builder.fn.updateExtension(this.fn.extension());
          builder.image = deepCopy(this.image);

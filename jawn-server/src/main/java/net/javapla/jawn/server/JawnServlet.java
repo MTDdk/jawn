@@ -1,28 +1,24 @@
 package net.javapla.jawn.server;
-import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Function;
 
-import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.HttpHeaders;
-
-import net.javapla.jawn.core.FrameworkEngine;
-import net.javapla.jawn.core.PropertiesImpl;
-import net.javapla.jawn.core.exceptions.InitException;
-import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.core.templates.TemplateEngine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
+
+import net.javapla.jawn.core.FrameworkEngine;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
+import net.javapla.jawn.core.exceptions.InitException;
+import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.templates.TemplateEngine;
 
 
 public class JawnServlet extends HttpServlet {
@@ -34,13 +30,14 @@ public class JawnServlet extends HttpServlet {
 
     protected final Injector injector;
 
-    protected final ServerBootstrap bootstrapper;
+    //protected final ServerBootstrap bootstrapper;
     protected final FrameworkEngine engine;
     
     public JawnServlet() {
-        bootstrapper = new ServerBootstrap();
-        bootstrapper.boot();
-        injector = bootstrapper.getInjector();
+        //TODO instantiating Jawn() instead
+//        bootstrapper = new ServerBootstrap();
+//        bootstrapper.boot();
+        injector = null;//bootstrapper.getInjector();
         engine = injector.getInstance(FrameworkEngine.class);
     }
     
@@ -70,7 +67,7 @@ public class JawnServlet extends HttpServlet {
 //        root_controller = filterConfig.getInitParameter("root_controller");
         
         
-        logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(PropertiesImpl.class).getMode());
+        logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(JawnConfigurations.class).getMode());
     }
     
     @Override
@@ -207,7 +204,7 @@ public class JawnServlet extends HttpServlet {
     
     @Override
     public void destroy() {
-        bootstrapper.shutdown();
+//        bootstrapper.shutdown();
 //        appBootstrap.destroy(appContext);
     }
 }

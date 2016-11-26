@@ -1,6 +1,6 @@
 package net.javapla.jawn.core.cache;
 
-import net.javapla.jawn.core.PropertiesImpl;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.CompilationException;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
@@ -18,7 +18,7 @@ public class CacheProvider implements Provider<Cache> {
     private final Cache cache;
     
     @Inject
-    public CacheProvider(PropertiesImpl properties) {
+    public CacheProvider(JawnConfigurations properties) {
         String cacheClassName = properties.get(Constants.PROPERTY_CACHE_IMPLEMENTATION);
         Cache foundCache = null;
         

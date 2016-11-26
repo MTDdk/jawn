@@ -8,23 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import net.javapla.jawn.core.api.ApplicationBootstrap;
-import net.javapla.jawn.core.api.ApplicationDatabaseBootstrap;
-import net.javapla.jawn.core.api.ApplicationFilters;
-import net.javapla.jawn.core.api.ApplicationRoutes;
-import net.javapla.jawn.core.api.Filters;
-import net.javapla.jawn.core.api.Router;
-import net.javapla.jawn.core.database.DatabaseConnection;
-import net.javapla.jawn.core.database.DatabaseConnections;
-import net.javapla.jawn.core.database.DatabaseModule;
-import net.javapla.jawn.core.reflection.ActionInvoker;
-import net.javapla.jawn.core.reflection.ClassLocator;
-import net.javapla.jawn.core.reflection.DynamicClassFactory;
-import net.javapla.jawn.core.routes.RouterImpl;
-import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.Modes;
-import net.javapla.jawn.core.util.PropertiesConstants;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +15,36 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Singleton;
 import com.google.inject.Stage;
 import com.google.inject.util.Modules;
+
+import net.javapla.jawn.core.api.ApplicationBootstrap;
+import net.javapla.jawn.core.api.ApplicationDatabaseBootstrap;
+import net.javapla.jawn.core.api.ApplicationFilters;
+import net.javapla.jawn.core.api.ApplicationRoutes;
+import net.javapla.jawn.core.api.Filters;
+import net.javapla.jawn.core.api.Router;
+import net.javapla.jawn.core.configuration.DeploymentInfo;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
+import net.javapla.jawn.core.database.DatabaseConnection;
+import net.javapla.jawn.core.database.DatabaseConnections;
+import net.javapla.jawn.core.database.DatabaseModule;
+import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.reflection.ActionInvoker;
+import net.javapla.jawn.core.reflection.ClassLocator;
+import net.javapla.jawn.core.reflection.DynamicClassFactory;
+import net.javapla.jawn.core.routes.RouterImpl;
+import net.javapla.jawn.core.server.HttpHandler;
+import net.javapla.jawn.core.server.ServerContext;
+import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.PropertiesConstants;
 
 public class FrameworkBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
-    protected final PropertiesImpl properties;
+    protected final JawnConfigurations properties;
+    protected final DeploymentInfo deploymentInfo;
     protected final ApplicationConfig appConfig;
     private final List<Module> combinedModules;
     
@@ -48,12 +54,16 @@ public class FrameworkBootstrap {
     protected ApplicationBootstrap[] plugins;
 
     
-    public FrameworkBootstrap() {
-        this(new PropertiesImpl(Modes.determineModeFromSystem()));
-    }
+//    private ArrayList<Runnable> onStartup = new ArrayList<>();
+
     
-    public FrameworkBootstrap(PropertiesImpl conf) {
+    /*public FrameworkBootstrap() {
+        this(new JawnConfigurations(Modes.determineModeFromSystem()));
+    }*/
+    
+    public FrameworkBootstrap(JawnConfigurations conf, DeploymentInfo deploymentInfo) {
         properties = conf;
+        this.deploymentInfo = deploymentInfo;
         appConfig = new ApplicationConfig();
         combinedModules = new ArrayList<>();
     }
@@ -89,6 +99,8 @@ public class FrameworkBootstrap {
         FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
         engine.onFrameworkStartup(); // signal startup
         
+//        onStartup.forEach(Runnable::run);
+        
         logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
     }
     
@@ -122,6 +134,10 @@ public class FrameworkBootstrap {
         }
     }
     
+    /*public void addStartup(Runnable callback) {
+        onStartup.add(callback);
+    }*/
+    
     protected void addModule(Module module) {
         this.combinedModules.add(module);
     }
@@ -139,8 +155,17 @@ public class FrameworkBootstrap {
         properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
         
         
-        addModule(new CoreModule(properties, router));
+        addModule(new CoreModule(properties, deploymentInfo, router));
         addModule(new DatabaseModule(connections, properties));
+        addModule(new AbstractModule() {
+            //ServerModule
+            @Override
+            protected void configure() {
+              //bind(Context.class).to(JawnServletContext.class);
+                bind(Context.class).to(ServerContext.class);
+                bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
+            }
+        });
     }
     
     private Injector initInjector(final List<AbstractModule> userModules, List<AbstractModule> pluginModules) {

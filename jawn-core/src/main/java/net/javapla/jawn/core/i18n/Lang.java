@@ -1,8 +1,8 @@
 package net.javapla.jawn.core.i18n;
 
-import net.javapla.jawn.core.PropertiesImpl;
-
 import com.google.inject.Inject;
+
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 
 /**
  * 
@@ -14,7 +14,7 @@ public class Lang {
     private final String default_language;
     
     @Inject
-    public Lang(PropertiesImpl properties) {
+    public Lang(JawnConfigurations properties) {
         this.languages = properties.getSupportedLanguages();
         this.default_language = initDefaultLanguage();
     }

@@ -1,9 +1,6 @@
 package net.javapla.jawn.core.util;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public interface Constants {
 
@@ -53,23 +50,25 @@ public interface Constants {
 /* ************* 
  *    Modes
  * ************* */
-    public static final String MODE_PRODUCTION  = "production";
-    public static final String MODE_DEVELOPMENT = "development";
-    public static final String MODE_TEST        = "test";
+    String MODE_PRODUCTION  = "production";
+    String MODE_DEVELOPMENT = "development";
+    String MODE_TEST        = "test";
 
     
 /* ************** 
  *   Properties
  * ************** */
-    public static final String PROPERTIES_FILE_DEFAULT = "jawn_defaults.properties"; // Standard in the resources
-    public static final String PROPERTIES_FILE_USER = "jawn.properties"; // Overrides standard 
+    String PROPERTIES_FILE_DEFAULT = "jawn_defaults.properties"; // Standard in the resources
+    String PROPERTIES_FILE_USER = "jawn.properties"; // Overrides standard 
     
-    public static final String PROPERTY_APPLICATION_BASE_PACKAGE = "application.base_package";
-    public static final String PROPERTY_APPLICATION_PLUGINS_PACKAGE = "application.plugins_package";
+    String PROPERTY_APPLICATION_BASE_PACKAGE = "application.base_package";
+    String PROPERTY_APPLICATION_PLUGINS_PACKAGE = "application.plugins_package";
     
-    public static final String PROPERTY_CACHE_IMPLEMENTATION = "cache.implementation";
-    public static final String PROPERTY_CACHE_DEFAULT_EXPIRATION = "cache.default_expiration";
-    public static final String PROPERTY_UPLOADS_MAX_SIZE = "uploads.max_file_size";
+    String PROPERTY_CACHE_IMPLEMENTATION = "cache.implementation";
+    String PROPERTY_CACHE_DEFAULT_EXPIRATION = "cache.default_expiration";
+    String PROPERTY_UPLOADS_MAX_SIZE = "uploads.max_file_size";
+    
+    String PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH = "deploymentinfo.webapp.path";
     
     /**
      * Used to set a single System property to be used immediately after reading the property files.
@@ -77,12 +76,4 @@ public interface Constants {
      * So always prepend with something application specific.
      */
     static final String SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE = "jawn." + PROPERTY_APPLICATION_BASE_PACKAGE;
-    
-    public static final Set<String> PROPERTY_PARAMS = 
-        new HashSet<>(
-            Arrays.asList(
-                PROPERTY_APPLICATION_BASE_PACKAGE,
-                PROPERTY_APPLICATION_PLUGINS_PACKAGE,
-                PROPERTY_UPLOADS_MAX_SIZE
-            ));
 }

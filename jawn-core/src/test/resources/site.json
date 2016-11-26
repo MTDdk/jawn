@@ -1,0 +1,13 @@
+{
+	"title": "jawn test",
+
+	"scripts": [
+		// some comment	
+		{"url": "script1.js"},
+		{"url": "script2.js"}
+	],
+	
+	"styles": [
+		"style.css"
+	]
+}
