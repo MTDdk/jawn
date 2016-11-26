@@ -5,7 +5,7 @@ file('.')
     .listFiles() // find all files in rootDir
     .findAll {
         it.isDirectory() && // only look at folders
-        it.name.startsWith('jawn-') // filter all folders starting with 'api-'
+        it.name.startsWith('jawn-') // filter all folders starting with 'jawn-'
     }
     .each {
         include it.name // let the root project include each of these folders
