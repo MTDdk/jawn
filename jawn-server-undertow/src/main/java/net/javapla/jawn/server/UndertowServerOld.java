@@ -20,17 +20,17 @@ import org.xnio.Options;
 
 import com.google.inject.servlet.GuiceFilter;
 
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.server.api.JawnServer;
-import net.javapla.jawn.server.api.ServerConfig;
 
-public class UndertowServer implements JawnServer {
+public class UndertowServerOld implements JawnServer {
     
     public void setupAndStartServer(ServerConfig config) throws Exception {
         String filtername = "jawnFilter";
 
         // Setup the server application
         DeploymentInfo deployment = Servlets.deployment()
-            .setClassLoader(UndertowServer.class.getClassLoader())
+            .setClassLoader(UndertowServerOld.class.getClassLoader())
             .setContextPath(config.getContextPath())
             .setDeploymentName("jawn.war");
             

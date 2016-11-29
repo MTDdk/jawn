@@ -7,9 +7,9 @@ import com.google.inject.Singleton;
 import net.javapla.jawn.core.ApplicationConfig;
 import net.javapla.jawn.core.api.ApplicationBootstrap;
 import net.javapla.jawn.core.server.Server;
-import net.javapla.jawn.server.undertow.UndertowServer2;
+import net.javapla.jawn.server.undertow.UndertowServer;
 
-public class ServerConfig implements ApplicationBootstrap {
+public class ServerConfiguration implements ApplicationBootstrap {
 
     @Override
     public void bootstrap(ApplicationConfig config) {
@@ -17,7 +17,7 @@ public class ServerConfig implements ApplicationBootstrap {
 
             @Override
             protected void configure() {
-                bind(Server.class).to(UndertowServer2.class).in(Singleton.class);
+                bind(Server.class).to(UndertowServer.class).in(Singleton.class);
             }
             
         });

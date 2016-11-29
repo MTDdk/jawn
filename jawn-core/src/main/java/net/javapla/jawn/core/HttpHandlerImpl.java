@@ -25,7 +25,7 @@ import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.ServerContext;
 import net.javapla.jawn.core.templates.TemplateEngine;
 
-public class HttpHandlerImpl implements HttpHandler {
+class HttpHandlerImpl implements HttpHandler {
     protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
     private String[] exclusions;

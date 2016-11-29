@@ -12,6 +12,7 @@ import com.google.inject.Injector;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.server.Server;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.util.Modes;
 
 
@@ -23,6 +24,8 @@ public class Jawn {
     private final FrameworkBootstrap bootstrapper;
     private final ArrayList<Runnable> onStartup = new ArrayList<>();
     private final ArrayList<Runnable> onShutdown = new ArrayList<>();
+    
+    private final ServerConfig serverConfig = new ServerConfig();
     
     
     public Jawn() {
@@ -55,11 +58,15 @@ public class Jawn {
         return this;
     }
     
+    public ServerConfig server() {
+        return serverConfig;
+    }
+    
     public void start() {
         bootstrapper.boot();
         Injector injector = bootstrapper.getInjector();
         try {
-            injector.getInstance(Server.class).start();
+            injector.getInstance(Server.class).start(serverConfig);
         } catch (Exception e) {
             e.printStackTrace(); //TODO break when server cannot be found
         }

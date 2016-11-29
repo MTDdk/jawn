@@ -4,8 +4,8 @@ import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.server.api.JawnServer;
-import net.javapla.jawn.server.api.ServerConfig;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
