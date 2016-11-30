@@ -41,7 +41,7 @@ public class HmacSha256Crypto implements Crypto {
         public String sign(String value, String key) {
             try {
                 // Get an hmac_sha1 key from the raw key bytes
-                byte[] keyBytes = key.getBytes();
+                byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
                 String algorithm = "HmacSHA256";
                 SecretKeySpec signingKey = new SecretKeySpec(keyBytes, algorithm);
 
@@ -50,7 +50,7 @@ public class HmacSha256Crypto implements Crypto {
                 mac.init(signingKey);
 
                 // Compute the hmac on input data bytes
-                byte[] rawHmac = mac.doFinal(value.getBytes());
+                byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
 
                 // Convert raw bytes to Hex
                 return new String(printHexBinary(rawHmac));
@@ -88,7 +88,7 @@ public class HmacSha256Crypto implements Crypto {
                     maxKeyLengthBits = 256;
                 }
 
-                secretKeySpec = new SecretKeySpec(applicationSecret.getBytes(), 0, maxKeyLengthBits / Byte.SIZE, ALGORITHM);
+                secretKeySpec = new SecretKeySpec(applicationSecret.getBytes(StandardCharsets.UTF_8), 0, maxKeyLengthBits / Byte.SIZE, ALGORITHM);
                 
                 //logger.info("Session encryption is using {} / {} bit.", secretKeySpec.get().getAlgorithm(), maxKeyLengthBits);
 
