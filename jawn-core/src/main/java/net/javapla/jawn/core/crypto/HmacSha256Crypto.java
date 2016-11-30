@@ -56,6 +56,7 @@ public class HmacSha256Crypto implements Crypto {
                 return new String(printHexBinary(rawHmac));
                 
             } catch (IllegalStateException | NoSuchAlgorithmException | InvalidKeyException e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         }
