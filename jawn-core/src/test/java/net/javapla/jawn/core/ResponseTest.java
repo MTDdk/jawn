@@ -25,7 +25,7 @@ public class ResponseTest {
         long time = System.currentTimeMillis();
         responses.forEach(resp ->  System.out.println(resp.renderable()));
         time = System.currentTimeMillis() - time;
-        System.out.println(time);
+        System.out.println(time + " compared to " + (executionTime + (executionTime * 0.02)));
         assertTrue(time < executionTime + (executionTime * 0.02));
     }
     
