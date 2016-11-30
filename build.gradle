@@ -37,15 +37,6 @@ subprojects {
 	}
 
 // implement https://github.com/kt3k/coveralls-gradle-plugin	
-	jacoco {
-	    toolVersion = "0.7.6.201602180812"
-	}
-	jacocoTestReport { // run: gradle test jacocoTestReport
-		reports {
-			xml.enabled = true // coveralls plugin depends on xml format report
-			html.enabled = true
-		}
-	}
 }
 
 //https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
