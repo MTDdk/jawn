@@ -84,8 +84,6 @@ public class HmacSha256Crypto implements Crypto {
             
             try {
                 int maxKeyLengthBits = Cipher.getMaxAllowedKeyLength(ALGORITHM);
-                
-                System.out.println("maxkeylengthbits " + maxKeyLengthBits);
                 if (maxKeyLengthBits == Integer.MAX_VALUE) {
                     maxKeyLengthBits = 256;
                 }

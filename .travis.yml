@@ -3,6 +3,6 @@ jdk:
   - oraclejdk8
 deploy:
   provider: script
-  script: gradle clean test jacocoTestReport coveralls
+  script: gradle clean test
   on:
     jdk: oraclejdk8
