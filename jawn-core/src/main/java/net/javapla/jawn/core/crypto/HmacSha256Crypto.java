@@ -56,7 +56,6 @@ public class HmacSha256Crypto implements Crypto {
                 return new String(printHexBinary(rawHmac));
                 
             } catch (IllegalStateException | NoSuchAlgorithmException | InvalidKeyException e) {
-                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         }
@@ -85,6 +84,7 @@ public class HmacSha256Crypto implements Crypto {
             
             try {
                 int maxKeyLengthBits = Cipher.getMaxAllowedKeyLength(ALGORITHM);
+                System.out.println("maxkeylengthbits " + maxKeyLengthBits);
                 if (maxKeyLengthBits == Integer.MAX_VALUE) {
                     maxKeyLengthBits = 256;
                 }

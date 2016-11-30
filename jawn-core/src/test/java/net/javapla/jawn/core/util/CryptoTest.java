@@ -2,6 +2,8 @@ package net.javapla.jawn.core.util;
 
 import static org.junit.Assert.assertEquals;
 
+import static org.hamcrest.CoreMatchers.*;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,6 +35,16 @@ public class CryptoTest {
                 crypto.hmac().sign("was born and I will give you a complete account of the system",key));
         assertEquals("c8a5013890bccc204086e3923a26cb483f4ac8b31f564067854ef70714992606",
                 crypto.hmac().sign("and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness",key));
+    }
+    
+    @Test
+    public void encryption() {
+        String stringToEncrypt = "But I must explain";
+        String encrypted = crypto.encrypter().encrypt(stringToEncrypt);
+        Assert.assertThat(encrypted, not(equalTo(stringToEncrypt)));
+        
+        String decrypted = crypto.encrypter().decrypt(encrypted);
+        Assert.assertThat(decrypted, equalTo(stringToEncrypt));
     }
 
 }
