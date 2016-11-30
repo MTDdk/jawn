@@ -21,6 +21,11 @@ subprojects {
 	    mavenCentral()
 	}
 	
+	// test configurations
+	tasks.withType(JavaCompile) {
+    	options.encoding = 'UTF-8'
+	}
+	
 	test {
 		ignoreFailures true
 	}

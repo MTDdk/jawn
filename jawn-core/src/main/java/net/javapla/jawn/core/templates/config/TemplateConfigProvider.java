@@ -29,14 +29,17 @@ public class TemplateConfigProvider<T> implements Provider<TemplateConfig<T>> {
     private TemplateConfig<T> locateTemplateConfig() {
         log.debug("????? Trying to find the user specified configuration");
         
-        Set<Class<? extends TemplateConfig>> set = new ClassLocator(PropertiesConstants.CONFIG_PACKAGE).subtypeOf(TemplateConfig.class);
-        Iterator<Class<? extends TemplateConfig>> iterator = set.iterator();
-        while (iterator.hasNext()) {
-            Class<? extends TemplateConfig> template = iterator.next();
-            try {
-                return (TemplateConfig<T>) template.newInstance();
-            } catch (InstantiationException | IllegalAccessException ignore) {}
-        }
+        try {
+            Set<Class<? extends TemplateConfig>> set = new ClassLocator(PropertiesConstants.CONFIG_PACKAGE).subtypeOf(TemplateConfig.class);
+            Iterator<Class<? extends TemplateConfig>> iterator = set.iterator();
+            while (iterator.hasNext()) {
+                Class<? extends TemplateConfig> template = iterator.next();
+                try {
+                    return (TemplateConfig<T>) template.newInstance();
+                } catch (InstantiationException | IllegalAccessException ignore) {}
+            }
+        } catch (IllegalArgumentException ignoreAndContinue) {}
+        
         log.warn("Failed to find implementation of '" + TemplateConfig.class + "', proceeding without custom configuration of '"
                 + TemplateConfig.class.getSimpleName() + "'");
         return null;
