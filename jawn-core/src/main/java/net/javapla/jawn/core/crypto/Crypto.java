@@ -2,7 +2,7 @@ package net.javapla.jawn.core.crypto;
 
 import com.google.inject.ImplementedBy;
 
-@ImplementedBy(HmacSha1Crypto.class)
+@ImplementedBy(HmacSha256Crypto.class)
 public interface Crypto {
 
     Signer hmac();

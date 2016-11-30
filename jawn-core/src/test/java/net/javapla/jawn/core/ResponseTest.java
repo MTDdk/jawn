@@ -13,6 +13,7 @@ public class ResponseTest {
     @Test
     public void parallisedExecution() {
         int executionTime = 400;
+        int executionOverhead = 70; //approximation
         
         List<Response> responses = IntStream.range(1, 4).boxed().map(i -> 
             ResponseBuilder.ok().renderable(() -> {
@@ -25,8 +26,8 @@ public class ResponseTest {
         long time = System.currentTimeMillis();
         responses.forEach(resp ->  System.out.println(resp.renderable()));
         time = System.currentTimeMillis() - time;
-        System.out.println(time + " compared to " + (executionTime + (executionTime * 0.02)));
-        assertTrue(time < executionTime + (executionTime * 0.02));
+        System.out.println(time + " compared to " + (executionTime + executionOverhead));
+        assertTrue(time < executionTime + executionOverhead);
     }
     
 }

@@ -14,19 +14,19 @@ import javax.crypto.spec.SecretKeySpec;
 import com.google.inject.Singleton;
 
 @Singleton
-public class HmacSha1Crypto implements Crypto {
+public class HmacSha256Crypto implements Crypto {
     
-    private final Signer HMAC_SHA1;
+    private final Signer HMAC_SHA256;
     private final Encrypter AES;
     
-    public HmacSha1Crypto() {
-        HMAC_SHA1 = new HmacSHA1();
+    public HmacSha256Crypto() {
+        HMAC_SHA256 = new HmacSHA256();
         AES = new AesEncryption();
     }
     
     @Override
     public Signer hmac() {
-        return HMAC_SHA1;
+        return HMAC_SHA256;
     }
     
     @Override
@@ -34,18 +34,18 @@ public class HmacSha1Crypto implements Crypto {
         return AES;
     }
 
-    private static class HmacSHA1 implements Signer {
-        public HmacSHA1() { }
+    private static class HmacSHA256 implements Signer {
+        public HmacSHA256() { }
         
         @Override
         public String sign(String value, String key) {
             try {
                 // Get an hmac_sha1 key from the raw key bytes
                 byte[] keyBytes = key.getBytes();
-                String algorithm = "HmacSHA1";
+                String algorithm = "HmacSHA256";
                 SecretKeySpec signingKey = new SecretKeySpec(keyBytes, algorithm);
 
-                // Get an hmac_sha1 Mac instance and initialize with the signing key
+                // Get an hmac_sha256 Mac instance and initialize with the signing key
                 Mac mac = Mac.getInstance(algorithm);
                 mac.init(signingKey);
 
