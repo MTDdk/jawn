@@ -80,10 +80,11 @@ public class HmacSha256Crypto implements Crypto {
         
         public AesEncryption() {
             //TODO read as property
-            applicationSecret = "gawdDamnSecretThisIs!";
+            applicationSecret = "gawdDamnSecretThisIs_____appending_More_To_Reach_The_Goal_Of_64!";
             
             try {
                 int maxKeyLengthBits = Cipher.getMaxAllowedKeyLength(ALGORITHM);
+                
                 System.out.println("maxkeylengthbits " + maxKeyLengthBits);
                 if (maxKeyLengthBits == Integer.MAX_VALUE) {
                     maxKeyLengthBits = 256;
