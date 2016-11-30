@@ -14,7 +14,12 @@ public class CryptoTest {
     
     @Before
     public void setup() {
+        try {
         crypto = new HmacSha256Crypto();
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
 
