@@ -45,7 +45,7 @@ public class ImageHandlerBuilder {
         this(holder, info);
         try {
             this.image = ImageIO.read(item.openStream()); // also closes the stream
-            fn.updateNameAndExtension(item.getName());
+            fn.updateNameAndExtension(item.getValue());
             
             if (this.image == null)
                 throw new ControllerException("The extension '" + fn.extension() + "' could not be read");

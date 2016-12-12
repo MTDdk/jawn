@@ -77,6 +77,10 @@ public class MultiList<T> {
         return parts.keySet();
     }
     
+    public int size() {
+        return parts.size();
+    }
+    
     @Override
     public String toString() {
         return parts.toString();

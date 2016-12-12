@@ -16,7 +16,7 @@ public class ApacheFileItemFormItem implements FormItem {
     }
 
     @Override
-    public String getName() {
+    public String getValue() {
         return fileItem.getName();
     }
 

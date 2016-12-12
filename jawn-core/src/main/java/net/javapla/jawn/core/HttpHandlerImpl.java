@@ -177,11 +177,16 @@ class HttpHandlerImpl implements HttpHandler {
        Set<String> exclusions = new TreeSet<String>();
        
        // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF
-       List<String> collect = Arrays.asList(new File("webapp").list());
+       List<String> collect = null;
+       File webapp = new File("webapp");
+       String[] paths = webapp.list();
+       if (webapp.exists() && paths != null)
+           collect = Arrays.asList(paths);
        
        // This most certainly should not be null!
        // It means that the server cannot read files at all
        if (collect == null || collect.isEmpty()) throw new InitException("ServletContext cannot read files. Reason is unknown");
+       // It might be because someone forgot to add the 'webapp' folder to the distribution
 
        
        Set<String> resourcePaths = new TreeSet<>(collect);//servletContext.getResourcePaths("/");

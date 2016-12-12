@@ -22,7 +22,7 @@ public interface FormItem {
      * File name.
      * @return file name.
      */
-    String getName();
+    String getValue();
 
     /**
      * Form field name.
@@ -119,10 +119,5 @@ public interface FormItem {
             StreamUtil.saveTo(path, in);
         }
     }
-    
-    /**
-     * Converts entire content of this item to String.
-     * @return content streamed from this field as string.
-     */
-    String toString();
+
 }

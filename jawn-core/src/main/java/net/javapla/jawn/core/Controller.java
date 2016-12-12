@@ -44,6 +44,7 @@ import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.ConvertUtil;
+import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringBuilderWriter;
@@ -1044,6 +1045,11 @@ public abstract class Controller implements ResponseHolder {
     }
     
     
+    protected Modes mode() {
+        return context.mode();
+    }
+    
+    
     /**
      * Returns a map parsed from a request if parameter names have a "hash" syntax:
      *
@@ -1127,7 +1133,7 @@ public abstract class Controller implements ResponseHolder {
         }
         return name == null? null : name.substring(1, name.length() - 1);
     }
-
+    
 
     /**
      * Sets character encoding for request. Has to be called before reading any parameters of getting input

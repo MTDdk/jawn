@@ -20,7 +20,7 @@ public class UndertowFormItem implements FormItem {
     }
 
     @Override
-    public String getName() {
+    public String getValue() {
         if  (isFile()) return value.getFileName();
         return value.getValue();
     }
@@ -44,6 +44,9 @@ public class UndertowFormItem implements FormItem {
     public InputStream openStream() throws IOException {
         return new FileInputStream(value.getPath().toFile());
     }
-
-
+    
+    @Override
+    public String toString() {
+        return getValue();
+    }
 }
