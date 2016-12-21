@@ -2,6 +2,10 @@
 
 //http://gradle.org/docs/current/userguide/multi_project_builds.html#sub:real_life_examples
 
+allprojects {
+   tasks.withType(Javadoc).all { enabled = false }
+}
+
 subprojects {
 	apply plugin: 'java'
     apply plugin: 'eclipse'

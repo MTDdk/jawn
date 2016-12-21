@@ -9,8 +9,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.api.Filter;
+import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
+import net.javapla.jawn.core.routes.ResponseFunction;
+import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.util.Modes;
@@ -22,6 +26,10 @@ public class Jawn {
     private final JawnConfigurations properties;
     private final DeploymentInfo deploymentInfo;
     private final FrameworkBootstrap bootstrapper;
+    
+    private final FiltersHandler filters;
+    private final Router router;
+    
     private final ArrayList<Runnable> onStartup = new ArrayList<>();
     private final ArrayList<Runnable> onShutdown = new ArrayList<>();
     
@@ -31,7 +39,12 @@ public class Jawn {
     public Jawn() {
         properties = new JawnConfigurations(Modes.determineModeFromSystem());
         deploymentInfo = new DeploymentInfo(properties);
-        bootstrapper = new FrameworkBootstrap(properties, deploymentInfo);
+        
+        
+        filters = new FiltersHandler();
+        router = new RouterImpl(filters, properties);
+        
+        bootstrapper = new FrameworkBootstrap(properties, deploymentInfo, router);
     }
     
     /*public Jawn(final String contextPath) {
@@ -57,7 +70,90 @@ public class Jawn {
         properties.set(mode);
         return this;
     }
+
+    // ****************
+    // GET
+    // ****************
+    public Jawn get(String path, ResponseFunction func) {
+        router.GET().route(path).with(func);
+        return this;
+    }
+    public Jawn get(String path, Class<? extends Controller> controller) {
+        router.GET().route(path).to(controller);
+        return this;
+    }
+    public Jawn get(String path, Class<? extends Controller> controller, String action) {
+        router.GET().route(path).to(controller, action);
+        return this;
+    }
     
+    // ****************
+    // POST
+    // ****************
+    public Jawn post(String path, ResponseFunction func) {
+        router.POST().route(path).with(func);
+        return this;
+    }
+    public Jawn post(String path, Class<? extends Controller> controller) {
+        router.POST().route(path).to(controller);
+        return this;
+    }
+    public Jawn post(String path, Class<? extends Controller> controller, String action) {
+        router.POST().route(path).to(controller, action);
+        return this;
+    }
+    
+    // ****************
+    // PUT
+    // ****************
+    public Jawn put(String path, ResponseFunction func) {
+        router.PUT().route(path).with(func);
+        return this;
+    }
+    public Jawn put(String path, Class<? extends Controller> controller) {
+        router.PUT().route(path).to(controller);
+        return this;
+    }
+    public Jawn put(String path, Class<? extends Controller> controller, String action) {
+        router.PUT().route(path).to(controller, action);
+        return this;
+    }
+    
+    // ****************
+    // DELETE
+    // ****************
+    public Jawn delete(String path, ResponseFunction func) {
+        router.DELETE().route(path).with(func);
+        return this;
+    }
+    public Jawn delete(String path, Class<? extends Controller> controller) {
+        router.DELETE().route(path).to(controller);
+        return this;
+    }
+    public Jawn delete(String path, Class<? extends Controller> controller, String action) {
+        router.DELETE().route(path).to(controller, action);
+        return this;
+    }
+    
+    // ****************
+    // Filters
+    // ****************
+    public Jawn filter(Filter filter) {
+        filters.add(filter);
+        return this;
+    }
+    public Jawn filter(Filter filter, Class<? extends Controller> controller) {
+        filters.add(filter).to(controller);
+        return this;
+    }
+    public Jawn filter(Filter filter, Class<? extends Controller> controller, String ... actions) {
+        filters.add(filter).to(controller).forActions(actions);
+        return this;
+    }
+        
+    // ****************
+    // Server
+    // ****************
     public ServerConfig server() {
         return serverConfig;
     }

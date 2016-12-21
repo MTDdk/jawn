@@ -140,7 +140,7 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
             return this;
         }
         
-        @SuppressWarnings("unchecked")
+        //@SuppressWarnings("unchecked")
         public final FilterBuilder<T> toPackage( String packageName ) {
             if (!packageName.startsWith(PropertiesConstants.CONTROLLER_PACKAGE))
                 packageName = PropertiesConstants.CONTROLLER_PACKAGE + "." + packageName;

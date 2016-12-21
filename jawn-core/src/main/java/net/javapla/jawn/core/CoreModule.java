@@ -1,5 +1,10 @@
 package net.javapla.jawn.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
+
 import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.cache.Cache;
 import net.javapla.jawn.core.cache.CacheProvider;
@@ -14,23 +19,17 @@ import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.ParserEngineManagerImpl;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
 import net.javapla.jawn.core.reflection.ActionInvoker;
-import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestratorImpl;
 import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
 
 public class CoreModule extends AbstractModule {
     
     
     private final JawnConfigurations properties;
     private final DeploymentInfo deploymentInfo;
-    private final RouterImpl router;
-    CoreModule(JawnConfigurations properties, DeploymentInfo deploymentInfo, RouterImpl router) {
+    private final Router router;
+    CoreModule(JawnConfigurations properties, DeploymentInfo deploymentInfo, Router router) {
         this.properties = properties;
         this.deploymentInfo = deploymentInfo;
         this.router = router;

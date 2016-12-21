@@ -8,6 +8,8 @@ import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.HttpMethod;
+import net.javapla.jawn.core.http.Req;
+import net.javapla.jawn.core.http.Resp;
 
 
 /**
@@ -96,6 +98,18 @@ public class Route extends InternalRoute {
             return matches(requestUri);
         }
         return false;
+    }
+    
+    interface TwoArgAction {
+        Object action(Req req, Resp resp) throws Throwable;
+    }
+    
+    interface OneArgAction {
+        Object action(Req req) throws Throwable;
+    }
+    
+    interface ZeroArgAction {
+        Object action() throws Throwable;
     }
     
 }

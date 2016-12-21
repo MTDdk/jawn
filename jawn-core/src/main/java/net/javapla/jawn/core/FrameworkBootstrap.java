@@ -21,9 +21,6 @@ import com.google.inject.util.Modules;
 
 import net.javapla.jawn.core.api.ApplicationBootstrap;
 import net.javapla.jawn.core.api.ApplicationDatabaseBootstrap;
-import net.javapla.jawn.core.api.ApplicationFilters;
-import net.javapla.jawn.core.api.ApplicationRoutes;
-import net.javapla.jawn.core.api.Filters;
 import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
@@ -45,6 +42,7 @@ public class FrameworkBootstrap {
     
     protected final JawnConfigurations properties;
     protected final DeploymentInfo deploymentInfo;
+    protected final Router router;
     protected final ApplicationConfig appConfig;
     private final List<Module> combinedModules;
     
@@ -52,6 +50,7 @@ public class FrameworkBootstrap {
     
     protected ApplicationBootstrap config;
     protected ApplicationBootstrap[] plugins;
+
 
     
 //    private ArrayList<Runnable> onStartup = new ArrayList<>();
@@ -61,11 +60,16 @@ public class FrameworkBootstrap {
         this(new JawnConfigurations(Modes.determineModeFromSystem()));
     }*/
     
-    public FrameworkBootstrap(JawnConfigurations conf, DeploymentInfo deploymentInfo) {
+    public FrameworkBootstrap(JawnConfigurations conf, DeploymentInfo deploymentInfo, Router router) {
         properties = conf;
         this.deploymentInfo = deploymentInfo;
+        this.router = router;
         appConfig = new ApplicationConfig();
         combinedModules = new ArrayList<>();
+    }
+    
+    public synchronized void preBoot() {
+        
     }
     
     public synchronized void boot() {
@@ -89,7 +93,7 @@ public class FrameworkBootstrap {
         // If any initialisation of filters needs to be done, like injecting ServletContext,
         // it can be done here.
         //initiateFilters(filters, localInjector/*, security*/);
-
+        
         
         // compiling of routes needs element from the injector, so this is done after the creation
         initRouter(localInjector);
@@ -144,11 +148,11 @@ public class FrameworkBootstrap {
     
     protected void configure() {
         // Read all the configuration from the user
-        FiltersHandler filters = new FiltersHandler();
-        RouterImpl router = new RouterImpl(filters, properties);
+        /*FiltersHandler filters = new FiltersHandler();
+        RouterImpl router = new RouterImpl(filters, properties);*/
         DatabaseConnections connections = new DatabaseConnections();
         
-        this.config = readConfigurations(appConfig, router, filters, connections);
+        this.config = readConfigurations(appConfig, /*router,*/ /*filters,*/ connections);
         
         // supported languages are needed in the creation of the injector
         properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -208,17 +212,17 @@ public class FrameworkBootstrap {
         router.compileRoutes(invoker);
     }
     
-    private ApplicationBootstrap readConfigurations(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {
+    private ApplicationBootstrap readConfigurations(ApplicationConfig configuration, /*Router router,*/ /*Filters filters,*/ DatabaseConnections connections) {
         
         ClassLocator locatr = new ClassLocator(PropertiesConstants.CONFIG_PACKAGE);
         
         //TODO if multiple implementations were found - write something in the log
         
         // filters
-        locate(locatr, ApplicationFilters.class, impl -> impl.filters(filters));
+        //locate(locatr, ApplicationFilters.class, impl -> impl.filters(filters));
         
         // routes
-        locate(locatr, ApplicationRoutes.class, impl -> impl.router(router));
+        //locate(locatr, ApplicationRoutes.class, impl -> impl.router(router));
         
         // database
         locate(locatr, ApplicationDatabaseBootstrap.class, impl -> impl.dbConnections(connections));

@@ -2,8 +2,7 @@ package net.javapla.jawn.core.uploads;
 
 import java.io.IOException;
 import java.io.InputStream;
-
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 
 import net.javapla.jawn.core.Param;
 import net.javapla.jawn.core.exceptions.ControllerException;
@@ -77,7 +76,7 @@ public interface FormItem {
      */
     default String getStreamAsString() {
         try (InputStream is = openStream()) {
-            return StreamUtil.read(is,Charsets.UTF_8);
+            return StreamUtil.read(is,StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new ControllerException(e);
         }
