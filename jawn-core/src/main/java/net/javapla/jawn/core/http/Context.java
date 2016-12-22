@@ -59,6 +59,7 @@ public interface Context {
     public String getRouteFormat();
     
     public String getRouteParam(String name);
+    public Map<String, String> getRouteParams();
     
     public SessionFacade getSession(boolean createIfNotExists);
     public void setFlash(String name, Object value);

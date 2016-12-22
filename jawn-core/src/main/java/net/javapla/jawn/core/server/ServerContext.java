@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -112,6 +113,11 @@ public class ServerContext implements Context.Internal2 {
     public String getRouteParam(String name) {
         if (route == null) return null;
         return route.getPathParametersEncoded(routedPath).get(name);
+    }
+    @Override
+    public Map<String, String> getRouteParams() {
+        if (route == null) return Collections.emptyMap();
+        return route.getPathParametersEncoded(routedPath);
     }
 
     @Override
@@ -248,7 +254,7 @@ public class ServerContext implements Context.Internal2 {
 
     @Override
     public MultiList<String> params() {
-        return request.params();
+        return request.params().orElse(() -> new MultiList<String>(getRouteParams()));
     }
 
     @Override

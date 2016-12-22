@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * 
@@ -21,6 +22,11 @@ public class MultiList<T> {
     
     public MultiList() {
         this.parts = new HashMap<String, List<T>>();
+    }
+    
+    public MultiList(Map<String, T> map) {
+        this();
+        map.forEach((key, value) -> put(key, value));
     }
     
     @SafeVarargs
@@ -79,6 +85,18 @@ public class MultiList<T> {
     
     public int size() {
         return parts.size();
+    }
+    
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+    
+    public MultiList<T> orElse(Supplier<MultiList<T>> sup) {
+        return sup.get();
+    }
+    
+    public MultiList<T> orElse(MultiList<T> multilist) {
+        return multilist;
     }
     
     @Override

@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -136,6 +137,12 @@ class JawnServletContext implements Context.Internal {
         if (route == null) return null;
         return route.getPathParametersEncoded(routedPath).get(name);
     }
+    @Override
+    public Map<String, String> getRouteParams() {
+        if (route == null) return Collections.emptyMap();
+        return route.getPathParametersEncoded(routedPath);
+    }
+    
     /**
      * Returns the found language of the URI - if any.
      * If the languages are set in Bootstrap, only these are valid.
