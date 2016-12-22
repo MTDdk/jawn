@@ -144,38 +144,6 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
         public final FilterBuilder<T> toPackage( String packageName ) {
             if (!packageName.startsWith(PropertiesConstants.CONTROLLER_PACKAGE))
                 packageName = PropertiesConstants.CONTROLLER_PACKAGE + "." + packageName;
-            /*Reflections reflect = new Reflections(packageName/*, new SubTypesScanner() {
-                @Override
-                public void scan(Object cls) {
-                    super.scan(cls);
-
-                    // adding an extra level to the hierarchy (EXTREMELY and ridiculously bad implementation)
-                    String className = getMetadataAdapter().getClassName(cls);
-                    String superclass = getMetadataAdapter().getSuperclassName(cls);
-                    if (acceptResult(superclass)) {
-                        String supersuperclass = cls.getClass().getSuperclass().getSuperclass().getName();
-                        getStore().put(supersuperclass, className);
-                    }
-                }
-            });*/
-            /*Reflections reflect = new Reflections(
-                    new ConfigurationBuilder()
-                        .setUrls(ClasspathHelper.forPackage(packageName))
-                        .setScanners(new SubTypesScanner(false))
-                        .filterInputsBy(new org.reflections.util.FilterBuilder().includePackage(packageName)));
-            
-            //TODO Create custom subtype scanner to include all classes with a Controller in the hierarchy
-            // and not just as a direct descender.
-            Set<Class<? extends Controller>> classes = reflect.getSubTypesOf(Controller.class);
-            System.out.println("-----------" + classes);
-            ArrayList<String> cc = new ArrayList<>();
-            Set<String> keys = reflect.getStore().keySet();
-            for (String key : keys) {
-                Multimap<String, String> multimap = reflect.getStore().get(key);
-                for (Entry<String, String> entry : multimap.entries()) {
-                    cc.add(entry.getValue());
-                }
-            }*/
             //ControllerFinder cf = new ControllerFinder(packageName);
             //this.controllers = cf.controllers.values().toArray(new Class[cf.controllers.size()]);//classes.toArray(new Class[classes.size()]);
             this.controllers = new ControllerLocator(packageName).controllersAsArray();

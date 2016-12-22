@@ -163,6 +163,11 @@ public class RouterImpl implements Router {
         for (Route route : routes) {
             if (route.matches(httpMethod, requestUri)) {
                 
+                // TODO experimental
+                if (route.func != null) {
+                    return route;
+                }
+                
                 // if the route only has an URI defined, then we process the route as if it was an InternalRoute
                 if (route.getActionName() == null) {
                     if (route.getController() == null) {

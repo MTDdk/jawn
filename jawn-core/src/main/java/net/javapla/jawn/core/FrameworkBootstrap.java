@@ -20,7 +20,6 @@ import com.google.inject.Stage;
 import com.google.inject.util.Modules;
 
 import net.javapla.jawn.core.api.ApplicationBootstrap;
-import net.javapla.jawn.core.api.ApplicationDatabaseBootstrap;
 import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
@@ -35,7 +34,6 @@ import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.ServerContext;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.PropertiesConstants;
 
 public class FrameworkBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
@@ -48,7 +46,7 @@ public class FrameworkBootstrap {
     
     protected Injector injector;
     
-    protected ApplicationBootstrap config;
+//    protected ApplicationBootstrap config;
     protected ApplicationBootstrap[] plugins;
 
 
@@ -112,10 +110,14 @@ public class FrameworkBootstrap {
         return injector;
     }
     
+    public ApplicationConfig config() {
+        return appConfig;
+    }
+    
     public synchronized void shutdown() {
-        if (config != null) {
+        /*if (config != null) {
             config.destroy();
-        }
+        }*/
         if (plugins != null) {
             Arrays.stream(plugins).forEach(plugin -> plugin.destroy());
         }
@@ -152,7 +154,7 @@ public class FrameworkBootstrap {
         RouterImpl router = new RouterImpl(filters, properties);*/
         DatabaseConnections connections = new DatabaseConnections();
         
-        this.config = readConfigurations(appConfig, /*router,*/ /*filters,*/ connections);
+        //this.config = readConfigurations(appConfig, /*router,*/ /*filters,*/ connections);
         
         // supported languages are needed in the creation of the injector
         properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -212,7 +214,7 @@ public class FrameworkBootstrap {
         router.compileRoutes(invoker);
     }
     
-    private ApplicationBootstrap readConfigurations(ApplicationConfig configuration, /*Router router,*/ /*Filters filters,*/ DatabaseConnections connections) {
+    /*private ApplicationBootstrap readConfigurations(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {
         
         ClassLocator locatr = new ClassLocator(PropertiesConstants.CONFIG_PACKAGE);
         
@@ -229,7 +231,7 @@ public class FrameworkBootstrap {
         
         // bootstrap
         return locate(locatr, ApplicationBootstrap.class, impl -> impl.bootstrap(configuration));
-    }
+    }*/
     
     
     private ApplicationBootstrap[] readRegisteredPlugins(ApplicationConfig config) {

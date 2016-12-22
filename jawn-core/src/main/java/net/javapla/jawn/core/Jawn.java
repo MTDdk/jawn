@@ -1,5 +1,6 @@
 package net.javapla.jawn.core;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -7,6 +8,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 
 import net.javapla.jawn.core.api.Filter;
@@ -68,6 +70,26 @@ public class Jawn {
         //TODO clearly, this needs to be changed to not set a property like this
         System.setProperty("JAWN_ENV", mode.toString()); 
         properties.set(mode);
+        return this;
+    }
+    
+    public Jawn use(AbstractModule module) {
+        bootstrapper.config().registerModules(module);
+        return this;
+    }
+    
+    public Jawn encoding(String encoding) {
+        bootstrapper.config().setCharacterEncoding(encoding);
+        return this;
+    }
+    public Jawn encoding(Charset encoding) {
+        bootstrapper.config().setCharacterEncoding(encoding.displayName());
+        return this;
+    }
+    
+    public Jawn lang() {
+        //README: should some kind of language settings be set here?
+        //bootstrapper.config().setSupportedLanguages(null);
         return this;
     }
 
