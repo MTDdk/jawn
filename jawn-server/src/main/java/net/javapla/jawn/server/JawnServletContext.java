@@ -2,6 +2,7 @@ package net.javapla.jawn.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -22,13 +23,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.http.Request;
+import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
@@ -100,8 +101,8 @@ class JawnServletContext implements Context.Internal {
     /**
      * @return An instance of the Request interface
      */
-    public Request createRequest() {
-        return new RequestImpl(request, parserManager);
+    public RequestConvert createRequest() {
+        return new RequestConvertImpl(request, parserManager);
     }
     
     public SessionFacade getSession(boolean createIfNotExists) {
@@ -615,6 +616,11 @@ class JawnServletContext implements Context.Internal {
         return response.getWriter();
     }
     
+    @Override
+    public InputStream requestInputStream() throws IOException {
+        return request.getInputStream();
+    }
+    
     public String getResponseEncoding() {
         return response.getCharacterEncoding();
     }
@@ -629,11 +635,11 @@ class JawnServletContext implements Context.Internal {
     
 /* ****** */
 
-    public final ResponseStream readyResponse(Response controllerResponse) {
+    public final ResponseStream readyResponse(Result controllerResponse) {
         return readyResponse(controllerResponse, true);
     }
     
-    public final ResponseStream readyResponse(final Response controllerResponse, boolean handleFlash) {
+    public final ResponseStream readyResponse(final Result controllerResponse, boolean handleFlash) {
         // status
         response.setStatus(controllerResponse.status());
         

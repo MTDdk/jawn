@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.server;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -15,14 +16,14 @@ import java.util.Optional;
 
 import com.google.inject.Inject;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.http.Req;
 import net.javapla.jawn.core.http.Request;
-import net.javapla.jawn.core.http.Resp;
+import net.javapla.jawn.core.http.RequestConvert;
+import net.javapla.jawn.core.http.Response;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.routes.Route;
@@ -42,8 +43,8 @@ public class ServerContext implements Context.Internal2 {
     //private final ParserEngineManager parserManager;
     //private final SessionManager sessionManager;
     
-    private Req request;
-    private Resp response;
+    private Request request;
+    private Response response;
     
     private Route route;
     private String format, language;
@@ -60,7 +61,7 @@ public class ServerContext implements Context.Internal2 {
         //this.parserManager = parserManager;
     }
     
-    public void init(Req request, Resp response) {
+    public void init(Request request, Response response) {
         this.request = request;
         this.response = response;
         
@@ -79,16 +80,16 @@ public class ServerContext implements Context.Internal2 {
     }
     
     @Override
-    public Req request() {
+    public Request request() {
         return request;
     }
     @Override
-    public Resp response() {
+    public Response response() {
         return response;
     }
 
     @Override
-    public Request createRequest() {
+    public RequestConvert createRequest() {
         return null;
     }
 
@@ -349,6 +350,11 @@ public class ServerContext implements Context.Internal2 {
     public Optional<List<FormItem>> parseRequestMultiPartItems(String encoding) {
         return Optional.of(request.files());
     }
+    
+    @Override
+    public InputStream requestInputStream() throws IOException {
+        return request.in();
+    }
 
     @Override
     public String getResponseEncoding() {
@@ -394,12 +400,12 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    public ResponseStream readyResponse(Response controllerResponse) {
+    public ResponseStream readyResponse(Result controllerResponse) {
         return readyResponse(controllerResponse, true);
     }
 
     @Override
-    public ResponseStream readyResponse(Response controllerResponse, boolean handleFlash) {
+    public ResponseStream readyResponse(Result controllerResponse, boolean handleFlash) {
         // status
         response.statusCode(controllerResponse.status());
         

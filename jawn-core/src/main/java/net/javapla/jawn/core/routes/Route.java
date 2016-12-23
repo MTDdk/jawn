@@ -1,15 +1,14 @@
 package net.javapla.jawn.core.routes;
 
 import java.lang.reflect.Method;
-import java.util.function.Function;
 
 import net.javapla.jawn.core.Controller;
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.http.Req;
-import net.javapla.jawn.core.http.Resp;
+import net.javapla.jawn.core.http.Request;
+import net.javapla.jawn.core.http.Response;
 
 
 /**
@@ -59,10 +58,7 @@ public class Route extends InternalRoute {
     public Class<? extends Controller> getController() {
         return controller;
     }
-    public void reloadController(Function<Class<? extends Controller>, Class<? extends Controller>> reloadFunction) {
-        if (this.controller != null)
-            this.controller = reloadFunction.apply(controller);
-    }
+    
     /**
      * @return The action on the controller including the HTTP method. E.g. getMovie, postMovie
      */
@@ -84,7 +80,7 @@ public class Route extends InternalRoute {
     public void setResponseFunction(ResponseFunction func) {
         this.func = func;
     }
-    public Response executeRouteAndRetrieveResponse(Context context) {
+    public Result executeRouteAndRetrieveResponse(Context context) {
         return func.handle(context);
     }
     
@@ -101,11 +97,11 @@ public class Route extends InternalRoute {
     }
     
     interface TwoArgAction {
-        Object action(Req req, Resp resp) throws Throwable;
+        Object action(Request req, Response resp) throws Throwable;
     }
     
     interface OneArgAction {
-        Object action(Req req) throws Throwable;
+        Object action(Request req) throws Throwable;
     }
     
     interface ZeroArgAction {

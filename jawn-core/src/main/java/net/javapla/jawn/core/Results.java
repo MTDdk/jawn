@@ -3,63 +3,63 @@ package net.javapla.jawn.core;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import net.javapla.jawn.core.Response.NoHttpBody;
+import net.javapla.jawn.core.Result.NoHttpBody;
 
-public class Responses {
+public class Results {
     
-    public static final Response status(int status) {
-        return new Response(status);
+    public static final Result status(int status) {
+        return new Result(status);
     }
-    public static Response ok() {
+    public static Result ok() {
         return status(Status.OK.getStatusCode());
     }
-    public static Response noContent() {
+    public static Result noContent() {
         return status(Status.NO_CONTENT.getStatusCode()).renderable(new NoHttpBody());
     }
-    public static Response noBody(int status) {
+    public static Result noBody(int status) {
         return status(status).renderable(new NoHttpBody());
     }
-    public static Response notFound() {
+    public static Result notFound() {
         return status(Status.NOT_FOUND.getStatusCode()).renderable(new NoHttpBody());
     }
-    public static Response unauthorized() {
+    public static Result unauthorized() {
         return status(Status.UNAUTHORIZED.getStatusCode()).renderable(new NoHttpBody());
     }
-    public static Response internalServerError() {
+    public static Result internalServerError() {
         return status(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
     /** 302 (Found) */
-    static Response redirect() {
+    static Result redirect() {
         return status(Status.FOUND.getStatusCode()).renderable(new NoHttpBody());
     }
     /** 302 (Found) */
-    public static Response redirect(String location) {
+    public static Result redirect(String location) {
         return redirect().addHeader("Location", location);
     }
     
-    public static Response html() {
+    public static Result html() {
         return ok().contentType(MediaType.TEXT_HTML);
     }
-    public static Response text() {
+    public static Result text() {
         return ok().contentType(MediaType.TEXT_PLAIN);
     }
-    public static Response text(String t) {
+    public static Result text(String t) {
         return ok().contentType(MediaType.TEXT_PLAIN).renderable(t);
     }
-    public static Response text(byte[] t) {
+    public static Result text(byte[] t) {
         return ok().contentType(MediaType.TEXT_PLAIN).renderable(t);
     }
-    public static Response xml() {
+    public static Result xml() {
         return ok().contentType(MediaType.APPLICATION_XML);
     }
-    public static Response json() {
+    public static Result json() {
         return ok().contentType(MediaType.APPLICATION_JSON);
     }
-    public static Response json(Object o) {
+    public static Result json(Object o) {
         return ok().contentType(MediaType.APPLICATION_JSON).renderable(o);
     }
     
-    public static final Response gzip() {
+    public static final Result gzip() {
         return null; //TODO
     }
     

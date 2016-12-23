@@ -46,12 +46,10 @@ public class FrameworkBootstrap {
     
     protected Injector injector;
     
-//    protected ApplicationBootstrap config;
     protected ApplicationBootstrap[] plugins;
 
-
-    
-//    private ArrayList<Runnable> onStartup = new ArrayList<>();
+    private ArrayList<Runnable> onStartup = new ArrayList<>();
+    private ArrayList<Runnable> onShutdown = new ArrayList<>();
 
     
     /*public FrameworkBootstrap() {
@@ -72,8 +70,6 @@ public class FrameworkBootstrap {
     
     public synchronized void boot() {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
-        
-        long startupTime = System.currentTimeMillis();
         
         configure();
         
@@ -101,9 +97,7 @@ public class FrameworkBootstrap {
         FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
         engine.onFrameworkStartup(); // signal startup
         
-//        onStartup.forEach(Runnable::run);
-        
-        logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
+        onStartup.forEach(Runnable::run);
     }
     
     public Injector getInjector() {
@@ -114,13 +108,20 @@ public class FrameworkBootstrap {
         return appConfig;
     }
     
+    public void onStartup(Runnable r) {
+        onStartup.add(r);
+    }
+    
+    public void onShutdown(Runnable r) {
+        onShutdown.add(r);
+    }
+    
     public synchronized void shutdown() {
-        /*if (config != null) {
-            config.destroy();
-        }*/
         if (plugins != null) {
             Arrays.stream(plugins).forEach(plugin -> plugin.destroy());
         }
+        
+        onShutdown.forEach(Runnable::run);
         
         if (injector != null) {
             
@@ -139,10 +140,6 @@ public class FrameworkBootstrap {
             engine = null;
         }
     }
-    
-    /*public void addStartup(Runnable callback) {
-        onStartup.add(callback);
-    }*/
     
     protected void addModule(Module module) {
         this.combinedModules.add(module);
@@ -252,7 +249,7 @@ public class FrameworkBootstrap {
      * @param bootstrapper
      * @return
      */
-    private <T, U> T locate(final ClassLocator locator, Class<T> clazz, Consumer<T> bootstrapper) {
+    /*private <T, U> T locate(final ClassLocator locator, Class<T> clazz, Consumer<T> bootstrapper) {
         Set<Class<? extends T>> set = locator.subtypeOf(clazz);
         
         if (!set.isEmpty()) {
@@ -271,7 +268,7 @@ public class FrameworkBootstrap {
             logger.debug("Did not find custom configuration for {}. Going with built in defaults ", clazz);
         }
         return null;
-    }
+    }*/
     
     private <T, U> T[] locateAll(ClassLocator locator, Class<T> clazz, Consumer<T> bootstrapper) {
         Set<Class<? extends T>> set = locator.subtypeOf(clazz);

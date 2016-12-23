@@ -1,6 +1,6 @@
 package net.javapla.jawn.core.api;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.http.Context;
 
 
@@ -17,7 +17,7 @@ public interface Filter {
      * @return
      *      A response if anything needs to be redirected or 404'd
      */
-    Response before(FilterChain chain, Context context);
+    Result before(FilterChain chain, Context context);
     
     /**
      * Called by framework after executing a controller

@@ -5,7 +5,7 @@ import java.io.OutputStream;
 
 import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
 
@@ -25,7 +25,7 @@ class XmlTemplateEngine implements TemplateEngine {
     
     
     @Override
-    public void invoke(Context context, Response response, ResponseStream stream) {
+    public void invoke(Context context, Result response, ResponseStream stream) {
         try (OutputStream output = stream.getOutputStream()) {
             
             mapper.writeValue(output, response.renderable());

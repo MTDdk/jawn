@@ -1,7 +1,6 @@
 package net.javapla.jawn.core;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -15,6 +14,7 @@ import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
+import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.routes.ResponseFunction;
 import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.server.Server;
@@ -31,9 +31,6 @@ public class Jawn {
     
     private final FiltersHandler filters;
     private final Router router;
-    
-    private final ArrayList<Runnable> onStartup = new ArrayList<>();
-    private final ArrayList<Runnable> onShutdown = new ArrayList<>();
     
     private final ServerConfig serverConfig = new ServerConfig();
     
@@ -53,15 +50,34 @@ public class Jawn {
         
     }*/
     
-    
+    /**
+     * Run the tasks as a part of the start up process.
+     * 
+     * With the current implementation, the Runnables will be executed
+     * just before starting the server.
+     * 
+     * @param callback
+     * @return this, for chaining
+     */
     public Jawn onStartup(Runnable callback) {
         Objects.requireNonNull(callback);
-        onStartup.add(callback);
+        bootstrapper.onStartup(callback);
         return this;
     }
+    
+    /**
+     * Run the tasks as a part of the shut down process.
+     * 
+     * With the current implementation, the Runnables will be executed
+     * right after stopping the server, but before closing any
+     * connection pool to a {@link DatabaseConnection}.
+     * 
+     * @param callback
+     * @return this, for chaining
+     */
     public Jawn onShutdown(Runnable callback) {
         Objects.requireNonNull(callback);
-        onShutdown.add(callback);
+        bootstrapper.onShutdown(callback);
         return this;
     }
     
@@ -181,6 +197,8 @@ public class Jawn {
     }
     
     public void start() {
+        long startupTime = System.currentTimeMillis();
+        
         bootstrapper.boot();
         Injector injector = bootstrapper.getInjector();
         try {
@@ -189,19 +207,16 @@ public class Jawn {
             e.printStackTrace(); //TODO break when server cannot be found
         }
         
-        onStartup.forEach(Runnable::run);
-        
+        logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
         logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(JawnConfigurations.class).getMode());
     }
     
     public void stop() {
-        onShutdown.forEach(Runnable::run);
-        
         Injector injector = bootstrapper.getInjector();
         try {
             injector.getInstance(Server.class).stop();
         } catch (Exception ignore) {
-            //at this point the server REALLY should be possible to find
+            // Ignore NPE. At this point the server REALLY should be possible to find
         }
         bootstrapper.shutdown();
     }

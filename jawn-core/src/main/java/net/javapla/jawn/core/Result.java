@@ -12,8 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-//Result
-public class Response {
+public class Result {
 
     /**
      * Http status code
@@ -56,7 +55,7 @@ public class Response {
     //defacto layout or not
     private String layout = "index.html";//Configuration.getDefaultLayout();
     
-    public Response(int statusCode) {
+    public Result(int statusCode) {
         supportedContentTypes = new ArrayList<>();
         headers = new HashMap<>();
         viewObjects = new HashMap<>();
@@ -66,7 +65,7 @@ public class Response {
     }
     
     
-    public Response renderable(Object obj) {
+    public Result renderable(Object obj) {
         this.renderable = obj;
         return this;
     }
@@ -78,7 +77,7 @@ public class Response {
         cpuCount, cpuCount * 2, 200, TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<Runnable>(cpuCount * 20), //TODO: do some calculations on the best configuration for this
         new ThreadPoolExecutor.CallerRunsPolicy());
-    public Response renderable(Callable<Object> c) {
+    public Result renderable(Callable<Object> c) {
         this.renderable = EXECUTOR.submit(c);
         return this;
     }
@@ -94,7 +93,7 @@ public class Response {
     }
     
     
-    public Response contentType(String type) {
+    public Result contentType(String type) {
         this.contentType = type;
         return this;
     }
@@ -102,7 +101,7 @@ public class Response {
         return contentType;
     }
     
-    public Response status(int statusCode) {
+    public Result status(int statusCode) {
         this.statusCode = statusCode;
         return this;
     }
@@ -110,7 +109,7 @@ public class Response {
         return statusCode;
     }
     
-    public Response charset(String charset) {
+    public Result charset(String charset) {
         this.charset = charset;
         return this;
     }
@@ -126,7 +125,7 @@ public class Response {
     public String template() {
         return template;
     }
-    public Response template(String template) {
+    public Result template(String template) {
         this.template = template;
         return this;
     }
@@ -138,7 +137,7 @@ public class Response {
     public String layout() {
         return layout;
     }
-    public Response layout(String layout) {
+    public Result layout(String layout) {
         this.layout = layout;
         return this;
     }
@@ -146,16 +145,16 @@ public class Response {
     public Map<String, String> headers() {
         return headers;
     }
-    public Response addHeader(String name, String value) {
+    public Result addHeader(String name, String value) {
         headers.put(name, value);
         return this;
     }
     
-    public Response addViewObject(String name, Object value) {
+    public Result addViewObject(String name, Object value) {
         viewObjects.put(name, value);
         return this;
     }
-    public Response addAllViewObjects(Map<String, Object> values) {
+    public Result addAllViewObjects(Map<String, Object> values) {
         viewObjects.putAll(values);
         return this;
     }
@@ -164,7 +163,7 @@ public class Response {
     }
     
     
-    public Response addSupportedContentType(String contentType) {
+    public Result addSupportedContentType(String contentType) {
         this.supportedContentTypes.add(contentType);
         return this;
     }
@@ -186,7 +185,7 @@ public class Response {
      * Empty container for rendering purposes.
      * 
      * <p>
-     * It causes the {@link ResponseRunner} to render no body, just the header. Useful
+     * It causes the {@link ResultRunner} to render no body, just the header. Useful
      * when issuing a redirect and no corresponding content should be shown.
      * 
      * @author MTD

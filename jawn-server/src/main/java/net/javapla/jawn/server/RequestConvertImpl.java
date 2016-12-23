@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.ParsableException;
-import net.javapla.jawn.core.http.Request;
+import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
@@ -22,10 +22,10 @@ import net.javapla.jawn.core.util.HttpHeaderUtil;
  * 
  * @author MTD
  */
-class RequestImpl implements Request {
+class RequestConvertImpl implements RequestConvert {
     private final HttpServletRequest request;
     private final ParserEngineManager parserEngineManager;
-    RequestImpl(HttpServletRequest request, ParserEngineManager parserEngineManager) {
+    RequestConvertImpl(HttpServletRequest request, ParserEngineManager parserEngineManager) {
         this.request = request;
         this.parserEngineManager = parserEngineManager;
     }

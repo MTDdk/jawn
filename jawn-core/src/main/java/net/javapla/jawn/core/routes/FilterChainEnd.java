@@ -3,7 +3,7 @@ package net.javapla.jawn.core.routes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.http.Context;
 
@@ -18,7 +18,7 @@ class FilterChainEnd implements FilterChain {
 
     
     @Override
-    public Response before(Context context) {
+    public Result before(Context context) {
         // When returning null, the ControllerActionInvoker is called instead
         return null;
     }

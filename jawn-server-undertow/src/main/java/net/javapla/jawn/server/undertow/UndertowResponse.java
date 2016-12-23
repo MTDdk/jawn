@@ -15,8 +15,6 @@ import java.util.Optional;
 
 import org.xnio.IoUtils;
 
-import com.google.common.collect.ImmutableList;
-
 import io.undertow.connector.PooledByteBuffer;
 import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
@@ -28,9 +26,9 @@ import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import net.javapla.jawn.core.http.Cookie;
-import net.javapla.jawn.core.http.Resp;
+import net.javapla.jawn.core.http.Response;
 
-public class UndertowResponse implements Resp {
+public class UndertowResponse implements Response {
     
     private final HttpServerExchange exchange;
     
@@ -55,9 +53,9 @@ public class UndertowResponse implements Resp {
     }
 
     @Override
-    public void header(String name, Iterable<String> values) {
+    public void header(String name, List<String> values) {
         HeaderMap headers = exchange.getResponseHeaders();
-        headers.putAll(new HttpString(name), ImmutableList.copyOf(values));
+        headers.putAll(new HttpString(name), Collections.unmodifiableList(values));
     }
 
     @Override

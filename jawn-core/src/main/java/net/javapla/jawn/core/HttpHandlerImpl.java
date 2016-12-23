@@ -19,8 +19,8 @@ import com.google.inject.Injector;
 
 import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.core.http.Req;
-import net.javapla.jawn.core.http.Resp;
+import net.javapla.jawn.core.http.Request;
+import net.javapla.jawn.core.http.Response;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.ServerContext;
 import net.javapla.jawn.core.templates.TemplateEngine;
@@ -41,7 +41,7 @@ class HttpHandlerImpl implements HttpHandler {
     }
 
     @Override
-    public void handle(Req request, Resp response) throws Exception {
+    public void handle(Request request, Response response) throws Exception {
         if (filteringResources(response, request.path(), resource -> translateResource(resource))) return;
         
         ServerContext context = (ServerContext) injector.getInstance(Context.class);
@@ -78,7 +78,7 @@ class HttpHandlerImpl implements HttpHandler {
      * @return true, if a filtering has happened and nothing else should be done by this current dispatcher
      */
     //TODO extract to an independent Filter
-    private static final boolean filteringResources(Resp response, final String path, final Function<String,String> needsTranslation) throws IOException {
+    private static final boolean filteringResources(Response response, final String path, final Function<String,String> needsTranslation) throws IOException {
         String translated = needsTranslation.apply(path);
 //        String translated = translateResource(path);
         if (translated != null) {

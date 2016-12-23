@@ -5,16 +5,16 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import net.javapla.jawn.core.http.Resp;
+import net.javapla.jawn.core.http.Response;
 import net.javapla.jawn.core.http.ResponseStream;
 
 public class ServerResponseStream implements ResponseStream {
     
-    private final Resp response;
+    private final Response response;
     private OutputStream stream;
     private Writer writer;
 
-    ServerResponseStream(Resp response) {
+    ServerResponseStream(Response response) {
         this.response = response;
     }
 

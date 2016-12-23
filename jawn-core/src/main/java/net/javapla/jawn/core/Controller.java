@@ -28,15 +28,18 @@ import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.exceptions.ActionNotFoundException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
+import net.javapla.jawn.core.exceptions.ParsableException;
 import net.javapla.jawn.core.exceptions.PathNotFoundException;
 import net.javapla.jawn.core.exceptions.WebException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.http.Request;
+import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.images.ImageHandlerBuilder;
+import net.javapla.jawn.core.parsers.ParserEngine;
+import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.routes.RouterHelper;
 import net.javapla.jawn.core.templates.TemplateEngine;
@@ -44,6 +47,7 @@ import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
 import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.ConvertUtil;
+import net.javapla.jawn.core.util.HttpHeaderUtil;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.PropertiesConstants;
@@ -61,14 +65,14 @@ import com.google.inject.Injector;
  *
  * @author MTD
  */
-public abstract class Controller implements ResponseHolder {
+public abstract class Controller implements ResultHolder {
     
  // Standard behaviour is to look for HTML template
-    protected Response response = ResponseBuilder.ok().contentType(MediaType.TEXT_HTML);
-    public void setControllerResponse(Response r) {
+    protected Result response = ResultBuilder.ok().contentType(MediaType.TEXT_HTML);
+    public void setControllerResponse(Result r) {
         response = r;
     }
-    public Response getControllerResponse() {
+    public Result getControllerResponse() {
         if (layout() != null)
             response.layout(layout());
         return response;
@@ -156,8 +160,8 @@ public abstract class Controller implements ResponseHolder {
 
 
     protected class NewRenderBuilder {
-        private final Response response;
-        NewRenderBuilder(Response response) {
+        private final Result response;
+        NewRenderBuilder(Result response) {
             this.response = response;
         }
         
@@ -426,8 +430,8 @@ public abstract class Controller implements ResponseHolder {
     }
     
 
-    protected final ResponseBuilder respond() {
-        return new ResponseBuilder(this);
+    protected final ResultBuilder respond() {
+        return new ResultBuilder(this);
     }
 
     
@@ -441,7 +445,7 @@ public abstract class Controller implements ResponseHolder {
      * @return instance of {@link HttpSupport.HttpBuilder} to accept additional information.
      */
     protected void redirect(String path) {
-        response = ResponseBuilder.redirect(path);
+        response = ResultBuilder.redirect(path);
     }
 
     /**
@@ -614,7 +618,7 @@ public abstract class Controller implements ResponseHolder {
      * 
      * @return A Request object with helper methods
      */
-    protected Request request() {
+    protected RequestConvert request() {
         return context.createRequest();
     }
     
@@ -1537,7 +1541,7 @@ public abstract class Controller implements ResponseHolder {
 //        return new HttpBuilder(resp);
         //TODO finish and TEST the god damn method
         //------------------
-        Response r = ResponseBuilder.ok()
+        Result r = ResultBuilder.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .renderable(in);
 //        context.setControllerResponse(r);
@@ -1599,7 +1603,7 @@ public abstract class Controller implements ResponseHolder {
     protected OutputStream outputStream(String contentType, Map<String, String> headers, int status) {
 //        context.setControllerResponse(new NopResponse(context, contentType, status));
         //------
-        Response r = ResponseBuilder.noBody(status).contentType(contentType);
+        Result r = ResultBuilder.noBody(status).contentType(contentType);
 //        context.setControllerResponse(r);
         setControllerResponse(r);
         
@@ -1638,7 +1642,7 @@ public abstract class Controller implements ResponseHolder {
      */
     protected PrintWriter writer(String contentType, Map<String, String> headers, int status){
 //        context.setControllerResponse(new NopResponse(context, contentType, status));
-        response = ResponseBuilder.noBody(status).contentType(contentType);
+        response = ResultBuilder.noBody(status).contentType(contentType);
         //TODO TEST
         try{
             if (headers != null) {
@@ -1723,7 +1727,7 @@ public abstract class Controller implements ResponseHolder {
         TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
         engine.invoke(
                 context, 
-                ResponseBuilder.ok().addAllViewObjects(values).template(template).layout(null), 
+                ResultBuilder.ok().addAllViewObjects(values).template(template).layout(null), 
                 new ResponseStream() {
                     @Override
                     public Writer getWriter() throws IOException {
@@ -1768,5 +1772,40 @@ public abstract class Controller implements ResponseHolder {
     
     protected String contentType() {
         return context.requestContentType();
+    }
+    
+    /**
+     * Converts the request input into an object of the specified class in case of <code>application/json</code> request.
+     *  
+     * @param clazz A representation of the expected JSON
+     * @return The object of the converted JSON, or <code>throws</code> if the JSON could not be correctly deserialized,
+     *         or the media type was incorrect. 
+     * @throws ParsableException If the parsing from JSON to class failed
+     * @throws MediaTypeException If the mediatype of the request was not "application/json"
+     * @author MTD
+     */
+    //TODO not correctly formulated doc
+    protected <T> T parseBody(Class<T> clazz) throws ParsableException, MediaTypeException {
+        String contentType = context.requestContentType();
+        
+        // if the content type header was not provided, we throw
+        if (contentType == null || contentType.isEmpty()) {
+            throw new MediaTypeException("Missing media type header");
+        }
+        
+        // extract the actual content type in case charset is also a part of the string
+        contentType = HttpHeaderUtil.getContentTypeFromContentTypeAndCharacterSetting(contentType);
+        
+        ParserEngine engine = injector.getInstance(ParserEngineManager.class).getParserEngineForContentType(contentType);
+        
+        if (engine == null) {
+            throw new MediaTypeException("An engine for media type ("+contentType+") was not found");
+        }
+        
+        try {
+            return engine.invoke(context.requestInputStream(), clazz);
+        } catch (IOException e) {
+            throw new ParsableException(e);
+        }
     }
 }

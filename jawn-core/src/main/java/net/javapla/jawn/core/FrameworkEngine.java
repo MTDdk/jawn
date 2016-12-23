@@ -35,18 +35,14 @@ public final class FrameworkEngine {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
     private final Router router;
-    private final ResponseRunner runner;
-//    private final ActionInvoker invoker;
-//    private final Injector injector;
+    private final ResultRunner runner;
 
 //    private final Lang lang;
     
     @Inject
-    public FrameworkEngine(Router router, ResponseRunner runner/*, ActionInvoker invoker*//*, Injector injector *//*Lang lang*/) {
+    public FrameworkEngine(Router router, ResultRunner runner/*Lang lang*/) {
         this.router = router;
         this.runner = runner;
-//        this.invoker = invoker;
-//        this.injector = injector;
 //        this.lang = lang;
     }
     
@@ -60,113 +56,24 @@ public final class FrameworkEngine {
         
         try {
 
-            final Route route = router.retrieveRoute(context.request().method(), uri/*, invoker*//*injector*/);
+            final Route route = router.retrieveRoute(context.request().method(), uri);
             context.setRouteInformation(route, null/*format*/, null/*language*/, uri);
             
-            //if (route != null) {
-                // run pre-filters
-                Response response = route.getFilterChain().before(context);
-                
-                // a filter might return a response, in which case do nothing
-                if (response == null)
-                    //response = invoker.executeAction(context);
-                    response = route.executeRouteAndRetrieveResponse(context);
-                
-                ResponseStream rsp = runner.run(context, response);
+            // run pre-filters
+            Result result = route.getFilterChain().before(context);
             
-                // run post-filters
-                route.getFilterChain().after(context);
-                
-                // close response streams in the end
-                rsp.close();
-                
-            /*} else {
-                
-                // This scenario ought not happen as the Router#getRoute() would have thrown an exception
-                // if no route is found
-                logger.warn("No matching route for servlet path: " + context.path() + ", passing down to container.");
-            }*/
+            // a filter might return a result, in which case do nothing
+            if (result == null)
+                result = route.executeRouteAndRetrieveResponse(context);
             
-        } catch (RouteException e) {
-            // 404
-            renderSystemError(context, "/system/404", "index", 404, e);
-        } catch (ViewException e) {
-            // 501
-            renderSystemError(context, "/system/500", "index", 501, e);
-        } catch (BadRequestException | MediaTypeException e) {
-            // 400
-            renderSystemError(context, "/system/400", "index", 400, e);
-        } catch (WebException e){
-            renderSystemError(context, "/system/"+e.getHttpCode(), "index", e.getHttpCode(), e);
-        } catch (Exception e) {
-            // 500
-            renderSystemError(context, "/system/500", "index", 500, e);
-        }
-    }
-    
-    //onRouteRequest
-    public final void runRequest(Context.Internal context) {
-        final String path = context.path();
+            ResponseStream rsp = runner.run(context, result);
         
-        //String format = null;
-        String uri;
-        // look for any format in the request
-        /*if (path.contains(".")) {
-            uri = path.substring(0, path.lastIndexOf('.'));
-            format = path.substring(path.lastIndexOf('.') + 1);
-        } else*/ {
-            uri = path;
-        }
-        
-        //README maybe first do this language extraction IFF custom route not found
-        /*String language = null;
-        try {
-            // if languages are set we try to deduce them
-            language = lang.deduceLanguageFromUri(uri);
-            if (!StringUtil.blank(language))
-                uri = uri.substring(language.length() +1 ); // strip the language prefix from the URI
-            else
-                language = lang.getDefaultLanguage();
-        } catch (LanguagesNotSetException e) {
-            language = null;
-        } catch (NotSupportedLanguageException e) {
-            // use the default language
-            language = lang.getDefaultLanguage();
-            // We cannot be sure that the URI actually contains
-            // a language parameter, so we let the router handle this
-        }*/
+            // run post-filters
+            route.getFilterChain().after(context);
             
-        if (uri.length() == 0) {
-            uri = "/";//different servlet implementations, damn.
-        }
-        
-        try {
-
-            /*16062*/
-            /*8799*/
-            //long time = System.nanoTime();
-            final Route route = router.retrieveRoute(context.httpMethod(), uri/*, invoker*//*injector*/);
-            //System.out.println("Timing :: " + (System.nanoTime() - time));
-            context.setRouteInformation(route, null/*format*/, null/*language*/, uri);
-            
-            //if (route != null) {
-                // run pre-filters
-                Response response = route.getFilterChain().before(context);
-                
-                //might already have been handled by the controller or filters
-                if (response == null)
-                    //response = invoker.executeAction(context);
-                    response = route.executeRouteAndRetrieveResponse(context);
-                runner.run(context, response);
-                
-                // run post-filters
-                route.getFilterChain().after(context);
-            /*} else {
-                
-                // This scenario ought not happen as the Router#getRoute() would have thrown an exception
-                // if no route is found
-                logger.warn("No matching route for servlet path: " + context.path() + ", passing down to container.");
-            }*/
+            // close response streams in the end
+            // README: is it possible that it never closes?
+            rsp.close();
             
         } catch (RouteException e) {
             // 404
@@ -202,13 +109,13 @@ public final class FrameworkEngine {
             if (!(context.requestHeader("x-requested-with") == null || context.requestHeader("X-Requested-With") == null)) {
 
                 try {
-                    Response response = ResponseBuilder.text(getStackTraceString(e), status);
+                    Result response = ResultBuilder.text(getStackTraceString(e), status);
                     runner.run(context, response).close();
                 } catch (Exception ex) {
                     logger.error("Failed to send error response to client", ex);
                 }
             } else {
-                Response response = ResponseBuilder
+                Result response = ResultBuilder
                         .status(status)
                         .addAllViewObjects(getMapWithExceptionDataAndSession(e))
                         .template(template)
@@ -227,7 +134,7 @@ public final class FrameworkEngine {
                 logger.error("java-web-planet internal error: ", t);
             }
             try {
-                Response renderable = ResponseBuilder.ok().contentType(MediaType.TEXT_HTML)
+                Result renderable = ResultBuilder.ok().contentType(MediaType.TEXT_HTML)
                         .renderable("<html><head><title>Sorry!</title></head><body><div style='background-color:pink;'>internal error</div></body>");
                 runner.run(context, renderable).close();
             } catch (Exception ex) {

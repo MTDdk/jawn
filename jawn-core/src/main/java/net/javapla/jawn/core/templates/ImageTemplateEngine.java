@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
@@ -15,7 +15,7 @@ import net.javapla.jawn.core.http.ResponseStream;
 class ImageTemplateEngine implements TemplateEngine {
 
     @Override
-    public void invoke(Context context, Response response, ResponseStream stream) {
+    public void invoke(Context context, Result response, ResponseStream stream) {
         // We assume the content type to be of the form "image/{extension}"
         // This is what we extract, as the image ought to be of the same format
         String contentType = response.contentType();

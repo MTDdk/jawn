@@ -8,14 +8,14 @@ import java.io.Serializable;
 
 import javax.ws.rs.core.MediaType;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
 
 final class StreamTemplateEngine implements TemplateEngine {
 
     @Override
-    public final void invoke(Context context, Response response, ResponseStream stream) {
+    public final void invoke(Context context, Result response, ResponseStream stream) {
         Object object = response.renderable();
         if (object instanceof InputStream) {
             try (   InputStream  in  = (InputStream) object;

@@ -4,7 +4,7 @@ import java.text.MessageFormat;
 
 import com.google.inject.Inject;
 
-import net.javapla.jawn.core.Response.NoHttpBody;
+import net.javapla.jawn.core.Result.NoHttpBody;
 import net.javapla.jawn.core.exceptions.BadRequestException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
 import net.javapla.jawn.core.exceptions.ViewException;
@@ -18,16 +18,16 @@ import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
  * @author MTD
  */
 //perhaps to be called ResponseHandler
-public final class ResponseRunner {
+public final class ResultRunner {
 
     private final TemplateEngineOrchestrator templateEngineManager;
     
     @Inject
-    public ResponseRunner(TemplateEngineOrchestrator templateEngineManager) {
+    public ResultRunner(TemplateEngineOrchestrator templateEngineManager) {
         this.templateEngineManager = templateEngineManager;
     }
     
-    public final ResponseStream run(final Context context, final Response response) throws ViewException, BadRequestException, MediaTypeException {
+    public final ResponseStream run(final Context context, final Result response) throws ViewException, BadRequestException, MediaTypeException {
         //might already have been handled by the controller or filters
         //if (response == null) return;
         
@@ -42,7 +42,7 @@ public final class ResponseRunner {
         }
     }
     
-    private final ResponseStream renderWithTemplateEngine(final Context context, final Response response) throws ViewException, BadRequestException, MediaTypeException {
+    private final ResponseStream renderWithTemplateEngine(final Context context, final Result response) throws ViewException, BadRequestException, MediaTypeException {
         
         // if the response does not contain a content type, we try to look at the request 'accept' header
         if (response.contentType() == null) {

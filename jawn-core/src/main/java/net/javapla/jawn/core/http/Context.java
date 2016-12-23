@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.http;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -10,7 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.uploads.FormItem;
@@ -31,14 +32,14 @@ public interface Context {
         public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException;
     }
     interface Internal2 extends Internal {
-        Req request();
-        Resp response();
+        Request request();
+        Response response();
     }
     
     /**
      * @return An instance of the Request interface
      */
-    public Request createRequest();
+    public RequestConvert createRequest();
     
     /**
      * Returns instance of {@link Route} to be used for potential conditional logic inside controller filters.
@@ -246,6 +247,8 @@ public interface Context {
      */
     public Optional<List<FormItem>> parseRequestMultiPartItems(String encoding);
     
+    InputStream requestInputStream() throws IOException;
+    
 /* *************** */
 /*   RESPONSE      */
 /* *************** */
@@ -281,6 +284,6 @@ public interface Context {
     
 /* ****** */
 
-    public ResponseStream readyResponse(Response controllerResponse);
-    public ResponseStream readyResponse(Response controllerResponse, boolean handleFlash);
+    public ResponseStream readyResponse(Result controllerResponse);
+    public ResponseStream readyResponse(Result controllerResponse, boolean handleFlash);
 }

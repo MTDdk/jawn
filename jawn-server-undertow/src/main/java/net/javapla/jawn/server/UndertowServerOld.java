@@ -1,35 +1,18 @@
 package net.javapla.jawn.server;
 
 
-import io.undertow.Handlers;
-import io.undertow.Undertow;
-import io.undertow.UndertowOptions;
-import io.undertow.Undertow.Builder;
-import io.undertow.server.HttpHandler;
-import io.undertow.server.handlers.resource.FileResourceManager;
-import io.undertow.servlet.Servlets;
-import io.undertow.servlet.api.DeploymentInfo;
-import io.undertow.servlet.api.DeploymentManager;
-import io.undertow.util.Headers;
-
-import java.io.File;
-
-import javax.servlet.DispatcherType;
-
 import org.xnio.Options;
 
-import com.google.inject.servlet.GuiceFilter;
-
+import io.undertow.Undertow.Builder;
 import net.javapla.jawn.core.server.ServerConfig;
-import net.javapla.jawn.server.api.JawnServer;
 
-public class UndertowServerOld implements JawnServer {
+public class UndertowServerOld /*implements JawnServer */{
     
     public void setupAndStartServer(ServerConfig config) throws Exception {
         String filtername = "jawnFilter";
 
         // Setup the server application
-        DeploymentInfo deployment = Servlets.deployment()
+        /*DeploymentInfo deployment = Servlets.deployment()
             .setClassLoader(UndertowServerOld.class.getClassLoader())
             .setContextPath(config.getContextPath())
             .setDeploymentName("jawn.war");
@@ -72,7 +55,7 @@ public class UndertowServerOld implements JawnServer {
         
         configureServerPerformance(serverBuilder, config);
             
-        serverBuilder.build().start();
+        serverBuilder.build().start();*/
     }
     
     /*private void configureServerAuthentication(DeploymentInfo deployment, ServerConfig config) {

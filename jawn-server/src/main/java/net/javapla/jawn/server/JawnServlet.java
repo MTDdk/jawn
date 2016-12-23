@@ -18,6 +18,7 @@ import net.javapla.jawn.core.FrameworkEngine;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.http.Context.Internal2;
 import net.javapla.jawn.core.templates.TemplateEngine;
 
 
@@ -90,7 +91,7 @@ public class JawnServlet extends HttpServlet {
         JawnServletContext context = (JawnServletContext) injector.getInstance(Context.class);
         context.init(/*servletContext, */request, response);
         
-        engine.runRequest(context);
+        engine.onRouteRequest((Internal2) context);
     }
     
     

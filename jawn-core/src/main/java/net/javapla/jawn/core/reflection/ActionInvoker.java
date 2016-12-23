@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import net.javapla.jawn.core.Controller;
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.WebException;
@@ -40,11 +40,11 @@ public class ActionInvoker implements ResponseFunction {
     }
     
     @Override
-    public Response handle(Context context) {
+    public Result handle(Context context) {
         return executeAction(context);
     }
     
-    public final Response executeAction(final Context context) {
+    public final Result executeAction(final Context context) {
         final Route route = context.getRoute();
 
         try {

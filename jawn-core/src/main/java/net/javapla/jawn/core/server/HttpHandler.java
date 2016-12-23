@@ -1,9 +1,9 @@
 package net.javapla.jawn.core.server;
 
-import net.javapla.jawn.core.http.Req;
-import net.javapla.jawn.core.http.Resp;
+import net.javapla.jawn.core.http.Request;
+import net.javapla.jawn.core.http.Response;
 
 public interface HttpHandler {
 
-    void handle(final Req request, final Resp response) throws Exception;
+    void handle(final Request request, final Response response) throws Exception;
 }

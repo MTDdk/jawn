@@ -6,7 +6,7 @@ import java.util.List;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.FiltersHandler;
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.exceptions.ControllerException;
@@ -27,7 +27,7 @@ public class RouteBuilder {
     private String actionName; // is not prefixed with the http method
 //    private Method actionMethod;
     private Class<? extends Controller> type;
-    private Response response;
+    private Result response;
     
     private RouteBuilder(HttpMethod m) {
         httpMethod = m;
@@ -101,7 +101,7 @@ public class RouteBuilder {
         return this;
     }
     
-    public void with(Response response) {
+    public void with(Result response) {
         this.response = response;
         this.actionName = Constants.DEFAULT_ACTION_NAME;
     }
@@ -181,7 +181,7 @@ public class RouteBuilder {
     }
     
     private static final FilterChain filterChainEnd = new FilterChainEnd();
-    private static final FilterChain buildFilterChain(/*ControllerActionInvoker invoker,*//*FilterChain chainEnd,*//*Injector injector, */List<Filter> filters, Class<? extends Controller> controller/*, boolean isProduction*/, Response response) {
+    private static final FilterChain buildFilterChain(/*ControllerActionInvoker invoker,*//*FilterChain chainEnd,*//*Injector injector, */List<Filter> filters, Class<? extends Controller> controller/*, boolean isProduction*/, Result response) {
         if (filters.isEmpty()) {
             return /*response != null ? new FilterChainEnd(response) :*/ filterChainEnd;/*chainEnd;/*///new FilterChainEnd(invoker/*new ControllerActionInvoker(controller, isProduction), *//*injector*/);
         } else {

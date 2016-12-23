@@ -2,7 +2,7 @@ package net.javapla.jawn.core.templates;
 
 import java.io.File;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.routes.RouterHelper;
@@ -24,7 +24,7 @@ public class ContentTemplateLoader<T> {
     	return realPath;
     }
 
-    public final String handleLayoutEndings(Response response) {
+    public final String handleLayoutEndings(Result response) {
         String layout = response.layout();
         if (layout != null) {
             if (layout.endsWith(engine.getSuffixOfTemplatingEngine())) //TODO is it faster to keep it as a reference?
@@ -43,7 +43,7 @@ public class ContentTemplateLoader<T> {
      * @param response
      * @return
      */
-    public String getTemplateForResult(Route route, Response response) {
+    public String getTemplateForResult(Route route, Result response) {
         String template = response.template();
         String suffixOfTemplatingEngine = engine.getSuffixOfTemplatingEngine();
         

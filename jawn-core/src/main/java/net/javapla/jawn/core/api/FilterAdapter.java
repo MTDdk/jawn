@@ -1,6 +1,6 @@
 package net.javapla.jawn.core.api;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.http.Context;
 
 import org.slf4j.Logger;
@@ -10,8 +10,8 @@ public abstract class FilterAdapter implements Filter {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     
     @Override
-    public Response before(FilterChain chain, Context context) {
-        Response response = chain.before(context);
+    public Result before(FilterChain chain, Context context) {
+        Result response = chain.before(context);
         try { before(context); } catch (Exception e) { onException(chain, e); }
         return response;
     }

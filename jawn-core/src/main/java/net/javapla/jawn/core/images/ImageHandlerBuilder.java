@@ -16,9 +16,9 @@ import javax.imageio.stream.MemoryCacheImageOutputStream;
 
 import org.imgscalr.Scalr;
 
-import net.javapla.jawn.core.Response;
-import net.javapla.jawn.core.ResponseBuilder;
-import net.javapla.jawn.core.ResponseHolder;
+import net.javapla.jawn.core.Result;
+import net.javapla.jawn.core.ResultBuilder;
+import net.javapla.jawn.core.ResultHolder;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
@@ -29,19 +29,19 @@ import net.javapla.jawn.core.uploads.FormItem;
  * @author MTD
  */
 public class ImageHandlerBuilder {
-    private final ResponseHolder holder;
+    private final ResultHolder holder;
     private final DeploymentInfo info;
     
     private BufferedImage image;
     private final FileName fn = new FileName();
 
 
-    private ImageHandlerBuilder(ResponseHolder holder, DeploymentInfo info) {
+    private ImageHandlerBuilder(ResultHolder holder, DeploymentInfo info) {
         this.holder = holder;
         this.info = info;
     }
     
-    public ImageHandlerBuilder(ResponseHolder holder, DeploymentInfo info, FormItem item) throws ControllerException {
+    public ImageHandlerBuilder(ResultHolder holder, DeploymentInfo info, FormItem item) throws ControllerException {
         this(holder, info);
         try {
             this.image = ImageIO.read(item.openStream()); // also closes the stream
@@ -53,7 +53,7 @@ public class ImageHandlerBuilder {
             throw new ControllerException(e);
         }
     }
-    public ImageHandlerBuilder(ResponseHolder holder, DeploymentInfo info, File file) throws ControllerException {
+    public ImageHandlerBuilder(ResultHolder holder, DeploymentInfo info, File file) throws ControllerException {
         this(holder, info);
         try {
             this.image = ImageIO.read(file);
@@ -65,7 +65,7 @@ public class ImageHandlerBuilder {
             throw new ControllerException(e);
         }
     }
-    public ImageHandlerBuilder(ResponseHolder holder, DeploymentInfo info, byte[] bytes, String fileName) throws ControllerException {
+    public ImageHandlerBuilder(ResultHolder holder, DeploymentInfo info, byte[] bytes, String fileName) throws ControllerException {
         this(holder, info);
         try {
             this.image = ImageIO.read(new ByteArrayInputStream(bytes));
@@ -258,7 +258,7 @@ public class ImageHandlerBuilder {
 
          int status = 200;
          String contentType = "image/"+extension;
-         Response response = ResponseBuilder
+         Result response = ResultBuilder
                  .ok()
                  .contentType(contentType)
                  .status(status)

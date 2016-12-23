@@ -8,7 +8,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.ResponseStream;
 
@@ -16,7 +16,7 @@ import net.javapla.jawn.core.http.ResponseStream;
 final class TextTemplateEngine implements TemplateEngine {
 
     @Override
-    public final void invoke(final Context context, final Response response, final ResponseStream stream) {
+    public final void invoke(final Context context, final Result response, final ResponseStream stream) {
         Object obj = response.renderable();
         if (obj == null) return;
         

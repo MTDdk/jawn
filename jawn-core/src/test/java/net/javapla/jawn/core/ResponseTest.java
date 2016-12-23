@@ -16,14 +16,14 @@ public class ResponseTest {
     @Test
     public void renderable() {
         Object test = new Object();
-        Response response = ResponseBuilder.ok().renderable(test);
+        Result response = ResultBuilder.ok().renderable(test);
         assertEquals(test, response.renderable());
     }
     
     @Test
     public void contentType() {
         String contentType = "text/something-proprietary";
-        Response response = ResponseBuilder.ok().contentType(contentType);
+        Result response = ResultBuilder.ok().contentType(contentType);
         assertEquals(contentType, response.contentType());
     }
 
@@ -32,8 +32,8 @@ public class ResponseTest {
         int executionTime = 400;
         int executionOverhead = 70; //approximation
         
-        List<Response> responses = IntStream.range(1, 4).boxed().map(i -> 
-            ResponseBuilder.ok().renderable(() -> {
+        List<Result> responses = IntStream.range(1, 4).boxed().map(i -> 
+            ResultBuilder.ok().renderable(() -> {
                 System.out.println("start " + i);
                 Thread.sleep(executionTime);
                 return "done " + i;
@@ -49,7 +49,7 @@ public class ResponseTest {
     
     @Test
     public void futureExecutionWithError() {
-        Response response = ResponseBuilder.ok().renderable(() -> {System.out.println("throwing exception"); throw new Exception();});
+        Result response = ResultBuilder.ok().renderable(() -> {System.out.println("throwing exception"); throw new Exception();});
         Object renderable = response.renderable();
         assertTrue(renderable instanceof Future);
     }

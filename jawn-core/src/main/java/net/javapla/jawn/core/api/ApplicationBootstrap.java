@@ -3,11 +3,8 @@ package net.javapla.jawn.core.api;
 import net.javapla.jawn.core.ApplicationConfig;
 
 /**
- * 
- * @author ann
- * @deprecated Use Jawn#use for modules
+ * Used by modules to hook into the framework
  */
-@Deprecated
 public interface ApplicationBootstrap {
 
     void bootstrap(ApplicationConfig config);

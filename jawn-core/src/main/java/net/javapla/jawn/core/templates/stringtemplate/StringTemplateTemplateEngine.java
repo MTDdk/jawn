@@ -24,7 +24,7 @@ import org.stringtemplate.v4.misc.STMessage;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.ViewException;
@@ -94,7 +94,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
     }
 
     @Override
-    public final void invoke(Context context, Response response, ResponseStream stream) throws ViewException {
+    public final void invoke(Context context, Result response, ResponseStream stream) throws ViewException {
         long time = System.currentTimeMillis();
 
         final Map<String, Object> values = response.getViewObjects();

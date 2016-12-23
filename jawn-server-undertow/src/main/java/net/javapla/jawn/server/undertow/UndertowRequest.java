@@ -1,5 +1,6 @@
 package net.javapla.jawn.server.undertow;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,12 +29,12 @@ import io.undertow.util.HttpString;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.Cookie.Builder;
 import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.http.Req;
+import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.URLCodec;
 
-public class UndertowRequest implements Req {
+public class UndertowRequest implements Request {
     
     private final HttpServerExchange exchange;
     private final String path;
@@ -157,9 +158,17 @@ public class UndertowRequest implements Req {
     }
 
     @Override
-    public InputStream in() throws Exception {
+    public InputStream in() throws IOException {
         blocking.get();
         return exchange.getInputStream();
+    }
+    
+    @Override
+    public byte[] bytes() throws IOException {
+        try (InputStream stream = in()) {
+            ByteArrayOutputStream array = new ByteArrayOutputStream(stream.available());
+            return array.toByteArray();
+        }
     }
 
     @Override

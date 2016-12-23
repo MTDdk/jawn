@@ -50,7 +50,7 @@ public class CoreModule extends AbstractModule {
         bind(SiteConfigurationReader.class).in(Singleton.class);
         bind(TemplateEngineOrchestrator.class).to(TemplateEngineOrchestratorImpl.class).in(Singleton.class);
         bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
-        bind(ResponseRunner.class).in(Singleton.class);
+        bind(ResultRunner.class).in(Singleton.class);
         
         bind(ActionInvoker.class).in(Singleton.class);
         //bind(FilterChain.class).to(InvokerFilterChainEnd.class);

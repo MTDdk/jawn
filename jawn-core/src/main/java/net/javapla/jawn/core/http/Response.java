@@ -8,11 +8,11 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 
-public interface Resp {
+public interface Response {
     
     Optional<String> header(final String name);
     List<String> headers(String name);
-    void header(String name, Iterable<String> values);
+    void header(String name, List<String> values);
     void header(String name, String value);
     void send(byte[] bytes) throws Exception;
     void send(ByteBuffer buffer) throws Exception;
