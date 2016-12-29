@@ -3,6 +3,7 @@ package net.javapla.jawn.core.reflection;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipException;
+
+import net.javapla.jawn.core.util.URLCodec;
 
 public class JarLoader implements AutoCloseable {
     
@@ -20,7 +23,11 @@ public class JarLoader implements AutoCloseable {
     public JarLoader(final String scannedPath) throws ZipException, IOException {
         SCANNED_PATH = scannedPath;
         
+        
         String jarFile = Thread.currentThread().getContextClassLoader().getResource(scannedPath).getFile();
+        jarFile = URLCodec.decode(jarFile, StandardCharsets.UTF_8); // Perhaps this is only necessary on windows systems, 
+                                                                    // but it seems to be crucial to decode spaces
+        
         JAR_FILE = extractJarFileFromClassPathFilename(jarFile);
         
         zf = new JarFile(JAR_FILE);

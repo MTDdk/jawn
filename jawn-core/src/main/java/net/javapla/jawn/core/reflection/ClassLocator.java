@@ -39,6 +39,7 @@ public class ClassLocator {
     
     public ClassLocator(String packageToScan) throws IllegalArgumentException {
         this.packageToScan = packageToScan;
+        log.debug("package to scan {}", packageToScan);
         this.store = new HashMap<>();
         
         final String scannedPath = packageToScan.replace(DOT, SLASH);
