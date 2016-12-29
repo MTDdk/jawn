@@ -26,8 +26,8 @@ public class JettyServer implements JawnServer {
         //setupShiro(contextHandler, config);
         
         contextHandler.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false"); //disables directory listing
-        contextHandler.setContextPath(config.getContextPath());
-        contextHandler.setBaseResource(Resource.newResource(config.getWebappPath()));
+        contextHandler.setContextPath(config.contextPath());
+        contextHandler.setBaseResource(Resource.newResource(config.webappPath()));
         contextHandler.setParentLoaderPriority(true);
         
         // Add the framework
@@ -48,7 +48,7 @@ public class JettyServer implements JawnServer {
         pool.setDetailedDump(false);
         
         
-        switch(config.getServerPerformance()) {
+        switch(config.serverPerformance()) {
             case HIGHEST:
                 pool.setMaxThreads(Runtime.getRuntime().availableProcessors() * 8);
                 pool.setMinThreads(Runtime.getRuntime().availableProcessors() * 8);
@@ -66,15 +66,15 @@ public class JettyServer implements JawnServer {
                 pool.setMinThreads(4);
                 break;
             case CUSTOM:
-                pool.setMaxThreads(config.getIoThreads());
-                pool.setMinThreads(config.getIoThreads());
+                pool.setMaxThreads(config.ioThreads());
+                pool.setMinThreads(config.ioThreads());
                 break;
         }
         
         Server server = new Server(pool);
         ServerConnector connector = new ServerConnector(server);
-        connector.setAcceptQueueSize(config.getBacklog());
-        connector.setPort(config.getPort());
+        connector.setAcceptQueueSize(config.backlog());
+        connector.setPort(config.port());
         server.setConnectors(new ServerConnector[] {connector});
         
         return server;
