@@ -3,17 +3,17 @@ package net.javapla.jawn.core.reflection;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.WebException;
 import net.javapla.jawn.core.http.Context;
-import net.javapla.jawn.core.routes.ResponseFunction;
 import net.javapla.jawn.core.routes.Route;
-
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import net.javapla.jawn.core.routes.Route.ResponseFunction;
 
 public class ActionInvoker implements ResponseFunction {
 

@@ -108,4 +108,14 @@ public class Route extends InternalRoute {
         Object action() throws Throwable;
     }
     
+    @FunctionalInterface
+    public interface ResponseFunction {
+        Result handle(Context context);
+    }
+    
+    @FunctionalInterface
+    interface ZeroArgResponseFunction {
+        Result handle();
+    }
+    
 }

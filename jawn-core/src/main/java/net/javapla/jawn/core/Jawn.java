@@ -15,7 +15,7 @@ import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.database.DatabaseConnection;
-import net.javapla.jawn.core.routes.ResponseFunction;
+import net.javapla.jawn.core.routes.Route.ResponseFunction;
 import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
