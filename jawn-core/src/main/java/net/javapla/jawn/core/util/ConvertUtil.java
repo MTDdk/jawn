@@ -42,6 +42,21 @@ public class ConvertUtil {
             }
         }
     }
+    /**
+     * Same as {@linkplain ConvertUtil#toInteger(Object)} but does not throw an exception
+     * if the conversion could not be done.
+     * 
+     * @param value
+     * @param defaultValue
+     * @return
+     */
+    public static Integer toInteger(Object value, Integer defaultValue) {
+        try {
+            return toInteger(value);
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
     
     /**
      * Returns true if the value is any numeric type and has a value of 1, or
@@ -116,6 +131,23 @@ public class ConvertUtil {
             } catch (ParseException e) {
                 throw new ConversionException("failed to convert: '" + value + "' to Long", e);
             }
+        }
+    }
+    
+    public static class ConversionException extends RuntimeException {
+
+        private static final long serialVersionUID = 5457757452289804224L;
+
+        public ConversionException(String message) {
+            super(message);
+        }
+
+        public ConversionException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public ConversionException(Throwable cause) {
+            super(cause.getMessage(), cause);
         }
     }
     
