@@ -163,10 +163,6 @@ public class RouterImpl implements Router {
         for (Route route : routes) {
             if (route.matches(httpMethod, requestUri)) {
                 
-                // TODO experimental
-                if (route.func != null) {
-                    return route;
-                }
                 
                 // if the route only has an URI defined, then we process the route as if it was an InternalRoute
                 if (route.getActionName() == null) {
@@ -178,6 +174,11 @@ public class RouterImpl implements Router {
                         String actionName = deduceActionName(route, requestUri);
                         return RouteBuilder.build(route, actionName);
                     }
+                }
+                
+                // TODO experimental
+                if (route.func != null) {
+                    return route;
                 }
 
                 // reload the controller, if we are not in production mode

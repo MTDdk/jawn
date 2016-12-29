@@ -3,6 +3,7 @@ package net.javapla.jawn.core.routes;
 import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.FiltersHandler;
@@ -119,7 +120,13 @@ public class RouteBuilder {
 //        if (controller == null) throw new IllegalStateException("Route not with a controller");
         if (uri == null) throw new IllegalStateException("Route is not specified");
         
+        Map<String, String> map = InternalRoute.mapPathParameters(uri);
         String action = constructAction(actionName, httpMethod);
+        boolean deduceOnRuntime = false;
+        if (map.containsKey("action")) {
+            action = null;
+            deduceOnRuntime = true;
+        }
         
         LinkedList<Filter> list = new LinkedList<>();
         if (type != null) {
@@ -140,27 +147,18 @@ public class RouteBuilder {
         } else if (type != null) {
             // verify that the controller has the corresponding action
             // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
-            if ( ! ActionInvoker.isAllowedAction(type, action/*route.getAction()*/))
-                throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
+            if (! deduceOnRuntime) {
+                if ( ! ActionInvoker.isAllowedAction(type, action/*route.getAction()*/))
+                    throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
 
-            try {
-                route.setActionMethod(route.getController().getMethod(action));
-            } catch (NoSuchMethodException | SecurityException ignore) {}
-
-//            ActionInvoker invoker = injector.getInstance(ActionInvoker.class);
+                try {
+                    route.setActionMethod(route.getController().getMethod(action));
+                } catch (NoSuchMethodException | SecurityException ignore) {}
+                
+            }
+            
             route.setResponseFunction(invoker);
         }
-        
-//        if (/*actionName != null && */type != null) {
-//            // verify that the controller has the corresponding action
-//            // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
-//            if ( ! ActionInvoker.isAllowedAction(type, action/*route.getAction()*/))
-//                throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
-//            
-//            try {
-//                route.setActionMethod(route.getController().getMethod(action));
-//            } catch (NoSuchMethodException | SecurityException ignore) {}
-//        }
         
         return route;
     }
@@ -203,11 +201,13 @@ public class RouteBuilder {
      *       
      * <p>
      * Special case for actionName = index, as this should be the same for the action itself.
+     * @param routeBuilder 
      * @param actionName
      * @param method
      * @return
      */
     private static final String constructAction(String actionName, HttpMethod method) {
+        
         if (StringUtil.blank(actionName)) return Constants.DEFAULT_ACTION_NAME;
         if (Constants.DEFAULT_ACTION_NAME.equals(actionName) && method == HttpMethod.GET)
             return actionName;
