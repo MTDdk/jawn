@@ -236,6 +236,7 @@ public class FrameworkBootstrap {
             ClassLocator locator = new ClassLocator(properties.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
             return locateAll(locator,  ApplicationBootstrap.class, impl -> impl.bootstrap(config));
         } catch (IllegalArgumentException e) {
+            logger.warn("Did not find any " + ApplicationBootstrap.class.getSimpleName() + " implementations", e);
             return null;
         }
     }

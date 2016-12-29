@@ -31,7 +31,7 @@ public class UndertowServer implements Server {
     @Override
     public void start(ServerConfig serverConfig) throws Exception {
         builder
-            .addHttpListener(serverConfig.getPort(), serverConfig.getHost())
+            .addHttpListener(serverConfig.port(), serverConfig.host())
             
             // from undertow-edge benchmark
             .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false) //don't send a keep-alive header for HTTP/1.1 requests, as it is not required
@@ -67,7 +67,7 @@ public class UndertowServer implements Server {
         
         int undertow_minimum = 2;//may not be less than 2 because of the inner workings of Undertow
         int ioThreads;
-        switch (config.getServerPerformance()) {
+        switch (config.serverPerformance()) {
             case HIGHEST:
                 ioThreads = Math.max(Runtime.getRuntime().availableProcessors() << 1, undertow_minimum);
                 serverBuilder.setBufferSize(1024 * 16);
@@ -83,13 +83,13 @@ public class UndertowServer implements Server {
                 ioThreads = undertow_minimum;
                 break;
             case CUSTOM:
-                ioThreads = Math.max(config.getIoThreads(), undertow_minimum);
+                ioThreads = Math.max(config.ioThreads(), undertow_minimum);
                 break;
         }
         
         serverBuilder.setIoThreads(ioThreads);
         serverBuilder.setWorkerThreads(ioThreads * 8);
-        serverBuilder.setSocketOption(Options.BACKLOG, config.getBacklog());
+        serverBuilder.setSocketOption(Options.BACKLOG, config.backlog());
     }
 
 }

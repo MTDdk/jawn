@@ -2,8 +2,6 @@ package net.javapla.jawn.core.server;
 
 import java.net.ServerSocket;
 
-import net.javapla.jawn.core.util.Modes;
-
 public class ServerConfig {
     
     /**
@@ -19,7 +17,7 @@ public class ServerConfig {
      * <p><code>HIGH</code> Sets the server to use configuration for high performance
      * <p><code>MEDIUM</code> 
      * <p><code>MINIMAL</code>
-     * <p><code>CUSTOM</code> Use the user-inputted configuration, like {@link ServerConfig#setIoThreads(int)}
+     * <p><code>CUSTOM</code> Use the user-inputted configuration, like {@link ServerConfig#ioThreads(int)}
      *
      */
     public enum PERFORMANCE_MODE { HIGHEST(512), HIGH(256), MEDIUM(50), MINIMAL(5), CUSTOM(BACKLOG_DEFAULT);
@@ -35,7 +33,6 @@ public class ServerConfig {
     
     /** The source folder to read templates from */
     private String webapp = "src/main/webapp";
-    private String environment = Modes.DEV.toString();
     private String host = "0.0.0.0";
     
     private int ioThreads = 1;
@@ -45,43 +42,31 @@ public class ServerConfig {
     private boolean backlogSet = false;
     
     
-    public String getContextPath() {
+    public String contextPath() {
         return contextPath;
     }
-    public ServerConfig setContextPath(String contextPath) {
+    public ServerConfig contextPath(String contextPath) {
         this.contextPath = contextPath;
         return this;
     }
     
-    public int getPort() {
+    public int port() {
         return port;
     }
-    public ServerConfig setPort(int port) {
+    public ServerConfig port(int port) {
         this.port = port;
         return this;
     }
     
-    public String getWebappPath() {
+    public String webappPath() {
         return webapp;
     }
-    public ServerConfig setWebappPath(String webapp) {
+    public ServerConfig webappPath(String webapp) {
         this.webapp = webapp;
         return this;
     }
     
-    public String getEnvironment() {
-        return environment;
-    }
-    public ServerConfig setEnvironment(String environment) {
-        this.environment = environment;
-        return this;
-    }
-    public ServerConfig setEnvironment(Modes mode) {
-        this.environment = mode.toString();
-        return this;
-    }
-
-    public int getIoThreads() {
+    public int ioThreads() {
         return ioThreads;
     }
     /**
@@ -89,7 +74,7 @@ public class ServerConfig {
      * @param number
      * @return this for chaining
      */
-    public ServerConfig setIoThreads(int number) {
+    public ServerConfig ioThreads(int number) {
         this.performance = PERFORMANCE_MODE.CUSTOM;
         
         if (number > 0)
@@ -105,19 +90,19 @@ public class ServerConfig {
      * @param backlog
      * @return this for chaining
      */
-    public ServerConfig setBacklog(int backlog) {
+    public ServerConfig backlog(int backlog) {
         this.backlog = backlog;
         backlogSet = true;
         return this;
     }
-    public int getBacklog() {
+    public int backlog() {
         return backlogSet ? backlog : performance.getBacklogValue();
     }
     
-    public PERFORMANCE_MODE getServerPerformance() {
+    public PERFORMANCE_MODE serverPerformance() {
         return performance;
     }
-    public ServerConfig setServerPerformance(PERFORMANCE_MODE mode) {
+    public ServerConfig serverPerformance(PERFORMANCE_MODE mode) {
         this.performance = mode;
         return this;
     }
@@ -137,10 +122,10 @@ public class ServerConfig {
         this.authenticationFilterUrlMapping = url;
     }
     
-    public String getHost() {
+    public String host() {
         return host;
     }
-    public void setHost(String host) {
+    public void host(String host) {
         this.host = host;
     }
     

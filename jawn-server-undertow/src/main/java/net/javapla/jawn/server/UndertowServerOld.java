@@ -74,7 +74,7 @@ public class UndertowServerOld /*implements JawnServer */{
         
         
         int undertow_minimum = 2;//may not be less than 2 because of the inner workings of Undertow
-        switch (config.getServerPerformance()) {
+        switch (config.serverPerformance()) {
             case HIGHEST:
                 int ioThreads = Math.max(Runtime.getRuntime().availableProcessors() << 1, undertow_minimum);
                 serverBuilder.setIoThreads(ioThreads);
@@ -91,11 +91,11 @@ public class UndertowServerOld /*implements JawnServer */{
                 serverBuilder.setIoThreads(undertow_minimum); 
                 break;
             case CUSTOM:
-                serverBuilder.setIoThreads(Math.max(config.getIoThreads(), undertow_minimum));
+                serverBuilder.setIoThreads(Math.max(config.ioThreads(), undertow_minimum));
                 break;
         }
         
-        serverBuilder.setSocketOption(Options.BACKLOG, config.getBacklog());
+        serverBuilder.setSocketOption(Options.BACKLOG, config.backlog());
     }
     
 }
