@@ -36,9 +36,10 @@ public enum Modes {
         }
     }
     
-    public static Modes determineModeFromString(String mode) {
+    public static Modes determineModeFromString(final String mode) {
+        final String m = mode.toLowerCase();
         for (Modes modes : Modes.values()) {
-            if (modes.toString().equals(mode))
+            if (modes.toString().equals(m) || modes.name().toLowerCase().equals(m))
                 return modes;
         }
         throw new IllegalArgumentException("No enum constant " + Modes.class.getName() + "." + mode);
