@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import net.javapla.jawn.core.exceptions.ParsableException;
-import net.javapla.jawn.core.util.ConversionException;
+import net.javapla.jawn.core.util.ConvertUtil.ConversionException;
 
 /**
  * Represents a parameter sent to the framework.
