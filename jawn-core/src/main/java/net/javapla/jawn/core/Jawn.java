@@ -19,6 +19,7 @@ import net.javapla.jawn.core.routes.ResponseFunction;
 import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
+import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.Modes;
 
 
@@ -196,7 +197,7 @@ public class Jawn {
         return serverConfig;
     }
     
-    public void start() {
+    public void start(final String ... args) {
         long startupTime = System.currentTimeMillis();
         
         bootstrapper.boot();
@@ -204,7 +205,8 @@ public class Jawn {
         try {
             injector.getInstance(Server.class).start(serverConfig);
         } catch (Exception e) {
-            e.printStackTrace(); //TODO break when server cannot be found
+            e.printStackTrace();
+            return;
         }
         
         logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
@@ -222,8 +224,32 @@ public class Jawn {
     }
     
     
-    public static final void run(final Supplier<Jawn> jawn) {
-        jawn.get().start();
+    /**
+     * 
+     * @param jawn
+     *          A subclass of Jawn
+     * @param args
+     *          <ol>
+     *          <li>Server port - Overwrites the default port and the port if it is assigned by {@link ServerConfig#port(int)}</li>
+     *          <li>Mode of operation - DEV,TEST,PROD or their fully qualified names: development, test, production. See {@linkplain Modes}. Default is DEV</li>
+     *          </ol>
+     */
+    public static final void run(final Supplier<Jawn> jawn, final String ... args) {
+        jawn
+            .get()
+            .parseArguments(args) // Read program arguments and overwrite server specifics
+            .start(args);
     }
 
+    private Jawn parseArguments(final String ... args) {
+        switch (args.length) {
+            case 2:
+                env(Modes.determineModeFromString(args[1]));
+            case 1:
+                server().port(ConvertUtil.toInteger(args[0], server().port()));
+            case 0: break;
+        }
+        
+        return this;
+    }
 }
