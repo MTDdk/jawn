@@ -134,7 +134,7 @@ public final class FrameworkEngine {
                 logger.error("java-web-planet internal error: ", t);
             }
             try {
-                Result renderable = ResultBuilder.ok().contentType(MediaType.TEXT_HTML)
+                Result renderable = ResultBuilder.ok().contentType(MediaType.TEXT_HTML).layout(null)
                         .renderable("<html><head><title>Sorry!</title></head><body><div style='background-color:pink;'>internal error</div></body>");
                 runner.run(context, renderable).close();
             } catch (Exception ex) {
