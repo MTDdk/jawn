@@ -170,7 +170,6 @@ class HttpHandlerImpl implements HttpHandler {
    
    /**
     * Actually sorts the paths, which is not appreciated and not even used anywhere
-    * @param servletContext2 
     * @return
     */
    private Set<String> findExclusionPaths() {
@@ -183,11 +182,15 @@ class HttpHandlerImpl implements HttpHandler {
        if (webapp.exists() && paths != null)
            collect = Arrays.asList(paths);
        
-       // This most certainly should not be null!
-       // It means that the server cannot read files at all
-       if (collect == null || collect.isEmpty()) throw new InitException("ServletContext cannot read files. Reason is unknown");
-       // It might be because someone forgot to add the 'webapp' folder to the distribution
-
+       if (webapp.exists() && !webapp.canRead()) {
+           // It means that the server cannot read files at all
+           throw new InitException("HttpHandlerImpl cannot read files. Reason is unknown");
+       } else if (!webapp.exists() || collect == null || collect.isEmpty()) {
+           // Whenever this is empty it might just be because someone forgot to add the 'webapp' folder to the distribution
+           // OR the framework is used without the need for serving files (such as views).
+           logger.error("HttpHandlerImpl did not find any files in webapp - not serving any files then");
+           return exclusions;
+       }
        
        Set<String> resourcePaths = new TreeSet<>(collect);//servletContext.getResourcePaths("/");
        resourcePaths.removeIf( path -> path.contains("-INF") || path.contains("-inf"));
