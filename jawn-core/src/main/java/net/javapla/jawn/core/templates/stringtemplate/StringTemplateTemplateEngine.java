@@ -108,13 +108,19 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
         final String language = null;//context.getRouteLanguage();
 
         final ErrorBuffer error = new ErrorBuffer();
-        final ST contentTemplate = readTemplate(template);
+        final ST contentTemplate = template != null ? readTemplate(template) : null;
 
         try {final Writer writer = stream.getWriter();/*)*/ 
 
             if (layout == null) { // no layout
-                // both layout and template cannot be null
-                if (contentTemplate == null) throw new ViewException("Could not find the template " + contentTemplate + ". Is it spelled correctly?");
+                // both layout and template should not be null
+                if (contentTemplate == null) {
+                    if (response.renderable() != null) {
+                        writer.append(response.renderable().toString());
+                        return;
+                    }
+                    throw new ViewException("Could not find the template " + contentTemplate + ". Is it spelled correctly?");
+                }
                 renderContentTemplate(contentTemplate, writer, values, language, error);
 
             } else { // with layout
@@ -391,7 +397,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
     
     private final STWriter createSTWriter(final Writer writer) {
         if (outputHtmlIndented) {
-            return new AutoIndentWriter(writer);
+            return new AutoIndentWriter(writer); // README is this even needed when STFastGroupDir reads with and without indentation?
         } else {
             return new NoIndentWriter(writer);//no indents for less HTML as a result
         }

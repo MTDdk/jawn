@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.templates.stringtemplate.rewrite;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
@@ -10,6 +11,11 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * Reimplementation of {@linkplain BufferedReader} using {@linkplain StringBuilder} instead of {@linkplain StringBuffer}
+ * 
+ * @author MTD
+ */
 public class IgnoreLFBufferedReader extends Reader {
     
     private Reader in;
@@ -88,6 +94,7 @@ public class IgnoreLFBufferedReader extends Reader {
                     nextChar++;
                 skipLF = false;
                 omitLF = false;
+                
 
             charLoop:
                 for (i = nextChar; i < nChars; i++) {
@@ -102,6 +109,7 @@ public class IgnoreLFBufferedReader extends Reader {
                 nextChar = i;
 
                 if (eol) {
+                    
                     String str;
                     if (s == null) {
                         str = new String(cb, startChar, i - startChar);

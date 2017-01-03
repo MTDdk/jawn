@@ -15,6 +15,8 @@ import org.antlr.runtime.ANTLRStringStream;
  */
 public class ANTLRNoNewLineStream extends ANTLRStringStream {
     
+    protected final static int EXPECTED_LINE_LENGTH = 180;
+    
     public ANTLRNoNewLineStream(URL f, String encoding) throws IOException {
         
         final InputStreamReader isr;
@@ -24,14 +26,57 @@ public class ANTLRNoNewLineStream extends ANTLRStringStream {
             isr = new InputStreamReader(f.openStream());
         }
         
-        // load
+        // load the file
         try (IgnoreLFBufferedReader reader = new IgnoreLFBufferedReader(isr)) {
-            final StringBuilder bob = new StringBuilder();
-            reader.lines().forEach(line -> bob.append(line.trim()));
+            final StringBuilder bob = new StringBuilder(EXPECTED_LINE_LENGTH);
+            
+            reader.lines().forEach(line -> trim(bob, line));
             
             this.data = bob.toString().toCharArray();
             this.n = bob.length();
         }
     }
+    
+    
+    /**
+     * Trim the string but keep a single space in the end of the string if one or more is present.
+     * The original String.trim() removes all characters such as spaces and newlines: (character <= ' ').
+     * 
+     * Keep a single space is needed as the removal of all newline characters AND spaces results in
+     * strings suddenly missing correct spacing in the words.
+     * 
+     * At this point in the execution we know that \r and \n are removed completely (due to {@linkplain IgnoreLFBufferedReader}),
+     * so we only need to look at the spaces surrounding the line.
+     * 
+     * @see {@linkplain String#trim()}
+     * @param s
+     * @return
+     */
+    protected static final void trim(StringBuilder bob, String line) {
+        int length = line.length();
+        final int end = trimEndOfLine(line, length);
+        if (end > 0) {
+            final int start = trimStartOfLine(line, length);
+            if (start > 0) {
+                bob.append(' ');
+            }
+            bob.append(line, start, end);
+        }
+    }
+    
+    
+    protected static final int trimStartOfLine(CharSequence s, final int len) {
+        int st = 0;
 
+        while ((st < len) && (s.charAt(st) <= ' ')) {
+            st++;
+        }
+        return st;
+    }
+    protected static final int trimEndOfLine(CharSequence s, int len) {
+        while ((0 < len) && (s.charAt(len - 1) <= ' ')) {
+            len--;
+        }
+        return (len > 0) ? len : 0;
+    }
 }
