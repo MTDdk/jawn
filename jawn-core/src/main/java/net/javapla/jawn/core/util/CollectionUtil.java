@@ -2,6 +2,7 @@ package net.javapla.jawn.core.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class CollectionUtil {
     
@@ -21,7 +22,8 @@ public class CollectionUtil {
     }
 
     /**
-     * Converting a list into a map
+     * Converting a list into a map.
+     * This implementation uses a {@linkplain TreeMap} which ensures natural ordering of the keys 
      * 
      * @param keyValues An even list of key/value pairs to be converted into a map
      * @param <K> type of the keys
@@ -35,7 +37,7 @@ public class CollectionUtil {
         //             length % 2 != 0
         if ((keyValues.length & 0b01) != 0) throw new IllegalArgumentException("number of arguments must be even");
         
-        Map<K, V> map = new HashMap<>();
+        Map<K, V> map = new TreeMap<>();
         for (int i = 0; i < keyValues.length; i+=2) {
             K key = (K) keyValues[i];
             V value = (V) keyValues[i+1];

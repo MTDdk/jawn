@@ -1,6 +1,7 @@
 package net.javapla.jawn.core;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -11,11 +12,11 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 
 import net.javapla.jawn.core.api.Filter;
-import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.routes.Route.ResponseFunction;
+import net.javapla.jawn.core.routes.RouteBuilder;
 import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
@@ -31,7 +32,8 @@ public class Jawn {
     private final FrameworkBootstrap bootstrapper;
     
     private final FiltersHandler filters;
-    private final Router router;
+    private final ArrayList<RouteBuilder> builders;
+    //private final Router router;
     
     private final ServerConfig serverConfig = new ServerConfig();
     
@@ -42,9 +44,10 @@ public class Jawn {
         
         
         filters = new FiltersHandler();
-        router = new RouterImpl(filters, properties);
+        builders = new ArrayList<>();
+        //router = new RouterImpl(filters, properties);
         
-        bootstrapper = new FrameworkBootstrap(properties, deploymentInfo, router);
+        bootstrapper = new FrameworkBootstrap(properties, deploymentInfo/*, router*/);
     }
     
     /*public Jawn(final String contextPath) {
@@ -114,15 +117,15 @@ public class Jawn {
     // GET
     // ****************
     public Jawn get(String path, ResponseFunction func) {
-        router.GET().route(path).with(func);
+        builders.add(RouteBuilder.get().route(path).with(func));
         return this;
     }
     public Jawn get(String path, Class<? extends Controller> controller) {
-        router.GET().route(path).to(controller);
+        builders.add(RouteBuilder.get().route(path).to(controller));
         return this;
     }
     public Jawn get(String path, Class<? extends Controller> controller, String action) {
-        router.GET().route(path).to(controller, action);
+        builders.add(RouteBuilder.get().route(path).to(controller, action));
         return this;
     }
     
@@ -130,15 +133,15 @@ public class Jawn {
     // POST
     // ****************
     public Jawn post(String path, ResponseFunction func) {
-        router.POST().route(path).with(func);
+        builders.add(RouteBuilder.post().route(path).with(func));
         return this;
     }
     public Jawn post(String path, Class<? extends Controller> controller) {
-        router.POST().route(path).to(controller);
+        builders.add(RouteBuilder.post().route(path).to(controller));
         return this;
     }
     public Jawn post(String path, Class<? extends Controller> controller, String action) {
-        router.POST().route(path).to(controller, action);
+        builders.add(RouteBuilder.post().route(path).to(controller, action));
         return this;
     }
     
@@ -146,15 +149,15 @@ public class Jawn {
     // PUT
     // ****************
     public Jawn put(String path, ResponseFunction func) {
-        router.PUT().route(path).with(func);
+        builders.add(RouteBuilder.put().route(path).with(func));
         return this;
     }
     public Jawn put(String path, Class<? extends Controller> controller) {
-        router.PUT().route(path).to(controller);
+        builders.add(RouteBuilder.put().route(path).to(controller));
         return this;
     }
     public Jawn put(String path, Class<? extends Controller> controller, String action) {
-        router.PUT().route(path).to(controller, action);
+        builders.add(RouteBuilder.put().route(path).to(controller, action));
         return this;
     }
     
@@ -162,15 +165,15 @@ public class Jawn {
     // DELETE
     // ****************
     public Jawn delete(String path, ResponseFunction func) {
-        router.DELETE().route(path).with(func);
+        builders.add(RouteBuilder.delete().route(path).with(func));
         return this;
     }
     public Jawn delete(String path, Class<? extends Controller> controller) {
-        router.DELETE().route(path).to(controller);
+        builders.add(RouteBuilder.delete().route(path).to(controller));
         return this;
     }
     public Jawn delete(String path, Class<? extends Controller> controller, String action) {
-        router.DELETE().route(path).to(controller, action);
+        builders.add(RouteBuilder.delete().route(path).to(controller, action));
         return this;
     }
     
@@ -200,7 +203,7 @@ public class Jawn {
     public void start(final String ... args) {
         long startupTime = System.currentTimeMillis();
         
-        bootstrapper.boot();
+        bootstrapper.boot(new RouterImpl(builders, filters, properties));
         Injector injector = bootstrapper.getInjector();
         try {
             injector.getInstance(Server.class).start(serverConfig);

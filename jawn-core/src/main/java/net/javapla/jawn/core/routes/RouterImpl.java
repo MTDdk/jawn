@@ -42,33 +42,23 @@ public class RouterImpl implements Router {
     }
     
     
-    private final List<RouteBuilder> builders;
+    private final ArrayList<RouteBuilder> builders;
     private final FiltersHandler filters;
-    private final boolean isDev;
+    private final JawnConfigurations properties;
     
     private List<Route> routes;
     private RouteTrie deducedRoutes;
     private ActionInvoker invoker;
+    private boolean isDev;
     
     
-    public RouterImpl(FiltersHandler filters, JawnConfigurations properties) {
-        builders = new ArrayList<>();
+    public RouterImpl(List<RouteBuilder> builders, FiltersHandler filters, JawnConfigurations properties) {
+        this.builders = new ArrayList<>(builders);
         this.filters = filters;
-        
-        this.isDev = properties.isDev();
-        
-        /*if (!isDev) {
-            this.cachedRoutes = new HashMap<>();
-            for(HttpMethod method : HttpMethod.values()) {
-                cachedRoutes.put(method, new RouteTrie());
-            }
-        } else {
-            cachedRoutes = null;
-        }*/
-//        cachedGetRoutes = new RouteTrie();
+        this.properties = properties;
     }
     
-    public RouteBuilder GET() {
+    /*public RouteBuilder GET() {
         RouteBuilder bob = RouteBuilder.get();
         builders.add(bob);
         return bob;
@@ -92,7 +82,7 @@ public class RouterImpl implements Router {
         RouteBuilder bob = RouteBuilder.head();
         builders.add(bob);
         return bob;
-    }
+    }*/
 
     
     public final Route retrieveRoute(HttpMethod httpMethod, String requestUri/*, ActionInvoker invoker*//*Injector injector*/) throws RouteException {
@@ -109,7 +99,7 @@ public class RouterImpl implements Router {
     //TODO we need to have the injector somewhere else.
     //It is not consistent that this particular injector handles implementations from both core and server
     private final Route calculateRoute(HttpMethod httpMethod, String requestUri/*, ActionInvoker invoker*//*Injector injector*/) throws RouteException {
-        //if (routes == null) compileRoutes(/*injector*/); // used to throw an illegalstateexception
+        if (routes == null) throw new IllegalStateException("Routes have not been compiled. Call #compileRoutes() first");
         
         final Route route = matchCustom(httpMethod, requestUri);
         if (route != null) return route;
@@ -126,23 +116,24 @@ public class RouterImpl implements Router {
         throw new RouteException("Failed to map resource to URI: " + requestUri);
     }
     
-    public void compileRoutes(ActionInvoker invoker/*Injector injector*/) {
-        if (routes != null) return; // used to throw an illegalstateexception
+    public void compileRoutes(ActionInvoker invoker) {
+        if (routes != null) return; // previously threw an illegalstateexception
+        isDev = properties.isDev();
         
         // Build the built in routes
         if (!isDev)
-            deducedRoutes = new RoutesDeducer(filters, invoker/*injector*/).deduceRoutesFromControllers().getRoutes();
+            deducedRoutes = new RoutesDeducer(filters, invoker).deduceRoutesFromControllers().getRoutes();
         else
             deducedRoutes = new RouteTrie();
         this.invoker = invoker;
         
         // Build the user attributed routes
-        List<Route> r = new ArrayList<>();
+        ArrayList<Route> r = new ArrayList<>();
         for (RouteBuilder builder : builders) {
             
-            // Routes, not containing wildcards or keywords, should be incorporated into the deduced routes
-            Route route = builder.build(filters, invoker/*injector*/);
-            if (/*!isDev && */!StringUtil.contains(route.uri,'{')) { //exact match
+            // Routes not containing wildcards or keywords should be incorporated into the deduced routes
+            Route route = builder.build(filters, invoker);
+            if (/*!isDev && */route.isFullyQualified()) {
                 deducedRoutes.insert(route.uri, route);
                 System.out.println("deduced : " + route);
             } else {
@@ -163,11 +154,26 @@ public class RouterImpl implements Router {
         for (Route route : routes) {
             if (route.matches(httpMethod, requestUri)) {
                 
+                // reload the controller, if we are not in production mode
+                if (isDev) {
+                    try {
+                        // a route might not have the actionName or controller set by the user, so 
+                        // we try to infer it from the URI
+                        String actionName = deduceActionName(route, requestUri);
+                        String controllerName = deduceControllerName(route, requestUri);
+                        
+                        RouteBuilder bob = loadController(controllerName, httpMethod, route.uri, actionName, false);
+                        
+                        return bob.build(filters, invoker); // this ought not throw, as we already have done the checks for action presence
+                    } catch (CompilationException | ClassLoadException ignore) {
+                        // If anything happens during reload, then we simply do not reload
+                    }
+                }
                 
-                // if the route only has an URI defined, then we process the route as if it was an InternalRoute
+             // if the route only has an URI defined, then we process the route as if it was an InternalRoute
                 if (route.getActionName() == null) {
                     if (route.getController() == null) {
-                        Route deferred = deduceRoute(route, httpMethod, requestUri, invoker/*injector*/);
+                        Route deferred = deduceRoute(route, httpMethod, requestUri, invoker);
                         if (deferred != null) return deferred;
                         return route;
                     } else {
@@ -179,22 +185,6 @@ public class RouterImpl implements Router {
                 // TODO experimental
                 if (route.func != null) {
                     return route;
-                }
-
-                // reload the controller, if we are not in production mode
-                if (isDev) {
-                    try {
-                        // a route might not have the actionName or controller set by the user, so 
-                        // we try to infer it from the URI
-                        String actionName = deduceActionName(route, requestUri);
-                        String controllerName = deduceControllerName(route, requestUri);
-                        
-                        RouteBuilder bob = loadController(controllerName, httpMethod, route.uri, actionName, false);
-                        
-                        return bob.build(filters, invoker/*injector*/); // this ought not throw, as we already have done the checks for action presence
-                    } catch (CompilationException | ClassLoadException ignore) {
-                        // If anything happens during reload, then we simply do not reload
-                    }
                 }
                 
                 return route;

@@ -8,7 +8,6 @@ import com.google.inject.Injector;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.Result;
-import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.WebException;
 import net.javapla.jawn.core.http.Context;
@@ -18,10 +17,9 @@ import net.javapla.jawn.core.routes.Route.ResponseFunction;
 public class ActionInvoker implements ResponseFunction {
 
     private final Injector injector;
-//    private final boolean isDev;
     
     @Inject
-    public ActionInvoker(Injector injector/*, PropertiesImpl properties*/) {
+    public ActionInvoker(Injector injector) {
         
         //README this might be necessary if the overhead of creating controllers on runtime exceeds the memory of holding the controller on the Route
         // if we want to reload the controller, this is a good time to do it
@@ -36,7 +34,6 @@ public class ActionInvoker implements ResponseFunction {
 //            }
             
         this.injector = injector;
-//        this.isDev = properties.isDev();
     }
     
     @Override
@@ -48,18 +45,9 @@ public class ActionInvoker implements ResponseFunction {
         final Route route = context.getRoute();
 
         try {
-            //route.reloadController(controller -> DynamicClassFactory.reloadClass(controller, !isDev));
-            //final Class<? extends Controller> controllerClass;// = route.getController();
-            //final Method action;
-            /*if (isDev) { 
-                controllerClass = DynamicClassFactory.getCompiledClass(route.getController().getName(), Controller.class, false);
-                action = controllerClass.getMethod(route.getActionMethod().getName());
-            } else*/ { 
-                //controllerClass = route.getController();
-                //action = route.getActionMethod();
-            }
-            
-            final Controller controller = loadController(/*controllerClass*/route.getController());
+            //final Controller controller = injector.getInstance(route.getController());
+            //controller.init(context);
+            final Controller controller = DynamicClassFactory.createInstance(route.getController());
             injectControllerWithContext(controller, context, injector);
 
             //find the method name and run it
@@ -79,15 +67,17 @@ public class ActionInvoker implements ResponseFunction {
             throw new ControllerException(String.format("Action name (%s) not found in controller (%s)", route.getAction(), route.getController().getSimpleName()));
             */
             /*return (Response) *//*route.getActionMethod()*/route.getActionMethod().invoke(controller);
-            return controller.getControllerResponse();
+            return controller.getControllerResult();
         } catch (InvocationTargetException e) {
-            if(e.getCause() != null && e.getCause() instanceof  WebException){
-                throw (WebException)e.getCause();                
-            }else if(e.getCause() != null && e.getCause() instanceof RuntimeException){
-                throw (RuntimeException)e.getCause();
-//            }else if(e.getCause() != null){
+            if (e.getCause() != null) {
+                if (e.getCause() instanceof  WebException) {
+                    throw (WebException)e.getCause();                
+                } else if (e.getCause() instanceof RuntimeException) {
+                    throw (RuntimeException)e.getCause();
+                }
+                throw new ControllerException(e.getCause());
             }
-            throw new ControllerException(e.getCause());
+            throw new ControllerException(e);
         } catch(WebException e) {
             throw e;
         } catch(Exception e) {
@@ -96,16 +86,6 @@ public class ActionInvoker implements ResponseFunction {
     }
     
     
-    private final static Controller loadController(final Class<? extends Controller> controller) throws ClassLoadException {
-        try {
-            return DynamicClassFactory.createInstance(controller);
-        } catch (ClassLoadException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ClassLoadException(e);
-        }
-    }
-
     private final static void injectControllerWithContext(final Controller controller, final Context context, final Injector injector) {
         controller.init(context, injector);
         

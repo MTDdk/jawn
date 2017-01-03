@@ -2,8 +2,9 @@ package net.javapla.jawn.core.routes;
 
 import java.text.MessageFormat;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.FiltersHandler;
@@ -12,6 +13,7 @@ import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
+import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.routes.Route.ResponseFunction;
@@ -20,14 +22,9 @@ import net.javapla.jawn.core.util.StringUtil;
 
 public class RouteBuilder {
     
-//    public static final String ROOT_CONTROLLER_NAME = "index";//README could be set in filter.init()
-//    public static final String DEFAULT_ACTION_NAME = "index";
-
     private final HttpMethod httpMethod;
     private String uri;
-//    private AppController controller; //README see ControllerActionInvoker
     private String actionName; // is not prefixed with the http method
-//    private Method actionMethod;
     private Class<? extends Controller> type;
     private Result response;
     
@@ -108,8 +105,9 @@ public class RouteBuilder {
         this.actionName = Constants.DEFAULT_ACTION_NAME;
     }
     ResponseFunction func;
-    public void with(ResponseFunction func) {
+    public RouteBuilder with(ResponseFunction func) {
         this.func = func;
+        return this;
     }
     
     
@@ -117,21 +115,14 @@ public class RouteBuilder {
      * Build the route.
      * @return the built route
      */
-    public Route build(FiltersHandler filters, ActionInvoker invoker/*Injector injector*/) throws IllegalStateException, ControllerException {
-//        if (controller == null) throw new IllegalStateException("Route not with a controller");
+    public Route build(FiltersHandler filters, ActionInvoker invoker) throws IllegalStateException, ControllerException {
         if (uri == null) throw new IllegalStateException("Route is not specified");
         
-        Map<String, String> map = InternalRoute.mapPathParameters(uri);
         String action = constructAction(actionName, httpMethod);
-        boolean deduceOnRuntime = false;
-        if (map.containsKey("action")) {
-            action = null;
-            deduceOnRuntime = true;
-        }
         
+        // Find all possible filters
         LinkedList<Filter> list = new LinkedList<>();
         if (type != null) {
-            // Find all possible filters
             // First the controller specific
             list.addAll(filters.compileFilters(type));
             // Then all specific to the action
@@ -148,15 +139,12 @@ public class RouteBuilder {
         } else if (type != null) {
             // verify that the controller has the corresponding action
             // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
-            if (! deduceOnRuntime) {
-                if ( ! ActionInvoker.isAllowedAction(type, action/*route.getAction()*/))
-                    throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
+            if ( ! ActionInvoker.isAllowedAction(type, action/*route.getAction()*/))
+                throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
 
-                try {
-                    route.setActionMethod(route.getController().getMethod(action));
-                } catch (NoSuchMethodException | SecurityException ignore) {}
-                
-            }
+            try {
+                route.setActionMethod(route.getController().getMethod(action));
+            } catch (NoSuchMethodException | SecurityException ignore) {}
             
             route.setResponseFunction(invoker);
         }
@@ -180,12 +168,12 @@ public class RouteBuilder {
     }
     
     private static final FilterChain filterChainEnd = new FilterChainEnd();
-    private static final FilterChain buildFilterChain(/*ControllerActionInvoker invoker,*//*FilterChain chainEnd,*//*Injector injector, */List<Filter> filters, Class<? extends Controller> controller/*, boolean isProduction*/, Result response) {
+    private static final FilterChain buildFilterChain(LinkedList<Filter> filters, Class<? extends Controller> controller, Result response) {
         if (filters.isEmpty()) {
-            return /*response != null ? new FilterChainEnd(response) :*/ filterChainEnd;/*chainEnd;/*///new FilterChainEnd(invoker/*new ControllerActionInvoker(controller, isProduction), *//*injector*/);
+            return filterChainEnd;
         } else {
             Filter filter = filters.remove(0);
-            return new FilterChainImpl(filter, buildFilterChain(/*invoker,*//*chainEnd,*//*injector*/ filters, controller/*, isProduction*/, response));
+            return new FilterChainImpl(filter, buildFilterChain(filters, controller, response));
         }
     }
     
@@ -208,11 +196,63 @@ public class RouteBuilder {
      * @return
      */
     private static final String constructAction(String actionName, HttpMethod method) {
-        
         if (StringUtil.blank(actionName)) return Constants.DEFAULT_ACTION_NAME;
         if (Constants.DEFAULT_ACTION_NAME.equals(actionName) && method == HttpMethod.GET)
             return actionName;
         return method.name().toLowerCase() + StringUtil.camelize(actionName.replace('-', '_'), true);
+    }
+    
+    /**
+     * Indicates the end of a filter chain.
+     * This should always be the last filter to be called.
+     * 
+     * @author MTD
+     */
+    static class FilterChainEnd implements FilterChain {
+        private final Logger log = LoggerFactory.getLogger(FilterChainEnd.class);
+
+        
+        @Override
+        public Result before(Context context) {
+            // When returning null, the ControllerActionInvoker is called instead
+            return null;
+        }
+
+        @Override
+        public void after(Context context) {
+            //if (context instanceof Context.Internal2) ((Context.Internal2) context).response().end();
+        }
+        
+        @Override
+        public void onException(Exception e) {
+            log.error("Filter chain broke", e);
+        }
+    }
+    
+    static class FilterChainImpl implements FilterChain {
+
+        private final Filter filter;
+        private final FilterChain next;
+        
+        public FilterChainImpl(Filter filter, FilterChain next) {
+            this.filter = filter;
+            this.next = next;
+        }
+
+        @Override
+        public Result before(Context context) {
+            return filter.before(next, context);
+        }
+        
+        @Override
+        public void after(Context context) {
+            filter.after(next, context);
+        }
+        
+        @Override
+        public void onException(Exception e) {
+            filter.onException(next, e);
+        }
     }
     
 }

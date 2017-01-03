@@ -24,6 +24,11 @@ import java.util.regex.Pattern;
 
 import javax.ws.rs.core.MediaType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Injector;
+
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.exceptions.ActionNotFoundException;
 import net.javapla.jawn.core.exceptions.ControllerException;
@@ -54,11 +59,6 @@ import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 import net.javapla.jawn.core.util.StringUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.inject.Injector;
-
 /**
  * Subclass this class to create application controllers. A controller is a main component of a web
  * application. Its main purpose in life is to process web requests. 
@@ -68,22 +68,20 @@ import com.google.inject.Injector;
 public abstract class Controller implements ResultHolder {
     
  // Standard behaviour is to look for HTML template
-    protected Result response = ResultBuilder.ok().contentType(MediaType.TEXT_HTML);
-    public void setControllerResponse(Result r) {
-        response = r;
+    protected Result result = ResultBuilder.ok().contentType(MediaType.TEXT_HTML);
+    public void setControllerResult(Result r) {
+        result = r;
     }
-    public Result getControllerResponse() {
+    public Result getControllerResult() {
         if (layout() != null)
-            response.layout(layout());
-        return response;
+            result.layout(layout());
+        return result;
     }
     
     protected String layout() {
         return null;
     }
     
-    
-//    @Inject
     private Context context;
     private Injector injector;
     
@@ -154,8 +152,8 @@ public abstract class Controller implements ResultHolder {
     }
     
     private NewRenderBuilder internalRender(String template) {
-        response.template(template);
-        return new NewRenderBuilder(response);
+        result.template(template);
+        return new NewRenderBuilder(result);
     }
 
 
@@ -321,7 +319,7 @@ public abstract class Controller implements ResultHolder {
     protected Map<String, Object> values() {
 //        return context.getViewObjects();//getValues();
 //        return context.getNewControllerResponse().getViewObjects();
-        return response.getViewObjects();
+        return result.getViewObjects();
     }
 
     /**
@@ -331,7 +329,7 @@ public abstract class Controller implements ResultHolder {
      * @param value object to be passed to view
      */
     protected void view(String name, Object value) {
-        response.addViewObject(name, value);
+        result.addViewObject(name, value);
     }
 
 
@@ -445,7 +443,7 @@ public abstract class Controller implements ResultHolder {
      * @return instance of {@link HttpSupport.HttpBuilder} to accept additional information.
      */
     protected void redirect(String path) {
-        response = ResultBuilder.redirect(path);
+        result = ResultBuilder.redirect(path);
     }
 
     /**
@@ -511,7 +509,7 @@ public abstract class Controller implements ResultHolder {
     protected <T extends Controller> /*HttpBuilder*/void redirect(Class<T> controllerClass, Object id){
         /*return */redirect(controllerClass, CollectionUtil.map("id", id));
     }
-
+    
     /**
      * Convenience method for {@link #redirect(Class, java.util.Map)}.
      *
@@ -599,7 +597,6 @@ public abstract class Controller implements ResultHolder {
         String contextPath = context.contextPath();
         String action = params.get("action") != null? params.get("action") : null;
         String id = params.get("id") != null? params.get("id") : null;
-//        boolean restful= AppController.restful(controllerClass);
         params.remove("action");
         params.remove("id");//TODO make a damn class to hold "action", "id", etc so we can have some type safety
         
@@ -1545,7 +1542,7 @@ public abstract class Controller implements ResultHolder {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .renderable(in);
 //        context.setControllerResponse(r);
-        response = r;
+        result = r;
     }
 
 
@@ -1605,7 +1602,7 @@ public abstract class Controller implements ResultHolder {
         //------
         Result r = ResultBuilder.noBody(status).contentType(contentType);
 //        context.setControllerResponse(r);
-        setControllerResponse(r);
+        setControllerResult(r);
         
         try {
             if (headers != null) {
@@ -1642,7 +1639,7 @@ public abstract class Controller implements ResultHolder {
      */
     protected PrintWriter writer(String contentType, Map<String, String> headers, int status){
 //        context.setControllerResponse(new NopResponse(context, contentType, status));
-        response = ResultBuilder.noBody(status).contentType(contentType);
+        result = ResultBuilder.noBody(status).contentType(contentType);
         //TODO TEST
         try{
             if (headers != null) {

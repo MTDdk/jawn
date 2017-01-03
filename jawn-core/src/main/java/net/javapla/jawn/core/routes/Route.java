@@ -22,11 +22,10 @@ import net.javapla.jawn.core.http.Response;
  *      This class is immutable and thread-safe
  */
 public class Route extends InternalRoute {
-    
     private final HttpMethod httpMethod;
     private Class<? extends Controller> controller;
     private final String action;
-    private final String actionName;//without httpMethod
+    private final String actionName;// action without httpMethod
     
     private final FilterChain filterChain;
     
@@ -39,6 +38,13 @@ public class Route extends InternalRoute {
         this.actionName = actionName;//StringUtil.blank(action) ? DEFAULT_ACTION_NAME : action;
         
         this.filterChain = chain;
+    }
+    
+    // Indicates that this Route does not have any route parameters that needs to be deduced in runtime.
+    // E.g. /somecontroller/action is fully qualified
+    //      /somecontroller/{action} is not
+    public boolean isFullyQualified() {
+        return this.parameters.isEmpty();
     }
     
     private Method actionMethod;
@@ -90,7 +96,7 @@ public class Route extends InternalRoute {
      * @return True if the actual route matches a raw rout. False if not.
      */
     public boolean matches(HttpMethod httpMethod, String requestUri) {
-        if (this.httpMethod.equals(httpMethod)) {
+        if (this.httpMethod == httpMethod) {
             return matches(requestUri);
         }
         return false;

@@ -100,7 +100,7 @@ public class RoutesDeducer {
             .method(method)
             .to((Class<? extends Controller>) locator.controllers.get(controllername), actionName)
             .route(uri)
-            .build(filters, invoker/*injector*/);
+            .build(filters, invoker);
         trie.insert(uri, route);
     }
     

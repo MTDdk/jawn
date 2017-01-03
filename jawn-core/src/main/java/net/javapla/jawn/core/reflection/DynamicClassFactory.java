@@ -69,6 +69,8 @@ public abstract class DynamicClassFactory {
             return clazz.newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
             throw new ClassLoadException(e);
+        } catch (Exception e) {
+            throw new ClassLoadException(e);
         }
     }
 

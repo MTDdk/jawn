@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import app.controllers.KageController;
+import app.controllers.UnitTestController;
 import app.controllers.henning.more.Kage2Controller;
 
 public class RouteTest {
@@ -22,7 +22,7 @@ public class RouteTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        c = new KageController();
+        c = new UnitTestController();
     }
 
     @AfterClass

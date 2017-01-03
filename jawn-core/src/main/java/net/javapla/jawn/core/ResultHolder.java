@@ -2,6 +2,6 @@ package net.javapla.jawn.core;
 
 public interface ResultHolder {
 
-    void setControllerResponse(Result response);
+    void setControllerResult(Result response);
     //Response getControllerResponse();
 }

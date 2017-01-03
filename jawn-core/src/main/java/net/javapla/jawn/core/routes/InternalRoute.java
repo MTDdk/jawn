@@ -2,13 +2,19 @@ package net.javapla.jawn.core.routes;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.javapla.jawn.core.util.URLCodec;
+
 //README is this class obsolete with the new structure of routing?
 class InternalRoute {
+    
+    public final static String ACTION = "action";
+    public final static String CONTROLLER = "controller";
+    public final static String ID = "id";
+    public final static String PACKAGE = "package";
     
     protected final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
     /**
@@ -17,7 +23,7 @@ class InternalRoute {
     final static String VARIABLE_ROUTES_DEFAULT_REGEX = "([^/]*)";
 
     protected final String uri;
-    protected final List<String> parameters;
+    protected final ArrayList<String> parameters;
     protected final Pattern regex;
     
     public InternalRoute(String uri) {
@@ -44,8 +50,7 @@ class InternalRoute {
      *
      * If you want to decode you have to do it yourself.
      *
-     * Most likely with:
-     * http://docs.oracle.com/javase/6/docs/api/java/net/URI.html
+     * {@linkplain URLCodec}
      *
      * @param requestUri The whole encoded uri.
      * @return A map with all parameters of that uri. Encoded in => encoded out.
@@ -58,15 +63,15 @@ class InternalRoute {
     }
     
     public static Map<String, String> mapPathParameters(String requestUri) {
-        List<String> parameters = parseParameters(requestUri);
+        ArrayList<String> parameters = parseParameters(requestUri);
         
         Pattern regex = Pattern.compile(convertRawUriToRegex(requestUri));
         Matcher m = regex.matcher(requestUri);
         
         return mapParametersFromPath(requestUri, parameters, m);
     }
-    private final static Map<String, String> mapParametersFromPath(String requestUri, List<String> parameters, Matcher m) {
-        Map<String, String> map = new HashMap<>();
+    private final static HashMap<String, String> mapParametersFromPath(String requestUri, ArrayList<String> parameters, Matcher m) {
+        HashMap<String, String> map = new HashMap<>();
         if (m.matches()) {
             for (int i = 1; i < m.groupCount() + 1; i++) {
                 map.put(parameters.get(i - 1), m.group(i));
@@ -75,8 +80,8 @@ class InternalRoute {
         return map;
     }
     
-    protected static List<String> parseParameters(String uri) {
-        List<String> params = new ArrayList<>();
+    protected static ArrayList<String> parseParameters(String uri) {
+        ArrayList<String> params = new ArrayList<>();
         
         Matcher m = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(uri);
     

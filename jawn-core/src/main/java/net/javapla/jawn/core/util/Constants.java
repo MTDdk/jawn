@@ -61,7 +61,7 @@ public interface Constants {
     String PROPERTIES_FILE_DEFAULT = "jawn_defaults.properties"; // Standard in the resources
     String PROPERTIES_FILE_USER = "jawn.properties"; // Overrides standard 
     
-    String PROPERTY_APPLICATION_BASE_PACKAGE = "application.base_package";
+    String PROPERTY_APPLICATION_BASE_PACKAGE = "application.base_package"; // TODO should be configurable in Jawn#basePackage
     String PROPERTY_APPLICATION_PLUGINS_PACKAGE = "application.plugins_package";
     
     String PROPERTY_CACHE_IMPLEMENTATION = "cache.implementation";

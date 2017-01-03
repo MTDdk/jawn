@@ -264,7 +264,7 @@ public class ImageHandlerBuilder {
                  .status(status)
                  .addSupportedContentType("image/*")
                  .renderable(this.image);
-         holder.setControllerResponse(response);
+         holder.setControllerResult(response);
      }
 
      /**

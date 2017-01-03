@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.routes;
 
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +9,7 @@ import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringUtil;
+import net.javapla.jawn.core.util.URLCodec;
 
 public class RouterHelper {
 
@@ -58,7 +58,7 @@ public class RouterHelper {
 
         String className = clazz.getName();
         if (!className.startsWith(PropertiesConstants.CONTROLLER_PACKAGE)) {
-            throw new ControllerException("controller must be in the 'app.controllers' package");
+            throw new ControllerException("controller must be in the '"+PropertiesConstants.CONTROLLER_PACKAGE+"' package");
         }
     	String packageSuffix = className.substring(CONTROLLER_PACKAGE_LENGTH, className.lastIndexOf("."));
         packageSuffix = packageSuffix.replace(".", "/");
@@ -96,12 +96,11 @@ public class RouterHelper {
 
         List<String> pairs = new ArrayList<String>();
 
-        for (Object key : params.keySet()) {
+        params.forEach((key,value) ->  {
             try {
-                // Modified by MTD
-                pairs.add(URLEncoder.encode(key.toString(), StandardCharsets.UTF_8.name()) + "=" + URLEncoder.encode(params.get(key).toString(), StandardCharsets.UTF_8.name()));
+                pairs.add(URLCodec.encode(key, StandardCharsets.UTF_8) + "=" + URLCodec.encode(value, StandardCharsets.UTF_8));
             } catch (Exception ignore) {/* By using StandardCharsets an exception ought not occur*/}
-        }
+        });
 
         uri.append(StringUtil.join(pairs, "&"));
 

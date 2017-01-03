@@ -40,7 +40,7 @@ public class FrameworkBootstrap {
     
     protected final JawnConfigurations properties;
     protected final DeploymentInfo deploymentInfo;
-    protected final Router router;
+//    protected final Router router;
     protected final ApplicationConfig appConfig;
     private final List<Module> combinedModules;
     
@@ -56,22 +56,18 @@ public class FrameworkBootstrap {
         this(new JawnConfigurations(Modes.determineModeFromSystem()));
     }*/
     
-    public FrameworkBootstrap(JawnConfigurations conf, DeploymentInfo deploymentInfo, Router router) {
+    public FrameworkBootstrap(JawnConfigurations conf, DeploymentInfo deploymentInfo/*, Router router*/) {
         properties = conf;
         this.deploymentInfo = deploymentInfo;
-        this.router = router;
+//        this.router = router;
         appConfig = new ApplicationConfig();
         combinedModules = new ArrayList<>();
     }
     
-    public synchronized void preBoot() {
-        
-    }
-    
-    public synchronized void boot() {
+    public synchronized void boot(final Router router) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
-        configure();
+        configure(router);
         
         // read plugins
         ApplicationConfig pluginConfig = new ApplicationConfig();
@@ -90,7 +86,7 @@ public class FrameworkBootstrap {
         
         
         // compiling of routes needs element from the injector, so this is done after the creation
-        initRouter(localInjector);
+        initRouter(router, localInjector);
         
         injector = localInjector;
         
@@ -145,7 +141,7 @@ public class FrameworkBootstrap {
         this.combinedModules.add(module);
     }
     
-    protected void configure() {
+    protected void configure(Router router) {
         // Read all the configuration from the user
         /*FiltersHandler filters = new FiltersHandler();
         RouterImpl router = new RouterImpl(filters, properties);*/
@@ -204,11 +200,11 @@ public class FrameworkBootstrap {
         return Guice.createInjector(Stage.PRODUCTION, combined);
     }
     
-    private void initRouter(Injector localInjector) {
+    private void initRouter(Router router, Injector localInjector) {
         //router.compileRoutes(localInjector.getInstance(ActionInvoker.class)/*localInjector*/);
-        RouterImpl router = (RouterImpl)localInjector.getInstance(Router.class);
+        //RouterImpl router = (RouterImpl)localInjector.getInstance(Router.class);
         ActionInvoker invoker = localInjector.getInstance(ActionInvoker.class);
-        router.compileRoutes(invoker);
+        ((RouterImpl)router).compileRoutes(invoker);
     }
     
     /*private ApplicationBootstrap readConfigurations(ApplicationConfig configuration, Router router, Filters filters, DatabaseConnections connections) {

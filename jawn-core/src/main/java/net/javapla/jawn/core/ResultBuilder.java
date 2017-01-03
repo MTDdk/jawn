@@ -63,7 +63,7 @@ public final class ResultBuilder {
      */
     public Result text(String text) {
         Result response = ok();
-        holder.setControllerResponse(response);
+        holder.setControllerResult(response);
         response.contentType(MediaType.TEXT_PLAIN).renderable(text);
         return response;
     }
@@ -82,13 +82,13 @@ public final class ResultBuilder {
     
     public Result text(byte[] text) {
         Result response = ok();
-        holder.setControllerResponse(response);
+        holder.setControllerResult(response);
         response.contentType(MediaType.TEXT_PLAIN).renderable(text);
         return response;
     }
     public Result text(char[] text) {
         Result response = ok();
-        holder.setControllerResponse(response);
+        holder.setControllerResult(response);
         response.contentType(MediaType.TEXT_PLAIN).renderable(text);
         return response;
     }
@@ -104,13 +104,13 @@ public final class ResultBuilder {
      */
     public final Result json(Object obj) {
         final Result response = ok();
-        holder.setControllerResponse(response);
+        holder.setControllerResult(response);
         response.contentType(MediaType.APPLICATION_JSON).renderable(obj);
         return response;
     }
     public final Result json(Callable<Object> c) {
         final Result response = ok();
-        holder.setControllerResponse(response);
+        holder.setControllerResult(response);
         response.contentType(MediaType.APPLICATION_JSON).renderable(c);
         return response;
     }
@@ -126,7 +126,7 @@ public final class ResultBuilder {
      */
     public Result xml(Object obj) {
         Result response = ok();
-        holder.setControllerResponse(response);
+        holder.setControllerResult(response);
         response.contentType(MediaType.APPLICATION_XML).renderable(obj);
         return response;
     }
@@ -146,7 +146,7 @@ public final class ResultBuilder {
                     .addHeader("Content-Disposition", "attachment; filename=" + file.getName())
                     .renderable(new FileInputStream(file))
                     .contentType(MediaType.APPLICATION_OCTET_STREAM);
-            holder.setControllerResponse(r);
+            holder.setControllerResult(r);
             return r;
         }catch(Exception e){
             throw new PathNotFoundException(e);
@@ -154,15 +154,15 @@ public final class ResultBuilder {
     }
     
     ResultBuilder setStatus(int statusCode) {
-        holder.setControllerResponse(new Result(statusCode));
+        holder.setControllerResult(new Result(statusCode));
         return this;
     }
     ResultBuilder setNoContent() {
-        holder.setControllerResponse(noContent());
+        holder.setControllerResult(noContent());
         return this;
     }
     ResultBuilder setNotFound() {
-        holder.setControllerResponse(notFound());
+        holder.setControllerResult(notFound());
         return this;
     }
     
