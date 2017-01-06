@@ -20,7 +20,6 @@ import net.javapla.jawn.core.util.StringUtil;
  * Overriding STRawGroupDir for a shred of greater performance.
  * 
  * @author MTD
- *
  */
 public final class STFastGroupDir extends STRawGroupDir {
     
@@ -52,7 +51,7 @@ public final class STFastGroupDir extends STRawGroupDir {
     @Override
     public final CompiledST lookupTemplate(final String name) {
         CompiledST code = rawGetTemplate(name);
-        if ( code==NOT_FOUND_ST ) {
+        if ( code == NOT_FOUND_ST ) {
             if ( verbose ) System.out.println(name+" previously seen as not found");
             return null;
         }
@@ -61,21 +60,19 @@ public final class STFastGroupDir extends STRawGroupDir {
         String unqualifiedName = getFileName(name);//Misc.getFileName(name);
         String prefix = getPrefix(name);//Misc.getPrefix(name);
         
-        if ( code==null ) code = loadTemplateFile(prefix, unqualifiedName+TEMPLATE_FILE_EXTENSION); // load t.st file
+        if ( code == null ) code = loadTemplateFile(prefix, unqualifiedName+TEMPLATE_FILE_EXTENSION); // load t.st file
         if ( code == null ) code = loadTemplateResource(prefix, unqualifiedName+TEMPLATE_FILE_EXTENSION); // load t.st resource
-        if ( code==null ) templates.put(name, NOT_FOUND_ST);
+        if ( code == null ) templates.put(name, NOT_FOUND_ST);
         
         //TODO rewrite in order to not use 'templates', which is synchronized
         // we can probably manage with only synchronising writes and not all reads
         
-        return code;
+        return code != null ? tryClone(code) : null;
     }
     
     /**
      * Stolen ruthlessly from
      * {@link File#getName()}
-     * @param path
-     * @return
      */
     private static final String getFileName(String path) {
         int index = path.lastIndexOf('/');//stop using File.separatorChar as we are not even remotely close to be using that ANYwhere else - apparently. This makes it fail on Windows systems
@@ -110,6 +107,10 @@ public final class STFastGroupDir extends STRawGroupDir {
         return loadTemplate(root, prefix, unqualifiedFileName);
     }
     
+    /**
+     * Loads from a jar or similar resource if the template could not be found
+     * directly on the filesystem.
+     */
     public final CompiledST loadTemplateResource(String prefix, String unqualifiedFileName) {
         return loadTemplate(resourceRoot, prefix, unqualifiedFileName);
     }
@@ -140,4 +141,11 @@ public final class STFastGroupDir extends STRawGroupDir {
             //TODO adding a HTML character converter here
     }
     
+    private final CompiledST tryClone(CompiledST template) {
+        try {
+            return template.clone();
+        } catch (CloneNotSupportedException e) {
+            return template;
+        }
+    }
 }
