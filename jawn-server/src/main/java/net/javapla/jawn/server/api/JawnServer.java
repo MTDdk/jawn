@@ -1,6 +1,6 @@
 package net.javapla.jawn.server.api;
 
-import net.javapla.jawn.core.server.ServerConfig;
+import net.javapla.jawn.server.ServerConfig;
 
 public interface JawnServer {
 

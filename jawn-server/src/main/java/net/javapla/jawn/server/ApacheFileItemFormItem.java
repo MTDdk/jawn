@@ -3,9 +3,9 @@ package net.javapla.jawn.server;
 import java.io.IOException;
 import java.io.InputStream;
 
-import net.javapla.jawn.core.uploads.FormItem;
-
 import org.apache.commons.fileupload.FileItem;
+
+import net.javapla.jawn.core.uploads.FormItem;
 
 public class ApacheFileItemFormItem implements FormItem {
     
@@ -16,7 +16,7 @@ public class ApacheFileItemFormItem implements FormItem {
     }
 
     @Override
-    public String getValue() {
+    public String getName() {
         return fileItem.getName();
     }
 

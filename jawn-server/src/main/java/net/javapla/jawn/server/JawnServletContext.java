@@ -23,13 +23,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import net.javapla.jawn.core.Result;
+import net.javapla.jawn.core.Response;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.http.RequestConvert;
+import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
@@ -101,7 +101,7 @@ class JawnServletContext implements Context.Internal {
     /**
      * @return An instance of the Request interface
      */
-    public RequestConvert createRequest() {
+    public Request createRequest() {
         return new RequestConvertImpl(request, parserManager);
     }
     
@@ -138,7 +138,7 @@ class JawnServletContext implements Context.Internal {
         if (route == null) return null;
         return route.getPathParametersEncoded(routedPath).get(name);
     }
-    @Override
+//    @Override
     public Map<String, String> getRouteParams() {
         if (route == null) return Collections.emptyMap();
         return route.getPathParametersEncoded(routedPath);
@@ -443,7 +443,7 @@ class JawnServletContext implements Context.Internal {
      *
      * @return IP address of the requesting client.
      */
-    public String remoteAddress(){
+    public String remoteIP(){
         String remoteAddr = request.getRemoteAddr();
         
         // This could be a list of proxy IPs, which the developer could
@@ -616,10 +616,10 @@ class JawnServletContext implements Context.Internal {
         return response.getWriter();
     }
     
-    @Override
-    public InputStream requestInputStream() throws IOException {
-        return request.getInputStream();
-    }
+//    @Override
+//    public InputStream requestInputStream() throws IOException {
+//        return request.getInputStream();
+//    }
     
     public String getResponseEncoding() {
         return response.getCharacterEncoding();
@@ -635,11 +635,11 @@ class JawnServletContext implements Context.Internal {
     
 /* ****** */
 
-    public final ResponseStream readyResponse(Result controllerResponse) {
+    public final ResponseStream readyResponse(Response controllerResponse) {
         return readyResponse(controllerResponse, true);
     }
     
-    public final ResponseStream readyResponse(final Result controllerResponse, boolean handleFlash) {
+    public final ResponseStream readyResponse(final Response controllerResponse, boolean handleFlash) {
         // status
         response.setStatus(controllerResponse.status());
         
@@ -679,5 +679,11 @@ class JawnServletContext implements Context.Internal {
     public Modes mode() {
         return properties.getMode();
     }
+
+    @Override
+    public String remoteAddress() {
+        return null;
+    }
+
 
 }
