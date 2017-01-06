@@ -87,7 +87,7 @@ public class UndertowServerOld /*implements JawnServer */{
             case MEDIUM:
                 serverBuilder.setIoThreads(Math.max(Runtime.getRuntime().availableProcessors() / 2, undertow_minimum));
                 break;
-            case MINIMAL:
+            case LOW:
                 serverBuilder.setIoThreads(undertow_minimum); 
                 break;
             case CUSTOM:

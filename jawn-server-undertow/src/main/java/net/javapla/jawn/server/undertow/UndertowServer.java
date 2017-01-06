@@ -66,29 +66,34 @@ public class UndertowServer implements Server {
         
         
         int undertow_minimum = 2;//may not be less than 2 because of the inner workings of Undertow
-        int ioThreads;
+        int ioThreads, workerThreads;
         switch (config.serverPerformance()) {
             case HIGHEST:
                 ioThreads = Math.max(Runtime.getRuntime().availableProcessors() << 1, undertow_minimum);
+                workerThreads = ioThreads * 8;
                 serverBuilder.setBufferSize(1024 * 16);
                 break;
             case HIGH:
                 ioThreads = Math.max(Runtime.getRuntime().availableProcessors(), undertow_minimum);
+                workerThreads = ioThreads * 8;
                 break;
             default:
             case MEDIUM:
                 ioThreads = Math.max(Runtime.getRuntime().availableProcessors() / 2, undertow_minimum);
+                workerThreads = ioThreads * 4;
                 break;
-            case MINIMAL:
+            case LOW:
                 ioThreads = undertow_minimum;
+                workerThreads = ioThreads;
                 break;
             case CUSTOM:
                 ioThreads = Math.max(config.ioThreads(), undertow_minimum);
+                workerThreads = ioThreads * 8;
                 break;
         }
         
         serverBuilder.setIoThreads(ioThreads);
-        serverBuilder.setWorkerThreads(ioThreads * 8);
+        serverBuilder.setWorkerThreads(workerThreads);
         serverBuilder.setSocketOption(Options.BACKLOG, config.backlog());
     }
 
