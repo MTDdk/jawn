@@ -5,7 +5,8 @@ repositories {
 }
 
 dependencies {
-	compile project(':jawn-core')
+	//compile project(':jawn-core')
+	compile 'net.javapla.jawn:jawn-core:0.9.1'
 	
 	compile 'org.apache.shiro:shiro-core:1.2.3'
 	compile 'org.apache.shiro:shiro-web:1.2.3'

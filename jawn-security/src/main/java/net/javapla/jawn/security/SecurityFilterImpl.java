@@ -10,8 +10,8 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 
-import net.javapla.jawn.core.Result;
-import net.javapla.jawn.core.ResultBuilder;
+import net.javapla.jawn.core.Response;
+import net.javapla.jawn.core.ResponseBuilder;
 import net.javapla.jawn.core.api.FilterChain;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.http.Context;
@@ -51,7 +51,7 @@ class SecurityFilterImpl implements SecurityFilter {
     }*/
     
     @Override
-    public Result before(FilterChain chain, Context context) {
+    public Response before(FilterChain chain, Context context) {
         SessionFacade session = context.getSession(false);//true?
         
         if (context.httpMethod() == HttpMethod.GET) {
@@ -59,7 +59,7 @@ class SecurityFilterImpl implements SecurityFilter {
             if (path.equals(notLoggedInRedirect)) {
                 // redirect to a known location if the user is actually logged in
                 if (session != null && createSubject(context).hasRole(role))
-                    return ResultBuilder.redirect("/");
+                    return ResponseBuilder.redirect("/");
                 
                 // fall through as the user is not logged in
                 return chain.before(context);
@@ -148,7 +148,7 @@ class SecurityFilterImpl implements SecurityFilter {
                     //UnknownAccountException:       username wasn't in the system, show them an error message?
                     //IncorrectCredentialsException: password didn't match, try again?
                     context.setFlash("credentials", "not match");
-                    return  ResultBuilder.redirect(notLoggedInRedirect + "?credentials");//add flash telling the credentials were not correct
+                    return  ResponseBuilder.redirect(notLoggedInRedirect + "?credentials");//add flash telling the credentials were not correct
                 } catch ( LockedAccountException lae ) {
                     //account for that username is locked - can't login.  Show them a message?
                     lae.printStackTrace();
@@ -160,7 +160,7 @@ class SecurityFilterImpl implements SecurityFilter {
             } else {
                 //save the path for later use
                 session.put(SESSION_REQUESTED_PATH, context.path());
-                return ResultBuilder.redirect(notLoggedInRedirect);
+                return ResponseBuilder.redirect(notLoggedInRedirect);
             }
         }
         
@@ -173,14 +173,14 @@ class SecurityFilterImpl implements SecurityFilter {
             String location = session.get(SESSION_REQUESTED_PATH, String.class);
             session.remove(SESSION_REQUESTED_PATH);
             if (location != null)
-                return ResultBuilder.redirect(location);
+                return ResponseBuilder.redirect(location);
             else
                 return chain.before(context);
                 //README Redirect to a 'defaultLoginWhenLocationNotFound'?
                 //return ResponseBuilder.redirect("/");
         }
             //if not auth
-        return ResultBuilder.redirect(notAuthRedirect);
+        return ResponseBuilder.redirect(notAuthRedirect);
             
     }
     
