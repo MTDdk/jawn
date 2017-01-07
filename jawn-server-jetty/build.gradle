@@ -7,7 +7,7 @@ repositories {
 dependencies {
 	// Framework
 	//compile 'net.javapla.jawn:jawn:0.8.5'
-	compile project(':jawn-server'), project(':jawn-core')
+	compile /*project(':jawn-server'),*/ project(':jawn-core')
 
 	// Server
 	// includes jetty-server, jetty-servlet

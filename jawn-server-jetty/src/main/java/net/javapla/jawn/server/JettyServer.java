@@ -4,17 +4,16 @@ import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 
-import net.javapla.jawn.core.server.ServerConfig;
-import net.javapla.jawn.server.api.JawnServer;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 
+import net.javapla.jawn.core.server.ServerConfig;
 
-public class JettyServer implements JawnServer {
+
+public class JettyServer /*implements JawnServer */{
     
     public void setupAndStartServer(ServerConfig config) throws Exception {
         Server server = configureServerPerformance(config);
@@ -31,7 +30,7 @@ public class JettyServer implements JawnServer {
         contextHandler.setParentLoaderPriority(true);
         
         // Add the framework
-        contextHandler.addFilter(JawnFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+        //contextHandler.addFilter(JawnFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
         
         // Make the server use the framework
         server.setHandler(contextHandler);
@@ -61,7 +60,7 @@ public class JettyServer implements JawnServer {
                 pool.setMaxThreads(Math.min(Runtime.getRuntime().availableProcessors(), 4));
                 pool.setMinThreads(4);
                 break;
-            case MINIMAL:
+            case LOW:
                 pool.setMaxThreads(4);// A minimum of 4 threads are needed for Jetty to run
                 pool.setMinThreads(4);
                 break;
