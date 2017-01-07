@@ -601,11 +601,11 @@ public abstract class Controller implements ResultHolder {
         params.remove("id");//TODO make a damn class to hold "action", "id", etc so we can have some type safety
         
         //MTD
-        String lang = language() != null ? "/" + language() : "";
+//        String lang = language() != null ? "/" + language() : "";
         String anchor = params.get("#") != null ? "#" + params.get("#") : "";
         params.remove("#");
 
-        String uri = contextPath + lang + RouterHelper.generate(controllerPath, action, id, params) + anchor;
+        String uri = contextPath /*+ lang*/ + RouterHelper.generate(controllerPath, action, id, params) + anchor;
         redirect(uri);
     }
     
@@ -775,7 +775,7 @@ public abstract class Controller implements ResultHolder {
      * @return local IP address on which request was received.
      */
     protected String ipAddress() {
-        return context.ipAddress();
+        return context.remoteIP();
     }
 
     /**
@@ -846,7 +846,7 @@ public abstract class Controller implements ResultHolder {
      */
      protected String ipForwardedFor() {
         String h = header("X-Forwarded-For");
-        return !StringUtil.blank(h) ? h : remoteAddress();
+        return !StringUtil.blank(h) ? h : remoteIP();
     }
 
     /**
@@ -1479,8 +1479,8 @@ public abstract class Controller implements ResultHolder {
      *
      * @return IP address of the requesting client.
      */
-    protected String remoteAddress(){
-        return context.remoteAddress();
+    protected String remoteIP(){
+        return context.remoteIP();
     }
 
 
@@ -1686,17 +1686,17 @@ public abstract class Controller implements ResultHolder {
 //        return context.createAppContext();//context.getAppContext();
 //    }
 
-    /**
-     * Returns a format part of the URI, or null if URI does not have a format part.
-     * A format part is defined as part of URI that is trailing after a last dot, as in:
-     *
-     * <code>/books.xml</code>, here "xml" is a format.
-     *
-     * @return format part of the URI, or nul if URI does not have it.
-     */
-    protected String format(){
-        return context.getRouteFormat();
-    }
+//    /**
+//     * Returns a format part of the URI, or null if URI does not have a format part.
+//     * A format part is defined as part of URI that is trailing after a last dot, as in:
+//     *
+//     * <code>/books.xml</code>, here "xml" is a format.
+//     *
+//     * @return format part of the URI, or nul if URI does not have it.
+//     */
+//    protected String format(){
+//        return context.getRouteFormat();
+//    }
 
 
     /**
@@ -1763,9 +1763,9 @@ public abstract class Controller implements ResultHolder {
     /*
      * MTD section
      */
-    protected String language() {
-        return context.getRouteLanguage();
-    }
+//    protected String language() {
+//        return context.getRouteLanguage();
+//    }
     
     protected String contentType() {
         return context.requestContentType();
