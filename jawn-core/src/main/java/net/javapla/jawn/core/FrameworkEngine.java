@@ -57,7 +57,7 @@ public final class FrameworkEngine {
         try {
 
             final Route route = router.retrieveRoute(context.request().method(), uri);
-            context.setRouteInformation(route, null/*format*/, null/*language*/, uri);
+            context.setRouteInformation(route, uri);
             
             // run pre-filters
             Result result = route.getFilterChain().before(context);
@@ -66,14 +66,13 @@ public final class FrameworkEngine {
             if (result == null)
                 result = route.executeRouteAndRetrieveResponse(context);
             
-            ResponseStream rsp = runner.run(context, result);
-        
-            // run post-filters
-            route.getFilterChain().after(context);
-            
             // close response streams in the end
             // README: is it possible that it never closes?
-            rsp.close();
+            try (ResponseStream rsp = runner.run(context, result)) {
+                
+                // run post-filters
+                route.getFilterChain().after(context);
+            }
             
         } catch (RouteException e) {
             // 404
@@ -157,10 +156,9 @@ public final class FrameworkEngine {
         sb.append("Request URL: ").append(context.requestUrl()).append("\n");
         sb.append("ContextPath: ").append(context.contextPath()).append("\n");
         sb.append("Query String: ").append(context.queryString()).append("\n");
-        sb.append("URI Full Path: ").append(context.requestUri()).append("\n");
         sb.append("URI Path: ").append(context.path()).append("\n");
         sb.append("Method: ").append(context.httpMethod().name()).append("\n");    
-        sb.append("IP: ").append(context.remoteAddress()).append("\n");
+        sb.append("IP: ").append(context.remoteIP()).append("\n");
         sb.append("Protocol: ").append(context.protocol()).append("\n");
         return sb.toString();
     }

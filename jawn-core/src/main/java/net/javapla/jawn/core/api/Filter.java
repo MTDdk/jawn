@@ -20,7 +20,11 @@ public interface Filter {
     Result before(FilterChain chain, Context context);
     
     /**
-     * Called by framework after executing a controller
+     * Called by framework after executing a controller.
+     * 
+     * <p>Response headers and the like should be added in {@linkplain #before(FilterChain, Context)}
+     * or by the controller, as the response is most likely already started at this point, which
+     * means that headers are already sent to the browser/caller.
      */
     void after(FilterChain chain, Context context);
     

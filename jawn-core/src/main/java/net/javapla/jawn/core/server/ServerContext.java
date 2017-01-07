@@ -34,20 +34,16 @@ import net.javapla.jawn.core.util.MultiList;
 
 public class ServerContext implements Context.Internal2 {
     
-
-
 	private static final String X_POWERED_BY = "X-Powered-By";
     
     
     private final JawnConfigurations properties;
-    //private final ParserEngineManager parserManager;
     //private final SessionManager sessionManager;
     
     private Request request;
     private Response response;
     
     private Route route;
-    private String format, language;
     /**
      * Holds the actual routed path used in this (request)context.
      * This might differ from requestUri as routedPath is stripped from any language
@@ -56,9 +52,8 @@ public class ServerContext implements Context.Internal2 {
     
     
     @Inject
-    ServerContext(JawnConfigurations properties/*, ParserEngineManager parserManager*/) {
+    ServerContext(JawnConfigurations properties) {
         this.properties = properties;
-        //this.parserManager = parserManager;
     }
     
     public void init(Request request, Response response) {
@@ -69,13 +64,11 @@ public class ServerContext implements Context.Internal2 {
     }
     
     @Override
-    public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException {
+    public void setRouteInformation(Route route, String routedPath) throws IllegalArgumentException {
         if (route == null)
             throw new IllegalArgumentException("Route could not be null");
         this.route = route;
         
-        this.format = format;
-        this.language = language;
         this.routedPath = routedPath;
     }
     
@@ -96,18 +89,6 @@ public class ServerContext implements Context.Internal2 {
     @Override
     public Route getRoute() {
         return route;
-    }
-
-    @Override
-    public String getRouteLanguage() {
-        String routeLang = getRouteParam("lang");
-        if (routeLang != null) return routeLang;
-        return language;
-    }
-
-    @Override
-    public String getRouteFormat() {
-        return format;
     }
 
     @Override
@@ -227,7 +208,7 @@ public class ServerContext implements Context.Internal2 {
      *
      * @return IP address of the requesting client.
      */
-    public String remoteAddress(){
+    public String remoteIP(){
         String remoteAddr = request.ip();
         
         // This could be a list of proxy IPs, which the developer could

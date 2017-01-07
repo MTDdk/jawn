@@ -36,6 +36,12 @@ import net.javapla.jawn.core.util.URLCodec;
 
 public class UndertowRequest implements Request {
     
+    // TODO should be instantiated in the core module instead of a server module
+    private static final File TMP_DIR = new File(System.getProperty("java.io.tmpdir")+"/jawn-test");
+    static {
+        if (!TMP_DIR.exists()) TMP_DIR.mkdir();
+    }
+    
     private final HttpServerExchange exchange;
     private final String path;
     
@@ -46,10 +52,8 @@ public class UndertowRequest implements Request {
         this.exchange = exchange;
         
         this.blocking = new MemoizingSupplier<>(() -> this.exchange.startBlocking());
-        String tmpdir = System.getProperty("java.io.tmpdir")+"/jawn-test";
-        File tmpdirFile = new File(tmpdir);
-        if (!tmpdirFile.exists()) tmpdirFile.mkdir();
-        this.form = parseForm(exchange, tmpdir, StandardCharsets.UTF_8.name());//conf.getString("application.tmpdir"), conf.getString("application.charset"));
+        
+        this.form = parseForm(exchange, StandardCharsets.UTF_8.name());//conf.getString("application.tmpdir"), conf.getString("application.charset"));
         
         this.path = URLCodec.decode(exchange.getRequestPath(), StandardCharsets.UTF_8);
     }
@@ -205,7 +209,7 @@ public class UndertowRequest implements Request {
     }
 
     
-    private FormData parseForm(final HttpServerExchange exchange, final String tmpdir, final String charset) throws IOException {
+    private FormData parseForm(final HttpServerExchange exchange, final String charset) throws IOException {
         String value = exchange.getRequestHeaders().getFirst("Content-Type");
         if (value != null) {
             if (value.startsWith(MediaType.APPLICATION_FORM_URLENCODED)) {
@@ -217,7 +221,7 @@ public class UndertowRequest implements Request {
             } else if (value.startsWith(MediaType.MULTIPART_FORM_DATA)) {
                 blocking.get();
                 return new MultiPartParserDefinition()
-                        .setTempFileLocation(new File(tmpdir).toPath())
+                        .setTempFileLocation(TMP_DIR.toPath())
                         .setDefaultEncoding(charset)
                         .create(exchange)
                         .parseBlocking();

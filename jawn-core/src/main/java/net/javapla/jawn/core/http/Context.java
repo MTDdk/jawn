@@ -31,7 +31,8 @@ public interface Context {
     interface Internal extends Context {
         public void setRouteInformation(Route route, String format, String language, String routedPath) throws IllegalArgumentException;
     }
-    interface Internal2 extends Internal {
+    interface Internal2 extends Context {
+        void setRouteInformation(Route route, String routedPath) throws IllegalArgumentException;
         Request request();
         Response response();
     }
@@ -56,8 +57,8 @@ public interface Context {
      *      The found language if any valid are found, or if the {lang} route parameter
      *      is set - else null
      */
-    public String getRouteLanguage();
-    public String getRouteFormat();
+//    public String getRouteLanguage();
+//    public String getRouteFormat();
     
     public String getRouteParam(String name);
     public Map<String, String> getRouteParams();
@@ -88,6 +89,9 @@ public interface Context {
     
     /**
      * Returns a full URL of the request, all except a query string.
+     * 
+     * HttpServletRequest#getRequestURL()
+     * Reconstructs the URL the client used to make the request
      *
      * @return a full URL of the request, all except a query string.
      */
@@ -96,6 +100,10 @@ public interface Context {
     /**
      * Returns URI, or a full path of request. This does not include protocol, host or port. Just context and path.
      * Examlpe: <code>/mywebapp/controller/action/id</code>
+     * 
+     * HttpServletRequest#getRequestURI()
+     * Returns the part of this request's URL from the protocol name up to the query string in the first line of the HTTP request
+     * 
      * @return  URI, or a full path of request.
      */
     public String requestUri();
@@ -131,7 +139,9 @@ public interface Context {
      * Returns local IP address on which request was received.
      *
      * @return local IP address on which request was received.
+     * @deprecated is it REALLY necessary to know the LOCAL ip? Use instead {@linkplain #remoteIP()}
      */
+    @Deprecated
     public String ipAddress();
     
     /**
@@ -153,7 +163,7 @@ public interface Context {
      *
      * @return IP address of the requesting client.
      */
-    public String remoteAddress();
+    public String remoteIP();
     
     public String getAcceptContentType();
     public String requestContentType();

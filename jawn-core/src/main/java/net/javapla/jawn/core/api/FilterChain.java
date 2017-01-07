@@ -10,10 +10,16 @@ public interface FilterChain {
      * Pass the request to the next filter
      * 
      * @param context
-     *            The context for the request
+     *          The context for the request
      */
     Result before(Context context);
     
+    /**
+     * Remember that you cannot effectively add headers after the response has been sent.
+     * 
+     * @param context
+     *          The context for the request
+     */
     void after(Context context);
     
     void onException(Exception e);

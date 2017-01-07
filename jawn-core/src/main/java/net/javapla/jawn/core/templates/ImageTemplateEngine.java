@@ -48,9 +48,5 @@ class ImageTemplateEngine implements TemplateEngine {
         // Maps all the supported format names by ImageIO to MIME / content types
         return Arrays.asList(ImageIO.getWriterFormatNames()).stream().map((s) -> "image/"+s).toArray(String[]::new);
     }
-    /*@Override
-    public ContentType[] getContentType2() {
-        return Arrays.asList(ImageIO.getWriterFormatNames()).stream().map((s) -> new ContentType("image",s)).toArray(ContentType[]::new);
-    }*/
 
 }
