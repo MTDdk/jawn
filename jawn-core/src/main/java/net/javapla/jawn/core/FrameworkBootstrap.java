@@ -64,10 +64,10 @@ public class FrameworkBootstrap {
         combinedModules = new ArrayList<>();
     }
     
-    public synchronized void boot(final Router router) {
+    public synchronized void boot(final Router router, DatabaseConnections databaseConnections) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
-        configure(router);
+        configure(router, databaseConnections);
         
         // read plugins
         ApplicationConfig pluginConfig = new ApplicationConfig();
@@ -141,11 +141,10 @@ public class FrameworkBootstrap {
         this.combinedModules.add(module);
     }
     
-    protected void configure(Router router) {
+    protected void configure(Router router, DatabaseConnections connections) {
         // Read all the configuration from the user
         /*FiltersHandler filters = new FiltersHandler();
         RouterImpl router = new RouterImpl(filters, properties);*/
-        DatabaseConnections connections = new DatabaseConnections();
         
         //this.config = readConfigurations(appConfig, /*router,*/ /*filters,*/ connections);
         

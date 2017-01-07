@@ -15,6 +15,8 @@ import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.database.DatabaseConnection;
+import net.javapla.jawn.core.database.DatabaseConnections;
+import net.javapla.jawn.core.database.DatabaseConnections.DatabaseConnectionBuilder;
 import net.javapla.jawn.core.routes.Route.ResponseFunction;
 import net.javapla.jawn.core.routes.RouteBuilder;
 import net.javapla.jawn.core.routes.RouterImpl;
@@ -33,6 +35,7 @@ public class Jawn {
     
     private final FiltersHandler filters;
     private final ArrayList<RouteBuilder> builders;
+    private final DatabaseConnections databaseConnections;
     //private final Router router;
     
     private final ServerConfig serverConfig = new ServerConfig();
@@ -45,6 +48,7 @@ public class Jawn {
         
         filters = new FiltersHandler();
         builders = new ArrayList<>();
+        databaseConnections = new DatabaseConnections();
         //router = new RouterImpl(filters, properties);
         
         bootstrapper = new FrameworkBootstrap(properties, deploymentInfo/*, router*/);
@@ -111,6 +115,10 @@ public class Jawn {
         //README: should some kind of language settings be set here?
         //bootstrapper.config().setSupportedLanguages(null);
         return this;
+    }
+    
+    public DatabaseConnectionBuilder database(Modes mode) {
+        return databaseConnections.environment(mode);
     }
 
     // ****************
@@ -203,7 +211,7 @@ public class Jawn {
     public void start(final String ... args) {
         long startupTime = System.currentTimeMillis();
         
-        bootstrapper.boot(new RouterImpl(builders, filters, properties));
+        bootstrapper.boot(new RouterImpl(builders, filters, properties), databaseConnections);
         Injector injector = bootstrapper.getInjector();
         try {
             injector.getInstance(Server.class).start(serverConfig);

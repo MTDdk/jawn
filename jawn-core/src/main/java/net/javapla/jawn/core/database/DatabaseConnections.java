@@ -36,6 +36,9 @@ public class DatabaseConnections {
             connection.initiatePooledDataSource();
         return connection;
     }
+    boolean hasConnections() {
+        return !builders.isEmpty();
+    }
     
     
     public interface DatabaseConnectionBuilder {
@@ -60,7 +63,7 @@ public class DatabaseConnections {
         String password;
         int maxPoolSize = 8;
         int minPoolSize = 1;
-        boolean letFrameworkHandleConnectionPool = true;
+        boolean letFrameworkHandleConnectionPool = false;
         
         
         public DatabaseConnectionBuilderImpl(Modes mode) {
