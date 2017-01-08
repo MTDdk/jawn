@@ -32,6 +32,7 @@ signing {
 }
 
 task ensurePropertiesFile() {
+    doLast {
     if (!project.hasProperty('ossrhUsername')) {
         println 'Could not find credentials for deploying archives - if you do not need this, don\'t sweat it, we\'ve got you covered!'
 
@@ -47,7 +48,7 @@ task ensurePropertiesFile() {
         // the properties file is only read at startup
         project.ext.setProperty('ossrhUsername','')
         project.ext.setProperty('ossrhPassword','')
-    }
+    }}
 }
 
 // ========================
@@ -64,7 +65,7 @@ uploadArchives {
 	    // but it works so we will leave it for now
 	    // UPDATE
 	    // doLast might actually be what we want to!
-	    ensurePropertiesFile
+	    ensurePropertiesFile.execute()
 	
 	    repositories {
 	        mavenDeployer {
