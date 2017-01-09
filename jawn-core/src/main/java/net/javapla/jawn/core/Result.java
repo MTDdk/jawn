@@ -78,7 +78,7 @@ public class Result {
     private final static ExecutorService BoundedFixedThreadPool =
       new ThreadPoolExecutor(
         cpuCount, cpuCount * 2, 100, TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<Runnable>(cpuCount * 20), //TODO: do some calculations on the best configuration for this
+        new LinkedBlockingQueue<Runnable>(cpuCount * 20), //TODO: do some calculations on the best configuration for this - https://blog.bramp.net/post/2015/12/17/the-importance-of-tuning-your-thread-pools/
         new ThreadPoolExecutor.AbortPolicy());
     public Result renderable(Callable<Object> c) {
         try {
@@ -87,6 +87,7 @@ public class Result {
         } catch (RejectedExecutionException e) {
             // if the thread pool is filled
             // throw an error to tell the client that the server is busy
+            // (fail fast policy)
             return ResultBuilder.status(Status.SERVICE_UNAVAILABLE.getStatusCode());
         }
     }
