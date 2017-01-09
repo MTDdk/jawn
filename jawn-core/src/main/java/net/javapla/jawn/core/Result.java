@@ -9,8 +9,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.core.Response.Status;
 
 public class Result {
 
@@ -72,14 +75,20 @@ public class Result {
     private static final int cpuCount = Runtime.getRuntime().availableProcessors();
 
     // TODO: parameterize multipliers
-    private final static ExecutorService EXECUTOR =
+    private final static ExecutorService BoundedFixedThreadPool =
       new ThreadPoolExecutor(
-        cpuCount, cpuCount * 2, 200, TimeUnit.MILLISECONDS,
+        cpuCount, cpuCount * 2, 100, TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<Runnable>(cpuCount * 20), //TODO: do some calculations on the best configuration for this
-        new ThreadPoolExecutor.CallerRunsPolicy());
+        new ThreadPoolExecutor.AbortPolicy());
     public Result renderable(Callable<Object> c) {
-        this.renderable = EXECUTOR.submit(c);
-        return this;
+        try {
+            this.renderable = BoundedFixedThreadPool.submit(c);
+            return this;
+        } catch (RejectedExecutionException e) {
+            // if the thread pool is filled
+            // throw an error to tell the client that the server is busy
+            return ResultBuilder.status(Status.SERVICE_UNAVAILABLE.getStatusCode());
+        }
     }
     public Object renderable() {
         if (renderable instanceof Future) {
