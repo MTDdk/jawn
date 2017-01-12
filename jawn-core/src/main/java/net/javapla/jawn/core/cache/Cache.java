@@ -11,46 +11,46 @@ import java.util.function.Supplier;
  * 
  * Expiration is specified in seconds.
  */
-public interface Cache {
+public interface Cache<T> {
     
     /**
      * Only adds the value, if the key is not already a part of the cache
      * @param key
      * @param value
      */
-    <T> void add(String key, T value);
+    void add(String key, T value);
     /**
      * @see #add(String, Object)
      * @param key
      * @param value
      * @param seconds
      */
-    <T> void add(String key, T value, int seconds);
+    void add(String key, T value, int seconds);
     /**
      * Gets the value for the given key.
      * @param key
      * @return
      */
-    <T> T get(String key);
+    T get(String key);
     /**
      * Sets the given value to the key, regardless if the key already exists in the cache,
      * and thusly overrides any previous value for the key.
      * @param key
      * @param value
      */
-    <T> void set(String key, T value);
+    void set(String key, T value);
     /**
      * @see #set(String, Object)
      * @param key
      * @param value
      * @param seconds
      */
-    <T> void set(String key, T value, int seconds);
+    void set(String key, T value, int seconds);
     
     
     
-    <T> T computeIfAbsent(String key, Function<String, T> mappingFunction);
-    default <T> T computeIfAbsent(String key, int seconds, Function<String, T> mappingFunction) {
+    T computeIfAbsent(String key, Function<String, T> mappingFunction);
+    default T computeIfAbsent(String key, int seconds, Function<String, T> mappingFunction) {
         T v, newValue;
         
         if ((v = get(key)) == null && (newValue = mappingFunction.apply(key)) != null) {
@@ -61,8 +61,8 @@ public interface Cache {
         return v;
     }
     
-    <T> T computeIfAbsent(String key, Supplier<T> supplier);
-    default <T> T computeIfAbsent(String key, int seconds, Supplier<T> supplier) {
+    T computeIfAbsent(String key, Supplier<T> supplier);
+    default T computeIfAbsent(String key, int seconds, Supplier<T> supplier) {
         T v, newValue;
         
         if ((v = get(key)) == null && (newValue = supplier.get()) != null) {

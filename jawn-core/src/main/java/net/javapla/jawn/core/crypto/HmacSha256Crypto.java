@@ -73,13 +73,17 @@ public class HmacSha256Crypto implements Crypto {
     }
     
     private static class AesEncryption implements Encrypter {
+        //TODO
+        // Use AES/CBC/PKCS7PADDING and create something that correctly uses and stores IVs
+        //https://www.owasp.org/index.php/Using_the_Java_Cryptographic_Extensions
+        //http://stackoverflow.com/questions/20796042/aes-encryption-and-decryption-with-java
         static final String ALGORITHM = "AES";
         private final String applicationSecret;
         
         private final SecretKeySpec secretKeySpec;
         
         public AesEncryption() {
-            //TODO read as property
+            //TODO read as property or autogenerate it and place it somewhere
             applicationSecret = "gawdDamnSecretThisIs_____appending_More_To_Reach_The_Goal_Of_64!";
             
             try {

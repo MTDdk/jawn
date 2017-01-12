@@ -18,7 +18,7 @@ import net.jodah.expiringmap.ExpiringMap;
  * 
  * @author MTD
  */
-class ExpiringMapCache implements Cache {
+class ExpiringMapCache<T> implements Cache<T> {
     
     private final ExpiringMap<String, Object> cache;
     
@@ -41,39 +41,39 @@ class ExpiringMapCache implements Cache {
     }
     
     @Override
-    public <T> void add(String key, T value) {
+    public void add(String key, T value) {
         if (isSet(key)) return;
         cache.put(key, value);
     }
     @Override
-    public <T> void add(String key, T value, int seconds) {
+    public void add(String key, T value, int seconds) {
         if (isSet(key)) return;
         cache.put(key, value, seconds, TimeUnit.SECONDS);
     }
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T get(String key) {
+    public T get(String key) {
         return (T) cache.get(key);
     }
     @Override
-    public <T> void set(String key, T value) {
+    public void set(String key, T value) {
         cache.put(key, value);
     }
     @Override
-    public <T> void set(String key, T value, int seconds) {
+    public void set(String key, T value, int seconds) {
         cache.put(key, value, seconds, TimeUnit.SECONDS);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T computeIfAbsent(String key, Function<String, T> mappingFunction) {
+    public T computeIfAbsent(String key, Function<String, T> mappingFunction) {
         if (StringUtil.blank(key)) throw new IllegalArgumentException("Key must not be null or empty");
         return (T) cache.computeIfAbsent( key, mappingFunction);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T computeIfAbsent(String key, Supplier<T> supplier) {
+    public T computeIfAbsent(String key, Supplier<T> supplier) {
         if (StringUtil.blank(key)) throw new IllegalArgumentException("Key must not be null or empty");
         return (T) cache.computeIfAbsent(key, (k) -> supplier.get());
     }

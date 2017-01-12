@@ -180,7 +180,7 @@ public final class ResultBuilder {
      * 
      * @author MTD
      */
-    public class StatusWrapper {
+    public static class StatusWrapper {
         private final ResultBuilder builder;
         StatusWrapper(ResultBuilder builder) {
             this.builder = builder;

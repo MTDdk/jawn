@@ -300,6 +300,7 @@ public class ImageHandlerBuilder {
          }
      }
      
+     @Override
      public ImageHandlerBuilder clone() {
          ImageHandlerBuilder builder = new ImageHandlerBuilder(holder, info);
          builder.fn.updateName(this.fn.filename());
