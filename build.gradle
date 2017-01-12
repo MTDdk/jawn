@@ -1,46 +1,50 @@
-
+buildscript {
+    repositories { maven { url "https://plugins.gradle.org/m2/" } }
+    dependencies { classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.8' }
+}
 
 //http://gradle.org/docs/current/userguide/multi_project_builds.html#sub:real_life_examples
 
 allprojects {
-   tasks.withType(Javadoc).all { enabled = true }
+    apply plugin: 'java'
+    apply from: "$rootProject.projectDir/maven.gradle"
+
+    // maven metadata
+    group = "net.javapla.jawn"
+    version = "0.9.4-SNAPSHOT"
+
+    tasks.withType(Javadoc).all { enabled = true }
 }
 
 subprojects {
-	apply plugin: 'java'
     apply plugin: 'eclipse'
-	apply from: '../maven.gradle'
-	apply plugin: 'jacoco'
-    
-    
+    apply plugin: 'jacoco'
+//    apply plugin: 'net.ltgt.errorprone'
+
+
     // compiler options
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 
-	// maven metadata
-	group = "net.javapla.jawn"
-	version = "0.9.4-SNAPSHOT"
-	
-	repositories {
-	    mavenCentral()
-	}
-	
-	// test configurations
-	tasks.withType(JavaCompile) {
-    	options.encoding = 'UTF-8'
-	}
-	
-	test {
-		testLogging {
-			// Make sure output from
-			// standard out or error is shown
-			// in Gradle output.
-			showStandardStreams = true
-		}
-		ignoreFailures true
-	}
+    repositories { mavenCentral() }
 
-// implement https://github.com/kt3k/coveralls-gradle-plugin	
+    // test configurations
+    tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+
+    test {
+        testLogging {
+            // Make sure output from
+            // standard out or error is shown
+            // in Gradle output.
+            showStandardStreams = true
+        }
+        ignoreFailures false
+    }
+
+    /*tasks.withType(JavaCompile) {
+     options.compilerArgs += [ '-Xep:DeadException:WARN', '-Xep:GuardedByValidator:OFF' ]
+     }*/
+    // implement https://github.com/kt3k/coveralls-gradle-plugin
 }
 
 //https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
@@ -50,4 +54,17 @@ configurations.all {
         // e.g. multiple different versions of the same dependency (group and name are equal)
         failOnVersionConflict()
     }
+}
+
+
+
+/* ******************* */
+//  Default implementation of the framework
+/* ******************* */
+
+// Specify the resulting archive
+archivesBaseName = 'jawn'
+dependencies {
+    // Currently, this is the only needed dependency that has everything you need
+    compile project(':jawn-server-undertow')
 }

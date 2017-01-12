@@ -1,1 +1,1 @@
-includeFlat 'jawn-core','jawn-server'
+includeFlat 'jawn-core'
