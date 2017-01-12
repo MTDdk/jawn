@@ -131,9 +131,9 @@ public class DatabaseConnections {
         /* ***************
          * DataSource Part
          * ****************/
-        ComboPooledDataSource source;
+        volatile ComboPooledDataSource source;
         private final Object lock = new Object();
-        /*synchronized */void initiatePooledDataSource() {
+        void initiatePooledDataSource() {
             if (source == null) {
                 synchronized(lock) {
                     if (source == null) {
