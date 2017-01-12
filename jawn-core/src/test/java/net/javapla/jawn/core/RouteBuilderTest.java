@@ -20,10 +20,18 @@ public class RouteBuilderTest {
     
     @Test
     public void should_return_route() {
-        Route route = RouteBuilder.get().to(UnitTestController.class, "bolle").route("/kage/bolle").build(new FiltersHandler(), null);
+        Route route = RouteBuilder.get().to(UnitTestController.class, "simple").route("/different/path").build(new FiltersHandler(), null);
         
         assertNotNull(route);
-        assertEquals("getBolle", route.getAction());
+        assertEquals("getSimple", route.getAction());
+    }
+    
+    @Test
+    public void should_mapToLongAction() {
+        Route route = RouteBuilder.get().to(UnitTestController.class, "longer_action").route("/different/path").build(new FiltersHandler(), null);
+        
+        assertNotNull(route);
+        assertEquals("getLongerAction", route.getAction());
     }
 
 }

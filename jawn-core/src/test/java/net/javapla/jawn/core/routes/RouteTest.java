@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.routes;
 
 import static org.junit.Assert.*;
 
@@ -12,6 +12,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import app.controllers.UnitTestController;
@@ -100,4 +101,36 @@ public class RouteTest {
         assertTrue(r.getPathParametersEncoded(requestBad).isEmpty());
     }
 
+    @Test
+    @Ignore
+    public void route_is_fullyQualified() {
+        String uri = "/something/getit";
+        Route route = new Route(uri, HttpMethod.GET, null, null, null, null);
+        
+        assertTrue(route.isFullyQualified());
+    }
+    
+    @Test
+    @Ignore
+    public void route_is_not_fullyQualified() {
+        String uri = "/something/getit/{action}";
+        Route route = new Route(uri, HttpMethod.GET, null, null, null, null);
+        
+        assertFalse(route.isFullyQualified());
+        
+        uri = "/{controller}/getit/{action}";
+        route = new Route(uri, HttpMethod.GET, null, null, null, null);
+        
+        assertFalse(route.isFullyQualified());
+        
+        uri = "/{controller}/getit/{id}";
+        route = new Route(uri, HttpMethod.GET, null, null, null, null);
+        
+        assertFalse(route.isFullyQualified());
+        
+        uri = "/{package}/something";
+        route = new Route(uri, HttpMethod.GET, null, null, null, null);
+        
+        assertFalse(route.isFullyQualified());
+    }
 }

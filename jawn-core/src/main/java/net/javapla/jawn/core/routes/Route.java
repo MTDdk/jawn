@@ -44,7 +44,8 @@ public class Route extends InternalRoute {
     // E.g. /somecontroller/action is fully qualified
     //      /somecontroller/{action} is not
     public boolean isFullyQualified() {
-        return this.parameters.isEmpty();
+        return this.parameters.isEmpty() /*|| 
+            this.parameters.stream().noneMatch(param -> param.equals(ACTION) || param.equals(CONTROLLER) || param.equals(ID) || param.equals(PACKAGE))*/;
     }
     
     private Method actionMethod;
