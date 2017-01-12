@@ -22,20 +22,24 @@ public class CollectionUtil {
     }
 
     /**
-     * Converting a list into a map.
-     * This implementation uses a {@linkplain TreeMap} which ensures natural ordering of the keys 
+     * Converting a list into a map. This implementation uses a {@linkplain TreeMap} which ensures
+     * natural ordering of the keys
      * 
      * @param keyValues An even list of key/value pairs to be converted into a map
      * @param <K> type of the keys
      * @param <V> type of the values
      * 
      * @return The resulting map of the values
-     * @throws IllegalArgumentException If the number of <code>keyValues</code> is not even
+     * @throws IllegalArgumentException If the number of <code>keyValues</code> is not even or is
+     *         null
+     * @throws ClassCastException If the class of the specified key or value prevents it from being
+     *         stored in this map
      */
     @SuppressWarnings("unchecked")
-    public static final <K, V> Map<K, V> map(Object... keyValues ) throws IllegalArgumentException {
-        //             length % 2 != 0
+    public static final <K, V> Map<K, V> map(Object... keyValues ) throws IllegalArgumentException, ClassCastException {
+        if (keyValues == null) throw new IllegalArgumentException("Arguments must not be null");
         if ((keyValues.length & 0b01) != 0) throw new IllegalArgumentException("number of arguments must be even");
+        //             length % 2 != 0   ( - essentially; is the first bit a 1?)
         
         Map<K, V> map = new TreeMap<>();
         for (int i = 0; i < keyValues.length; i+=2) {

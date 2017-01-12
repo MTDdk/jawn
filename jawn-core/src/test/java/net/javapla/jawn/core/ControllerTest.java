@@ -4,9 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -30,18 +27,6 @@ public class ControllerTest {
         controller.init(context, null);
     }
 
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() throws Exception {
-    }
-
     @Test
     public void redirect302_with_action() {
         String action = "test";
@@ -54,6 +39,14 @@ public class ControllerTest {
     
     @Test
     public void redirect302_with_params() {
+        controller.redirect(MockController.class, CollectionUtil.map("param1","value1","param2","value2"));
+        Result result = controller.getControllerResult();
+        assertEquals(302, result.status());
+        assertEquals("/mock?param1=value1&param2=value2", result.headers().get("Location"));
+    }
+    
+    @Test
+    public void redirect302_with_encodedParams() {
         controller.redirect(MockController.class, CollectionUtil.map("param1","value1","param2","value2","param3","{ }"));
         Result result = controller.getControllerResult();
         assertEquals(302, result.status());
