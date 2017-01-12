@@ -11,7 +11,7 @@ public enum Modes {
     TEST(Constants.MODE_TEST);
     
     
-    private String mode;
+    private final String mode;
 
     private Modes(String mode) {
         this.mode = mode;
