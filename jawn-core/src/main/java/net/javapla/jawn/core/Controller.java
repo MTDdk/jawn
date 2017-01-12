@@ -69,6 +69,8 @@ public abstract class Controller implements ResultHolder {
     
  // Standard behaviour is to look for HTML template
     protected Result result = ResultBuilder.ok().contentType(MediaType.TEXT_HTML);
+    
+    @Override
     public void setControllerResult(Result r) {
         result = r;
     }
@@ -157,7 +159,7 @@ public abstract class Controller implements ResultHolder {
     }
 
 
-    protected class NewRenderBuilder {
+    protected static class NewRenderBuilder {
         private final Result response;
         NewRenderBuilder(Result response) {
             this.response = response;
@@ -498,17 +500,18 @@ public abstract class Controller implements ResultHolder {
         redirect(controllerClass, CollectionUtil.map("action", action, "id", id));
     }
 
-    /**
-     * Convenience method for {@link #redirect(Class, java.util.Map)}.
-     *
-     * @param controllerClass controller class where to send redirect.
-     * @param <T> class extending {@link Controller}
-     * @param id id to redirect to.
-     * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
-     */
-    protected <T extends Controller> /*HttpBuilder*/void redirect(Class<T> controllerClass, Object id){
-        /*return */redirect(controllerClass, CollectionUtil.map("id", id));
-    }
+    // always recurses..
+//    /**
+//     * Convenience method for {@link #redirect(Class, java.util.Map)}.
+//     *
+//     * @param controllerClass controller class where to send redirect.
+//     * @param <T> class extending {@link Controller}
+//     * @param id id to redirect to.
+//     * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
+//     */
+//    protected <T extends Controller> /*HttpBuilder*/void redirect(Class<T> controllerClass, Object id){
+//        /*return */redirect(controllerClass, CollectionUtil.map("id", id));
+//    }
     
     /**
      * Convenience method for {@link #redirect(Class, java.util.Map)}.
