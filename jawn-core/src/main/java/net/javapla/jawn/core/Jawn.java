@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
@@ -184,6 +185,17 @@ public class Jawn {
         builders.add(RouteBuilder.delete().route(path).to(controller, action));
         return this;
     }
+    
+    // ****************
+    // Injection
+    // ****************
+    public <T> T require(Class<T> type) {
+        return bootstrapper.getInjector().getInstance(type);
+    }
+    public <T> T require(Key<T> type) {
+        return bootstrapper.getInjector().getInstance(type);
+    }
+    
     
     // ****************
     // Filters
