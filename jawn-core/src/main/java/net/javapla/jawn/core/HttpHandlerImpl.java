@@ -28,6 +28,7 @@ import net.javapla.jawn.core.templates.TemplateEngine;
 class HttpHandlerImpl implements HttpHandler {
     protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
+    //https://github.com/perwendel/spark/blob/master/src/main/java/spark/staticfiles/StaticFilesConfiguration.java
     private String[] exclusions;
     protected final FrameworkEngine engine;
     private final Injector injector;

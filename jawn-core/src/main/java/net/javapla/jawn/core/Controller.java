@@ -98,6 +98,12 @@ public abstract class Controller implements ResultHolder {
     }
 
 
+    /*protected ResultBuilder respond() {
+        return result;
+    }
+    protected void request() {
+        
+    }*/
     
     // index is always available
     public void index() { };
