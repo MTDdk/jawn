@@ -6,7 +6,6 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -123,7 +122,7 @@ public class SiteConfigurationReader {
     }
     
     private String createPathIdentification(String folder, String controller) {
-        return MessageFormat.format("{0}+{1}", folder, controller);
+        return new StringBuilder().append(folder).append('+').append(controller).toString();
     }
 
     private final SiteConfiguration readSiteFile(Path folder) {
