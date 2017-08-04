@@ -25,6 +25,7 @@ import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.Response;
 import net.javapla.jawn.core.http.ResponseStream;
+import net.javapla.jawn.core.http.Session;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.uploads.FormItem;
@@ -39,6 +40,7 @@ public class ServerContext implements Context.Internal2 {
     
     private final JawnConfigurations properties;
     //private final SessionManager sessionManager;
+    private final Session session;
     
     private Request request;
     private Response response;
@@ -49,11 +51,14 @@ public class ServerContext implements Context.Internal2 {
      * This might differ from requestUri as routedPath is stripped from any language
      */
     private String routedPath;
+
+
     
     
     @Inject
-    ServerContext(JawnConfigurations properties) {
+    ServerContext(JawnConfigurations properties, Session session) {
         this.properties = properties;
+        this.session = session;
     }
     
     public void init(Request request, Response response) {
@@ -61,6 +66,9 @@ public class ServerContext implements Context.Internal2 {
         this.response = response;
         
         addResponseHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
+        
+        // init session scope
+        session.init(this);
     }
     
     @Override

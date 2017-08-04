@@ -18,6 +18,7 @@ public class RealSession implements Session {
     private final Crypto crypto;
     
     private long sessionExpiryTimeInMs;
+    private final long defaultSessionExpiryTimeInMs;
     private final boolean cookieOnlySession;
     private final String sessionCookieName;
     private final String applicationSecret; //TODO probably needs to be store somewhere else (perhaps the Crypto)
@@ -36,6 +37,7 @@ public class RealSession implements Session {
         
         //TODO read a bunch of properties
         sessionExpiryTimeInMs = -1;
+        defaultSessionExpiryTimeInMs = sessionExpiryTimeInMs * 1000;
         cookieOnlySession = true; // if false have the cookie only save a session id that we then look up
         sessionCookieName = "jawncookie" + Constants.SESSION_SUFFIX;
         applicationSecret = "gawdDamnSecretThisIs!";
@@ -102,7 +104,7 @@ public class RealSession implements Session {
         if (value == null) {
             remove(key);
         } else {
-            data.put(key, (String) value); // TODO make sure think about how methods should behave if cookieOnlySession (maps will only hold strings)
+            data.put(key, (String) value); // TODO make sure to think about how methods should behave if cookieOnlySession (maps will only hold strings)
         }
     }
 
@@ -147,9 +149,23 @@ public class RealSession implements Session {
     }
 
     @Override
-    public void setExpiryTime(long expiryTimeMS) {
-        // TODO Auto-generated method stub
+    public void setExpiryTime(long expiryTimeMs) {
+        if (expiryTimeMs > 0) {
+            data.put(EXPIRY_TIME_KEY, "" + expiryTimeMs);
+            sessionExpiryTimeInMs = expiryTimeMs;
+        } else {
+            data.remove(EXPIRY_TIME_KEY);
+            sessionExpiryTimeInMs = defaultSessionExpiryTimeInMs;
+            sessionDataHasChanged = true;
+        }
         
+        if (sessionExpiryTimeInMs > 0) {
+            if (!data.containsKey(TIMESTAMP_KEY)) {
+                data.put(TIMESTAMP_KEY, "" + System.currentTimeMillis());
+            }
+            checkExpire();
+            sessionDataHasChanged = true;
+        }
     }
 
     @Override
