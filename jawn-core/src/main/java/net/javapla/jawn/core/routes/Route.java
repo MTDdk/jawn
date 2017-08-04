@@ -84,11 +84,19 @@ public class Route extends InternalRoute {
     }
     
     ResponseFunction func;
+    boolean directlyExecutable;
     public void setResponseFunction(ResponseFunction func) {
         this.func = func;
     }
+    public void setResponseFunction(ResponseFunction func, boolean directlyExecutable) {
+        this.func = func;
+        this.directlyExecutable = directlyExecutable;
+    }
     public Result executeRouteAndRetrieveResponse(Context context) {
         return func.handle(context);
+    }
+    public boolean isDirectlyExecutable() {
+        return directlyExecutable;
     }
     
     /**

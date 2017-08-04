@@ -154,6 +154,14 @@ public class RouterImpl implements Router {
         for (Route route : routes) {
             if (route.matches(httpMethod, requestUri)) {
                 
+                // TODO experimental
+                if (route.isDirectlyExecutable()) {
+                    return route;
+                }
+                
+                // TODO something is inherently wrong here.. All of this ought to be the responsibility of ActionInvoker or some middleman.
+                // It definitely should not be here, but a part of the execution of the route instead, and set during RouteBuilder#build
+                
                 // reload the controller, if we are not in production mode
                 if (isDev) {
                     try {
@@ -170,7 +178,7 @@ public class RouterImpl implements Router {
                     }
                 }
                 
-             // if the route only has an URI defined, then we process the route as if it was an InternalRoute
+                // if the route only has an URI defined, then we process the route as if it was an InternalRoute
                 if (route.getActionName() == null) {
                     if (route.getController() == null) {
                         Route deferred = deduceRoute(route, httpMethod, requestUri, invoker);
@@ -180,11 +188,6 @@ public class RouterImpl implements Router {
                         String actionName = deduceActionName(route, requestUri);
                         return RouteBuilder.build(route, actionName);
                     }
-                }
-                
-                // TODO experimental
-                if (route.func != null) {
-                    return route;
                 }
                 
                 return route;
@@ -213,7 +216,7 @@ public class RouterImpl implements Router {
         throw new ClassLoadException("A route for request " + requestUri + " could not be deduced");
     }
     
-    private Route deduceRoute(InternalRoute route, HttpMethod httpMethod, String requestUri, ActionInvoker invoker/*Injector injector*/) {
+    private Route deduceRoute(InternalRoute route, HttpMethod httpMethod, String requestUri, ActionInvoker invoker) {
         Map<String, String> params = route.getPathParametersEncoded(requestUri);
         //README it seems wrong that the parameters are calculated at this point and not stored somehow in the resulting Route
         ControllerMeta c = new ControllerMeta(params);
@@ -221,11 +224,10 @@ public class RouterImpl implements Router {
         // find a route that actually exists
         try {
             String className = c.getControllerClassName();
-            //boolean isDev = injector.getInstance(PropertiesImpl.class).isDev();
             RouteBuilder bob = loadController(className, httpMethod, route.uri, c.getAction(), !isDev);
             
             //TODO cache the routes if !isDev
-            return bob.build(filters, invoker/*injector*/); // this might throw if the controller does not have the action
+            return bob.build(filters, invoker); // this might throw if the controller does not have the action
         } catch (ControllerException e) {
             //to() failed - the controller does not contain the corresponding action
         } catch (IllegalStateException e) {

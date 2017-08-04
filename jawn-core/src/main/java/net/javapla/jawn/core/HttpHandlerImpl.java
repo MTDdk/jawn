@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Function;
 
 import javax.ws.rs.core.HttpHeaders;
 
@@ -17,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Request;
@@ -43,7 +43,7 @@ class HttpHandlerImpl implements HttpHandler {
 
     @Override
     public void handle(Request request, Response response) throws Exception {
-        if (filteringResources(response, request.path(), resource -> translateResource(resource))) return;
+        if (filteringResources(response, request.path()/*, resource -> translateResource(resource)*/)) return;
         
         ServerContext context = (ServerContext) injector.getInstance(Context.class);
         context.init(request, response);
@@ -79,16 +79,16 @@ class HttpHandlerImpl implements HttpHandler {
      * @return true, if a filtering has happened and nothing else should be done by this current dispatcher
      */
     //TODO extract to an independent Filter
-    private static final boolean filteringResources(Response response, final String path, final Function<String,String> needsTranslation) throws IOException {
-        String translated = needsTranslation.apply(path);
-//        String translated = translateResource(path);
+    private final boolean filteringResources(Response response, final String path/*, final Function<String,String> needsTranslation*/) throws IOException {
+//        String translated = needsTranslation.apply(path);
+        String translated = translateResource(path);
         if (translated != null) {
             
             // Setting default headers for static files
             // One week - Google recommendation
             // https://developers.google.com/speed/docs/insights/LeverageBrowserCaching
             response.header(HttpHeaders.CACHE_CONTROL, "public, max-age=604800");
-            File file = new File("webapp/" + translated);//TODO configurable
+            File file = new File(injector.getInstance(DeploymentInfo.class).getRealPath(translated));
             if (file.canRead())
                 response.header(HttpHeaders.ETAG, String.valueOf(file.lastModified()));
             

@@ -15,7 +15,11 @@ import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Result {
+    private static final Logger logger = LoggerFactory.getLogger(Result.class);
 
     /**
      * Http status code
@@ -96,7 +100,7 @@ public class Result {
             try {
                 return ((Future<?>) renderable).get();
             } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+                logger.error("Error during getting Future renderable");
             }
         }
         return renderable;

@@ -25,7 +25,7 @@ public class RouteBuilder {
     private final HttpMethod httpMethod;
     private String uri;
     private String actionName; // is not prefixed with the http method
-    private Class<? extends Controller> type;
+    private Class<? extends Controller> controller;
     private Result response;
     
     private RouteBuilder(HttpMethod m) {
@@ -71,18 +71,18 @@ public class RouteBuilder {
     }
     
     public RouteBuilder to(Class<? extends Controller> type) {
-        this.type = type;
+        this.controller = type;
         //this.actionName = DEFAULT_ACTION_NAME;
         return this;
     }
     
-    public RouteBuilder to(Class<? extends Controller> type, String action) /*throws ControllerException*/{
+    public RouteBuilder to(Class<? extends Controller> controller, String action) /*throws ControllerException*/{
         // verify that the controller has the corresponding action
         // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
 //        if ( ! controller.isAllowedAction(NewRoute.constructAction(action, httpMethod)) )
 //            throw new ControllerException(MessageFormat.format("{0} does not contain a method called {1}", type, NewRoute.constructAction(action, httpMethod)));
         
-        this.type = type;
+        this.controller = controller;
         this.actionName = action;
         
         return this;
@@ -94,7 +94,7 @@ public class RouteBuilder {
 //        if ( ! controller.isAllowedAction(NewRoute.constructAction(action, httpMethod)) )
 //            throw new ControllerException(MessageFormat.format("{0} does not contain a method called {1}", type, NewRoute.constructAction(action, httpMethod)));
         
-        this.type = controller.getClass();
+        this.controller = controller.getClass();
         this.actionName = action;
         
         return this;
@@ -122,31 +122,32 @@ public class RouteBuilder {
         
         // Find all possible filters
         LinkedList<Filter> list = new LinkedList<>();
-        if (type != null) {
+        if (controller != null) {
             // First the controller specific
-            list.addAll(filters.compileFilters(type));
+            list.addAll(filters.compileFilters(controller));
             // Then all specific to the action
-            list.addAll(filters.compileFilters(type, action));
+            list.addAll(filters.compileFilters(controller, action));
         }
         
-        Route route = new Route(uri, httpMethod, type, action, actionName, buildFilterChain(list, type, response));
+        Route route = new Route(uri, httpMethod, controller, action, actionName, buildFilterChain(list, controller, response));
         
         // experimental
         if (func != null) {
-            route.setResponseFunction(func);
+            route.setResponseFunction(func, true);
         } else if (response != null) {
-            route.setResponseFunction(context -> response);
-        } else if (type != null) {
+            route.setResponseFunction(context -> response, true);
+        } else if (controller != null) {
             // verify that the controller has the corresponding action
             // this could be done at action() and to(), but we cannot be sure of the httpMethod at those points
-            if ( ! ActionInvoker.isAllowedAction(type, action/*route.getAction()*/))
-                throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", type, route.getAction()));
+            if ( ! ActionInvoker.isAllowedAction(controller, action/*route.getAction()*/))
+                throw new RouteException(MessageFormat.format("{0} does not contain a method called {1}", controller, route.getAction()));
 
             try {
                 route.setActionMethod(route.getController().getMethod(action));
             } catch (NoSuchMethodException | SecurityException ignore) {}
             
-            route.setResponseFunction(invoker);
+            route.setResponseFunction(invoker::executeAction);
+            //route.setResponseFunction(invoker, false);
         }
         
         return route;

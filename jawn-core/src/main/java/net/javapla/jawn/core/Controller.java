@@ -1329,7 +1329,7 @@ public abstract class Controller implements ResultHolder {
      * @return cookie value.
      */
     protected String cookieValue(String name){
-        return cookie(name).getValue();//RequestUtils.cookieValue(name);
+        return cookie(name).getValue();
     }
 
     /**

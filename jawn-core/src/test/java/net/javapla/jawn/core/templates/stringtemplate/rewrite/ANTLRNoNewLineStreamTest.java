@@ -7,6 +7,8 @@ import java.net.MalformedURLException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import net.javapla.jawn.core.util.Constants;
+
 
 public class ANTLRNoNewLineStreamTest {
 
@@ -15,7 +17,7 @@ public class ANTLRNoNewLineStreamTest {
     @Test
     public void template_should_removeNewLines_not_spaces() throws MalformedURLException, IOException {
         File file = new File("src/test/resources/webapp/views/antlrnonewlinestream.st");
-        ANTLRNoNewLineStream templateStream = new ANTLRNoNewLineStream(file.toURI().toURL(), "UTF-8");
+        ANTLRNoNewLineStream templateStream = new ANTLRNoNewLineStream(file.toURI().toURL(), Constants.DEFAULT_ENCODING);
         
         String template = templateStream.substring(0, templateStream.size() - 1);
         System.out.println(template);
