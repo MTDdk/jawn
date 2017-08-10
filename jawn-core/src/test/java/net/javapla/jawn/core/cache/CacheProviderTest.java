@@ -38,9 +38,8 @@ public class CacheProviderTest {
         
         
         FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
-        bootBootstrap(bootstrap);
+        Cache cache = bootBootstrap(bootstrap);
         
-        Cache cache = bootstrap.getInjector().getInstance(Cache.class);
         assertThat(cache, instanceOf(ExpiringMapCache.class));
     }
     
@@ -49,9 +48,8 @@ public class CacheProviderTest {
         configurations.set(Constants.PROPERTY_CACHE_IMPLEMENTATION, CacheImpl.class.getName());
         
         FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
-        bootBootstrap(bootstrap);
+        Cache cache = bootBootstrap(bootstrap);
         
-        Cache cache = bootstrap.getInjector().getInstance(Cache.class);
         assertThat(cache, instanceOf(CacheImpl.class));
     }
     
@@ -60,9 +58,8 @@ public class CacheProviderTest {
         configurations.set(Constants.PROPERTY_CACHE_IMPLEMENTATION, "nothing here");
 
         FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
-        bootBootstrap(bootstrap);
+        Cache cache = bootBootstrap(bootstrap);
         
-        Cache cache = bootstrap.getInjector().getInstance(Cache.class);
         assertThat(cache, instanceOf(ExpiringMapCache.class));
     }
     
@@ -72,9 +69,8 @@ public class CacheProviderTest {
         assertThat(configurations.get(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION), is(equalTo("10m")));
         
         FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
-        bootBootstrap(bootstrap);
+        Cache cache = bootBootstrap(bootstrap);
         
-        Cache cache = bootstrap.getInjector().getInstance(Cache.class);
         assertEquals(cache.getDefaultCacheExpiration(), TimeUtil.parse(configurations.get(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION)));
     }
     
@@ -83,16 +79,30 @@ public class CacheProviderTest {
         configurations.set(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION, "1s");
         
         FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
-        bootBootstrap(bootstrap);
+        Cache cache = bootBootstrap(bootstrap);
         
-        Cache cache = bootstrap.getInjector().getInstance(Cache.class);
         assertEquals(cache.getDefaultCacheExpiration(), 1);
     }
     
-    private void bootBootstrap(FrameworkBootstrap bootstrap) {
+    @Test
+    public void missingConfigurations_should_default() {
+        int TEN_MINUTES = 60 * 10;
+        configurations.set(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION, "");
+        configurations.set(Constants.PROPERTY_CACHE_IMPLEMENTATION, "");
+        
+        FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
+        Cache cache = bootBootstrap(bootstrap);
+        
+        assertThat(cache, instanceOf(ExpiringMapCache.class));
+        assertEquals(cache.getDefaultCacheExpiration(), TEN_MINUTES);
+    }
+    
+    private Cache bootBootstrap(FrameworkBootstrap bootstrap) {
         RouterImpl router = mock(RouterImpl.class);
         router.compileRoutes(mock(ActionInvoker.class));
         bootstrap.boot(router, mock(DatabaseConnections.class));
+        
+        return bootstrap.getInjector().getInstance(Cache.class);
     }
 
 }

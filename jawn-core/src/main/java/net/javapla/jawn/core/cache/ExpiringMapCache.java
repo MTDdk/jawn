@@ -50,20 +50,25 @@ public class ExpiringMapCache implements Cache {
         if (isSet(key)) return;
         cache.put(key, value);
     }
+    
     @Override
     public <T> void add(String key, T value, int seconds) {
         if (isSet(key)) return;
         cache.put(key, value, seconds, TimeUnit.SECONDS);
     }
+    
     @SuppressWarnings("unchecked")
     @Override
     public <T> T get(String key) {
         return (T) cache.get(key);
     }
+    
     @Override
     public <T> void set(String key, T value) {
+        if (StringUtil.blank(key)) throw new IllegalArgumentException("Key must not be null or empty");
         cache.put(key, value);
     }
+    
     @Override
     public <T> void set(String key, T value, int seconds) {
         set(key, value);
@@ -96,11 +101,13 @@ public class ExpiringMapCache implements Cache {
 
     @Override
     public boolean isSet(String key) {
+        if (StringUtil.blank(key)) throw new IllegalArgumentException("Key must not be null or empty");
         return cache.containsKey(key);
     }
     
     @Override
     public void delete(String key) {
+        if (StringUtil.blank(key)) throw new IllegalArgumentException("Key must not be null or empty");
         cache.remove(key);
     }
 
