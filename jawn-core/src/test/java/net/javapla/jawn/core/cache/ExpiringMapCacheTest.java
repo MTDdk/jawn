@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.cache;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
@@ -138,5 +139,20 @@ public class ExpiringMapCacheTest {
         
         assertThat(cache.get(key), is(value2));
         assertThat(cache.getExpiration(key), is(key2Seconds));
+    }
+    
+    @Test
+    public void cache_should_holdGenerics() {
+        String key = "keyz", value = "valuez", key2 = "key2", key3 = "key3";
+        Integer value2 = 73;
+        Boolean value3 = false;
+        
+        cache.add(key, value);
+        cache.add(key2, value2);
+        cache.add(key3, value3);
+        
+        assertThat(cache.get(key), is(instanceOf(String.class)));
+        assertThat(cache.get(key2), is(instanceOf(Integer.class)));
+        assertThat(cache.get(key3), is(instanceOf(Boolean.class)));
     }
 }
