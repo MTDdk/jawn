@@ -30,7 +30,7 @@ dependencies {
     
     // Cache
     //compile 'org.ehcache:ehcache:3.0.0.m4'
-    compile 'net.jodah:expiringmap:0.5.6'
+    compile 'net.jodah:expiringmap:0.5.8'
 	
 	
 	/* Template Engines */
@@ -52,9 +52,13 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.21'
     
     //Test
-    testCompile 'junit:junit:4.12'
+    testCompile ('junit:junit:4.12') {
+        exclude module: 'hamcrest-core'
+    }
+    testCompile 'org.hamcrest:java-hamcrest:2.0.0.0'
     testCompile 'org.mockito:mockito-core:2.2.9'
     testCompile ('com.google.truth:truth:0.31')  {
         exclude module: 'guava' // We import it elsewhere to be concise in the versioning
+        exclude module: 'junit'
     }
 }

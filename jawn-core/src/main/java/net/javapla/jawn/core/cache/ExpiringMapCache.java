@@ -18,7 +18,7 @@ import net.jodah.expiringmap.ExpiringMap;
  * 
  * @author MTD
  */
-class ExpiringMapCache<T> implements Cache<T> {
+public class ExpiringMapCache implements Cache {
     
     private final ExpiringMap<String, Object> cache;
     
@@ -36,48 +36,59 @@ class ExpiringMapCache<T> implements Cache<T> {
     }
     
     @Override
+    public int getDefaultCacheExpiration() {
+        return (int) cache.getExpiration() / 1000;
+    }
+    
+    @Override
     public void setDefaultCacheExpiration(int seconds) {
         cache.setExpiration(seconds, TimeUnit.SECONDS);
     }
     
     @Override
-    public void add(String key, T value) {
+    public <T> void add(String key, T value) {
         if (isSet(key)) return;
         cache.put(key, value);
     }
     @Override
-    public void add(String key, T value, int seconds) {
+    public <T> void add(String key, T value, int seconds) {
         if (isSet(key)) return;
         cache.put(key, value, seconds, TimeUnit.SECONDS);
     }
     @SuppressWarnings("unchecked")
     @Override
-    public T get(String key) {
+    public <T> T get(String key) {
         return (T) cache.get(key);
     }
     @Override
-    public void set(String key, T value) {
+    public <T> void set(String key, T value) {
         cache.put(key, value);
     }
     @Override
-    public void set(String key, T value, int seconds) {
-        cache.put(key, value, seconds, TimeUnit.SECONDS);
+    public <T> void set(String key, T value, int seconds) {
+        set(key, value);
+        setExpiration(key, seconds);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public T computeIfAbsent(String key, Function<String, T> mappingFunction) {
+    public <T> T computeIfAbsent(String key, Function<String, T> mappingFunction) {
         if (StringUtil.blank(key)) throw new IllegalArgumentException("Key must not be null or empty");
         return (T) cache.computeIfAbsent( key, mappingFunction);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public T computeIfAbsent(String key, Supplier<T> supplier) {
+    public <T> T computeIfAbsent(String key, Supplier<T> supplier) {
         if (StringUtil.blank(key)) throw new IllegalArgumentException("Key must not be null or empty");
         return (T) cache.computeIfAbsent(key, (k) -> supplier.get());
     }
 
+    @Override
+    public int getExpiration(String key) {
+        return (int) (cache.getExpiration(key) / 1000);
+    }
+    
     @Override
     public void setExpiration(String key, int seconds) {
         cache.setExpiration(key, seconds, TimeUnit.SECONDS);

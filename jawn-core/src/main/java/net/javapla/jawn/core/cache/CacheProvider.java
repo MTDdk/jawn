@@ -26,7 +26,7 @@ public class CacheProvider implements Provider<Cache> {
             try {
                 foundCache = DynamicClassFactory.createInstance(cacheClassName, Cache.class, false);
             } catch (CompilationException | ClassLoadException e) {
-                System.out.println(Constants.PROPERTY_CACHE_IMPLEMENTATION + " could not be read from properties :: " + cacheClassName);  
+                System.out.println(e.getMessage() + " => " + Constants.PROPERTY_CACHE_IMPLEMENTATION + " could not be read from properties :: " + cacheClassName);  
             }
         }
         

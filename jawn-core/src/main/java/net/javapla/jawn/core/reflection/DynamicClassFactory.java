@@ -32,7 +32,7 @@ public abstract class DynamicClassFactory {
      * 
      * @param className Full name of the class including package name
      * @param expectedType The type to convert the class into
-     * @param useCache flag to specify whether to cache the controller or not
+     * @param useCache flag to specify whether to cache the class or not
      * @return The newly instantiated class
      * @throws CompilationException If the class could not be successfully compiled
      * @throws ClassLoadException 
