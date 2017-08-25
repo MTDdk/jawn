@@ -1,7 +1,11 @@
 package net.javapla.jawn.core.configuration;
 
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.javapla.jawn.core.exceptions.InitException;
 import net.javapla.jawn.core.util.Constants;
@@ -15,8 +19,9 @@ import net.javapla.jawn.core.util.StringUtil;
  */
 public class JawnConfigurations implements Configurations {
     
-    private final Properties props;
+    private static final Logger logger = LoggerFactory.getLogger(JawnConfigurations.class);
     
+    private final Properties props;
     private Modes mode;
     
     
@@ -98,6 +103,17 @@ public class JawnConfigurations implements Configurations {
     public String get(String name) {
         return props.getProperty(name);
     }
+    public Optional<String> getSecure(String name) {
+        return Optional.ofNullable(props.getProperty(name));
+    }
+    public String getOrDie(String name) {
+        if (props.containsKey(name)) return props.getProperty(name);
+        
+        String KEY_NOT_FOUND = "Key %s does not exist. Please include it in your jawn.properties. Otherwise this app will not work";
+        logger.error(String.format(KEY_NOT_FOUND, name));
+        throw new RuntimeException(String.format(KEY_NOT_FOUND, name));
+    }
+    
     public String[] getStringArray(String name) {
         String prop = props.getProperty(name);
         if (prop == null) return null;

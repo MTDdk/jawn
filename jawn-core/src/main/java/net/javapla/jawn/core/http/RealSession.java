@@ -60,9 +60,9 @@ public class RealSession implements Session {
 
             
             // check if payload is valid:
-            if (DataCodec.safeEquals(sign, crypto.hmac().sign(payload, applicationSecret))) {
+            if (DataCodec.safeEquals(sign, crypto.hash().SHA256().sign(payload, applicationSecret))) {
                 if (applicationCookieEncryption)
-                    payload = crypto.encrypter().decrypt(payload);
+                    payload = crypto.encrypt().AES().decrypt(payload);
                 DataCodec.decode(data, payload);
             }
 
@@ -188,8 +188,8 @@ public class RealSession implements Session {
         // first encrypt data and then generate HMAC from encrypted data
         // http://crypto.stackexchange.com/questions/202/should-we-mac-then-encrypt-or-encrypt-then-mac
         if (applicationCookieEncryption)
-            sessionData = crypto.encrypter().encrypt(sessionData);
-        String signing = crypto.hmac().sign(sessionData, applicationSecret);
+            sessionData = crypto.encrypt().AES().encrypt(sessionData);
+        String signing = crypto.hash().SHA256().sign(sessionData, applicationSecret);
         
         Cookie.Builder cookieBuilder = createApplicationCookie(signing + "-" + sessionData, context);
         if (sessionExpiryTimeInMs > 0) {

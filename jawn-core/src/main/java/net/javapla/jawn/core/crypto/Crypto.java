@@ -2,11 +2,19 @@ package net.javapla.jawn.core.crypto;
 
 import com.google.inject.ImplementedBy;
 
-@ImplementedBy(HmacSha256Crypto.class)
+@ImplementedBy(CryptoImpl.class)
 public interface Crypto {
 
-    Signer hmac();
-    Encrypter encrypter();
+    Signers hash();
+    Encrypters encrypt();
+    
+    public static interface Signers {
+        Signer SHA256();
+    }
+    
+    public static interface Encrypters {
+        Encrypter AES();
+    }
     
     public static interface Signer {
         String sign(String value, String key);
