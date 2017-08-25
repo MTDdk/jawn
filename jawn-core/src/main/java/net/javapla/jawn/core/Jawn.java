@@ -28,7 +28,7 @@ import net.javapla.jawn.core.util.Modes;
 
 
 public class Jawn {
-    protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
+    protected static final Logger logger = LoggerFactory.getLogger(Jawn.class);
 
     private final JawnConfigurations properties;
     private final DeploymentInfo deploymentInfo;
