@@ -201,6 +201,7 @@ public class ExpiringMapCacheTest {
         
         assertThat(cache.computeIfAbsent(key, 55, (k) -> "new value"), is(key.toUpperCase()));
         assertThat(cache.computeIfAbsent(key, 55, () -> "new value"), is(key.toUpperCase()));
+        assertThat(cache.getExpiration(key), is(44));
         
         assertThat(cache.computeIfAbsent("key2", 55, (k) -> null), is(nullValue()));
         assertThat(cache.computeIfAbsent("key3", 55, () -> null), is(nullValue()));

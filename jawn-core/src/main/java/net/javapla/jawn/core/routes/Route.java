@@ -129,7 +129,7 @@ public class Route extends InternalRoute {
     }
     
     @FunctionalInterface
-    interface ZeroArgResponseFunction {
+    public interface ZeroArgResponseFunction {
         Result handle();
     }
     

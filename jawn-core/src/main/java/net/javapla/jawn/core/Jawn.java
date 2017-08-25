@@ -112,11 +112,11 @@ public class Jawn {
         return this;
     }
     
-    public Jawn lang() {
+    /*public Jawn lang() {
         //README: should some kind of language settings be set here?
         //bootstrapper.config().setSupportedLanguages(null);
         return this;
-    }
+    }*/
     
     public DatabaseConnectionBuilder database(Modes mode) {
         return databaseConnections.environment(mode);
@@ -129,6 +129,10 @@ public class Jawn {
         builders.add(RouteBuilder.get().route(path).with(func));
         return this;
     }
+    /*public Jawn get(String path, ZeroArgResponseFunction func) {
+        builders.add(RouteBuilder.get().route(path).with(func));
+        return this;
+    }*/
     public Jawn get(String path, Class<? extends Controller> controller) {
         builders.add(RouteBuilder.get().route(path).to(controller));
         return this;
@@ -190,9 +194,11 @@ public class Jawn {
     // Injection
     // ****************
     public <T> T require(Class<T> type) {
+        checkState(bootstrapper.getInjector() != null, "App has not started yet");
         return bootstrapper.getInjector().getInstance(type);
     }
     public <T> T require(Key<T> type) {
+        checkState(bootstrapper.getInjector() != null, "App has not started yet");
         return bootstrapper.getInjector().getInstance(type);
     }
     
@@ -220,7 +226,7 @@ public class Jawn {
         return serverConfig;
     }
     
-    public void start(final String ... args) {
+    public void start(/*final String ... args*/) {
         long startupTime = System.currentTimeMillis();
         
         bootstrapper.boot(new RouterImpl(builders, filters, properties), databaseConnections);
@@ -261,7 +267,12 @@ public class Jawn {
         jawn
             .get()
             .parseArguments(args) // Read program arguments and overwrite server specifics
-            .start(args);
+            .start(/*args*/);
+    }
+    public static final void run(final Jawn jawn, final String ... args) {
+        jawn
+            .parseArguments(args)
+            .start();
     }
 
     private Jawn parseArguments(final String ... args) {
@@ -274,5 +285,11 @@ public class Jawn {
         }
         
         return this;
+    }
+    
+    private void checkState(boolean expression, String errorMessage) throws IllegalStateException {
+        if (!expression) {
+            throw new IllegalStateException(errorMessage);
+        }
     }
 }

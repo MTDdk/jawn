@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.ConfigurationException;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -126,7 +127,8 @@ public class FrameworkBootstrap {
                 DatabaseConnection connection = injector.getInstance(DatabaseConnection.class);
                 if (connection != null)
                     connection.close();
-            } catch (Exception ignore) { ignore.printStackTrace(); }
+            } catch (ConfigurationException ignore) {
+            } catch (Exception e) { e.printStackTrace(); }
             
             // signal the framework that we are closing down
             FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);

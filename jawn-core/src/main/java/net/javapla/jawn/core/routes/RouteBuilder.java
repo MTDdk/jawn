@@ -127,6 +127,8 @@ public class RouteBuilder {
             list.addAll(filters.compileFilters(controller));
             // Then all specific to the action
             list.addAll(filters.compileFilters(controller, action));
+        } else {
+            list.addAll(filters.compileGlobalFilters());
         }
         
         Route route = new Route(uri, httpMethod, controller, action, actionName, buildFilterChain(list, controller, response));
@@ -144,10 +146,9 @@ public class RouteBuilder {
 
             try {
                 route.setActionMethod(route.getController().getMethod(action));
+                route.setResponseFunction(invoker::executeAction);
+                //route.setResponseFunction(invoker, false);
             } catch (NoSuchMethodException | SecurityException ignore) {}
-            
-            route.setResponseFunction(invoker::executeAction);
-            //route.setResponseFunction(invoker, false);
         }
         
         return route;

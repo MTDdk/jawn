@@ -5,21 +5,20 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.EnumMap;
 import java.util.logging.Logger;
-
-import net.javapla.jawn.core.util.Modes;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
+import net.javapla.jawn.core.util.Modes;
+
 public class DatabaseConnections {
 
-    private final Map<Modes, DatabaseConnectionBuilderImpl> builders;
+    private final EnumMap<Modes, DatabaseConnectionBuilderImpl> builders;
     
     
     public DatabaseConnections() {
-        builders = new HashMap<>();
+        builders = new EnumMap<>(Modes.class);
     }
     
     public DatabaseConnectionBuilderImpl environment(Modes mode) {

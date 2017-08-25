@@ -62,7 +62,7 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
 //    }
     
     public List<Filter> compileFilters(Class<? extends Controller> controller, String action) {
-        List<Filter> list = new ArrayList<>();
+        ArrayList<Filter> list = new ArrayList<>();
         for (FilterBuilder<? extends Filter> bob : builders) {
             Filter filter = bob.get(controller, action);
             if (filter != null)
@@ -72,11 +72,20 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
         return list;
     }
     public List<Filter> compileFilters(Class<? extends Controller> controller) {
-        List<Filter> list = new ArrayList<>();
+        ArrayList<Filter> list = new ArrayList<>();
         for (FilterBuilder<? extends Filter> bob : builders) {
             Filter filter = bob.get(controller);
             if (filter != null)
                 list.add(filter);
+        }
+        
+        return list;
+    }
+    
+    public List<Filter> compileGlobalFilters() {
+        ArrayList<Filter> list = new ArrayList<>();
+        for (FilterBuilder<? extends Filter> bob : builders) {
+            list.add(bob.get(null));
         }
         
         return list;
@@ -118,7 +127,7 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
 //    }
 
     public static class FilterBuilder<T extends Filter> {
-        T filter;
+        final T filter;
         Class<? extends Controller>[] controllers;
         String[] actionNames;
         
@@ -127,10 +136,10 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
             this.filter = filter;
         }
         
-        @SafeVarargs
+        /*@SafeVarargs
         public FilterBuilder(Class<? extends Controller>... classes) {
             this.controllers = classes;
-        }
+        }*/
         
         
         @SafeVarargs
@@ -158,9 +167,13 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
             return this;
         }
         
-        public FilterBuilder<T> with(T filter) {
+        /*public FilterBuilder<T> with(T filter) {
             this.filter = filter;
             return this;
+        }*/
+        
+        boolean isGlobal() {
+            return controllers == null;
         }
         
         private void ensureControllersContainsActions() {
