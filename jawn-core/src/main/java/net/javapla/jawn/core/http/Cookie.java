@@ -1,5 +1,7 @@
 package net.javapla.jawn.core.http;
 
+import java.util.Date;
+
 /**
  * We need an internal Cookie representation, as this will make it agnostic to
  * implementation specifics such as a Servlet Cookie.
@@ -20,6 +22,10 @@ public class Cookie {
      * The number of seconds in half a year (= 60 * 60 * 24 * 365 / 2).
      */
     public static final int HALF_YEAR = ONE_YEAR / 2;
+    /**
+     * Beginning of time
+     */
+    public static final Date EPOCH = new Date(0L);
 
     private final String name;
     private final String value;
@@ -30,6 +36,7 @@ public class Cookie {
     private final boolean secure;
     private final boolean httpOnly;
     private final int version;
+    private final Date expires;
 
     public Cookie(
                 String name, 
@@ -40,7 +47,8 @@ public class Cookie {
                 String path, 
                 boolean secure, 
                 boolean httpOnly, 
-                int version) {
+                int version,
+                Date expires) {
         this.name = name;
         this.value = value;
         this.comment = comment;
@@ -50,6 +58,7 @@ public class Cookie {
         this.secure = secure;
         this.httpOnly = httpOnly;
         this.version = version;
+        this.expires = expires;
     }
 
     public int getMaxAge() {
@@ -82,6 +91,10 @@ public class Cookie {
 
     public int getVersion() {
         return version;
+    }
+    
+    public Date getExpires() {
+        return expires;
     }
 
     /**
@@ -128,6 +141,7 @@ public class Cookie {
         private boolean secure;
         private boolean httpOnly;
         private int version;
+        private Date expires;
 
         private Builder(String name, String value) {
             this.name = name;
@@ -144,10 +158,11 @@ public class Cookie {
             secure = cookie.secure;
             httpOnly = cookie.httpOnly;
             version = cookie.version;
+            expires = cookie.expires;
         }
         
         public Cookie build() {
-            return new Cookie(name, value, comment, maxAge, domain, path, secure, httpOnly, version);
+            return new Cookie(name, value, comment, maxAge, domain, path, secure, httpOnly, version, expires);
         }
 
         public Builder setValue(String value) {
@@ -182,6 +197,11 @@ public class Cookie {
 
         public Builder setVersion(int version) {
             this.version = version;
+            return this;
+        }
+        
+        public Builder setExpires(Date expires) {
+            this.expires = expires;
             return this;
         }
 

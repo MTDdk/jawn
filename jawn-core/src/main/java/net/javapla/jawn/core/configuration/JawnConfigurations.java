@@ -22,7 +22,7 @@ public class JawnConfigurations implements Configurations {
     private static final Logger logger = LoggerFactory.getLogger(JawnConfigurations.class);
     
     private final Properties props;
-    private Modes mode;
+    private final Modes mode;
     
     
     public JawnConfigurations(Modes mode) throws InitException {
@@ -33,6 +33,8 @@ public class JawnConfigurations implements Configurations {
         
         String basePackage = props.getProperty(Constants.PROPERTY_APPLICATION_BASE_PACKAGE);
         System.setProperty(Constants.SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE, basePackage);
+        
+        ConfigurationsHelper.check(this);
     }
     
     protected void readProperties() throws InitException {
@@ -86,9 +88,9 @@ public class JawnConfigurations implements Configurations {
     public boolean isDev() {
         return mode.equals(Modes.DEV);
     }
-    public void set(Modes mode) {
+    /*public void set(Modes mode) {
         this.mode = mode;
-    }
+    }*/
     
     
     /**

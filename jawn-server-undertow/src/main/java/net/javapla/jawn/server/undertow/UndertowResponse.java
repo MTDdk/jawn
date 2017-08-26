@@ -255,6 +255,7 @@ public class UndertowResponse implements Response {
                 .setVersion(cookie.getVersion())
                 .setMaxAge(cookie.getMaxAge())
                 .setHttpOnly(cookie.isHttpOnly())
-                .setSecure(cookie.isSecure());
+                .setSecure(cookie.isSecure())
+                .setExpires(cookie.getExpires());
     }
 }

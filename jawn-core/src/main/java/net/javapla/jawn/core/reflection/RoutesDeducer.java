@@ -27,9 +27,6 @@ public class RoutesDeducer {
         
         ControllerLocator locator = new ControllerLocator(PropertiesConstants.CONTROLLER_PACKAGE);
         
-//        System.out.println(finder.controllerActions.keySet());
-//        System.out.println(locator.controllerActions.keySet());
-        
         locator.controllerActions
             .forEach((controllername,actions) -> {
                 // /{controller}

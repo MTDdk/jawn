@@ -85,7 +85,9 @@ public class FiltersHandler implements Filters/*, DatabaseConnectionAware*/ {
     public List<Filter> compileGlobalFilters() {
         ArrayList<Filter> list = new ArrayList<>();
         for (FilterBuilder<? extends Filter> bob : builders) {
-            list.add(bob.get(null));
+            Filter filter = bob.get(null);
+            if (filter != null)
+                list.add(filter);
         }
         
         return list;

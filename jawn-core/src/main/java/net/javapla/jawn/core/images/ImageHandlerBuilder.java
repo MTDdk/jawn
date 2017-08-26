@@ -22,7 +22,7 @@ import net.javapla.jawn.core.ResultHolder;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.MediaTypeException;
-import net.javapla.jawn.core.uploads.FormItem;
+import net.javapla.jawn.core.http.FormItem;
 
 /**
  * 

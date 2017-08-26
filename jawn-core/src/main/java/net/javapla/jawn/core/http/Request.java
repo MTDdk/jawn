@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
-import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.MultiList;
 
 public interface Request {

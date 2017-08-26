@@ -27,10 +27,10 @@ import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.HttpString;
 import net.javapla.jawn.core.http.Cookie;
+import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.Cookie.Builder;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.Request;
-import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.URLCodec;
 
@@ -60,9 +60,9 @@ public class UndertowRequest implements Request {
 
     @Override
     public HttpMethod method() {
-        return HttpMethod.valueOf(exchange.getRequestMethod().toString());
+        return HttpMethod.getMethod(exchange.getRequestMethod().toString(), params());
     }
-
+    
     @Override
     public String path() {
         return path;
@@ -301,6 +301,7 @@ public class UndertowRequest implements Request {
         Optional.ofNullable(cookie.getPath()).ifPresent(bob::setPath);
         Optional.ofNullable(cookie.getVersion()).ifPresent(bob::setVersion);
         Optional.ofNullable(cookie.getMaxAge()).ifPresent(bob::setMaxAge);
+        Optional.ofNullable(cookie.getExpires()).ifPresent(bob::setExpires);
         bob.setHttpOnly(cookie.isHttpOnly());
         bob.setSecure(cookie.isSecure());
         //TODO more?

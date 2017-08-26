@@ -39,8 +39,8 @@ import net.javapla.jawn.core.util.Constants;
 public class FrameworkBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
-    protected final JawnConfigurations properties;
-    protected final DeploymentInfo deploymentInfo;
+//    protected final JawnConfigurations properties;
+//    protected final DeploymentInfo deploymentInfo;
 //    protected final Router router;
     protected final ApplicationConfig appConfig;
     private final List<Module> combinedModules;
@@ -57,22 +57,22 @@ public class FrameworkBootstrap {
         this(new JawnConfigurations(Modes.determineModeFromSystem()));
     }*/
     
-    public FrameworkBootstrap(JawnConfigurations conf, DeploymentInfo deploymentInfo/*, Router router*/) {
-        properties = conf;
-        this.deploymentInfo = deploymentInfo;
+    public FrameworkBootstrap(/*JawnConfigurations conf, DeploymentInfo deploymentInfo*//*, Router router*/) {
+        /*properties = conf;
+        this.deploymentInfo = deploymentInfo;*/
 //        this.router = router;
         appConfig = new ApplicationConfig();
         combinedModules = new ArrayList<>();
     }
     
-    public synchronized void boot(final Router router, DatabaseConnections databaseConnections) {
+    public synchronized void boot(final JawnConfigurations conf, final Router router, DatabaseConnections databaseConnections) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
-        configure(router, databaseConnections);
+        configure(conf, router, databaseConnections);
         
         // read plugins
         ApplicationConfig pluginConfig = new ApplicationConfig();
-        plugins = readRegisteredPlugins(pluginConfig);
+        plugins = readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
         List<AbstractModule> pluginModules = pluginConfig.getRegisteredModules();
         
         // create a single injector for both the framework and the user registered modules
@@ -143,7 +143,7 @@ public class FrameworkBootstrap {
         this.combinedModules.add(module);
     }
     
-    protected void configure(Router router, DatabaseConnections connections) {
+    protected void configure(JawnConfigurations properties, Router router, DatabaseConnections connections) {
         // Read all the configuration from the user
         /*FiltersHandler filters = new FiltersHandler();
         RouterImpl router = new RouterImpl(filters, properties);*/
@@ -155,7 +155,7 @@ public class FrameworkBootstrap {
         properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
         
         
-        addModule(new CoreModule(properties, deploymentInfo, router));
+        addModule(new CoreModule(properties, new DeploymentInfo(properties), router));
         addModule(new DatabaseModule(connections, properties));
         addModule(new AbstractModule() {
             //ServerModule
@@ -228,9 +228,9 @@ public class FrameworkBootstrap {
     }*/
     
     
-    private ApplicationBootstrap[] readRegisteredPlugins(ApplicationConfig config) {
+    private ApplicationBootstrap[] readRegisteredPlugins(ApplicationConfig config, String pluginsPackage) {
         try {
-            ClassLocator locator = new ClassLocator(properties.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+            ClassLocator locator = new ClassLocator(pluginsPackage);
             return locateAll(locator,  ApplicationBootstrap.class, impl -> impl.bootstrap(config));
         } catch (IllegalArgumentException e) {
             logger.warn("Did not find any " + ApplicationBootstrap.class.getSimpleName() + " implementations", e);

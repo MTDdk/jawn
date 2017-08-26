@@ -13,7 +13,6 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 
 import net.javapla.jawn.core.api.Filter;
-import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
@@ -30,8 +29,8 @@ import net.javapla.jawn.core.util.Modes;
 public class Jawn {
     protected static final Logger logger = LoggerFactory.getLogger(Jawn.class);
 
-    private final JawnConfigurations properties;
-    private final DeploymentInfo deploymentInfo;
+//    private final JawnConfigurations properties;
+//    private final DeploymentInfo deploymentInfo;
     private final FrameworkBootstrap bootstrapper;
     
     private final FiltersHandler filters;
@@ -41,10 +40,12 @@ public class Jawn {
     
     private final ServerConfig serverConfig = new ServerConfig();
     
+    private Modes mode = Modes.determineModeFromSystem();
+    
     
     public Jawn() {
-        properties = new JawnConfigurations(Modes.determineModeFromSystem());
-        deploymentInfo = new DeploymentInfo(properties);
+//        properties = new JawnConfigurations(Modes.determineModeFromSystem());
+//        deploymentInfo = new DeploymentInfo(properties);
         
         
         filters = new FiltersHandler();
@@ -52,7 +53,7 @@ public class Jawn {
         databaseConnections = new DatabaseConnections();
         //router = new RouterImpl(filters, properties);
         
-        bootstrapper = new FrameworkBootstrap(properties, deploymentInfo/*, router*/);
+        bootstrapper = new FrameworkBootstrap(/*properties, deploymentInfo*//*, router*/);
     }
     
     /*public Jawn(final String contextPath) {
@@ -94,7 +95,8 @@ public class Jawn {
         Objects.requireNonNull(mode);
         //TODO clearly, this needs to be changed to not set a property like this
         System.setProperty("JAWN_ENV", mode.toString()); 
-        properties.set(mode);
+        //properties.set(mode);
+        this.mode = mode;
         return this;
     }
     
@@ -229,12 +231,14 @@ public class Jawn {
     public void start(/*final String ... args*/) {
         long startupTime = System.currentTimeMillis();
         
-        bootstrapper.boot(new RouterImpl(builders, filters, properties), databaseConnections);
+        JawnConfigurations properties = new JawnConfigurations(mode);
+        bootstrapper.boot(properties, new RouterImpl(builders, filters, properties), databaseConnections);
         Injector injector = bootstrapper.getInjector();
         try {
             injector.getInstance(Server.class).start(serverConfig);
         } catch (Exception e) {
             e.printStackTrace();
+            stop();
             return;
         }
         
@@ -276,14 +280,11 @@ public class Jawn {
     }
 
     private Jawn parseArguments(final String ... args) {
-        switch (args.length) {
-            case 2:
-                env(Modes.determineModeFromString(args[1]));
-            case 1:
-                server().port(ConvertUtil.toInteger(args[0], server().port()));
-            case 0: break;
-        }
-        
+        if (args.length >= 1)
+            server().port(ConvertUtil.toInteger(args[0], server().port()));
+        if (args.length >= 2)
+            env(Modes.determineModeFromString(args[1]));
+            
         return this;
     }
     

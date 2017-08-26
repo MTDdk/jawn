@@ -14,7 +14,6 @@ import java.util.Optional;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.api.Filter;
 import net.javapla.jawn.core.routes.Route;
-import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
 

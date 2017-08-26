@@ -13,7 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import net.javapla.jawn.core.FrameworkBootstrap;
-import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.reflection.ActionInvoker;
@@ -37,7 +36,7 @@ public class CacheProviderTest {
         assertThat(configurations.get(Constants.PROPERTY_CACHE_IMPLEMENTATION), is(equalTo(ExpiringMapCache.class.getName())));
         
         
-        FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
+        FrameworkBootstrap bootstrap = new FrameworkBootstrap();
         Cache cache = bootBootstrap(bootstrap);
         
         assertThat(cache, instanceOf(ExpiringMapCache.class));
@@ -47,7 +46,7 @@ public class CacheProviderTest {
     public void configuredImplementation() {
         configurations.set(Constants.PROPERTY_CACHE_IMPLEMENTATION, CacheImpl.class.getName());
         
-        FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
+        FrameworkBootstrap bootstrap = new FrameworkBootstrap();
         Cache cache = bootBootstrap(bootstrap);
         
         assertThat(cache, instanceOf(CacheImpl.class));
@@ -57,7 +56,7 @@ public class CacheProviderTest {
     public void missingImplementation_should_default() {
         configurations.set(Constants.PROPERTY_CACHE_IMPLEMENTATION, "nothing here");
 
-        FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
+        FrameworkBootstrap bootstrap = new FrameworkBootstrap();
         Cache cache = bootBootstrap(bootstrap);
         
         assertThat(cache, instanceOf(ExpiringMapCache.class));
@@ -68,7 +67,7 @@ public class CacheProviderTest {
         assertThat(configurations.get(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION), not(emptyOrNullString()));
         assertThat(configurations.get(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION), is(equalTo("10m")));
         
-        FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
+        FrameworkBootstrap bootstrap = new FrameworkBootstrap();
         Cache cache = bootBootstrap(bootstrap);
         
         assertEquals(cache.getDefaultCacheExpiration(), TimeUtil.parse(configurations.get(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION)));
@@ -78,7 +77,7 @@ public class CacheProviderTest {
     public void configuredExpiration() {
         configurations.set(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION, "1s");
         
-        FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
+        FrameworkBootstrap bootstrap = new FrameworkBootstrap();
         Cache cache = bootBootstrap(bootstrap);
         
         assertEquals(cache.getDefaultCacheExpiration(), 1);
@@ -90,7 +89,7 @@ public class CacheProviderTest {
         configurations.set(Constants.PROPERTY_CACHE_DEFAULT_EXPIRATION, "");
         configurations.set(Constants.PROPERTY_CACHE_IMPLEMENTATION, "");
         
-        FrameworkBootstrap bootstrap = new FrameworkBootstrap(configurations, new DeploymentInfo(configurations));
+        FrameworkBootstrap bootstrap = new FrameworkBootstrap();
         Cache cache = bootBootstrap(bootstrap);
         
         assertThat(cache, instanceOf(ExpiringMapCache.class));
@@ -100,7 +99,7 @@ public class CacheProviderTest {
     private Cache bootBootstrap(FrameworkBootstrap bootstrap) {
         RouterImpl router = mock(RouterImpl.class);
         router.compileRoutes(mock(ActionInvoker.class));
-        bootstrap.boot(router, mock(DatabaseConnections.class));
+        bootstrap.boot(configurations, router, mock(DatabaseConnections.class));
         
         return bootstrap.getInjector().getInstance(Cache.class);
     }

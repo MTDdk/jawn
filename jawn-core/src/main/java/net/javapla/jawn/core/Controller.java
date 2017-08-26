@@ -38,6 +38,7 @@ import net.javapla.jawn.core.exceptions.PathNotFoundException;
 import net.javapla.jawn.core.exceptions.WebException;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
+import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.ResponseStream;
@@ -49,7 +50,6 @@ import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.routes.RouterHelper;
 import net.javapla.jawn.core.templates.TemplateEngine;
 import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
-import net.javapla.jawn.core.uploads.FormItem;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
@@ -1360,6 +1360,10 @@ public abstract class Controller implements ResultHolder {
      */
     public void sendPermanentCookie(String name, String value) {
         context.addCookie(Cookie.builder(name, value).setMaxAge(Cookie.ONE_YEAR * 20).build());
+    }
+    
+    public void sendExpireCookie(String name) {
+        context.addCookie(Cookie.builder(context.getCookie(name)).setExpires(Cookie.EPOCH).build());
     }
 
     /**

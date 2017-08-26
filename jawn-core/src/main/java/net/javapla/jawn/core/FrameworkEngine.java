@@ -48,16 +48,17 @@ public final class FrameworkEngine {
     
     public final void onRouteRequest(Context.Internal2 context) {
         final String path = context.request().path();
-        String uri = path;
         
+        /*String uri = path;
         if (uri.length() == 0) {
+            System.err.println("different servlet implementations, damn");
             uri = "/";//different servlet implementations, damn.
-        }
+        }*/
         
         try {
 
-            final Route route = router.retrieveRoute(context.request().method(), uri);
-            context.setRouteInformation(route, uri);
+            final Route route = router.retrieveRoute(context.request().method(), path);
+            context.setRouteInformation(route, path);
             
             // run pre-filters
             Result result = route.getFilterChain().before(context);

@@ -6,7 +6,7 @@ import java.io.InputStream;
 
 import io.undertow.server.handlers.form.FormData.FormValue;
 import io.undertow.util.HttpString;
-import net.javapla.jawn.core.uploads.FormItem;
+import net.javapla.jawn.core.http.FormItem;
 
 
 public class UndertowFormItem implements FormItem {

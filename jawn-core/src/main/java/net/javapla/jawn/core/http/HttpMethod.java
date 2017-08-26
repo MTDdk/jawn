@@ -1,7 +1,9 @@
 package net.javapla.jawn.core.http;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
+import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.StringUtil;
 
 
@@ -20,21 +22,25 @@ public enum HttpMethod {
      * Detects an HTTP method from a request.
      */
     public static HttpMethod getMethod(Context context) {
-        String requestMethod = context.method();
-        
+        return _getMethod(context.method(), () -> context.getParameter("_method"));
+    }
+    
+    public static HttpMethod getMethod(String requestMethod, MultiList<String> params) {
+        return _getMethod(requestMethod, () -> params.first("_method"));
+    }
+    
+    private static HttpMethod _getMethod(String requestMethod, Supplier<String> _method) {
         if (requestMethod.charAt(0) == 'G') {
             return HttpMethod.GET;
         }
         
         // under the assumption that a request method always is sent in upper case
         if (StringUtil.startsWith(requestMethod, 'P','O')) {
-            String methodParam = context.getParameter("_method");
-            
+            String methodParam = _method.get();
             requestMethod = /*requestMethod.equalsIgnoreCase("POST") &&*/ methodParam != null && methodParam.equalsIgnoreCase("DELETE")? "DELETE" : requestMethod;
             requestMethod = /*requestMethod.equalsIgnoreCase("POST") &&*/ methodParam != null && methodParam.equalsIgnoreCase("PUT")? "PUT" : requestMethod;
         }
         
         return HttpMethod.valueOf(requestMethod.toUpperCase());
     }
-    
 }
