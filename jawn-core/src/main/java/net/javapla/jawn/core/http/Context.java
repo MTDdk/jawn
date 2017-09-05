@@ -17,6 +17,8 @@ import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
 
+//TODO
+// This might need some renaming - I do not want the name to clash with too many other frameworks
 public interface Context {
     
     static final String FLASH_KEYWORD = "flash";

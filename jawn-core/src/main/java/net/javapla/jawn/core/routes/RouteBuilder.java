@@ -66,7 +66,7 @@ public class RouteBuilder {
      * @param uri what was specified in the  RouteConfig class
      */
     public RouteBuilder route(String uri) {
-        this.uri = uri;
+        this.uri = (uri.charAt(0) != '/') ? "/" + uri : uri;
         return this;
     }
     

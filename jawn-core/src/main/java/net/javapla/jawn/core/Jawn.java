@@ -244,6 +244,7 @@ public class Jawn {
         
         logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
         logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(JawnConfigurations.class).getMode());
+        logger.info("Java-web-planet: running on port: " + serverConfig.port());
     }
     
     public void stop() {

@@ -59,7 +59,7 @@ final class StreamTemplateEngine implements TemplateEngine {
 
     @Override
     public String[] getContentType() {
-        return new String[]{MediaType.APPLICATION_OCTET_STREAM};
+        return new String[]{MediaType.APPLICATION_OCTET_STREAM, "image/svg+xml"};
     }
     /*@Override
     public ContentType[] getContentType2() {
