@@ -9,6 +9,5 @@ public interface DatabaseConnection extends DataSource, AutoCloseable {
     String password();
     
     int maxPoolSize();
-    int minPoolSize();
     boolean letFrameworkHandleConnectionPool();
 }

@@ -8,7 +8,7 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.EnumMap;
 import java.util.logging.Logger;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.zaxxer.hikari.HikariDataSource;
 
 import net.javapla.jawn.core.util.Modes;
 
@@ -50,7 +50,6 @@ public class DatabaseConnections {
         JdbcConnectionBuilder password(String pass);
         
         JdbcConnectionBuilder maxPoolSize(int max);
-        JdbcConnectionBuilder minPoolSize(int min);
         JdbcConnectionBuilder letFrameworkHandleConnectionPool(boolean letFramework);
     }
     
@@ -60,8 +59,7 @@ public class DatabaseConnections {
         String url;
         String user;
         String password;
-        int maxPoolSize = 8;
-        int minPoolSize = 1;
+        int maxPoolSize = Runtime.getRuntime().availableProcessors() * 2 + 1;
         boolean letFrameworkHandleConnectionPool = false;
         
         
@@ -97,8 +95,6 @@ public class DatabaseConnections {
         @Override
         public int maxPoolSize() { return maxPoolSize; }
         @Override
-        public int minPoolSize() { return minPoolSize; }
-        @Override
         public boolean letFrameworkHandleConnectionPool() { return letFrameworkHandleConnectionPool; }
         
         /**
@@ -109,20 +105,16 @@ public class DatabaseConnections {
          * @throws ClassNotFoundException If the driver was not found
          * @throws PropertyVetoException If any of the input is unacceptable
          */
-        private ComboPooledDataSource createPooledDataSource() throws PropertyVetoException, ClassNotFoundException {
+        private HikariDataSource createPooledDataSource() throws PropertyVetoException, ClassNotFoundException {
             Class.forName(driver());
             
-            ComboPooledDataSource source = new ComboPooledDataSource();
-            source.setDriverClass(driver());
+            HikariDataSource source = new HikariDataSource();
+            source.setDriverClassName(driver());
             source.setJdbcUrl(url());
-            source.setUser(user());
+            source.setUsername(user());
             source.setPassword(password());
             
-            source.setMaxPoolSize(maxPoolSize());
-            source.setMinPoolSize(minPoolSize());
-            source.setAcquireIncrement(1);
-            source.setIdleConnectionTestPeriod(300);
-            source.setMaxStatements(0);
+            source.setMaximumPoolSize(maxPoolSize());
             
             return source;
         }
@@ -130,7 +122,7 @@ public class DatabaseConnections {
         /* ***************
          * DataSource Part
          * ****************/
-        volatile ComboPooledDataSource source;
+        volatile HikariDataSource/*ComboPooledDataSource*/ source;
         private final Object lock = new Object();
         void initiatePooledDataSource() {
             if (source == null) {
@@ -232,12 +224,6 @@ public class DatabaseConnections {
         @Override
         public JdbcConnectionBuilder maxPoolSize(int max) {
             builder.maxPoolSize = max;
-            return this;
-        }
-        
-        @Override
-        public JdbcConnectionBuilder minPoolSize(int min) {
-            builder.minPoolSize = min;
             return this;
         }
         

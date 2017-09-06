@@ -3,7 +3,6 @@ package net.javapla.jawn.core.templates.stringtemplate;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -105,7 +104,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
         //generate name of the template
         final String template = templateLoader.getTemplateForResult(context.getRoute(), response);
         String layout = templateLoader.handleLayoutEndings(response);
-        final String language = null;//context.getRouteLanguage();
+        //final String language = null;//context.getRouteLanguage();
 
         final ErrorBuffer error = new ErrorBuffer();
         final ST contentTemplate = template != null ? readTemplate(template) : null;
@@ -121,11 +120,11 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
                     }
                     throw new ViewException("Could not find the template " + contentTemplate + ". Is it spelled correctly?");
                 }
-                renderContentTemplate(contentTemplate, writer, values, language, error);
+                renderContentTemplate(contentTemplate, writer, values/*, language*/, error);
 
             } else { // with layout
 
-                String content = renderContentTemplate(contentTemplate, values, language, error);
+                String content = renderContentTemplate(contentTemplate, values/*, language*/, error);
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
@@ -134,7 +133,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
                 if (layoutTemplate == null) throw new ViewException(LAYOUT_DEFAULT + ".st is not to be found anywhere");
 
                 layout = layoutTemplate.getName(); // for later logging
-                injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller, language, error);
+                injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller/*, language*/, error);
 
                 renderTemplate(layoutTemplate, writer, error);
             }
@@ -255,22 +254,22 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
     }
     
     /** Renders template directly to writer */
-    private final void renderContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values, final String language, final ErrorBuffer error) {
+    private final void renderContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values/*, final String language*/, final ErrorBuffer error) {
         injectTemplateValues(contentTemplate, values);
-        if (language == null)
+//        if (language == null)
             contentTemplate.write(createSTWriter(writer), error);
-        else
-            contentTemplate.write(createSTWriter(writer), new Locale(language), error);
+//        else
+//            contentTemplate.write(createSTWriter(writer), new Locale(language), error);
     }
 
     /** Renders template into string
      * @return The rendered template if exists, or empty string */
-    private final String renderContentTemplate(final ST contentTemplate, final Map<String, Object> values, final String language, final ErrorBuffer error) {
+    private final String renderContentTemplate(final ST contentTemplate, final Map<String, Object> values/*, final String language*/, final ErrorBuffer error) {
         if (contentTemplate != null) { // it has to be possible to use a layout without defining a template
             Writer sw = new StringBuilderWriter();
             
             final ErrorBuffer templateErrors = new ErrorBuffer();
-            renderContentTemplate(contentTemplate, sw, values, language, templateErrors);
+            renderContentTemplate(contentTemplate, sw, values/*, language*/, templateErrors);
             
             // handle potential errors
             if (!templateErrors.errors.isEmpty()) {
@@ -282,7 +281,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
                         reloadGroup();
                         ST reloadedContentTemplate = readTemplate(contentTemplate.getName());
                         sw = new StringBuilderWriter();
-                        renderContentTemplate(reloadedContentTemplate, sw, values, language, error);
+                        renderContentTemplate(reloadedContentTemplate, sw, values/*, language*/, error);
                         break;
                     }
                 }
@@ -295,7 +294,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
     
     protected final void injectValuesIntoLayoutTemplate(
             final ST layoutTemplate, final Context ctx, final String content, 
-            final Map<String, Object> values, final String controller, final String language, final ErrorBuffer error) {
+            final Map<String, Object> values, final String controller/*, final String language*/, final ErrorBuffer error) {
         
         injectTemplateValues(layoutTemplate, values);
         
@@ -309,7 +308,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
             conf.title,
             
             // add language (if any)
-            language,
+//            language,
             
             //add scripts
             readLinks(SCRIPTS_TEMPLATE, conf.scripts, error), //TODO <-- this can clearly be cached somehow

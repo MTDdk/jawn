@@ -6,7 +6,7 @@ public class Site {
 
     public final String url,
                         title,
-                        language,
+//                        language,
                         scripts,
                         styles;
     
@@ -14,10 +14,10 @@ public class Site {
     
     public final Modes mode;
     
-    public Site(String url, String title, String language, String scripts, String styles, String content, Modes mode) {
+    public Site(final String url, final String title/*, String language*/, final String scripts, final String styles, final String content, final Modes mode) {
         this.url = url;
         this.title = title;
-        this.language = language;
+//        this.language = language;
         this.scripts = scripts;
         this.styles = styles;
         this.content = content;
@@ -75,7 +75,7 @@ public class Site {
         }
         
         public Site build() {
-            return new Site(url, title, language,scripts, styles,content,mode);
+            return new Site(url, title/*, language*/,scripts, styles,content,mode);
         }
     }
 }

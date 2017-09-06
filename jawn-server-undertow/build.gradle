@@ -6,11 +6,9 @@ repositories {
 
 dependencies {
 	// Framework
-	compile /*project(':jawn-server'),*/ project(':jawn-core')
+	compile project(':jawn-core')
 
 	// Server
-	//compile 'io.undertow:undertow-servlet:1.3.19.Final' //TODO can probably be removed
-    compile 'io.undertow:undertow-core:1.3.19.Final'
-    //compile 'com.google.inject.extensions:guice-servlet:4.0'
+    compile 'io.undertow:undertow-core:1.4.20.Final'
 }
 

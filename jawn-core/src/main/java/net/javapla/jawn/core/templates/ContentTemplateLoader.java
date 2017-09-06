@@ -11,10 +11,12 @@ public class ContentTemplateLoader<T> {
 	
 	private final String realPath;
 	private final TemplateEngine.StringTemplateEngine<T> engine;
+	private final String templateSuffix;
 	
 	public ContentTemplateLoader(DeploymentInfo info, TemplateEngine.StringTemplateEngine<T> engine) {
 		realPath = getTemplateRootFolder(info);
 		this.engine = engine;
+		templateSuffix = engine.getSuffixOfTemplatingEngine();
 	}
 	
     public static final String getTemplateRootFolder(final DeploymentInfo info) {
@@ -27,7 +29,7 @@ public class ContentTemplateLoader<T> {
     public final String handleLayoutEndings(Result response) {
         String layout = response.layout();
         if (layout != null) {
-            if (layout.endsWith(engine.getSuffixOfTemplatingEngine())) //TODO is it faster to keep it as a reference?
+            if (layout.endsWith(templateSuffix)) //TODO is it faster to keep it as a reference?
                 layout = layout.substring(0, layout.length()-3);
             if (!layout.endsWith(".html"))
                 layout += ".html";
@@ -45,14 +47,14 @@ public class ContentTemplateLoader<T> {
      */
     public String getTemplateForResult(Route route, Result response) {
         String template = response.template();
-        String suffixOfTemplatingEngine = engine.getSuffixOfTemplatingEngine();
+//        String suffixOfTemplatingEngine = engine.getSuffixOfTemplatingEngine();
         
 		if (template == null) {
             if (route != null) {
                 String controllerPath = RouterHelper.getReverseRouteFast(route.getController());
                 
                 // Look for a controller named template first
-                if (new File(realPath + controllerPath+ suffixOfTemplatingEngine).exists()) {
+                if (new File(realPath + controllerPath + templateSuffix).exists()) {
                     return controllerPath;
                 }
                 
@@ -63,8 +65,8 @@ public class ContentTemplateLoader<T> {
                 return null;
             }
         } else {
-            if (template.endsWith(suffixOfTemplatingEngine)) {
-                return template.substring(0, template.length()-suffixOfTemplatingEngine.length());
+            if (template.endsWith(templateSuffix)) {
+                return template.substring(0, template.length() - templateSuffix.length());
             }
             return template;
         }

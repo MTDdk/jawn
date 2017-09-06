@@ -42,8 +42,10 @@ public class ANTLRNoNewLineStream extends ANTLRStringStream {
      * Trim the string but keep a single space in the end of the string if one or more is present.
      * The original String.trim() removes all characters such as spaces and newlines: (character <= ' ').
      * 
-     * Keep a single space is needed as the removal of all newline characters AND spaces results in
+     * Keeping a single space is needed as the removal of all newline characters AND spaces results in
      * strings suddenly missing correct spacing in the words.
+     * However, skip the extra space if the line starts with a tag start '<', as the previous line
+     * probably ended anyway.
      * 
      * At this point in the execution we know that \r and \n are removed completely (due to {@linkplain IgnoreLFBufferedReader}),
      * so we only need to look at the spaces surrounding the line.
@@ -57,7 +59,7 @@ public class ANTLRNoNewLineStream extends ANTLRStringStream {
         final int end = trimEndOfLine(line, length);
         if (end > 0) {
             final int start = trimStartOfLine(line, length);
-            if (start > 0) {
+            if (start > 0 && line.charAt(start) != '<') {
                 bob.append(' ');
             }
             bob.append(line, start, end);

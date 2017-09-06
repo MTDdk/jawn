@@ -7,8 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,12 +28,14 @@ public class SiteConfigurationReader {
     private static final String SITE_FILE = "site.json";
 
     private final ObjectMapper mapper;
-    private final Map<String, SiteConfiguration> configurationCache;
+    private final /*Concurrent*/HashMap<String, SiteConfiguration> configurationCache;
+    // README: ConcurrentHashMap might deadlock with the same hash - so do we really need the concurrency?
+    // https://stackoverflow.com/questions/43861945/deadlock-in-concurrenthashmap
     
     @Inject
     public SiteConfigurationReader(ObjectMapper mapper) {
         this.mapper = mapper;
-        this.configurationCache = new ConcurrentHashMap<>();
+        this.configurationCache = new /*Concurrent*/HashMap<>();
     }
     
     /**
