@@ -21,7 +21,7 @@ public class RockerTemplateEngine implements TemplateEngine {
     public void invoke(Context context, Result response, ResponseStream stream) throws ViewException {
         Map<String, Object> viewObjects = response.getViewObjects();
         
-        Rocker.template()
+        Rocker.template("");
     }
 
     @Override
