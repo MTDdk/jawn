@@ -291,9 +291,8 @@ public class FrameworkBootstrap {
                 } catch (Exception e) {
                     logger.debug("Error reading custom configuration. Going with built in defaults. The error was: " + getCauseMessage(e));
                 }
-                
-                return all;
             }
+            return all;
         } else {
             logger.debug("Did not find custom configuration for {}. Going with built in defaults ", clazz);
         }
