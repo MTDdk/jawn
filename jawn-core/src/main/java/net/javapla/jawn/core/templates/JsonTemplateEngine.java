@@ -36,12 +36,6 @@ final class JsonTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public String getSuffixOfTemplatingEngine() {
-        // intentionally null
-        return null;
-    }
-
-    @Override
     public String[] getContentType() {
         return new String[]{MediaType.APPLICATION_JSON};
     }

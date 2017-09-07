@@ -38,12 +38,6 @@ class ImageTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public String getSuffixOfTemplatingEngine() {
-        // Intentionally set to null
-        return null;
-    }
-
-    @Override
     public String[] getContentType() {
         // Maps all the supported format names by ImageIO to MIME / content types
         return Arrays.asList(ImageIO.getWriterFormatNames()).stream().map((s) -> "image/"+s).toArray(String[]::new);

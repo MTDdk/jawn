@@ -1,0 +1,16 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	// Framework
+	compile project(':jawn-core')
+
+	// Rocker
+    compile group: 'com.fizzed', name: 'rocker-runtime', version: '0.22.0'
+    compile group: 'com.fizzed', name: 'rocker-compiler', version: '0.22.0'
+    
+}
+

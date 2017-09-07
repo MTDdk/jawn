@@ -35,11 +35,6 @@ class XmlTemplateEngine implements TemplateEngine {
         }
     }
 
-    @Override
-    public String getSuffixOfTemplatingEngine() {
-        // intentionally null
-        return null;
-    }
 
     @Override
     public String[] getContentType() {

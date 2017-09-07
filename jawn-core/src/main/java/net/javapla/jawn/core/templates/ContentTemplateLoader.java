@@ -10,10 +10,10 @@ import net.javapla.jawn.core.routes.RouterHelper;
 public class ContentTemplateLoader<T> {
 	
 	private final String realPath;
-	private final TemplateEngine.StringTemplateEngine<T> engine;
+	private final TemplateEngine.TemplateRenderEngine<T> engine;
 	private final String templateSuffix;
 	
-	public ContentTemplateLoader(DeploymentInfo info, TemplateEngine.StringTemplateEngine<T> engine) {
+	public ContentTemplateLoader(DeploymentInfo info, TemplateEngine.TemplateRenderEngine<T> engine) {
 		realPath = getTemplateRootFolder(info);
 		this.engine = engine;
 		templateSuffix = engine.getSuffixOfTemplatingEngine();

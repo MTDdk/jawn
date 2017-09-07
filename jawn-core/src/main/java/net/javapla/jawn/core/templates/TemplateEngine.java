@@ -32,18 +32,6 @@ public interface TemplateEngine {
      */
     void invoke(final Context context, final Result response, final ResponseStream stream) throws ViewException;
 
-    /**
-     * For instance returns ".ftl.html" Or .ftl.json.
-     * <p>
-     * Or anything else. To display error messages in a nice way...
-     * <p>
-     * But Gson for instance does not use a template to render stuff. Therefore
-     * it will return null
-     * 
-     * @return
-     *      name of suffix or null if engine is not using a template on disk.
-     */
-    String getSuffixOfTemplatingEngine();
 
     /**
      * Get the content type this template engine renders
@@ -54,13 +42,26 @@ public interface TemplateEngine {
     String[] getContentType();
 //    public ContentType[] getContentType2();
     
-    public static interface StringTemplateEngine<T> extends TemplateEngine {
+    public static interface TemplateRenderEngine<T> extends TemplateEngine {
         /**
          * Let the template engine handle lookups of templates and in effect also caching hereof.
          * @param templatePath
          * @return
          */
         T readTemplate(String templatePath);
+        
+        /**
+         * For instance returns ".ftl.html" Or .ftl.json.
+         * <p>
+         * Or anything else. To display error messages in a nice way...
+         * <p>
+         * But Gson for instance does not use a template to render stuff. Therefore
+         * it will return null
+         * 
+         * @return
+         *      name of suffix or null if engine is not using a template on disk.
+         */
+        String getSuffixOfTemplatingEngine();
     }
     
 }

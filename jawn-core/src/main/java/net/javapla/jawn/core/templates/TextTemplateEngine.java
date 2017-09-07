@@ -46,12 +46,6 @@ final class TextTemplateEngine implements TemplateEngine {
     }
 
     @Override
-    public String getSuffixOfTemplatingEngine() {
-        // intentionally null
-        return null;
-    }
-
-    @Override
     public String[] getContentType() {
         return new String[]{MediaType.TEXT_PLAIN};
     }

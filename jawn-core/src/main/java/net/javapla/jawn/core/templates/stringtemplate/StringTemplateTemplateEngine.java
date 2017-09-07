@@ -43,7 +43,7 @@ import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 
 @Singleton
-public final class StringTemplateTemplateEngine implements TemplateEngine.StringTemplateEngine<ST> {
+public final class StringTemplateTemplateEngine implements TemplateEngine.TemplateRenderEngine<ST> {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private static final String TEMPLATE_ENDING = ".st";
@@ -94,7 +94,9 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
 
     @Override
     public final void invoke(Context context, Result response, ResponseStream stream) throws ViewException {
-        long time = System.currentTimeMillis();
+        long time = 0;
+        if (log.isInfoEnabled())
+            time = System.currentTimeMillis();
 
         final Map<String, Object> values = response.getViewObjects();
 
@@ -158,10 +160,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
     public String[] getContentType() {
         return new String[]{MediaType.TEXT_HTML};
     }
-    /*@Override
-    public ContentType[] getContentType2() {
-        return new ContentType[]{ContentType.TEXT_HTML};
-    }*/
     
     
     // It is not necessary to do complex synchronization on this
@@ -298,6 +296,9 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
         
         injectTemplateValues(layoutTemplate, values);
         
+        // if the reserved keyword is not even used in the template, then no need to read anything into it
+        if (layoutTemplate.getAttribute("site") == null) return;
+        
         SiteConfiguration conf = 
                 configReader.read(templateRootFolder, controller, layoutTemplate.impl.prefix.substring(1), useCache);
         Site site = new Site(
@@ -401,17 +402,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.String
             return new NoIndentWriter(writer);//no indents for less HTML as a result
         }
     }
-    
-    /*private static final String handleLayoutEndings(Response response) {
-        String layout = response.layout();
-        if (layout != null) {
-            if (layout.endsWith(TEMPLATE_ENDING))
-                layout = layout.substring(0, layout.length()-3);
-            if (!layout.endsWith(".html"))
-                layout += ".html";
-        }
-        return layout;
-    }*/
     
     static final Templates STYLES_TEMPLATE = new Templates(
             "$links:{link|<link rel=\"stylesheet\" type=\"text/css\" href=\"$link$\">}$", "/css/", '$', '$'
