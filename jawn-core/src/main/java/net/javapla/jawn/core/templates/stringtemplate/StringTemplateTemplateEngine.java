@@ -297,7 +297,8 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         injectTemplateValues(layoutTemplate, values);
         
         // if the reserved keyword is not even used in the template, then no need to read anything into it
-        if (layoutTemplate.getAttribute("site") == null) return;
+        // README doesn't work like this..
+//        if (layoutTemplate.getAttribute("site") == null) return;
         
         SiteConfiguration conf = 
                 configReader.read(templateRootFolder, controller, layoutTemplate.impl.prefix.substring(1), useCache);
@@ -333,7 +334,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
                     template.add(entry.getKey(), entry.getValue());
                 } catch (IllegalArgumentException ignore) { 
                     /*the value map may contain elements meant for the layout */
-    //                log.debug("key/value {}/{} not found in template {}", entry.getKey(), entry.getValue(), template); 
+                    log.debug("key/value {}/{} not found in template {}", entry.getKey(), entry.getValue(), template); 
                 }
             }
         }
@@ -407,6 +408,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
             "$links:{link|<link rel=\"stylesheet\" type=\"text/css\" href=\"$link$\">}$", "/css/", '$', '$'
     );
     static final Templates SCRIPTS_TEMPLATE = new Templates(
-            "$links:{link|<script src=\"$link.url$\" $if(link.async)$async$endif$ $if(link.defer)$defer$endif$></script>}$", "/js/", '$', '$'
+            "$links:{link|<script src=\"$link.url$\"$if(link.async)$ async$endif$$if(link.defer)$ defer$endif$></script>}$", "/js/", '$', '$'
     );
 }

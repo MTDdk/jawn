@@ -55,6 +55,7 @@ public final class STFastGroupDir extends STRawGroupDir {
             if ( verbose ) System.out.println(name+" previously seen as not found");
             return null;
         }
+        if (code != null) return tryClone(code);
         
         // try to load from disk and look up again
         String unqualifiedName = getFileName(name);//Misc.getFileName(name);
@@ -67,6 +68,7 @@ public final class STFastGroupDir extends STRawGroupDir {
         //TODO rewrite in order to not use 'templates', which is synchronized
         // we can probably manage with only synchronising writes and not all reads
         
+        // TODO is the cloning even necessary??
         return code != null ? tryClone(code) : null;
     }
     
