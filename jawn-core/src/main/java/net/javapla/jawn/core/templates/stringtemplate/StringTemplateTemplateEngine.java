@@ -2,7 +2,6 @@ package net.javapla.jawn.core.templates.stringtemplate;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -345,7 +344,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         
         final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
         
-        linkTemplate.add("links", prefixResourceLinks(links, template.prefix));
+        linkTemplate.add("links", links);//prefixResourceLinks(links, template.prefix));
         
         final Writer writer = new StringBuilderWriter();
         linkTemplate.write(createSTWriter(writer), error);
@@ -356,7 +355,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         
         final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
         
-        linkTemplate.add("links", prefixResourceLinks(links, template.prefix));
+        linkTemplate.add("links", links);//prefixResourceLinks(links, template.prefix));
         
         final Writer writer = new StringBuilderWriter();
         linkTemplate.write(createSTWriter(writer), error);
@@ -367,7 +366,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
      * Prefixes local resources with css/ or js/.
      * "Local" is defined by not starting with 'http.*' or 'ftp.*'
      */
-    private static final String[] prefixResourceLinks(final String[] links, final String prefix) {
+    /*private static final String[] prefixResourceLinks(final String[] links, final String prefix) {
         return Arrays.stream(links).parallel()
                 .map(link -> { 
                     if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
@@ -383,14 +382,14 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     	    return link;
     	}).toArray(SiteConfiguration.Script[]::new);
     	
-        /*return Arrays.stream(links).parallel()
-                .map(SiteConfiguration.Script::getUrl).map(link -> { 
-                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
-                        link = prefix + link; 
-                    return link; 
-                })
-                .toArray(String[]::new);*/
-    }
+//        return Arrays.stream(links).parallel()
+//                .map(SiteConfiguration.Script::getUrl).map(link -> { 
+//                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
+//                        link = prefix + link; 
+//                    return link; 
+//                })
+//                .toArray(String[]::new);
+    }*/
     
     private final void renderTemplate(final ST layoutTemplate, final Writer writer, final ErrorBuffer error) {
         layoutTemplate.write(createSTWriter(writer), error);

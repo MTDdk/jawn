@@ -30,9 +30,9 @@ public class ResponseTest {
     @Test
     public void parallisedExecution() {
         int executionTime = 400;
-        int executionOverhead = 70; //approximation
+        int executionOverhead = 80; //approximation
         
-        List<Result> responses = IntStream.range(1, 4).boxed().map(i -> 
+        List<Result> responses = IntStream.range(1, 8).boxed().map(i -> 
             ResultBuilder.ok().renderable(() -> {
                 System.out.println("start " + i);
                 Thread.sleep(executionTime);

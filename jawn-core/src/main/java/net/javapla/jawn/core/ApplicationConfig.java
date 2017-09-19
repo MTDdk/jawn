@@ -12,6 +12,7 @@ public class ApplicationConfig {
     private List<AbstractModule> modules;
     private String[] languages;
     private String encoding = Constants.DEFAULT_ENCODING;
+    private String contextPath = "";
     
     public ApplicationConfig() {
         modules = new ArrayList<>();
@@ -41,4 +42,10 @@ public class ApplicationConfig {
         return encoding;
     }
     
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+    }
+    public String contextPath() {
+        return contextPath;
+    }
 }

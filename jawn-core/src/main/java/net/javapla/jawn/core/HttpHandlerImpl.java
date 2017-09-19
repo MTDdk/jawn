@@ -92,10 +92,15 @@ class HttpHandlerImpl implements HttpHandler {
             if (file.canRead())
                 response.header(HttpHeaders.ETAG, String.valueOf(file.lastModified()));
             
+            if (translated.endsWith(".css"))
+                response.header(HttpHeaders.CONTENT_TYPE, "text/css");
+            else if (translated.endsWith(".js"))
+                response.header(HttpHeaders.CONTENT_TYPE, "text/javascript");
+            
             //chain.doFilter(r, resp);
             try {
                 response.send(new FileInputStream(file));
-                response.end();
+//                response.end(); << TODO maybe we should take a look at why this is failing when serving png (perhaps it is the same for all big files)
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -185,7 +190,7 @@ class HttpHandlerImpl implements HttpHandler {
        
        if (webapp.exists() && !webapp.canRead()) {
            // It means that the server cannot read files at all
-           throw new InitException("HttpHandlerImpl cannot read files. Reason is unknown");
+           throw new InitException( HttpHandlerImpl.class.getName() + " cannot read files. Reason is unknown");
        } else if (!webapp.exists() || collect == null || collect.isEmpty()) {
            // Whenever this is empty it might just be because someone forgot to add the 'webapp' folder to the distribution
            // OR the framework is used without the need for serving files (such as views).

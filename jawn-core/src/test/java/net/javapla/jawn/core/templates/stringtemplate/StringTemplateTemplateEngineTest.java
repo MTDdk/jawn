@@ -1,5 +1,7 @@
 package net.javapla.jawn.core.templates.stringtemplate;
 
+import static org.mockito.Mockito.mock;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -24,7 +26,7 @@ public class StringTemplateTemplateEngineTest {
 	public static void setUpBeforeClass() throws Exception {
 		
 		JawnConfigurations conf = new JawnConfigurations(Modes.DEV);
-		engine = new StringTemplateTemplateEngine(new TemplateConfigProvider<StringTemplateConfiguration>(), conf, new DeploymentInfo(conf) , new SiteConfigurationReader(new JsonMapperProvider().get()));
+		engine = new StringTemplateTemplateEngine(new TemplateConfigProvider<StringTemplateConfiguration>(), conf, new DeploymentInfo(conf) , new SiteConfigurationReader(new JsonMapperProvider().get(),new DeploymentInfo(mock(JawnConfigurations.class))));
 	}
 
 	@AfterClass
@@ -39,35 +41,6 @@ public class StringTemplateTemplateEngineTest {
 	public void tearDown() throws Exception {
 	}
 	
-	@Test
-	public void parsingScripts_should_addSlashJs() {
-		SiteConfiguration.Script[] scripts = new SiteConfiguration.Script[]{
-			new SiteConfiguration.Script("script1.js",false),
-			new SiteConfiguration.Script("script2.js",false)
-		};
-		
-		ErrorBuffer error = new ErrorBuffer();
-		String html = engine.readLinks(StringTemplateTemplateEngine.SCRIPTS_TEMPLATE, scripts, error);
-		
-		Assert.assertTrue(error.errors.isEmpty());
-		Assert.assertTrue(html.contains("/js/"));
-	}
-	
-	@Test
-	public void parsingScripts_should_not_addAnything() {
-		SiteConfiguration.Script[] scripts = new SiteConfiguration.Script[]{
-			new SiteConfiguration.Script("http://someurl.com/script1.js",false),
-			new SiteConfiguration.Script("https://someurl.com/script1.js",false),
-			new SiteConfiguration.Script("ftp://script2.js",false),
-			new SiteConfiguration.Script("//someurl.com/script2.js",false)
-		};
-		
-		ErrorBuffer error = new ErrorBuffer();
-		String html = engine.readLinks(StringTemplateTemplateEngine.SCRIPTS_TEMPLATE, scripts, error);
-		
-		Assert.assertTrue(error.errors.isEmpty());
-		Assert.assertFalse(html.contains("/js/"));
-	}
 
 	@Test
 	public void parsingScripts_should_writeAsync() {

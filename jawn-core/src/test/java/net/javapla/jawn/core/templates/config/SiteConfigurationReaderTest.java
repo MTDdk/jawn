@@ -1,5 +1,11 @@
 package net.javapla.jawn.core.templates.config;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -9,18 +15,23 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import net.javapla.jawn.core.configuration.DeploymentInfo;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
+import net.javapla.jawn.core.util.Constants;
 
 
 
 public class SiteConfigurationReaderTest {
 	
+    static ObjectMapper objectMapper;
 	static SiteConfigurationReader confReader;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		ObjectMapper objectMapper = new JsonMapperProvider().get();
-		confReader = new SiteConfigurationReader(objectMapper);
+		objectMapper = new JsonMapperProvider().get();
+		DeploymentInfo info = new DeploymentInfo(mock(JawnConfigurations.class));
+		confReader = new SiteConfigurationReader(objectMapper, info);
 	}
 
 	@AfterClass
@@ -41,14 +52,33 @@ public class SiteConfigurationReaderTest {
 		Assert.assertEquals("jawn test", conf.title);
 		
 		Assert.assertEquals(2, conf.scripts.length);
-		Assert.assertEquals("script1.js", conf.scripts[0].url);
-		Assert.assertEquals("script2.js", conf.scripts[1].url);
+		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
+		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
 		
 		Assert.assertEquals(1, conf.styles.length);
-		Assert.assertEquals("style.css", conf.styles[0]);
+		Assert.assertEquals(SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style.css", conf.styles[0]);
 		
 		Assert.assertEquals(false, conf.overrideDefault);
 	}
+	
+	@Test
+    public void parsingScripts_should_addSlashJs() {
+	    SiteConfiguration conf = confReader.read("src/test/resources", "index", "index", false);
+        
+	    Arrays.stream(conf.scripts).forEach(script -> Assert.assertTrue(script.url.contains("/js/")));
+    }
+    
+    @Test
+    public void parsingScripts_should_not_addAnything() {
+        SiteConfiguration conf = confReader.read("src/test/resources", "nontranslatable", "index", false);
+        Assert.assertEquals("jawn test non-translatable", conf.title);
+        
+        Arrays.stream(conf.scripts).forEach(script -> Assert.assertFalse(script.url.contains("/js/")));
+    }
+    
+    //TODO
+    // add test that catches or tells the user whenever there is an error when reading site.json
+    // like in confReader.read("src/test/resources", "faulty", "index", false);
 	
 	@Test
 	public void overrideDefault() {
@@ -57,7 +87,7 @@ public class SiteConfigurationReaderTest {
 		Assert.assertEquals(true, conf.overrideDefault);
 		
 		Assert.assertEquals(1, conf.scripts.length);
-		Assert.assertEquals("script3.js", conf.scripts[0].url);
+		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script3.js", conf.scripts[0].url);
 	}
 	
 	@Test
@@ -66,4 +96,18 @@ public class SiteConfigurationReaderTest {
 		Assert.assertEquals("jawn test async", conf.title);
 	}
 	
+	@Test
+	public void readSiteConfiguration_with_contextPath() {
+	    JawnConfigurations configurations = mock(JawnConfigurations.class);
+	    when(configurations.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_CONTEXT_PATH)).thenReturn(Optional.of("/certaincontext"));
+        DeploymentInfo info = new DeploymentInfo(configurations);
+	    SiteConfigurationReader confReader = new SiteConfigurationReader(objectMapper, info);
+        
+	    SiteConfiguration conf = confReader.read("src/test/resources", "index", "index", false);
+	    
+        Assert.assertEquals("/certaincontext"+SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
+        Assert.assertEquals("/certaincontext"+SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
+        
+        Assert.assertEquals("/certaincontext"+SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style.css", conf.styles[0]);
+	}
 }

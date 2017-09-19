@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
+import net.javapla.jawn.core.configuration.DeploymentInfo;
+
 /**
  * 
  * Empirical evidence tells us that caching the SiteConfiguration has a significant impact on performance in high load use.
@@ -25,16 +27,20 @@ import com.google.inject.Inject;
 public class SiteConfigurationReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String SITE_FILE = "site.json";
+    public static final String SITE_FILE = "site.json";
+    public static final String SCRIPT_STANDARD_FOLDER = "/js/";
+    public static final String STYLE_STANDARD_FOLDER = "/css/";
 
     private final ObjectMapper mapper;
+    private final DeploymentInfo deploymentInfo;
     private final /*Concurrent*/HashMap<String, SiteConfiguration> configurationCache;
     // README: ConcurrentHashMap might deadlock with the same hash - so do we really need the concurrency?
     // https://stackoverflow.com/questions/43861945/deadlock-in-concurrenthashmap
     
     @Inject
-    public SiteConfigurationReader(ObjectMapper mapper) {
+    public SiteConfigurationReader(ObjectMapper mapper, DeploymentInfo deploymentInfo) {
         this.mapper = mapper;
+        this.deploymentInfo = deploymentInfo;
         this.configurationCache = new /*Concurrent*/HashMap<>();
     }
     
@@ -131,7 +137,15 @@ public class SiteConfigurationReader {
         if ( !Files.exists(rootFile) ) return new SiteConfiguration();
 
         try (Reader r = new FileReader(rootFile.toFile())) {
-            return mapper.readValue(r, SiteConfiguration.class);
+            SiteConfiguration configuration = mapper.readValue(r, SiteConfiguration.class);
+            
+            if (configuration.scripts != null)
+                configuration.scripts = prefixResourceLinks(configuration.scripts, SCRIPT_STANDARD_FOLDER);
+            
+            if (configuration.styles != null)
+                configuration.styles = prefixResourceLinks(configuration.styles, STYLE_STANDARD_FOLDER);
+            
+            return configuration;
         } catch (IOException e) {
             log.error("Reading site_file {} \n{}", rootFile, e.getMessage());
         }
@@ -181,9 +195,37 @@ public class SiteConfigurationReader {
             }
         }
         
-        
-        
         return topConf;
+    }
+    
+    
+    /**
+     * Prefixes local resources with css/ or js/.
+     * "Local" is defined by not starting with 'http.*' or 'ftp.*'
+     */
+    private final String[] prefixResourceLinks(final String[] links, final String prefix) {
+        return Arrays.stream(links).parallel()
+                .map(link -> {
+                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
+                        link = deploymentInfo.translateIntoContextPath(prefix + link);
+                    return link; 
+                })
+                .toArray(String[]::new);
+    }
+    private final SiteConfiguration.Script[] prefixResourceLinks(final SiteConfiguration.Script[] links, final String prefix) {
+        return Arrays.stream(links).parallel().map(link -> {
+            if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
+                return link.url(deploymentInfo.translateIntoContextPath(prefix + link.url));
+            return link;
+        }).toArray(SiteConfiguration.Script[]::new);
+        
+        /*return Arrays.stream(links).parallel()
+                .map(SiteConfiguration.Script::getUrl).map(link -> { 
+                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
+                        link = prefix + link; 
+                    return link; 
+                })
+                .toArray(String[]::new);*/
     }
     
 }
