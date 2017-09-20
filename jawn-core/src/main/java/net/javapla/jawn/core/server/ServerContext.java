@@ -135,7 +135,7 @@ public class ServerContext implements Context.Internal2 {
         // translated to "".
         // this is set when starting the server, and probably
         // *should* be up to the user
-        return "";
+        return request.contextPath();
     }
 
     @Override

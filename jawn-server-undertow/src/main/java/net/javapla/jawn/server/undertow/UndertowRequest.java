@@ -44,20 +44,22 @@ public class UndertowRequest implements Request {
     
     private final HttpServerExchange exchange;
     private final String path;
+    private final String contextPath;
     
     private final FormData form;
     private Supplier<BlockingHttpExchange> blocking;
 
-    public UndertowRequest(final HttpServerExchange exchange) throws IOException {
+    public UndertowRequest(final HttpServerExchange exchange, final String contextPath) throws IOException {
         this.exchange = exchange;
         
         this.blocking = new MemoizingSupplier<>(() -> this.exchange.startBlocking());
         
         this.form = parseForm(exchange, StandardCharsets.UTF_8.name());//conf.getString("application.tmpdir"), conf.getString("application.charset"));
         
-        this.path = URLCodec.decode(exchange.getRequestPath(), StandardCharsets.UTF_8);
+        this.contextPath = contextPath;
+        this.path = URLCodec.decode(stripContextPath(contextPath, exchange.getRequestPath()), StandardCharsets.UTF_8);
     }
-
+    
     @Override
     public HttpMethod method() {
         return HttpMethod.getMethod(exchange.getRequestMethod().toString(), params());
@@ -66,6 +68,11 @@ public class UndertowRequest implements Request {
     @Override
     public String path() {
         return path;
+    }
+    
+    @Override
+    public String contextPath() {
+        return contextPath;
     }
     
     @Override
@@ -209,6 +216,10 @@ public class UndertowRequest implements Request {
     }
 
     
+    private static final String stripContextPath(final String contextPath, final String requestPath) {
+        return requestPath.substring(contextPath.length());
+    }
+
     private FormData parseForm(final HttpServerExchange exchange, final String charset) throws IOException {
         String value = exchange.getRequestHeaders().getFirst("Content-Type");
         if (value != null) {

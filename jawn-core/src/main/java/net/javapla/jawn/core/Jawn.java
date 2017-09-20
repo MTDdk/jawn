@@ -114,10 +114,10 @@ public class Jawn {
         return this;
     }
     
-    public Jawn contextPath(String contextPath) {
+    /*public Jawn contextPath(String contextPath) {
         bootstrapper.config().setContextPath(contextPath);
         return this;
-    }
+    }*/
     
     /*public Jawn lang() {
         //README: should some kind of language settings be set here?

@@ -14,23 +14,21 @@ import net.javapla.jawn.core.server.ServerConfig;
 
 public class UndertowServer implements Server {
     
-    
+    private final HttpHandler dispatcher;
     private Undertow server;
-    private final GracefulShutdownHandler shutdownHandler;
-    private final Builder builder;
+    private GracefulShutdownHandler shutdownHandler;
     
     @Inject
     public UndertowServer(HttpHandler dispatcher) {
-        
-        shutdownHandler = new GracefulShutdownHandler(createHandler(dispatcher));
-        
-        builder = Undertow.builder()
-            .setHandler(shutdownHandler);
+        this.dispatcher = dispatcher;
     }
 
     @Override
     public void start(ServerConfig serverConfig) throws Exception {
-        builder
+        shutdownHandler = new GracefulShutdownHandler(createHandler(dispatcher, serverConfig.contextPath()));
+        
+        final Builder builder = Undertow.builder()
+            .setHandler(shutdownHandler)
             .addHttpListener(serverConfig.port(), serverConfig.host())
             
             // from undertow-edge benchmark
@@ -55,8 +53,8 @@ public class UndertowServer implements Server {
         //NOOP
     }
     
-    private static final io.undertow.server.HttpHandler createHandler(final HttpHandler dispatcher ) {
-        return new UndertowHandler(dispatcher);
+    private static final io.undertow.server.HttpHandler createHandler(final HttpHandler dispatcher, final String contextPath ) {
+        return new UndertowHandler(dispatcher, contextPath);
     }
     
     private static void configureServerPerformance(Builder serverBuilder, ServerConfig config) {

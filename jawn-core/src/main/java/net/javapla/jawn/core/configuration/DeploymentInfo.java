@@ -5,13 +5,13 @@ import net.javapla.jawn.core.util.Constants;
 public class DeploymentInfo {
 
 	private final String WEBAPP;
-	private final String CONTEXT_PATH;
-	private final boolean CONTEXT_PATH_SET;
+//	private final String CONTEXT_PATH;
+//	private final boolean CONTEXT_PATH_SET;
 	
 	public DeploymentInfo(JawnConfigurations properties) {
 		WEBAPP = assertPath(properties.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse(""));
-		CONTEXT_PATH = properties.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_CONTEXT_PATH).orElse("");
-		CONTEXT_PATH_SET = !CONTEXT_PATH.isEmpty();
+//		CONTEXT_PATH = properties.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_CONTEXT_PATH).orElse("");
+//		CONTEXT_PATH_SET = !CONTEXT_PATH.isEmpty();
 	}
 	
 	private static String assertPath(String path) {
@@ -40,11 +40,11 @@ public class DeploymentInfo {
      */
     public String getRealPath(String path) {
     	if (path == null) return null;
-    	if (CONTEXT_PATH_SET && path.startsWith(CONTEXT_PATH)) return WEBAPP + path.substring(CONTEXT_PATH.length());
+//    	if (CONTEXT_PATH_SET && path.startsWith(CONTEXT_PATH)) return WEBAPP + path.substring(CONTEXT_PATH.length());
         return WEBAPP + path;
     }
     
-    public String getContextPath() {
+    /*public String getContextPath() {
         return CONTEXT_PATH;
     }
     
@@ -63,4 +63,9 @@ public class DeploymentInfo {
             }
         }
     }
+    
+    public String stripContextPath(String path) {
+        if (!CONTEXT_PATH_SET) return path;
+        return path.substring(CONTEXT_PATH.length());
+    }*/
 }

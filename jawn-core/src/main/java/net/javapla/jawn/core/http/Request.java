@@ -11,6 +11,7 @@ public interface Request {
     
     HttpMethod method();
     String path();
+    String contextPath();
     String queryString();
     Optional<String> param(String name);
     MultiList<String> params();

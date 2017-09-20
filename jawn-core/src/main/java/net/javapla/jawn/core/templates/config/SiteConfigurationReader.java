@@ -207,7 +207,7 @@ public class SiteConfigurationReader {
         return Arrays.stream(links).parallel()
                 .map(link -> {
                     if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
-                        link = deploymentInfo.translateIntoContextPath(prefix + link);
+                        link = /*deploymentInfo.translateIntoContextPath(*/prefix + link/*)*/;
                     return link; 
                 })
                 .toArray(String[]::new);
@@ -215,7 +215,7 @@ public class SiteConfigurationReader {
     private final SiteConfiguration.Script[] prefixResourceLinks(final SiteConfiguration.Script[] links, final String prefix) {
         return Arrays.stream(links).parallel().map(link -> {
             if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
-                return link.url(deploymentInfo.translateIntoContextPath(prefix + link.url));
+                return link.url(/*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/);
             return link;
         }).toArray(SiteConfiguration.Script[]::new);
         

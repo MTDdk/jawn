@@ -85,7 +85,7 @@ public class ControllerTest {
     }
     
     
-    @Test
+    /*@Test
     public void redirect_with_contextPath() {
         Injector injector = mock(Injector.class);
         JawnConfigurations configurations = mock(JawnConfigurations.class);
@@ -101,5 +101,5 @@ public class ControllerTest {
         Result result = controller.getControllerResult();
         
         assertEquals("/certaincontext/mock", result.headers().get("Location"));
-    }
+    }*/
 }

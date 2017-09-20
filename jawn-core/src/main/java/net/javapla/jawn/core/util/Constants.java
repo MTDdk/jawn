@@ -69,7 +69,7 @@ public interface Constants {
     String PROPERTY_UPLOADS_MAX_SIZE = "uploads.max_file_size";
     
     String PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH = "deploymentinfo.webapp.path";
-    String PROPERTY_DEPLOYMENT_INFO_CONTEXT_PATH = "deploymentinfo.context.path";
+    //String PROPERTY_DEPLOYMENT_INFO_CONTEXT_PATH = "deploymentinfo.context.path";
     
     String PROPERTY_SECURITY_SECRET = "security.secret"; // holds the key of 64 characters
     String PROPERTY_SECURITY_COOKIE_ENCRYPTION = "security.cookie.encryption"; // if true, encrypt the cookies

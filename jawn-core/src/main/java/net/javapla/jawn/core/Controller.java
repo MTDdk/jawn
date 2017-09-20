@@ -488,7 +488,7 @@ public abstract class Controller implements ResultHolder {
      */
     protected void redirectToReferrer() {
         String referrer = context.requestHeader("Referer");
-        referrer = referrer == null? injector.getInstance(DeploymentInfo.class).getContextPath() : referrer;
+        referrer = referrer == null? context.contextPath()/*injector.getInstance(DeploymentInfo.class).getContextPath()*/ : referrer;
         redirect(referrer);
     }
 
@@ -603,6 +603,7 @@ public abstract class Controller implements ResultHolder {
      */
     protected <T extends Controller> /*HttpBuilder*/void redirect(Class<T> controllerClass, Map<String, String> params){
         String controllerPath = RouterHelper.getReverseRouteFast(controllerClass);
+        String contextPath = context.contextPath();
         String action = params.get("action") != null? params.get("action") : null;
         String id = params.get("id") != null? params.get("id") : null;
         params.remove("action");
@@ -613,9 +614,9 @@ public abstract class Controller implements ResultHolder {
         String anchor = params.get("#") != null ? "#" + params.get("#") : "";
         params.remove("#");
 
-        String uri = injector
+        String uri = contextPath +/*injector
             .getInstance(DeploymentInfo.class)
-            .translateIntoContextPath(/*+ lang + */RouterHelper.generate(controllerPath, action, id, params) + anchor);
+            .translateIntoContextPath(*//*+ lang + */RouterHelper.generate(controllerPath, action, id, params) + anchor/*)*/;
         redirect(uri);
     }
     
@@ -1466,7 +1467,7 @@ public abstract class Controller implements ResultHolder {
      * @return a context of the request - usually an app name (as seen on URL of request).
      */
     protected String context(){
-        return injector.getInstance(DeploymentInfo.class).getContextPath();//context.contextPath();//RequestUtils.context();
+        return /*injector.getInstance(DeploymentInfo.class).getContextPath();*/context.contextPath();//RequestUtils.context();
     }
 
 

@@ -6,9 +6,11 @@ import io.undertow.server.HttpServerExchange;
 public class UndertowHandler implements HttpHandler {
     
     private final net.javapla.jawn.core.server.HttpHandler handler;
+    private final String contextPath;
 
-    public UndertowHandler(net.javapla.jawn.core.server.HttpHandler handler) {
+    public UndertowHandler(net.javapla.jawn.core.server.HttpHandler handler, String contextPath) {
         this.handler = handler;
+        this.contextPath = contextPath;
     }
 
     @Override
@@ -19,6 +21,6 @@ public class UndertowHandler implements HttpHandler {
         }
         //exchange.getResponseHeaders().add(HttpString.tryFromString("Server"), "Undertow");
         
-        handler.handle(new UndertowRequest(exchange), new UndertowResponse(exchange));
+        handler.handle(new UndertowRequest(exchange, contextPath), new UndertowResponse(exchange));
     }
 }

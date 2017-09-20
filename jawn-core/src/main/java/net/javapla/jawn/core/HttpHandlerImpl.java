@@ -31,11 +31,13 @@ class HttpHandlerImpl implements HttpHandler {
     //https://github.com/perwendel/spark/blob/master/src/main/java/spark/staticfiles/StaticFilesConfiguration.java
     private String[] exclusions;
     protected final FrameworkEngine engine;
+    protected final DeploymentInfo deploymentInfo;
     private final Injector injector;
     
     @Inject
-    public HttpHandlerImpl(FrameworkEngine engine, Injector injector) {
+    public HttpHandlerImpl(FrameworkEngine engine, DeploymentInfo info, Injector injector) {
         this.engine = engine;
+        this.deploymentInfo = info;
         this.injector = injector;
         
         config();
@@ -96,11 +98,15 @@ class HttpHandlerImpl implements HttpHandler {
                 response.header(HttpHeaders.CONTENT_TYPE, "text/css");
             else if (translated.endsWith(".js"))
                 response.header(HttpHeaders.CONTENT_TYPE, "text/javascript");
+            else if (translated.endsWith(".webm"))
+                response.header(HttpHeaders.CONTENT_TYPE, "video/webm");
+            else if (translated.endsWith(".mp4"))
+                response.header(HttpHeaders.CONTENT_TYPE, "video/mp4");
             
             //chain.doFilter(r, resp);
             try {
                 response.send(new FileInputStream(file));
-//                response.end(); << TODO maybe we should take a look at why this is failing when serving png (perhaps it is the same for all big files)
+                //response.end(); // << TODO maybe we should take a look at why this is failing when serving png (perhaps it is the same for all big files)
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

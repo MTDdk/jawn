@@ -154,9 +154,6 @@ public class FrameworkBootstrap {
         properties.setSupportedLanguages(appConfig.getSupportedLanguages());
         properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
         
-        properties.set(Constants.PROPERTY_DEPLOYMENT_INFO_CONTEXT_PATH, appConfig.contextPath());
-        
-        
         addModule(new CoreModule(properties, new DeploymentInfo(properties), router));
         addModule(new DatabaseModule(connections, properties));
         addModule(new AbstractModule() {
