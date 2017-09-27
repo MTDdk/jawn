@@ -1,25 +1,31 @@
 package net.javapla.jawn.core.routes;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
-
-import net.javapla.jawn.core.Controller;
-import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.routes.Route;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import app.controllers.UnitTestController;
-import app.controllers.henning.more.Kage2Controller;
+import app.controllers.testing.more.CakeController;
+import net.javapla.jawn.core.Controller;
+import net.javapla.jawn.core.http.HttpMethod;
 
 public class RouteTest {
+    
+    private final String pack = "/testing/more";
+    private final String controller = "/cake";
+    private final String action = "/buns";
+    private final String method = "getBuns";
+    
     private static Controller c;
+    
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -46,41 +52,41 @@ public class RouteTest {
     @Test
     public void should_match_uri_with_controller_action() {
         String uri3 = "/{controller}/{action}";
-        Route r = new Route(uri3, HttpMethod.GET, c.getClass(), "getBolle", "bolle", null);
+        Route r = new Route(uri3, HttpMethod.GET, c.getClass(), method, action, null);
         
-        assertTrue(r.matches(HttpMethod.GET, "/kage/bolle"));
-        System.out.println(r.getPathParametersEncoded("/kage/bolle"));
+        assertTrue(r.matches(HttpMethod.GET, controller+action));
+        System.out.println(r.getPathParametersEncoded(controller+action));
     }
     
     @Test
     public void should_match_uri_with_package() {
-        Kage2Controller c2 = new Kage2Controller();
+        CakeController c2 = new CakeController();
         String uri4 = "/{package: .*?}/{controller}/{action}";
-        Route r = new Route(uri4, HttpMethod.GET, c2.getClass(), "getBolle", "bolle", null);
+        Route r = new Route(uri4, HttpMethod.GET, c2.getClass(), method, action, null);
         
-        assertTrue(r.matches(HttpMethod.GET, "/henning/more/kage/bolle"));
+        assertTrue(r.matches(HttpMethod.GET, pack+controller+action));
     }
     
     @Test
     public void should_fetch_uri_parameters() {
-        Kage2Controller c2 = new Kage2Controller();
+        CakeController c2 = new CakeController();
         String uri4 = "/{package: .*?}/{controller}/{action}";
-        Route r = new Route(uri4, HttpMethod.GET, c2.getClass(), "getBolle", "bolle", null);
+        Route r = new Route(uri4, HttpMethod.GET, c2.getClass(), method, action, null);
         
-        Map<String, String> params = r.getPathParametersEncoded("/henning/more/kage/bolle");
-        assertEquals("henning/more", params.get("package"));
-        assertEquals("kage", params.get("controller"));
-        assertEquals("bolle", params.get("action"));
+        Map<String, String> params = r.getPathParametersEncoded(pack+controller+action);
+        assertEquals("testing/more", params.get("package"));
+        assertEquals("cake", params.get("controller"));
+        assertEquals("buns", params.get("action"));
     }
     
     @Test
     public void should_match_custom_uri() {
-        String uri2 = "/kage/{action}/{henn-i_ng}/controller/{long_id: .*?}";
-        Route r = new Route(uri2, HttpMethod.GET, c.getClass(), "getBolle", "bolle", null);
+        String uri2 = "/cake/{action}/{some-thin_g}/controller/{long_id: .*?}";
+        Route r = new Route(uri2, HttpMethod.GET, c.getClass(), method, action, null);
         
-        assertTrue(r.matches(HttpMethod.GET, "/kage/bolle/henningkool/controller/whaaaat/kalle/111"));
-        System.out.println(r.getPathParametersEncoded("/kage/bolle/henningkool/controller/whaaaat/kalle/111"));
-        assertTrue(r.matches(HttpMethod.GET, "/kage/bolle/something/controller/444"));
+        assertTrue(r.matches(HttpMethod.GET, "/cake/buns/daddykool/controller/whaaaat/goingstrong/111"));
+        System.out.println(r.getPathParametersEncoded("/cake/buns/daddykool/controller/whaaaat/goingstrong/111"));
+        assertTrue(r.matches(HttpMethod.GET, "/cake/buns/something/controller/444"));
     }
     
     @Test
@@ -88,21 +94,20 @@ public class RouteTest {
         String uri = "/{controller}/{action}/{id: [0-9]+}";
         Route r = new Route(uri, HttpMethod.GET, c.getClass(), "index", "index", null);
         
-        String requestGood = "/kage/index/111";
+        String requestGood = "/cake/index/111";
         assertTrue(r.matches(HttpMethod.GET, requestGood));
         Map<String, String> params = r.getPathParametersEncoded(requestGood);
         assertFalse(params.isEmpty());
-        assertTrue(params.get("controller").equals("kage"));
+        assertTrue(params.get("controller").equals("cake"));
         assertTrue(params.get("action").equals("index"));
         assertTrue(params.get("id").equals("111"));
         
-        String requestBad = "/kage/index/letters";
+        String requestBad = "/cake/index/letters";
         assertFalse(r.matches(HttpMethod.GET, requestBad));
         assertTrue(r.getPathParametersEncoded(requestBad).isEmpty());
     }
 
     @Test
-    @Ignore
     public void route_is_fullyQualified() {
         String uri = "/something/getit";
         Route route = new Route(uri, HttpMethod.GET, null, null, null, null);
@@ -111,7 +116,6 @@ public class RouteTest {
     }
     
     @Test
-    @Ignore
     public void route_is_not_fullyQualified() {
         String uri = "/something/getit/{action}";
         Route route = new Route(uri, HttpMethod.GET, null, null, null, null);
