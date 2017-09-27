@@ -14,6 +14,7 @@ import app.controllers.MockController;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.Context;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.Modes;
 
@@ -31,7 +32,7 @@ public class ControllerTest {
         
         
         Context context = mock(Context.class);
-        when(context.contextPath()).thenReturn("");
+        when(context.contextPath()).thenReturn(new ServerConfig().contextPath());
         controller = new MockController();
         controller.init(context, injector);
     }
