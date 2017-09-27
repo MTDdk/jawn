@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
-
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,7 +15,6 @@ import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.util.CollectionUtil;
-import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
 
 public class ControllerTest {
@@ -34,6 +31,7 @@ public class ControllerTest {
         
         
         Context context = mock(Context.class);
+        when(context.contextPath()).thenReturn("");
         controller = new MockController();
         controller.init(context, injector);
     }
