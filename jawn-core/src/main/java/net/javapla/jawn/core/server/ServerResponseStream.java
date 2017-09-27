@@ -56,7 +56,8 @@ public class ServerResponseStream implements ResponseStream {
         }
         
         public void managedClose() throws IOException {
-            original.close();
+            if (!response.committed())
+                original.close();
         }
 
         @Override
@@ -76,7 +77,8 @@ public class ServerResponseStream implements ResponseStream {
         
         @Override
         public void flush() throws IOException {
-            original.flush();
+            if (!response.committed())
+                original.flush();
         }
     }
     
@@ -130,7 +132,8 @@ public class ServerResponseStream implements ResponseStream {
 
         @Override
         public void flush() throws IOException {
-            original.flush();
+            if (!response.committed())
+                original.flush();
         }
 
         @Override
@@ -141,7 +144,8 @@ public class ServerResponseStream implements ResponseStream {
         }
         
         public void managedClose() throws IOException {
-            original.close();
+            if (!response.committed())
+                original.close();
         }
         
     }

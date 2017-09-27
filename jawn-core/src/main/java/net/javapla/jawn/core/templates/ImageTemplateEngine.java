@@ -34,6 +34,8 @@ class ImageTemplateEngine implements TemplateEngine {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            new StreamTemplateEngine().invoke(context, response, stream);
         }
     }
 

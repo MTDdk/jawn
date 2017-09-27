@@ -28,7 +28,7 @@ public class ServerConfig {
         public int getBacklogValue() { return backlog; }
     }
     
-    private String contextPath = "/";
+    private String contextPath = "";
     private int port = 8080;
     
     /** The source folder to read templates from */

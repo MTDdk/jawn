@@ -45,7 +45,7 @@ public class TemplateEngineHelper {
      * @return
      */
     public static String getControllerForResult(Route route) {
-        if (route == null) return Constants.ROOT_CONTROLLER_NAME;
+        if (route == null || route.getController() == null) return Constants.ROOT_CONTROLLER_NAME;
         return RouterHelper.getReverseRouteFast(route.getController()).substring(1);
     }
     
