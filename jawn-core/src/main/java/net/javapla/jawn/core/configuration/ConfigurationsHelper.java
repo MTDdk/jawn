@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 
 import net.javapla.jawn.core.crypto.SecretGenerator;
@@ -37,10 +38,10 @@ public abstract class ConfigurationsHelper {
             props.setProperty(Constants.PROPERTY_SECURITY_SECRET, secret);
             File to = new File(new File("").getAbsolutePath() + "/src/main/resources/"+Constants.PROPERTIES_FILE_USER);
             try {
-                Files.append(Constants.PROPERTY_SECURITY_SECRET+"="+secret, to, Charsets.UTF_8);
-            } catch (IOException e2) {
+                Files.asCharSink(to, Charsets.UTF_8, FileWriteMode.APPEND).write(Constants.PROPERTY_SECURITY_SECRET+"="+secret);
+            } catch (IOException e) {
                 // TODO Auto-generated catch block
-                e2.printStackTrace();
+                e.printStackTrace();
             }
             
             try (FileOutputStream stream = new FileOutputStream(to, true)) {
@@ -48,9 +49,9 @@ public abstract class ConfigurationsHelper {
             } catch (FileNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-            } catch (IOException e1) {
+            } catch (IOException e) {
                 // TODO Auto-generated catch block
-                e1.printStackTrace();
+                e.printStackTrace();
             }
         }
     }
