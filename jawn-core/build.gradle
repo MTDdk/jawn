@@ -10,13 +10,13 @@ dependencies {
         // Damn! Used in runtime by guice
 		exclude module: 'guava' // We import it elsewhere to be concise in the versioning
 	}
-    compile 'com.google.guava:guava:23.0'
+    compile 'com.google.guava:guava:23.1-jre'
     
     
     //compile 'net.sf.trove4j:trove4j:3.0.3'
 
-	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.0'
-	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.9.0' // faster data binding
+	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.1'
+	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.9.1' // faster data binding
     compile 'javax.ws.rs:javax.ws.rs-api:2.1'
     
     
@@ -25,11 +25,12 @@ dependencies {
 
     
     // Database
-    compile 'com.zaxxer:HikariCP:2.7.0'
+    compile 'com.zaxxer:HikariCP:2.7.1'
     
     // Cache
     //compile 'org.ehcache:ehcache:3.0.0.m4'
     compile 'net.jodah:expiringmap:0.5.8'
+    compile 'com.github.ben-manes.caffeine:caffeine:2.5.6'
 	
 	
 	/* Template Engines */
@@ -55,8 +56,8 @@ dependencies {
         exclude module: 'hamcrest-core'
     }
     testCompile 'org.hamcrest:java-hamcrest:2.0.0.0'
-    testCompile 'org.mockito:mockito-core:2.9.0'
-    testCompile ('com.google.truth:truth:0.35')  {
+    testCompile 'org.mockito:mockito-core:2.10.0'
+    testCompile ('com.google.truth:truth:0.36')  {
         exclude module: 'guava' // We import it elsewhere to be concise in the versioning
         exclude module: 'junit'
     }
