@@ -3,7 +3,7 @@ package net.javapla.jawn.core.cache;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class CacheImpl implements Cache {
+public class CacheTestImpl implements Cache {
 
     @Override
     public <T> void add(String key, T value) {}

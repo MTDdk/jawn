@@ -44,12 +44,12 @@ public class CacheProviderTest {
     
     @Test
     public void configuredImplementation() {
-        configurations.set(Constants.PROPERTY_CACHE_IMPLEMENTATION, CacheImpl.class.getName());
+        configurations.set(Constants.PROPERTY_CACHE_IMPLEMENTATION, CacheTestImpl.class.getName());
         
         FrameworkBootstrap bootstrap = new FrameworkBootstrap();
         Cache cache = bootBootstrap(bootstrap);
         
-        assertThat(cache, instanceOf(CacheImpl.class));
+        assertThat(cache, instanceOf(CacheTestImpl.class));
     }
     
     @Test
