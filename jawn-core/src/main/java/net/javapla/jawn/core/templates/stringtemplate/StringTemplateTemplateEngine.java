@@ -173,52 +173,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     
     @Override
     public final ST readTemplate(String templatePath) {
-        /*
-         * strawgroupdir
-    group.getInstanceOf 6114
-    group.getInstanceOf 2885
-    group.getInstanceOf 1439
-    group.getInstanceOf 1941
-
-    group.getInstanceOf 6597
-    group.getInstanceOf 2771
-    group.getInstanceOf 1941
-    group.getInstanceOf 2486
-
-    group.getInstanceOf 6743
-    group.getInstanceOf 2367
-    group.getInstanceOf 1144
-    group.getInstanceOf 1403
-
-    group.getInstanceOf 6063
-    group.getInstanceOf 2911
-    group.getInstanceOf 4238
-    group.getInstanceOf 3198
-         */
-        
-        /*
-         * stfastgroupdir
-    group.getInstanceOf 6746
-    group.getInstanceOf 3640
-    group.getInstanceOf 2003
-    group.getInstanceOf 2620
-
-    group.getInstanceOf 5348
-    group.getInstanceOf 2622
-    group.getInstanceOf 1220
-    group.getInstanceOf 1583
-
-    group.getInstanceOf 6039
-    group.getInstanceOf 5386
-    group.getInstanceOf 2191
-    group.getInstanceOf 2733
-
-    group.getInstanceOf 4922
-    group.getInstanceOf 2887
-    group.getInstanceOf 1886
-    group.getInstanceOf 2422 
-         */
-
         return group.getInstanceOf(templatePath);
     }
     

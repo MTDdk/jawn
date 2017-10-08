@@ -56,8 +56,7 @@ public class ServerResponseStream implements ResponseStream {
         }
         
         public void managedClose() throws IOException {
-            if (!response.committed())
-                original.close();
+            original.close();
         }
 
         @Override
@@ -138,14 +137,13 @@ public class ServerResponseStream implements ResponseStream {
 
         @Override
         public void close() throws IOException {
-         // NO OP
+            // NO OP
             // Do not let the user be able to close this stream
             // It should be up to the framework to handle it
         }
         
         public void managedClose() throws IOException {
-            if (!response.committed())
-                original.close();
+            original.close();
         }
         
     }
