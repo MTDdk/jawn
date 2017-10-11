@@ -131,7 +131,7 @@ public class RouteBuilder {
             list.addAll(filters.compileGlobalFilters());
         }
         
-        Route route = new Route(uri, httpMethod, controller, action, actionName, buildFilterChain(list/*, controller*/, response));
+        Route route = new Route(uri, httpMethod, controller, action, actionName, buildFilterChain(list, response));
         
         // experimental
         if (func != null) {
