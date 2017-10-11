@@ -1,6 +1,8 @@
 package net.javapla.jawn.core.templates;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
@@ -12,11 +14,14 @@ public class ContentTemplateLoader<T> {
 	private final String realPath;
 	private final TemplateEngine.TemplateRenderEngine<T> engine;
 	private final String templateSuffix;
+	private final int templateSuffixLengthToRemove;
+	private final Map<String,String> layoutMap = new HashMap<>();
 	
 	public ContentTemplateLoader(DeploymentInfo info, TemplateEngine.TemplateRenderEngine<T> engine) {
 		realPath = getTemplateRootFolder(info);
 		this.engine = engine;
 		templateSuffix = engine.getSuffixOfTemplatingEngine();
+		templateSuffixLengthToRemove = templateSuffix.length() + (templateSuffix.startsWith(".") ? 0 : 1); // add one if the dot is missing
 	}
 	
     public static final String getTemplateRootFolder(final DeploymentInfo info) {
@@ -29,10 +34,13 @@ public class ContentTemplateLoader<T> {
     public final String handleLayoutEndings(Result response) {
         String layout = response.layout();
         if (layout != null) {
-            if (layout.endsWith(templateSuffix)) //TODO is it faster to keep it as a reference?
-                layout = layout.substring(0, layout.length()-3);
-            if (!layout.endsWith(".html"))
-                layout += ".html";
+        	layout = layoutMap.computeIfAbsent(layout, (l -> {
+                if (l.endsWith(templateSuffix))
+                    l = l.substring(0, l.length() - templateSuffixLengthToRemove);
+                if (!l.endsWith(".html"))
+                    l += ".html";
+                return l;
+        	}));
         }
         return layout;
     }
@@ -66,7 +74,7 @@ public class ContentTemplateLoader<T> {
             }
         } else {
             if (template.endsWith(templateSuffix)) {
-                return template.substring(0, template.length() - templateSuffix.length());
+                return template.substring(0, template.length() - templateSuffixLengthToRemove);
             }
             return template;
         }
