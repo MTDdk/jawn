@@ -131,7 +131,7 @@ public class RouteBuilder {
             list.addAll(filters.compileGlobalFilters());
         }
         
-        Route route = new Route(uri, httpMethod, controller, action, actionName, buildFilterChain(list, controller, response));
+        Route route = new Route(uri, httpMethod, controller, action, actionName, buildFilterChain(list, response));
         
         // experimental
         if (func != null) {
@@ -170,12 +170,12 @@ public class RouteBuilder {
     }
     
     private static final FilterChain filterChainEnd = new FilterChainEnd();
-    private static final FilterChain buildFilterChain(LinkedList<Filter> filters, Class<? extends Controller> controller, Result response) {
+    private static final FilterChain buildFilterChain(LinkedList<Filter> filters, Result response) {
         if (filters.isEmpty()) {
             return filterChainEnd;
         } else {
             Filter filter = filters.remove(0);
-            return new FilterChainImpl(filter, buildFilterChain(filters, controller, response));
+            return new FilterChainImpl(filter, buildFilterChain(filters, response));
         }
     }
     
