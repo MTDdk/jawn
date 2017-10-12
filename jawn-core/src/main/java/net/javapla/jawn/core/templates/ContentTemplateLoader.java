@@ -2,7 +2,6 @@ package net.javapla.jawn.core.templates;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Map;
 
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
@@ -15,7 +14,7 @@ public class ContentTemplateLoader<T> {
 	private final TemplateEngine.TemplateRenderEngine<T> engine;
 	private final String templateSuffix;
 	private final int templateSuffixLengthToRemove;
-	private final Map<String,String> layoutMap = new HashMap<>();
+	private final HashMap<String,String> layoutMap = new HashMap<>();
 	
 	public ContentTemplateLoader(DeploymentInfo info, TemplateEngine.TemplateRenderEngine<T> engine) {
 		realPath = getTemplateRootFolder(info);
