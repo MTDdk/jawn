@@ -1,21 +1,24 @@
 package net.javapla.jawn.core.configuration;
 
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.StringUtil;
 
 public class DeploymentInfo {
+    
+    private final String WEBAPP_FOLDER_NAME = "webapp/";
 
-	private final String WEBAPP;
+	private final String webappPath;
 //	private final String CONTEXT_PATH;
 //	private final boolean CONTEXT_PATH_SET;
 	
 	public DeploymentInfo(JawnConfigurations properties) {
-		WEBAPP = assertPath(properties.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse(""));
+		webappPath = assertPath(properties.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse("")) + WEBAPP_FOLDER_NAME;
 //		CONTEXT_PATH = properties.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_CONTEXT_PATH).orElse("");
 //		CONTEXT_PATH_SET = !CONTEXT_PATH.isEmpty();
 	}
 	
 	private static String assertPath(String path) {
-		if (!path.endsWith("/"))
+		if (!StringUtil.blank(path) && !path.endsWith("/"))
 			return path + "/";
 		return path;
 	}
@@ -41,7 +44,7 @@ public class DeploymentInfo {
     public String getRealPath(String path) {
     	if (path == null) return null;
 //    	if (CONTEXT_PATH_SET && path.startsWith(CONTEXT_PATH)) return WEBAPP + path.substring(CONTEXT_PATH.length());
-        return WEBAPP + path;
+        return webappPath + path;
     }
     
     /*public String getContextPath() {
