@@ -293,7 +293,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         }
     }
     
-    private final String readLinks(final Templates template, final String[] links, final ErrorBuffer error) {
+    private final String readLinks(final Templates template, final SiteConfiguration.Style[] links, final ErrorBuffer error) {
         if (links == null) return null;
         
         final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
@@ -358,7 +358,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     }
     
     static final Templates STYLES_TEMPLATE = new Templates(
-            "$links:{link|<link rel=\"stylesheet\" type=\"text/css\" href=\"$link$\">}$", "/css/", '$', '$'
+            "$links:{link|<link rel=\"stylesheet\" type=\"textt/css\" href=\"$link.url$\">}$", "/css/", '$', '$'
     );
     static final Templates SCRIPTS_TEMPLATE = new Templates(
             "$links:{link|<script src=\"$link.url$\"$if(link.async)$ async$endif$$if(link.defer)$ defer$endif$></script>}$", "/js/", '$', '$'

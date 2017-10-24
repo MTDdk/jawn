@@ -186,7 +186,7 @@ public class SiteConfigurationReader {
         
         if (localConf.styles != null) {
             if (topConf.styles != null) {
-                String[] styles = new String[topConf.styles.length + localConf.styles.length];
+            	SiteConfiguration.Style[] styles = new SiteConfiguration.Style[topConf.styles.length + localConf.styles.length];
                 System.arraycopy(topConf.styles, 0, styles, 0, topConf.styles.length);
                 System.arraycopy(localConf.styles, 0, styles, topConf.styles.length, localConf.styles.length);
                 topConf.styles = styles;
@@ -203,14 +203,14 @@ public class SiteConfigurationReader {
      * Prefixes local resources with css/ or js/.
      * "Local" is defined by not starting with 'http.*' or 'ftp.*'
      */
-    private final String[] prefixResourceLinks(final String[] links, final String prefix) {
+    private final SiteConfiguration.Style[] prefixResourceLinks(final SiteConfiguration.Style[] links, final String prefix) {
         return Arrays.stream(links).parallel()
                 .map(link -> {
-                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
-                        link = /*deploymentInfo.translateIntoContextPath(*/prefix + link/*)*/;
+                    if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
+                        link.url = /*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/;
                     return link; 
                 })
-                .toArray(String[]::new);
+                .toArray(SiteConfiguration.Style[]::new);
     }
     private final SiteConfiguration.Script[] prefixResourceLinks(final SiteConfiguration.Script[] links, final String prefix) {
         return Arrays.stream(links).parallel().map(link -> {

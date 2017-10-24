@@ -5,14 +5,12 @@ import java.util.Arrays;
 public class SiteConfiguration implements Cloneable {
 
     public String title;
-    public Script[]/*List<String>*/ scripts;
-    public String[]/*List<String>*/ styles;
+    public Script[] scripts;
+    public Style[] styles;
     
     public boolean overrideDefault;
     
     public SiteConfiguration() {
-//        this.scripts = new ArrayList<String>();
-//        this.styles = new ArrayList<String>();
     }
     
     @Override
@@ -34,8 +32,27 @@ public class SiteConfiguration implements Cloneable {
         return conf;
     }
     
+    public static class Style {
+    	public String url;
+    	public String integrity;
+    	public String crossOrigin;
+    	
+    	public Style() {}
+    	public Style(String url, String integrity, String crossOrigin) {
+    		this.url = url;
+    		this.integrity = integrity;
+    		this.crossOrigin = crossOrigin;
+    	}
+    	public Style(String url) {
+    		this(url, null, null);
+    	}
+    	
+    }
+    
     public static class Script {
     	public String url;
+    	public String integrity;
+    	public String crossOrigin;
     	public boolean async;
     	public boolean defer;
     	
@@ -52,5 +69,5 @@ public class SiteConfiguration implements Cloneable {
     	public Script url(String url) {
     	    return new Script(url, async, defer);
     	}
-    }
+    }    
 }
