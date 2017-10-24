@@ -61,6 +61,14 @@ public interface Cache {
         return v;
     }
     
+    /**
+     * If the specified key is not already associated with a value 
+     * (or is mapped to null), attempts to compute its value using the given 
+     * mapping function and enters it into this map unless null.
+     * @param key
+     * @param supplier
+     * @return
+     */
     <T> T computeIfAbsent(String key, Supplier<T> supplier);
     default <T> T computeIfAbsent(String key, int seconds, Supplier<T> supplier) {
         T v, newValue;
