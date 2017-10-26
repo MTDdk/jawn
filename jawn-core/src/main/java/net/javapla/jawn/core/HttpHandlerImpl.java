@@ -189,7 +189,7 @@ class HttpHandlerImpl implements HttpHandler {
        
        // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF
        List<String> collect = null;
-       File webapp = new File("webapp");
+       File webapp = new File(deploymentInfo.getRealPath(""));
        String[] paths = webapp.list();
        if (webapp.exists() && paths != null)
            collect = Arrays.asList(paths);

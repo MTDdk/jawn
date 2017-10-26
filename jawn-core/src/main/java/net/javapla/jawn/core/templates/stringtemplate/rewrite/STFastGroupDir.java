@@ -31,7 +31,7 @@ public final class STFastGroupDir extends STRawGroupDir {
         
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         resourceRoot = cl.getResource(dirName);
-        if ( resourceRoot==null ) {
+        if ( root == null && resourceRoot == null ) {
             cl = this.getClass().getClassLoader();
             root = cl.getResource(dirName);
         }
@@ -113,7 +113,8 @@ public final class STFastGroupDir extends STRawGroupDir {
      * Loads from a jar or similar resource if the template could not be found
      * directly on the filesystem.
      */
-    public final CompiledST loadTemplateResource(String prefix, String unqualifiedFileName) {
+    private final CompiledST loadTemplateResource(String prefix, String unqualifiedFileName) {
+        if (resourceRoot == null) return null;
         return loadTemplate(resourceRoot, prefix, unqualifiedFileName);
     }
     
