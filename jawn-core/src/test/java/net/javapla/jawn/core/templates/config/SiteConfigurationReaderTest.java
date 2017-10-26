@@ -1,10 +1,8 @@
 package net.javapla.jawn.core.templates.config;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -18,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
-import net.javapla.jawn.core.util.Constants;
 
 
 
@@ -55,8 +52,13 @@ public class SiteConfigurationReaderTest {
 		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
 		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
 		
-		Assert.assertEquals(1, conf.styles.length);
-		Assert.assertEquals(SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style.css", conf.styles[0]);
+		Assert.assertEquals(2, conf.styles.length);
+		Assert.assertEquals(SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style1.css", conf.styles[0].url);
+		Assert.assertNull(conf.styles[0].integrity);
+		Assert.assertNull(conf.styles[0].crossorigin);
+		Assert.assertEquals(SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style2.css", conf.styles[1].url);
+		Assert.assertEquals("#2", conf.styles[1].integrity);
+		Assert.assertEquals("none", conf.styles[1].crossorigin);
 		
 		Assert.assertEquals(false, conf.overrideDefault);
 	}

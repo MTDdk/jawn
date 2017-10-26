@@ -138,13 +138,8 @@ public class SiteConfigurationReader {
 
         try (Reader r = new FileReader(rootFile.toFile())) {
             SiteConfiguration configuration = mapper.readValue(r, SiteConfiguration.class);
-            
-            if (configuration.scripts != null)
-                configuration.scripts = prefixResourceLinks(configuration.scripts, SCRIPT_STANDARD_FOLDER);
-            
-            if (configuration.styles != null)
-                configuration.styles = prefixResourceLinks(configuration.styles, STYLE_STANDARD_FOLDER);
-            
+            prefixResourceLinks(configuration.scripts, SCRIPT_STANDARD_FOLDER);
+            prefixResourceLinks(configuration.styles, STYLE_STANDARD_FOLDER);
             return configuration;
         } catch (IOException e) {
             log.error("Reading site_file {} \n{}", rootFile, e.getMessage());
@@ -203,29 +198,13 @@ public class SiteConfigurationReader {
      * Prefixes local resources with css/ or js/.
      * "Local" is defined by not starting with 'http.*' or 'ftp.*'
      */
-    private final SiteConfiguration.Style[] prefixResourceLinks(final SiteConfiguration.Style[] links, final String prefix) {
-        return Arrays.stream(links).parallel()
-                .map(link -> {
-                    if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
-                        link.url = /*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/;
-                    return link; 
-                })
-                .toArray(SiteConfiguration.Style[]::new);
-    }
-    private final SiteConfiguration.Script[] prefixResourceLinks(final SiteConfiguration.Script[] links, final String prefix) {
-        return Arrays.stream(links).parallel().map(link -> {
-            if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
-                return link.url(/*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/);
-            return link;
-        }).toArray(SiteConfiguration.Script[]::new);
-        
-        /*return Arrays.stream(links).parallel()
-                .map(SiteConfiguration.Script::getUrl).map(link -> { 
-                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
-                        link = prefix + link; 
-                    return link; 
-                })
-                .toArray(String[]::new);*/
+    private final void prefixResourceLinks(final SiteConfiguration.Link[] links, final String prefix) {
+    	if(links != null) {
+    		for(SiteConfiguration.Link link : links) {
+                if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
+                    link.url = /*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/;
+    		}
+    	}
     }
     
 }

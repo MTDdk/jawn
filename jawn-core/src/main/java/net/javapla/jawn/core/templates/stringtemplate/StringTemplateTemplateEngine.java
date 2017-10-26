@@ -36,7 +36,6 @@ import net.javapla.jawn.core.templates.config.SiteConfiguration;
 import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
 import net.javapla.jawn.core.templates.config.TemplateConfig;
 import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
-import net.javapla.jawn.core.templates.config.Templates;
 import net.javapla.jawn.core.templates.stringtemplate.rewrite.STFastGroupDir;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringBuilderWriter;
@@ -57,7 +56,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     private final boolean useCache;
     private final boolean outputHtmlIndented;
     private final Modes mode;
-
 
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
@@ -266,8 +264,9 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
 //            language,
             
             //add scripts
-            readLinks(SCRIPTS_TEMPLATE, conf.scripts, error), //TODO <-- this can clearly be cached somehow
-            readLinks(STYLES_TEMPLATE, conf.styles, error),
+
+            createLinks(conf.scripts),
+            createLinks(conf.styles),
             
             // put the rendered content into the main template
             content,
@@ -293,27 +292,30 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         }
     }
     
-    private final String readLinks(final Templates template, final SiteConfiguration.Style[] links, final ErrorBuffer error) {
-        if (links == null) return null;
-        
-        final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
-        
-        linkTemplate.add("links", links);//prefixResourceLinks(links, template.prefix));
-        
-        final Writer writer = new StringBuilderWriter();
-        linkTemplate.write(createSTWriter(writer), error);
-        return writer.toString();
+    protected final String createLinks(SiteConfiguration.Style[] links) {
+    	final StringBuilder sb = new StringBuilder();
+    	for(SiteConfiguration.Style l : links) {
+    		sb.append(String.format("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\""
+    				+ "%s%s>",
+    			l.url, 
+    			l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
+    			l.integrity != null ? " integrity=\"" + l.integrity +"\"" : ""));
+    	};
+    	return sb.toString();
     }
-    protected final String readLinks(final Templates template, final SiteConfiguration.Script[] links, final ErrorBuffer error) {
-        if (links == null) return null;
-        
-        final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
-        
-        linkTemplate.add("links", links);//prefixResourceLinks(links, template.prefix));
-        
-        final Writer writer = new StringBuilderWriter();
-        linkTemplate.write(createSTWriter(writer), error);
-        return writer.toString();
+    
+    protected final String createLinks(SiteConfiguration.Script[] links) {
+    	final StringBuilder sb = new StringBuilder();
+    	for(SiteConfiguration.Script l : links) {
+    		sb.append(String.format("<script src=\"%s\"%s%s%s%s%s</script>",
+    			l.url, 
+    			l.type != null ? " type=\"" + l.type + "\"" : "",
+ 	    		l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
+ 	    	    l.integrity != null ? " integrity=\"" + l.integrity +"\"" : "",
+    			l.async ? " async" : "",
+    			l.defer ? " defer" : ""));
+    	}
+    	return sb.toString();
     }
 
     /**
@@ -357,10 +359,4 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         }
     }
     
-    static final Templates STYLES_TEMPLATE = new Templates(
-            "$links:{link|<link rel=\"stylesheet\" type=\"textt/css\" href=\"$link.url$\">}$", "/css/", '$', '$'
-    );
-    static final Templates SCRIPTS_TEMPLATE = new Templates(
-            "$links:{link|<script src=\"$link.url$\"$if(link.async)$ async$endif$$if(link.defer)$ defer$endif$></script>}$", "/js/", '$', '$'
-    );
 }

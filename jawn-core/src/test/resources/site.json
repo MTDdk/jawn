@@ -8,6 +8,7 @@
 	],
 	
 	"styles": [
-		"style.css"
+		{"url": "style1.css"},
+		{"url": "style2.css", "integrity":"#2", "crossorigin":"none"}
 	]
 }
