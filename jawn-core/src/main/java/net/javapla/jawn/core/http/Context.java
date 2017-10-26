@@ -65,7 +65,7 @@ public interface Context {
     public String getRouteParam(String name);
     public Map<String, String> getRouteParams();
     
-    public SessionFacade getSession(boolean createIfNotExists);
+    public Session getSession(boolean createIfNotExists);
     public void setFlash(String name, Object value);
     
     public Modes mode();

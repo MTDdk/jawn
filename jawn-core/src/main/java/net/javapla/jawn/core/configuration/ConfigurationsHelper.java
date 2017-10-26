@@ -4,15 +4,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.FileWriteMode;
-import com.google.common.io.Files;
 
 import net.javapla.jawn.core.crypto.SecretGenerator;
 import net.javapla.jawn.core.util.Constants;
@@ -32,25 +31,17 @@ public abstract class ConfigurationsHelper {
             properties.set(Constants.PROPERTY_SECURITY_SECRET, secret);
             
             // try to save it
-            //new File("").getAbsolutePath()
-            //ConfigurationsHelper.class.getClassLoader().getResource(Constants.PROPERTIES_FILE_USER).toExternalForm();
             Properties props = new Properties();
             props.setProperty(Constants.PROPERTY_SECURITY_SECRET, secret);
             File to = new File(new File("").getAbsolutePath() + "/src/main/resources/"+Constants.PROPERTIES_FILE_USER);
-            try {
-                Files.asCharSink(to, Charsets.UTF_8, FileWriteMode.APPEND).write(Constants.PROPERTY_SECURITY_SECRET+"="+secret);
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
             
-            try (FileOutputStream stream = new FileOutputStream(to, true)) {
-                
+            try (FileOutputStream stream = new FileOutputStream(to, true);
+                PrintWriter out = new PrintWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
+                out.println();
+                out.println(Constants.PROPERTY_SECURITY_SECRET+"="+secret);
             } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }

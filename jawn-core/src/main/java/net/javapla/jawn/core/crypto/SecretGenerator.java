@@ -4,9 +4,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public abstract class SecretGenerator {
     
     public static final int AES_SECRET_LENGTH = 64;
@@ -31,4 +28,5 @@ public abstract class SecretGenerator {
 
         return new String(result);
     }
+    
 }

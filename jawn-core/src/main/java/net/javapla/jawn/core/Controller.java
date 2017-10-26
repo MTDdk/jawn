@@ -42,6 +42,7 @@ import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.ResponseStream;
+import net.javapla.jawn.core.http.Session;
 import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.images.ImageHandlerBuilder;
 import net.javapla.jawn.core.parsers.ParserEngine;
@@ -1187,7 +1188,7 @@ public abstract class Controller implements ResultHolder {
      * Returns reference to a current session. Creates a new session of one does not exist.
      * @return reference to a current session.
      */
-    protected SessionFacade session(){
+    protected Session session(){
         return context.getSession(false);
     }
     /**

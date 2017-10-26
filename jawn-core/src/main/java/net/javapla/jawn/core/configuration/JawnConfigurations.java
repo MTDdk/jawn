@@ -129,6 +129,7 @@ public class JawnConfigurations implements Configurations {
         return Boolean.parseBoolean(get(name));
     }
     
+    
     @Override
     public void set(String name, String value) {
         props.setProperty(name, value);

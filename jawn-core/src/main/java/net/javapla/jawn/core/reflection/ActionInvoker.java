@@ -90,9 +90,7 @@ public class ActionInvoker implements ResponseFunction {
         controller.init(context, injector);
         
         //Inject dependencies
-        if (injector != null) {
-            injector.injectMembers(controller);
-        }
+        injector.injectMembers(controller);
     }
     
     public final static boolean isAllowedAction(Class<? extends Controller> controller, String actionMethodName) {

@@ -18,6 +18,8 @@ public interface Session {
     Object remove(String key);
     <T> T remove(String key, Class<T> type);
     
+    boolean containsKey(String key);
+    
     void invalidate(); //clear
     
     boolean isEmpty();

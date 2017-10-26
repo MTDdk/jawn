@@ -3,10 +3,12 @@ package net.javapla.jawn.core.http;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.google.inject.Inject;
 
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.crypto.Crypto;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.DataCodec;
@@ -29,38 +31,42 @@ public class RealSession implements Session {
     private boolean sessionDataHasChanged = false;
 
 
-
-
     @Inject
-    public RealSession(Crypto crypto) {
+    public RealSession(Crypto crypto, JawnConfigurations properties) {
         this.crypto = crypto;
         
         //TODO read a bunch of properties
-        sessionExpiryTimeInMs = -1;
-        defaultSessionExpiryTimeInMs = sessionExpiryTimeInMs * 1000;
+        sessionExpiryTimeInMs = -1; // TODO should be configurable
+        defaultSessionExpiryTimeInMs = sessionExpiryTimeInMs * 1000; //TODO should be configurable
         cookieOnlySession = true; // if false have the cookie only save a session id that we then look up
-        sessionCookieName = "jawncookie" + Constants.SESSION_SUFFIX;
-        applicationSecret = "gawdDamnSecretThisIs!";
-        applicationCookieEncryption = true;
+        sessionCookieName = "JAWN" + Constants.SESSION_SUFFIX;
         
+        Optional<String> secret = properties.getSecure(Constants.PROPERTY_SECURITY_SECRET);
+        if (secret.isPresent()) {
+            applicationSecret = secret.get();
+            applicationCookieEncryption = properties.getBoolean(Constants.PROPERTY_SECURITY_COOKIE_ENCRYPTION);
+        } else {
+            applicationSecret = "";
+            applicationCookieEncryption = false;
+        }
     }
 
     @Override
     public void init(Context context) {
         Cookie cookie = context.getCookie(sessionCookieName);
         
-        if (cookie != null && cookie.getValue() != null && !cookie.getValue().trim().isEmpty()) {
+        if (cookie != null && !StringUtil.blank(cookie.getValue())) {
             String value = cookie.getValue();
             
-            // the first substring until "-" is the sign
-            String sign = value.substring(0, value.indexOf("-"));
+            // the first substring until "-" is the SHA signing
+            String signing = value.substring(0, value.indexOf("-"));
 
             // rest from "-" until the end is the payload of the cookie
             String payload = value.substring(value.indexOf("-") + 1);
 
             
             // check if payload is valid:
-            if (DataCodec.safeEquals(sign, crypto.hash().SHA256().sign(payload, applicationSecret))) {
+            if (DataCodec.safeEquals(signing, crypto.hash().SHA256().sign(payload, applicationSecret))) {
                 if (applicationCookieEncryption)
                     payload = crypto.encrypt().AES().decrypt(payload);
                 DataCodec.decode(data, payload);
@@ -128,6 +134,11 @@ public class RealSession implements Session {
     public <T> T remove(String key, Class<T> type) {
         Object o = data.remove(key);
         return o == null? null : type.cast(o);
+    }
+    
+    @Override
+    public boolean containsKey(String key) {
+        return data.containsKey(key);
     }
 
     @Override
