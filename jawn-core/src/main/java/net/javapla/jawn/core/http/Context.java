@@ -40,11 +40,6 @@ public interface Context {
     }
     
     /**
-     * @return An instance of the Request interface
-     */
-    public RequestConvert createRequest();
-    
-    /**
      * Returns instance of {@link Route} to be used for potential conditional logic inside controller filters.
      *
      * @return instance of {@link Route}

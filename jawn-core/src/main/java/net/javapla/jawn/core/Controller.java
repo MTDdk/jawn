@@ -43,7 +43,6 @@ import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.Session;
-import net.javapla.jawn.core.http.SessionFacade;
 import net.javapla.jawn.core.images.ImageHandlerBuilder;
 import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;

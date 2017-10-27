@@ -70,18 +70,18 @@ public class RealSession implements Session {
                 if (applicationCookieEncryption)
                     payload = crypto.encrypt().AES().decrypt(payload);
                 DataCodec.decode(data, payload);
-            }
-
-            // If an expiry time was set previously use that instead of the
-            // default session expire time.
-            if (data.containsKey(EXPIRY_TIME_KEY)) {
-                Long expiryTime = Long.parseLong(data.get(EXPIRY_TIME_KEY));
-                if (expiryTime >= 0) {
-                    sessionExpiryTimeInMs = expiryTime;
+                
+                // If an expiry time was set previously use that instead of the
+                // default session expire time.
+                if (data.containsKey(EXPIRY_TIME_KEY)) {
+                    Long expiryTime = Long.parseLong(data.get(EXPIRY_TIME_KEY));
+                    if (expiryTime >= 0) {
+                        sessionExpiryTimeInMs = expiryTime;
+                    }
                 }
+                
+                checkExpire();
             }
-
-            checkExpire();
         }
     }
 

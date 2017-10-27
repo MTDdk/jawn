@@ -23,7 +23,6 @@ import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.Request;
-import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.Response;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.Session;
@@ -86,11 +85,6 @@ public class ServerContext implements Context.Internal2 {
     @Override
     public Response response() {
         return response;
-    }
-
-    @Override
-    public RequestConvert createRequest() {
-        return null;
     }
 
     @Override
