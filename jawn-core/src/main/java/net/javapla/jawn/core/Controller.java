@@ -40,7 +40,6 @@ import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.ResponseStream;
 import net.javapla.jawn.core.http.Session;
 import net.javapla.jawn.core.images.ImageHandlerBuilder;
@@ -618,16 +617,6 @@ public abstract class Controller implements ResultHolder {
             .getInstance(DeploymentInfo.class)
             .translateIntoContextPath(*//*+ lang + */RouterHelper.generate(controllerPath, action, id, params) + anchor/*)*/;
         redirect(uri);
-    }
-    
-    
-    /**
-     * Only to be used by POST/PUT as only they can carry extra information
-     * 
-     * @return A Request object with helper methods
-     */
-    protected RequestConvert request() {
-        return context.createRequest();
     }
     
     /**
