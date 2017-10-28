@@ -52,14 +52,13 @@ public class StringTemplateTemplateEngineTest {
 		
 		String html = engine.createLinks(scripts);
 		
-		Assert.assertTrue(html.contains("defer"));
-		Assert.assertTrue(html.contains("async"));
 		Assert.assertTrue(html.indexOf("script1.js") < html.indexOf("script2.js"));
 		Assert.assertTrue(html.indexOf("script2.js") < html.indexOf("defer"));
+		Assert.assertTrue(html.indexOf("script2.js") < html.indexOf("async"));
+		Assert.assertTrue(html.indexOf("script2.js") < html.indexOf("defer"));
 		Assert.assertTrue(html.indexOf("script2.js") < html.indexOf("script3.js"));
-		Assert.assertTrue(html.indexOf("script3.js") < html.indexOf("test_integrity"));
-		Assert.assertTrue(html.contains("integrity=\"test_integrity\""));
-		Assert.assertTrue(html.contains("crossorigin=\"test_crossorigin\""));
+		Assert.assertTrue(html.indexOf("script3.js") < html.indexOf("integrity=\"test_integrity\""));
+		Assert.assertTrue(html.indexOf("script3.js") < html.indexOf("crossorigin=\"test_crossorigin\""));
 
 	}
 	
@@ -72,10 +71,9 @@ public class StringTemplateTemplateEngineTest {
 		
 		String html = engine.createLinks(styles);
 		
-		Assert.assertTrue(html.contains("integrity=\"test_integrity\""));
-		Assert.assertTrue(html.contains("crossorigin=\"test_crossorigin\""));
 		Assert.assertTrue(html.indexOf("style1.css") < html.indexOf("style2.css"));
-		Assert.assertTrue(html.indexOf("style2.css") < html.indexOf("test_integrity"));
+		Assert.assertTrue(html.indexOf("style2.css") < html.indexOf("integrity=\"test_integrity\""));
+		Assert.assertTrue(html.indexOf("style2.css") < html.indexOf("crossorigin=\"test_crossorigin\""));
 		
 	}
 
