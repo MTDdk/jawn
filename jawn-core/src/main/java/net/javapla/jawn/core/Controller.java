@@ -40,9 +40,8 @@ import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.HttpMethod;
-import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.ResponseStream;
-import net.javapla.jawn.core.http.SessionFacade;
+import net.javapla.jawn.core.http.Session;
 import net.javapla.jawn.core.images.ImageHandlerBuilder;
 import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
@@ -620,16 +619,6 @@ public abstract class Controller implements ResultHolder {
         redirect(uri);
     }
     
-    
-    /**
-     * Only to be used by POST/PUT as only they can carry extra information
-     * 
-     * @return A Request object with helper methods
-     */
-    protected RequestConvert request() {
-        return context.createRequest();
-    }
-    
     /**
      * Returns multiple request values for a name.
      *
@@ -1187,7 +1176,7 @@ public abstract class Controller implements ResultHolder {
      * Returns reference to a current session. Creates a new session of one does not exist.
      * @return reference to a current session.
      */
-    protected SessionFacade session(){
+    protected Session session(){
         return context.getSession(false);
     }
     /**

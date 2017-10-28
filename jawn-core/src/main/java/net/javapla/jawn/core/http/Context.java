@@ -40,11 +40,6 @@ public interface Context {
     }
     
     /**
-     * @return An instance of the Request interface
-     */
-    public RequestConvert createRequest();
-    
-    /**
      * Returns instance of {@link Route} to be used for potential conditional logic inside controller filters.
      *
      * @return instance of {@link Route}
@@ -65,7 +60,7 @@ public interface Context {
     public String getRouteParam(String name);
     public Map<String, String> getRouteParams();
     
-    public SessionFacade getSession(boolean createIfNotExists);
+    public Session getSession(boolean createIfNotExists);
     public void setFlash(String name, Object value);
     
     public Modes mode();

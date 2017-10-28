@@ -23,10 +23,9 @@ import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.Request;
-import net.javapla.jawn.core.http.RequestConvert;
 import net.javapla.jawn.core.http.Response;
 import net.javapla.jawn.core.http.ResponseStream;
-import net.javapla.jawn.core.http.SessionFacade;
+import net.javapla.jawn.core.http.Session;
 import net.javapla.jawn.core.routes.Route;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
@@ -39,7 +38,7 @@ public class ServerContext implements Context.Internal2 {
     
     private final JawnConfigurations properties;
     //private final SessionManager sessionManager;
-//    private final Session session;
+    private final Session session;
     
     private Request request;
     private Response response;
@@ -55,9 +54,9 @@ public class ServerContext implements Context.Internal2 {
     
     
     @Inject
-    ServerContext(JawnConfigurations properties/*, Session session*/) {
+    ServerContext(JawnConfigurations properties, Session session) {
         this.properties = properties;
-//        this.session = session;
+        this.session = session;
     }
     
     public void init(Request request, Response response) {
@@ -67,7 +66,7 @@ public class ServerContext implements Context.Internal2 {
         addResponseHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
         
         // init session scope
-//        session.init(this);
+        session.init(this);
     }
     
     @Override
@@ -89,11 +88,6 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    public RequestConvert createRequest() {
-        return null;
-    }
-
-    @Override
     public Route getRoute() {
         return route;
     }
@@ -110,14 +104,14 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    public SessionFacade getSession(boolean createIfNotExists) {
-        return null;//sessionManger.create();/get();
+    public Session getSession(boolean createIfNotExists) {
+        return session;//sessionManger.create();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void setFlash(String name, Object value) {
-        SessionFacade session = getSession(true);
+        Session session = getSession(true);
         if (session.get(Context.FLASH_SESSION_KEYWORD) == null) {
             session.put(Context.FLASH_SESSION_KEYWORD, new HashMap<String, Object>());
         }
@@ -411,11 +405,14 @@ public class ServerContext implements Context.Internal2 {
         
         // flash
         if (handleFlash) {
-            SessionFacade session = getSession(false);
-            if (session != null && session.containsKey(FLASH_SESSION_KEYWORD)) {
-                Object object = session.get(FLASH_SESSION_KEYWORD);
-                controllerResponse.addViewObject(FLASH_KEYWORD, object);
-                session.remove(FLASH_SESSION_KEYWORD);
+            Session session = getSession(false);
+            if (session != null) {
+                if (session.containsKey(FLASH_SESSION_KEYWORD)) {
+                    Object object = session.get(FLASH_SESSION_KEYWORD);
+                    controllerResponse.addViewObject(FLASH_KEYWORD, object);
+                    session.remove(FLASH_SESSION_KEYWORD);
+                }
+                session.save(this);
             }
         }
         

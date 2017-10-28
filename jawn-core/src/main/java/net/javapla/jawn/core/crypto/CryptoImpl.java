@@ -114,7 +114,7 @@ public class CryptoImpl implements Crypto {
         //http://stackoverflow.com/questions/20796042/aes-encryption-and-decryption-with-java
         static final String ALGORITHM = "AES";
         
-        private final int keyLength = 64;
+        private final int keyLength = SecretGenerator.AES_SECRET_LENGTH;
         private final Optional<SecretKeySpec> secretKeySpec;
         
         private AesEncryption(Optional<String> secret) {
@@ -125,6 +125,8 @@ public class CryptoImpl implements Crypto {
                 if (StringUtil.blank(applicationSecret)) {
                     throw new IllegalArgumentException(Constants.PROPERTY_SECURITY_SECRET + " is blank");
                 }
+                
+                // TODO Perhaps some sanitisation of the secret - it seems '-' is illegal
                 
                 if (applicationSecret.length() < keyLength) {
                     applicationSecret = expandSecret(applicationSecret, keyLength);
