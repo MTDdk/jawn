@@ -2,6 +2,7 @@ package net.javapla.jawn.core.templates.stringtemplate;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -36,7 +37,6 @@ import net.javapla.jawn.core.templates.config.SiteConfiguration;
 import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
 import net.javapla.jawn.core.templates.config.TemplateConfig;
 import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
-import net.javapla.jawn.core.templates.config.Templates;
 import net.javapla.jawn.core.templates.stringtemplate.rewrite.STFastGroupDir;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringBuilderWriter;
@@ -57,7 +57,8 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     private final boolean useCache;
     private final boolean outputHtmlIndented;
     private final Modes mode;
-
+    
+    private final HashMap<String,Site> cachedSiteObjs = new HashMap<>();
 
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
@@ -253,32 +254,44 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         // README doesn't work like this..
 //        if (layoutTemplate.getAttribute("site") == null) return;
         
-        SiteConfiguration conf = 
-                configReader.read(templateRootFolder, controller, layoutTemplate.impl.prefix.substring(1), useCache);
-        Site site = new Site(
-            // add the URL
-            ctx.requestUrl(),
-                
-            // add title
-            conf.title,
-            
-            // add language (if any)
-//            language,
-            
-            //add scripts
-            readLinks(SCRIPTS_TEMPLATE, conf.scripts, error), //TODO <-- this can clearly be cached somehow
-            readLinks(STYLES_TEMPLATE, conf.styles, error),
-            
-            // put the rendered content into the main template
-            content,
-            
-            // state the current mode
-            mode
-        );
+        SiteConfiguration conf = configReader.read(templateRootFolder, controller, layoutTemplate.impl.prefix.substring(1), useCache);
+        Site site;
+        
+        if(mode == Modes.DEV) {
+        	site = createSite(ctx, conf, content);
+        } else {
+        	site = cachedSiteObjs.computeIfAbsent(controller + layoutTemplate.impl.prefix, k -> createSite(ctx, conf, content));
+        }
         
         // put everything into the reserved keyword
         layoutTemplate.add("site", site);
     }
+    
+    private Site createSite(Context ctx, SiteConfiguration conf, String content) {
+        return new Site(
+                // add the URL
+                ctx.requestUrl(),
+                    
+                // add title
+                conf.title,
+                
+                // add language (if any)
+//                language,
+                
+                //add scripts
+
+                createLinks(conf.scripts),
+                createLinks(conf.styles),
+                
+                // put the rendered content into the main template
+                content,
+                
+                // state the current mode
+                mode
+            );
+
+    }
+    
     
     private final void injectTemplateValues(final ST template, final Map<String, Object> values) {
         if (values != null) {
@@ -293,27 +306,29 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         }
     }
     
-    private final String readLinks(final Templates template, final String[] links, final ErrorBuffer error) {
-        if (links == null) return null;
-        
-        final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
-        
-        linkTemplate.add("links", links);//prefixResourceLinks(links, template.prefix));
-        
-        final Writer writer = new StringBuilderWriter();
-        linkTemplate.write(createSTWriter(writer), error);
-        return writer.toString();
+    protected final String createLinks(SiteConfiguration.Style[] links) {
+    	final StringBuilder sb = new StringBuilder();
+    	for(SiteConfiguration.Style l : links) {
+    		sb.append(String.format("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\"%s%s>",
+    			l.url, 
+    			l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
+    			l.integrity != null ? " integrity=\"" + l.integrity +"\"" : ""));
+    	};
+    	return sb.toString();
     }
-    protected final String readLinks(final Templates template, final SiteConfiguration.Script[] links, final ErrorBuffer error) {
-        if (links == null) return null;
-        
-        final ST linkTemplate = new ST(template.template, template.delimiterStart, template.delimiterEnd);
-        
-        linkTemplate.add("links", links);//prefixResourceLinks(links, template.prefix));
-        
-        final Writer writer = new StringBuilderWriter();
-        linkTemplate.write(createSTWriter(writer), error);
-        return writer.toString();
+    
+    protected final String createLinks(SiteConfiguration.Script[] links) {
+    	final StringBuilder sb = new StringBuilder();
+    	for(SiteConfiguration.Script l : links) {
+    		sb.append(String.format("<script src=\"%s\"%s%s%s%s%s</script>",
+    			l.url, 
+    			l.type != null ? " type=\"" + l.type + "\"" : "",
+ 	    		l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
+ 	    	    l.integrity != null ? " integrity=\"" + l.integrity +"\"" : "",
+    			l.async ? " async" : "",
+    			l.defer ? " defer" : ""));
+    	}
+    	return sb.toString();
     }
 
     /**
@@ -357,10 +372,4 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         }
     }
     
-    static final Templates STYLES_TEMPLATE = new Templates(
-            "$links:{link|<link rel=\"stylesheet\" type=\"text/css\" href=\"$link$\">}$", "/css/", '$', '$'
-    );
-    static final Templates SCRIPTS_TEMPLATE = new Templates(
-            "$links:{link|<script src=\"$link.url$\"$if(link.async)$ async$endif$$if(link.defer)$ defer$endif$></script>}$", "/js/", '$', '$'
-    );
 }
