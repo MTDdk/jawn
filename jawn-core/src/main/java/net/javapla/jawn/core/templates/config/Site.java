@@ -6,7 +6,6 @@ public class Site {
 
     public final String url,
                         title,
-//                        language,
                         scripts,
                         styles;
     
@@ -14,10 +13,9 @@ public class Site {
     
     public final Modes mode;
     
-    public Site(final String url, final String title/*, String language*/, final String scripts, final String styles, final String content, final Modes mode) {
+    protected Site(final String url, final String title, final String scripts, final String styles, final String content, final Modes mode) {
         this.url = url;
         this.title = title;
-//        this.language = language;
         this.scripts = scripts;
         this.styles = styles;
         this.content = content;
@@ -36,7 +34,6 @@ public class Site {
         public String 
             url,
             title,
-            language,
             scripts,
             styles;
 
@@ -53,16 +50,20 @@ public class Site {
             this.title = title;
             return this;
         }
-        public Site.Builder language(String language) {
-            this.language = language;
-            return this;
-        }
         public Site.Builder scripts(String scripts) {
             this.scripts = scripts;
             return this;
         }
+        public Site.Builder scripts(SiteConfiguration.Script[] links) {
+            this.scripts = createLinks(links);
+            return this;
+        }
         public Site.Builder styles(String styles) {
             this.styles = styles;
+            return this;
+        }
+        public Site.Builder styles(SiteConfiguration.Style[] links) {
+            this.styles = createLinks(links);
             return this;
         }
         public Site.Builder content(String content) {
@@ -75,7 +76,32 @@ public class Site {
         }
         
         public Site build() {
-            return new Site(url, title/*, language*/,scripts, styles,content,mode);
+            return new Site(url, title,scripts, styles,content,mode);
+        }
+        
+        protected final String createLinks(SiteConfiguration.Script[] links) {
+            final StringBuilder sb = new StringBuilder();
+            for(SiteConfiguration.Script l : links) {
+                sb.append(String.format("<script src=\"%s\"%s%s%s%s%s></script>\n",
+                    l.url, 
+                    l.type != null ? " type=\"" + l.type + "\"" : "",
+                    l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
+                    l.integrity != null ? " integrity=\"" + l.integrity +"\"" : "",
+                    l.async ? " async" : "",
+                    l.defer ? " defer" : ""));
+            }
+            return sb.toString();
+        }
+        
+        protected final String createLinks(SiteConfiguration.Style[] links) {
+            final StringBuilder sb = new StringBuilder();
+            for(SiteConfiguration.Style l : links) {
+                sb.append(String.format("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\"%s%s>\n",
+                    l.url, 
+                    l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
+                    l.integrity != null ? " integrity=\"" + l.integrity +"\"" : ""));
+            };
+            return sb.toString();
         }
     }
 }
