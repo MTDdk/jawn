@@ -257,7 +257,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         SiteConfiguration conf = configReader.read(templateRootFolder, controller, layoutTemplate.impl.prefix.substring(1), useCache);
         Site site;
         
-        if(mode == Modes.DEV) {
+        if (mode == Modes.DEV) {
         	site = createSite(ctx, conf, content);
         } else {
         	site = cachedSiteObjs.computeIfAbsent(controller + layoutTemplate.impl.prefix, k -> createSite(ctx, conf, content));
@@ -268,28 +268,16 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     }
     
     private Site createSite(Context ctx, SiteConfiguration conf, String content) {
-        return new Site(
-                // add the URL
-                ctx.requestUrl(),
+        return Site.builder()
+                    .url(ctx.requestUrl()) // add the URL
+                    .title(conf.title) // add title
+                    .content(content) // put the rendered content into the main template
+                    .mode(mode) // state the current mode
                     
-                // add title
-                conf.title,
-                
-                // add language (if any)
-//                language,
-                
-                //add scripts
-
-                createLinks(conf.scripts),
-                createLinks(conf.styles),
-                
-                // put the rendered content into the main template
-                content,
-                
-                // state the current mode
-                mode
-            );
-
+                    //add scripts
+                    .scripts(conf.scripts)
+                    .styles(conf.styles)
+                    .build();
     }
     
     
@@ -306,30 +294,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         }
     }
     
-    protected final String createLinks(SiteConfiguration.Style[] links) {
-    	final StringBuilder sb = new StringBuilder();
-    	for(SiteConfiguration.Style l : links) {
-    		sb.append(String.format("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\"%s%s>",
-    			l.url, 
-    			l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
-    			l.integrity != null ? " integrity=\"" + l.integrity +"\"" : ""));
-    	};
-    	return sb.toString();
-    }
-    
-    protected final String createLinks(SiteConfiguration.Script[] links) {
-    	final StringBuilder sb = new StringBuilder();
-    	for(SiteConfiguration.Script l : links) {
-    		sb.append(String.format("<script src=\"%s\"%s%s%s%s%s</script>",
-    			l.url, 
-    			l.type != null ? " type=\"" + l.type + "\"" : "",
- 	    		l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
- 	    	    l.integrity != null ? " integrity=\"" + l.integrity +"\"" : "",
-    			l.async ? " async" : "",
-    			l.defer ? " defer" : ""));
-    	}
-    	return sb.toString();
-    }
 
     /**
      * Prefixes local resources with css/ or js/.

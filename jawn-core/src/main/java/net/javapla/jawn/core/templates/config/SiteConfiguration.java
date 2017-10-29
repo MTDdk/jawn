@@ -34,12 +34,11 @@ public class SiteConfiguration implements Cloneable {
     
     public static class Link {
     	public String url;
+    	public String integrity;
+    	public String crossorigin;
     }
     
     public static class Style extends Link {
-    	public String integrity;
-    	public String crossorigin;
-    	
     	public Style() {}
     	public Style(String url) {
     		this(url, null, null);
@@ -56,8 +55,6 @@ public class SiteConfiguration implements Cloneable {
     	public String type;
     	public boolean async;
     	public boolean defer;
-    	public String integrity;
-    	public String crossorigin;
     	
     	public Script() {}
     	public Script(String url, boolean async, boolean defer) {
