@@ -4,8 +4,19 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class SiteBuilderTest {
-
-	@Test
+    
+    @Test
+    public void simpleScriptsFormatting() {
+        SiteConfiguration.Script[] scripts = new SiteConfiguration.Script[]{
+            new SiteConfiguration.Script("script1.js",false, false)
+        };
+        
+        String html = Site.builder().createLinks(scripts);
+        
+        Assert.assertEquals("<script src=\"script1.js\"></script>", html);
+    }
+    
+    @Test
 	public void parsingScriptsFormatting() {
 		
 		SiteConfiguration.Script[] scripts = new SiteConfiguration.Script[]{
@@ -27,6 +38,17 @@ public class SiteBuilderTest {
 	}
 	
 	@Test
+    public void simpleStylesFormatting() {
+	    SiteConfiguration.Style[] styles = new SiteConfiguration.Style[] {
+            new SiteConfiguration.Style("style1.css")
+    };
+        
+        String html = Site.builder().createLinks(styles);
+        
+        Assert.assertEquals("<link rel=\"stylesheet\" type=\"text/css\" href=\"style1.css\">", html);
+    }
+
+    @Test
 	public void parsingStylesFormatting() {
 		SiteConfiguration.Style[] styles = new SiteConfiguration.Style[] {
 				new SiteConfiguration.Style("style1.css"),

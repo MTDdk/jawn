@@ -34,7 +34,6 @@ public class Site {
         public String 
             url,
             title,
-            language,
             scripts,
             styles;
 
@@ -49,10 +48,6 @@ public class Site {
         }
         public Site.Builder title(String title) {
             this.title = title;
-            return this;
-        }
-        public Site.Builder language(String language) {
-            this.language = language;
             return this;
         }
         public Site.Builder scripts(String scripts) {
@@ -81,13 +76,13 @@ public class Site {
         }
         
         public Site build() {
-            return new Site(url, title/*, language*/,scripts, styles,content,mode);
+            return new Site(url, title,scripts, styles,content,mode);
         }
         
         protected final String createLinks(SiteConfiguration.Script[] links) {
             final StringBuilder sb = new StringBuilder();
             for(SiteConfiguration.Script l : links) {
-                sb.append(String.format("<script src=\"%s\"%s%s%s%s%s</script>",
+                sb.append(String.format("<script src=\"%s\"%s%s%s%s%s></script>\n",
                     l.url, 
                     l.type != null ? " type=\"" + l.type + "\"" : "",
                     l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
@@ -101,7 +96,7 @@ public class Site {
         protected final String createLinks(SiteConfiguration.Style[] links) {
             final StringBuilder sb = new StringBuilder();
             for(SiteConfiguration.Style l : links) {
-                sb.append(String.format("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\"%s%s>",
+                sb.append(String.format("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\"%s%s>\n",
                     l.url, 
                     l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
                     l.integrity != null ? " integrity=\"" + l.integrity +"\"" : ""));
