@@ -13,7 +13,7 @@ public class SiteBuilderTest {
         
         String html = Site.builder().createLinks(scripts);
         
-        Assert.assertEquals("<script src=\"script1.js\"></script>", html);
+        Assert.assertEquals("<script src=\"script1.js\"></script>\n", html);
     }
     
     @Test
@@ -45,7 +45,7 @@ public class SiteBuilderTest {
         
         String html = Site.builder().createLinks(styles);
         
-        Assert.assertEquals("<link rel=\"stylesheet\" type=\"text/css\" href=\"style1.css\">", html);
+        Assert.assertEquals("<link rel=\"stylesheet\" type=\"text/css\" href=\"style1.css\">\n", html);
     }
 
     @Test
