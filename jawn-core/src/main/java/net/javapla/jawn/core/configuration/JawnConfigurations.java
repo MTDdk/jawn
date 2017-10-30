@@ -111,7 +111,7 @@ public class JawnConfigurations implements Configurations {
     public String getOrDie(String name) {
         if (props.containsKey(name)) return props.getProperty(name);
         
-        String KEY_NOT_FOUND = "Key %s does not exist. Please include it in your jawn.properties. Otherwise this app will not work";
+        String KEY_NOT_FOUND = "Key %s does not exist. Please include it in your " + Constants.PROPERTIES_FILE_USER + ". Otherwise this app will not work";
         logger.error(String.format(KEY_NOT_FOUND, name));
         throw new RuntimeException(String.format(KEY_NOT_FOUND, name));
     }
@@ -125,8 +125,18 @@ public class JawnConfigurations implements Configurations {
     public int getInt(String name) {
         return Integer.parseInt(get(name));
     }
+    
+    /**
+     * Safely read and parses a boolean from properties.
+     * If the value is not set, it defaults to <code>false</code>
+     * @param name the property containing the boolean representation to be parsed
+     * @return If the value is not set, it defaults to <code>false</code>
+     */
     public boolean getBoolean(String name) {
         return Boolean.parseBoolean(get(name));
+    }
+    public Optional<Boolean> getBooleanSecure(String name) {
+        return props.getProperty(name) != null ? Optional.of(getBoolean(name)) : Optional.empty();
     }
     
     

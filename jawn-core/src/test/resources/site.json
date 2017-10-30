@@ -2,13 +2,16 @@
 	"title": "jawn test",
 
 	"scripts": [
-		// some comment	
+		// some comment
 		{"url": "script1.js"},
 		{"url": "script2.js"}
 	],
 	
 	"styles": [
-		{"url": "style1.css"},
-		{"url": "style2.css", "integrity":"#2", "crossorigin":"none"}
+		{url: "style1.css"},
+		{url: "style2.css", attr:{
+			"integrity":"#2",
+			"crossorigin":"none"
+		}}
 	]
 }
