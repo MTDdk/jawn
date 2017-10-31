@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
 import net.javapla.jawn.core.configuration.DeploymentInfo;
+import net.javapla.jawn.core.templates.config.SiteConfiguration.Tag;
 
 /**
  * 
@@ -162,15 +163,13 @@ public class SiteConfigurationReader {
      */
     private SiteConfiguration mergeConfigurations(SiteConfiguration globalConf, SiteConfiguration localConf) {
         // do not do any overwrites to the globalConf
-        // clone it instead (or create an entirely new object instead)
+        // clone it instead (or create an entirely new object)
         SiteConfiguration topConf = globalConf.clone();
         if (localConf.title != null && !localConf.title.isEmpty()) topConf.title = localConf.title;
-        //topConf.scripts.addAll(localConf.scripts);
-        //topConf.styles.addAll(localConf.styles);
         
         if (localConf.scripts != null) {
             if (topConf.scripts != null) {
-                SiteConfiguration.Script[] scripts = new SiteConfiguration.Script[topConf.scripts.length + localConf.scripts.length];
+                SiteConfiguration.Tag[] scripts = new SiteConfiguration.Tag[topConf.scripts.length + localConf.scripts.length];
                 System.arraycopy(topConf.scripts, 0, scripts, 0, topConf.scripts.length);
                 System.arraycopy(localConf.scripts, 0, scripts, topConf.scripts.length, localConf.scripts.length);
                 topConf.scripts = scripts;
@@ -181,7 +180,7 @@ public class SiteConfigurationReader {
         
         if (localConf.styles != null) {
             if (topConf.styles != null) {
-            	SiteConfiguration.Style[] styles = new SiteConfiguration.Style[topConf.styles.length + localConf.styles.length];
+            	SiteConfiguration.Tag[] styles = new SiteConfiguration.Tag[topConf.styles.length + localConf.styles.length];
                 System.arraycopy(topConf.styles, 0, styles, 0, topConf.styles.length);
                 System.arraycopy(localConf.styles, 0, styles, topConf.styles.length, localConf.styles.length);
                 topConf.styles = styles;
@@ -198,13 +197,12 @@ public class SiteConfigurationReader {
      * Prefixes local resources with css/ or js/.
      * "Local" is defined by not starting with 'http.*' or 'ftp.*'
      */
-    private final void prefixResourceLinks(final SiteConfiguration.Link[] links, final String prefix) {
-    	if(links != null) {
-    		for(SiteConfiguration.Link link : links) {
+    private final void prefixResourceLinks(final SiteConfiguration.Tag[] links, final String prefix) {
+        if(links != null) {
+            for(SiteConfiguration.Tag link : links) {
                 if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
                     link.url = /*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/;
-    		}
-    	}
+            }
+        }
     }
-    
 }

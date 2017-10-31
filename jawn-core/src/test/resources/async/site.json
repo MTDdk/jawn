@@ -3,6 +3,6 @@
 	overrideDefault: true,
 
 	scripts: [
-		{url: "script3.js", async: true}
+		{url: "script3.js", attr: {async: true}}
 	]
 }

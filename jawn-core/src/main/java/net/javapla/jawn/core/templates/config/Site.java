@@ -54,16 +54,16 @@ public class Site {
             this.scripts = scripts;
             return this;
         }
-        public Site.Builder scripts(SiteConfiguration.Script[] links) {
-            this.scripts = createLinks(links);
+        public Site.Builder scripts(SiteConfiguration.Tag[] links) {
+            this.scripts = createScripts(links);
             return this;
         }
         public Site.Builder styles(String styles) {
             this.styles = styles;
             return this;
         }
-        public Site.Builder styles(SiteConfiguration.Style[] links) {
-            this.styles = createLinks(links);
+        public Site.Builder styles(SiteConfiguration.Tag[] links) {
+            this.styles = createStyles(links);
             return this;
         }
         public Site.Builder content(String content) {
@@ -76,30 +76,34 @@ public class Site {
         }
         
         public Site build() {
-            return new Site(url, title,scripts, styles,content,mode);
+            return new Site(url, title, scripts, styles, content, mode);
         }
         
-        protected final String createLinks(SiteConfiguration.Script[] links) {
-            final StringBuilder sb = new StringBuilder();
-            for(SiteConfiguration.Script l : links) {
-                sb.append(String.format("<script src=\"%s\"%s%s%s%s%s></script>\n",
-                    l.url, 
-                    l.type != null ? " type=\"" + l.type + "\"" : "",
-                    l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
-                    l.integrity != null ? " integrity=\"" + l.integrity +"\"" : "",
-                    l.async ? " async" : "",
-                    l.defer ? " defer" : ""));
-            }
-            return sb.toString();
+        protected final String createScripts(SiteConfiguration.Tag[] links) {
+            return createLinks(links, "<script src=\"", "></script>\n");
         }
         
-        protected final String createLinks(SiteConfiguration.Style[] links) {
+        protected final String createStyles(SiteConfiguration.Tag[] links) {
+            return createLinks(links, "<link rel=\"stylesheet\" type=\"text/css\" href=\"", ">\n");
+        }
+        
+        protected final String createLinks(SiteConfiguration.Tag[] links, String prefix, String postfix) {
+            // We are using a StringBuilder extensively and sacrificing readability a lot,
+            // but String#format and "String + String"-construct use StringBuilder internally, 
+            // so we could just as well minimise the overhead
             final StringBuilder sb = new StringBuilder();
-            for(SiteConfiguration.Style l : links) {
-                sb.append(String.format("<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\"%s%s>\n",
-                    l.url, 
-                    l.crossorigin != null ? " crossorigin=\"" + l.crossorigin + "\"" : "",
-                    l.integrity != null ? " integrity=\"" + l.integrity +"\"" : ""));
+            for(SiteConfiguration.Tag l : links) {
+                sb.append(prefix);
+                sb.append(l.url);
+                sb.append("\"");
+                l.attr.entrySet().forEach(entry -> {
+                    sb.append(" ");
+                    sb.append(entry.getKey());
+                    sb.append("=\"");
+                    sb.append(entry.getValue());
+                    sb.append("\"");
+                });
+                sb.append(postfix);
             };
             return sb.toString();
         }

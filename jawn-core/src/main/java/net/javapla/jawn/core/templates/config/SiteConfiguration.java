@@ -1,17 +1,18 @@
 package net.javapla.jawn.core.templates.config;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SiteConfiguration implements Cloneable {
 
     public String title;
-    public Script[] scripts;
-    public Style[] styles;
+    public Tag[] scripts;
+    public Tag[] styles;
     
     public boolean overrideDefault;
     
-    public SiteConfiguration() {
-    }
+    public SiteConfiguration() { }
     
     @Override
     public String toString() {
@@ -22,52 +23,40 @@ public class SiteConfiguration implements Cloneable {
     protected SiteConfiguration clone() {
         SiteConfiguration conf = new SiteConfiguration();
         conf.title = this.title;
-        //conf.scripts.addAll(this.scripts);
-        if (scripts != null)
-        conf.scripts = Arrays.copyOf(this.scripts, scripts.length);
-//        conf.styles.addAll(this.styles);
-        if (styles != null)
-        conf.styles = Arrays.copyOf(this.styles, styles.length);
         conf.overrideDefault = this.overrideDefault;
+        
+        if (scripts != null)
+            conf.scripts = Arrays.stream(this.scripts).map(tag -> tag.clone()).toArray(SiteConfiguration.Tag[]::new);
+        if (styles != null)
+            conf.styles = Arrays.stream(this.styles).map(tag -> tag.clone()).toArray(SiteConfiguration.Tag[]::new);
+        
         return conf;
     }
     
-    public static class Link {
-    	public String url;
-    	public String integrity;
-    	public String crossorigin;
+    public static class Tag {
+        private static final HashMap<String, String> EMPTY = new HashMap<>(0);
+        
+        public String url;
+        public Map<String, String> attr = EMPTY;
+        
+        public Tag() {}
+        public Tag(String url) {
+            this.url = url;
+        }
+        public Tag(String url, Map<String, String> attr) {
+            this.url = url;
+            this.attr = attr;
+        }
+        
+        @Override
+        public String toString() {
+            return String.format("Tag %s %s", url,  attr.toString());
+        }
+        
+        @Override
+        protected Tag clone() {
+            return new Tag(url, new HashMap<>(attr));
+        }
     }
     
-    public static class Style extends Link {
-    	public Style() {}
-    	public Style(String url) {
-    		this(url, null, null);
-    	}
-    	public Style(String url, String integrity, String crossorigin) {
-    		this.url = url;
-    		this.integrity = integrity;
-    		this.crossorigin = crossorigin;
-    	}
-    	
-    }
-    
-    public static class Script extends Link {
-    	public String type;
-    	public boolean async;
-    	public boolean defer;
-    	
-    	public Script() {}
-    	public Script(String url, boolean async, boolean defer) {
-    		this(url, null, null, null, async, defer);
-    	}
-    	public Script(String url, String type, String integrity, String crossorigin, boolean async, boolean defer) {
-    		this.url = url;
-    		this.type = type;
-    		this.integrity = integrity;
-    		this.crossorigin = crossorigin;
-    		this.async = async;
-    		this.defer = defer;
-    	}
-    	
-    }    
 }

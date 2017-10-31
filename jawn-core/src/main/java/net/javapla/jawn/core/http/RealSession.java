@@ -39,7 +39,7 @@ public class RealSession implements Session {
         sessionExpiryTimeInMs = -1; // TODO should be configurable
         defaultSessionExpiryTimeInMs = sessionExpiryTimeInMs * 1000; //TODO should be configurable
         cookieOnlySession = true; // if false have the cookie only save a session id that we then look up
-        sessionCookieName = "JAWN" + Constants.SESSION_SUFFIX;
+        sessionCookieName = properties.getSecure(Constants.PROPERTY_COOKIE_PREFIX).orElse("JAWN") + Constants.SESSION_SUFFIX;
         
         Optional<String> secret = properties.getSecure(Constants.PROPERTY_SECURITY_SECRET);
         if (secret.isPresent()) {

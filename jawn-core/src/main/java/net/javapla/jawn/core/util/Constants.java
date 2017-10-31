@@ -74,6 +74,8 @@ public interface Constants {
     String PROPERTY_SECURITY_SECRET = "security.secret"; // holds the key of 64 characters
     String PROPERTY_SECURITY_COOKIE_ENCRYPTION = "security.cookie.encryption"; // if true, encrypt the cookies
     
+    String PROPERTY_COOKIE_PREFIX = "cookie.prefix";
+    
     /**
      * Used to set a single System property to be used immediately after reading the property files.
      * This might need to be this way, as the System properties *can* have some of the same keys.
