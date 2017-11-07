@@ -41,32 +41,38 @@ public class ActionInvoker implements ResponseFunction {
         return executeAction(context);
     }
     
+    public final Result testingExecute(final Context context) {
+        final Route route = context.getRoute();
+        try {
+            
+            final Controller controller;
+            /*if (reloadController) {
+                Class<? extends Controller> compiledClass = DynamicClassFactory.getCompiledClass(route.getController().getName(), Controller.class, false);
+                controller = DynamicClassFactory.createInstance(compiledClass);
+            } else */{
+                controller = DynamicClassFactory.createInstance(route.getController());
+            }
+            
+            injectControllerWithContext(controller, context, injector);
+            
+            
+            route.getControllerAction().accept(controller);
+            return controller.getControllerResult();
+        } catch(WebException e) {
+            throw e;
+        } catch(Exception e) {
+            throw new ControllerException(e);
+        }
+    }
+    
     public final Result executeAction(final Context context) {
         final Route route = context.getRoute();
 
         try {
-            //final Controller controller = injector.getInstance(route.getController());
-            //controller.init(context);
             final Controller controller = DynamicClassFactory.createInstance(route.getController());
             injectControllerWithContext(controller, context, injector);
 
-            //find the method name and run it
-            /*final String methodName = route.getAction();
-            for (Method method : controller.getClass().getMethods()) {
-                //if (method.getReturnType().equals(Response.class)) 
-                if (methodName.equals( method.getName())) {
-                    
-                    // handle if the return type is 'void'
-                    //if (method.getReturnType().equals(Void.TYPE))
-                    //if (response == null) throw 404Exception();
-                    
-                    method.invoke(controller);//route.getController());
-                    return controller.getControllerResponse();
-                }
-            }
-            throw new ControllerException(String.format("Action name (%s) not found in controller (%s)", route.getAction(), route.getController().getSimpleName()));
-            */
-            /*return (Response) *//*route.getActionMethod()*/route.getActionMethod().invoke(controller);
+            route.getActionMethod().invoke(controller);
             return controller.getControllerResult();
         } catch (InvocationTargetException e) {
             if (e.getCause() != null) {

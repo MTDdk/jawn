@@ -3,6 +3,8 @@ package net.javapla.jawn.core;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -18,6 +20,7 @@ import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseConnections.DatabaseConnectionBuilder;
 import net.javapla.jawn.core.routes.Route.ResponseFunction;
+import net.javapla.jawn.core.routes.Route.ZeroArgResponseFunction;
 import net.javapla.jawn.core.routes.RouteBuilder;
 import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.server.Server;
@@ -132,19 +135,28 @@ public class Jawn {
     // ****************
     // GET
     // ****************
+    public Jawn get(String path, Result response) {
+        builders.add(RouteBuilder.get().route(path).with(response));
+        return this;
+    }
+    public Jawn get(String path, ZeroArgResponseFunction func) {
+        builders.add(RouteBuilder.get().route(path).with(func));
+        return this;
+    }
     public Jawn get(String path, ResponseFunction func) {
         builders.add(RouteBuilder.get().route(path).with(func));
         return this;
     }
-    /*public Jawn get(String path, ZeroArgResponseFunction func) {
-        builders.add(RouteBuilder.get().route(path).with(func));
-        return this;
-    }*/
     public Jawn get(String path, Class<? extends Controller> controller) {
         builders.add(RouteBuilder.get().route(path).to(controller));
         return this;
     }
-    public Jawn get(String path, Class<? extends Controller> controller, String action) {
+    /*public Jawn get(String path, Class<? extends Controller> controller, String action) {
+        builders.add(RouteBuilder.get().route(path).to(controller, action));
+        return this;
+    }*/
+    //TESTING
+    public <C extends Controller> Jawn get(String path, Class<C> controller, Consumer<C> action) {
         builders.add(RouteBuilder.get().route(path).to(controller, action));
         return this;
     }
@@ -152,6 +164,14 @@ public class Jawn {
     // ****************
     // POST
     // ****************
+    public Jawn post(String path, Result response) {
+        builders.add(RouteBuilder.post().route(path).with(response));
+        return this;
+    }
+    public Jawn post(String path, ZeroArgResponseFunction func) {
+        builders.add(RouteBuilder.post().route(path).with(func));
+        return this;
+    }
     public Jawn post(String path, ResponseFunction func) {
         builders.add(RouteBuilder.post().route(path).with(func));
         return this;
@@ -160,7 +180,12 @@ public class Jawn {
         builders.add(RouteBuilder.post().route(path).to(controller));
         return this;
     }
-    public Jawn post(String path, Class<? extends Controller> controller, String action) {
+    /*public Jawn post(String path, Class<? extends Controller> controller, String action) {
+        builders.add(RouteBuilder.post().route(path).to(controller, action));
+        return this;
+    }*/
+    //TESTING
+    public <C extends Controller> Jawn post(String path, Class<C> controller, Consumer<C> action) {
         builders.add(RouteBuilder.post().route(path).to(controller, action));
         return this;
     }
@@ -168,6 +193,14 @@ public class Jawn {
     // ****************
     // PUT
     // ****************
+    public Jawn put(String path, Result response) {
+        builders.add(RouteBuilder.put().route(path).with(response));
+        return this;
+    }
+    public Jawn put(String path, ZeroArgResponseFunction func) {
+        builders.add(RouteBuilder.put().route(path).with(func));
+        return this;
+    }
     public Jawn put(String path, ResponseFunction func) {
         builders.add(RouteBuilder.put().route(path).with(func));
         return this;
@@ -176,7 +209,12 @@ public class Jawn {
         builders.add(RouteBuilder.put().route(path).to(controller));
         return this;
     }
-    public Jawn put(String path, Class<? extends Controller> controller, String action) {
+    /*public Jawn put(String path, Class<? extends Controller> controller, String action) {
+        builders.add(RouteBuilder.put().route(path).to(controller, action));
+        return this;
+    }*/
+    //TESTING
+    public <C extends Controller> Jawn put(String path, Class<C> controller, Consumer<C> action) {
         builders.add(RouteBuilder.put().route(path).to(controller, action));
         return this;
     }
@@ -184,6 +222,14 @@ public class Jawn {
     // ****************
     // DELETE
     // ****************
+    public Jawn delete(String path, Result response) {
+        builders.add(RouteBuilder.delete().route(path).with(response));
+        return this;
+    }
+    public Jawn delete(String path, ZeroArgResponseFunction func) {
+        builders.add(RouteBuilder.delete().route(path).with(func));
+        return this;
+    }
     public Jawn delete(String path, ResponseFunction func) {
         builders.add(RouteBuilder.delete().route(path).with(func));
         return this;
@@ -192,7 +238,12 @@ public class Jawn {
         builders.add(RouteBuilder.delete().route(path).to(controller));
         return this;
     }
-    public Jawn delete(String path, Class<? extends Controller> controller, String action) {
+    /*public Jawn delete(String path, Class<? extends Controller> controller, String action) {
+        builders.add(RouteBuilder.delete().route(path).to(controller, action));
+        return this;
+    }*/
+    //TESTING
+    public <C extends Controller> Jawn delete(String path, Class<C> controller, Consumer<C> action) {
         builders.add(RouteBuilder.delete().route(path).to(controller, action));
         return this;
     }
@@ -221,10 +272,10 @@ public class Jawn {
         filters.add(filter).to(controller);
         return this;
     }
-    public Jawn filter(Filter filter, Class<? extends Controller> controller, String ... actions) {
+    /*public Jawn filter(Filter filter, Class<? extends Controller> controller, String ... actions) {
         filters.add(filter).to(controller).forActions(actions);
         return this;
-    }
+    }*/
         
     // ****************
     // Server
@@ -237,7 +288,7 @@ public class Jawn {
         long startupTime = System.currentTimeMillis();
         
         JawnConfigurations properties = new JawnConfigurations(mode);
-        bootstrapper.boot(properties, new RouterImpl(builders, filters, properties), databaseConnections);
+        bootstrapper.boot(properties, filters, new RouterImpl(builders, filters, properties), databaseConnections);
         Injector injector = bootstrapper.getInjector();
         try {
             injector.getInstance(Server.class).start(serverConfig);
@@ -252,14 +303,19 @@ public class Jawn {
         logger.info("Java-web-planet: running on port: " + serverConfig.port());
     }
     
+    /**
+     * Asynchronously shutdowns the server
+     */
     public void stop() {
-        Injector injector = bootstrapper.getInjector();
-        try {
-            injector.getInstance(Server.class).stop();
-        } catch (Exception ignore) {
-            // Ignore NPE. At this point the server REALLY should be possible to find
-        }
-        bootstrapper.shutdown();
+        CompletableFuture.runAsync(() -> {
+            Injector injector = bootstrapper.getInjector();
+            try {
+                injector.getInstance(Server.class).stop();
+            } catch (Exception ignore) {
+                // Ignore NPE. At this point the server REALLY should be possible to find
+            }
+            bootstrapper.shutdown();
+        });
     }
     
     
@@ -273,16 +329,13 @@ public class Jawn {
      *          <li>Mode of operation - DEV,TEST,PROD or their fully qualified names: development, test, production. See {@linkplain Modes}. Default is DEV</li>
      *          </ol>
      */
-    public static final void run(final Supplier<Jawn> jawn, final String ... args) {
-        jawn
-            .get()
-            .parseArguments(args) // Read program arguments and overwrite server specifics
-            .start(/*args*/);
-    }
     public static final void run(final Jawn jawn, final String ... args) {
         jawn
-            .parseArguments(args)
-            .start();
+        .parseArguments(args) // Read program arguments and overwrite server specifics
+        .start();
+    }
+    public static final void run(final Supplier<Jawn> jawn, final String ... args) {
+        run(jawn.get(), args);
     }
 
     private Jawn parseArguments(final String ... args) {

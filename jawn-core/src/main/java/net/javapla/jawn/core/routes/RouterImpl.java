@@ -12,7 +12,6 @@ import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.CompilationException;
-import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ActionInvoker;
@@ -98,7 +97,7 @@ public class RouterImpl implements Router {
     
     //TODO we need to have the injector somewhere else.
     //It is not consistent that this particular injector handles implementations from both core and server
-    private final Route calculateRoute(HttpMethod httpMethod, String requestUri/*, ActionInvoker invoker*//*Injector injector*/) throws RouteException {
+    private final Route calculateRoute(HttpMethod httpMethod, String requestUri/*, ActionInvoker invoker*//*,Injector injector*/) throws RouteException {
         if (routes == null) throw new IllegalStateException("Routes have not been compiled. Call #compileRoutes() first");
         
         final Route route = matchCustom(httpMethod, requestUri);
@@ -205,11 +204,11 @@ public class RouterImpl implements Router {
      * @return
      * @throws ClassLoadException
      */
-    private Route matchStandard(HttpMethod httpMethod, String requestUri, ActionInvoker invoker/*Injector injector*/) throws ClassLoadException {
+    private Route matchStandard(HttpMethod httpMethod, String requestUri, ActionInvoker invoker) throws ClassLoadException {
         // find potential routes
         for (InternalRoute internalRoute : internalRoutes) {
             if (internalRoute.matches(requestUri) ) {
-                Route deferred = deduceRoute(internalRoute, httpMethod, requestUri, invoker/*injector*/);
+                Route deferred = deduceRoute(internalRoute, httpMethod, requestUri, invoker);
                 if (deferred != null) return deferred;
             }
         }
@@ -224,12 +223,10 @@ public class RouterImpl implements Router {
         // find a route that actually exists
         try {
             String className = c.getControllerClassName();
-            RouteBuilder bob = loadController(className, httpMethod, route.uri, c.getAction(), !isDev);
+            RouteBuilder bob = loadController(className, httpMethod, route.uri, c.getActionName(), !isDev);
             
             //TODO cache the routes if !isDev
             return bob.build(filters, invoker); // this might throw if the controller does not have the action
-        } catch (ControllerException e) {
-            //to() failed - the controller does not contain the corresponding action
         } catch (IllegalStateException e) {
             //build() failed
         } catch(CompilationException | ClassLoadException e) {
@@ -244,7 +241,7 @@ public class RouterImpl implements Router {
             // try to infer the action
             Map<String, String> params = route.getPathParametersEncoded(requestUri);
             ControllerMeta c = new ControllerMeta(params);
-            actionName = c.getAction();
+            actionName = c.getActionName();
         }
         return actionName;
     }
@@ -275,7 +272,7 @@ public class RouterImpl implements Router {
         return RouteBuilder
                 .method(httpMethod)
                 .route(uri)
-                .to(controller, actionName);
+                .to(controller, RouteBuilder.constructAction(actionName, httpMethod));
     }
     
     private final class ControllerMeta {
@@ -296,7 +293,7 @@ public class RouterImpl implements Router {
             return p;
 //            return params.getOrDefault("controller", NewRoute.ROOT_CONTROLLER_NAME);
         }
-        public String getAction() {
+        public String getActionName() {
             String p = params.get("action");
             if (StringUtil.blank(p)) return Constants.DEFAULT_ACTION_NAME;
             return p;

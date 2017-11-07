@@ -17,23 +17,32 @@ public class RouteBuilderTest {
 
     @Test(expected=RouteException.class)
     public void should_throw_because_action_not_found() {
-        RouteBuilder.get().route("/").to(UnitTestController.class, "nothing").build(new FiltersHandler(), mock(ActionInvoker.class));
+        RouteBuilder.get().route("/").to(UnitTestController.class, "getNothing").build(new FiltersHandler(), mock(ActionInvoker.class));
     }
     
     @Test
     public void should_return_route() {
-        Route route = RouteBuilder.get().to(UnitTestController.class, "simple").route("/different/path").build(new FiltersHandler(), mock(ActionInvoker.class));
+        Route route = RouteBuilder.get().to(UnitTestController.class, "getSimple").route("/different/path").build(new FiltersHandler(), mock(ActionInvoker.class));
         
         assertNotNull(route);
         assertEquals("getSimple", route.getAction());
     }
     
     @Test
-    public void should_mapToLongAction() {
-        Route route = RouteBuilder.get().to(UnitTestController.class, "longer_action").route("/different/path").build(new FiltersHandler(), mock(ActionInvoker.class));
+    public void should_mapToUnderscoreActionName() {
+        Route route = RouteBuilder.get().to(UnitTestController.class, "getLongerAction").route("/different/path").build(new FiltersHandler(), mock(ActionInvoker.class));
         
         assertNotNull(route);
         assertEquals("getLongerAction", route.getAction());
+        assertEquals("longer_action", route.getActionName());
+        
+        route = RouteBuilder.get().to(UnitTestController.class, "getSimpleTestAction").route("/different/path").build(new FiltersHandler(), mock(ActionInvoker.class));
+        assertEquals("getSimpleTestAction", route.getAction());
+        assertEquals("simple_test_action", route.getActionName());
     }
 
+    @Test(expected=RouteException.class)
+    public void strippingTheWrongHttpMethod_should_resultInFailure() {
+        RouteBuilder.post().to(UnitTestController.class, "getLongerAction").build(new FiltersHandler(), mock(ActionInvoker.class));
+    }
 }

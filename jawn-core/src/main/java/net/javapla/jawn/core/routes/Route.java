@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.routes;
 
 import java.lang.reflect.Method;
+import java.util.function.Consumer;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.Result;
@@ -55,6 +56,13 @@ public class Route extends InternalRoute {
     public Method getActionMethod() {
         return actionMethod;
     }
+    private Consumer<Controller> controllerAction;
+    public void setControllerAction(Consumer<Controller> controllerAction) {
+        this.controllerAction = controllerAction;
+    }
+    public Consumer<Controller> getControllerAction() {
+        return controllerAction;
+    }
     
     public String getUri() {
         return uri;
@@ -85,9 +93,6 @@ public class Route extends InternalRoute {
     
     ResponseFunction func;
     boolean directlyExecutable;
-    public void setResponseFunction(ResponseFunction func) {
-        this.func = func;
-    }
     public void setResponseFunction(ResponseFunction func, boolean directlyExecutable) {
         this.func = func;
         this.directlyExecutable = directlyExecutable;
@@ -131,6 +136,11 @@ public class Route extends InternalRoute {
     @FunctionalInterface
     public interface ZeroArgResponseFunction {
         Result handle();
+    }
+    
+    @FunctionalInterface
+    public interface VoidResponseFunction {
+        void handle(Context context);
     }
     
 }

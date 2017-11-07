@@ -40,7 +40,7 @@ public class RoutesDeducer {
                             String actionName = action.substring(method.name().length());
                             actionName = StringUtil.underscore(actionName);
                             
-                            constructActionRoute(locator, controllername, actionName, method);
+                            constructActionRoute(locator, controllername, action, actionName, method);
                         });
                     
                 });
@@ -60,20 +60,20 @@ public class RoutesDeducer {
     
     
     private void constructControllerRoute(ControllerLocator locator, String controllername) {
-        String uri = new StringBuilder().append('/').append(controllername).toString();
-        constructRoute(locator, uri, controllername, Constants.DEFAULT_ACTION_NAME, HttpMethod.GET);
+//        String uri = new StringBuilder()/*.append('/')*/.append(controllername).toString();
+        constructRoute(locator, controllername, controllername, Constants.DEFAULT_ACTION_NAME, HttpMethod.GET);
     }
     
-    private void constructActionRoute(ControllerLocator locator, String controllername, String actionName, HttpMethod method) {
-        String uri = new StringBuilder().append('/').append(controllername).append('/').append(actionName).toString();
-        constructRoute(locator, uri, controllername, actionName, method);
+    private void constructActionRoute(ControllerLocator locator, String controllername, String action, String actionName, HttpMethod method) {
+        String uri = new StringBuilder()/*.append('/')*/.append(controllername).append('/').append(actionName).toString();
+        constructRoute(locator, uri, controllername, action, method);
     }
 
-    private void constructRoute(ControllerLocator locator, String uri, String controllername, String actionName, HttpMethod method) {
-//        System.out.println("+ " +uri + " -> " + controllername + " / " + actionName + " <- "  + method);
+    private void constructRoute(ControllerLocator locator, String uri, String controllername, String action, HttpMethod method) {
+//        System.out.println("+ " +uri + " -> " + controllername + " / " + action + " <- "  + method);
         Route route = RouteBuilder
             .method(method)
-            .to((Class<? extends Controller>) locator.controllers.get(controllername), actionName)
+            .to((Class<? extends Controller>) locator.controllers.get(controllername), action)
             .route(uri)
             .build(filters, invoker);
         trie.insert(uri, route);

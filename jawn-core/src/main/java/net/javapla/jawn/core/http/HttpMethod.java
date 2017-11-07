@@ -8,7 +8,6 @@ import net.javapla.jawn.core.util.StringUtil;
 
 
 /**
- * @author Igor Polevoy
  * @author MTD
  */
 public enum HttpMethod {
@@ -29,16 +28,19 @@ public enum HttpMethod {
         return _getMethod(requestMethod, () -> params.first("_method"));
     }
     
+    // Using a supplier in order to postpone calculation to later if necessary
     private static HttpMethod _getMethod(String requestMethod, Supplier<String> _method) {
         if (requestMethod.charAt(0) == 'G') {
             return HttpMethod.GET;
         }
         
-        // under the assumption that a request method always is sent in upper case
+        // Sometimes an ajax request can only be sent as GET or POST.
+        // We can emulate PUT and DELETE by sending a parameter '_method=PUT' or '_method=DELETE'.
+        // Under the assumption that a request method always is sent in upper case
         if (StringUtil.startsWith(requestMethod, 'P','O')) {
             String methodParam = _method.get();
-            requestMethod = /*requestMethod.equalsIgnoreCase("POST") &&*/ methodParam != null && methodParam.equalsIgnoreCase("DELETE")? "DELETE" : requestMethod;
-            requestMethod = /*requestMethod.equalsIgnoreCase("POST") &&*/ methodParam != null && methodParam.equalsIgnoreCase("PUT")? "PUT" : requestMethod;
+            requestMethod = methodParam != null && methodParam.equalsIgnoreCase("DELETE")? "DELETE" : requestMethod;
+            requestMethod = methodParam != null && methodParam.equalsIgnoreCase("PUT")? "PUT" : requestMethod;
         }
         
         return HttpMethod.valueOf(requestMethod.toUpperCase());

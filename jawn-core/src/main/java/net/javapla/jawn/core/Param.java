@@ -51,6 +51,15 @@ public class Param {
     public Long asLong() {
         return toLong(param);
     }
+    public Long asLong(long defaultValue) {
+        try {
+            Long l = toLong(param);
+            if (l == null) return defaultValue;
+            return l;
+        } catch (ConversionException ignore) {
+            return defaultValue;
+        }
+    }
     public Double asDouble() {
         return toDouble(param);
     }

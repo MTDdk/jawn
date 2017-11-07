@@ -1,8 +1,6 @@
 package net.javapla.jawn.core.util;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.StringJoiner;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
@@ -137,7 +135,7 @@ public class StringUtil {
      * @return same as input argument, but the first character is capitalized.
      */
     public static String capitalize(String word){
-        return word.substring(0, 1).toUpperCase() + word.substring(1);
+        return Character.toUpperCase(word.charAt(0)) + word.substring(1);
     }
     
     /**
@@ -148,7 +146,7 @@ public class StringUtil {
      * @return same as input argument, but the first character is in lower case.
      */
     public static String decapitalize(String word) {
-        return word.substring(0, 1).toLowerCase() + word.substring(1);
+        return Character.toLowerCase(word.charAt(0)) + word.substring(1);
     }
     
     /**
@@ -160,23 +158,24 @@ public class StringUtil {
      */
     public static String underscore(String camel) {
 
-        List<Integer> upper = new ArrayList<Integer>();
-        byte[] bytes = camel.getBytes();
-        for (int i = 0; i < bytes.length; i++) {
-            byte b = bytes[i];
-            if (b < 97 || b > 122) {
-                upper.add(i);
+        StringBuilder bob = new StringBuilder(camel); // standard adds 16 extra slots for underscores
+        
+        // lowercase the first letter
+        if (camel.charAt(0) < 'a' || camel.charAt(0) > 'z')
+            bob.setCharAt(0, Character.toLowerCase(bob.charAt(0)));
+        
+        // i = 1, because we already lowered it
+        for (int i = 1; i < bob.length(); i++) {
+            char b = bob.charAt(i);
+            if (b < 'a' || b > 'z') { // not within range
+                // lower it
+                bob.setCharAt(i, Character.toLowerCase(bob.charAt(i)));
+                // add underscore
+                bob.insert(i, '_');
             }
         }
 
-        StringBuffer b = new StringBuffer(camel);
-        for (int i = upper.size() - 1; i >= 0; i--) {
-            Integer index = upper.get(i);
-            if (index != 0)
-                b.insert(index, "_");
-        }
-
-        return b.toString().toLowerCase();
+        return bob.toString();
     }
     
     /**
@@ -219,7 +218,7 @@ public class StringUtil {
     public static final boolean startsWith(String string, char ca, char cb, char cc) {
         if (string.charAt(0) != ca) return false;
         if (string.charAt(1) != cb) return false;
-        if (string.charAt(1) != cc) return false;
+        if (string.charAt(2) != cc) return false;
         return true;
     }
     
@@ -246,4 +245,5 @@ public class StringUtil {
         uri = uri.replaceAll("[^a-zA-Z0-9\\._-]+", replace);
         return uri;
     }
+
 }

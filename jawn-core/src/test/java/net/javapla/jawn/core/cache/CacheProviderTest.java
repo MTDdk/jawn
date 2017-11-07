@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import net.javapla.jawn.core.FrameworkBootstrap;
+import net.javapla.jawn.core.api.Filters;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.reflection.ActionInvoker;
@@ -99,7 +100,7 @@ public class CacheProviderTest {
     private Cache bootBootstrap(FrameworkBootstrap bootstrap) {
         RouterImpl router = mock(RouterImpl.class);
         router.compileRoutes(mock(ActionInvoker.class));
-        bootstrap.boot(configurations, router, mock(DatabaseConnections.class));
+        bootstrap.boot(configurations, mock(Filters.class), router, mock(DatabaseConnections.class));
         
         return bootstrap.getInjector().getInstance(Cache.class);
     }

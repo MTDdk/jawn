@@ -54,7 +54,6 @@ import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
-import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -124,7 +123,7 @@ public abstract class Controller implements ResultHolder {
      * @return instance of {@link RenderBuilder}, which is used to provide additional parameters.
      */
     protected NewRenderBuilder render(String template) {
-        String targetTemplate = template.startsWith("/")? template: getControllerPath(getClass())
+        String targetTemplate = template.startsWith("/")? template: RouterHelper.getReverseRouteFast(getClass())
                 + "/" + template;
 
         return internalRender(targetTemplate);
@@ -137,7 +136,7 @@ public abstract class Controller implements ResultHolder {
      * @return instance of {@link RenderBuilder}, which is used to provide additional parameters.
      */
     protected NewRenderBuilder render(){
-        String template = getControllerPath(getClass()) + "/" + getRoute().getActionName();
+        String template = RouterHelper.getReverseRouteFast(getClass()) + "/" + getRoute().getActionName();
         return internalRender(template);
     }
 
@@ -288,41 +287,6 @@ public abstract class Controller implements ResultHolder {
         }
     }
     
-    /**
-     * Generates a path to a controller based on its package and class name. The path always starts with a slash: "/".
-     * Examples:
-     * <p></p>
-     * <ul>
-     * <li>For class: <code>app.controllers.Simple</code> the path will be: <code>/simple</code>.</li>
-     * <li>For class: <code>app.controllers.admin.PeopleAdmin</code> the path will be: <code>/admin/people_admin</code>.</li>
-     * <li>For class: <code>app.controllers.admin.simple.PeopleAdmin</code> the path will be: <code>/admin/simple/people_admin</code>.</li>
-     * </ul>
-     * <p></p>
-     * Class name looses the "Controller" suffix and gets converted to underscore format, while packages stay unchanged.
-     *
-     * @param controllerClass class of a controller.
-     * @param <T> class extending {@link Controller}
-     * @return standard path for a controller.
-     */
-    static <T extends Controller> String getControllerPath(Class<T> controllerClass) {
-        String simpleName = controllerClass.getSimpleName();
-        if (!simpleName.endsWith("Controller")) {
-            throw new ControllerException("controller name must end with 'Controller' suffix");
-        }
-
-        String className = controllerClass.getName();
-        if (!className.startsWith(PropertiesConstants.CONTROLLER_PACKAGE)) {
-            throw new ControllerException("controller must be in the '"+PropertiesConstants.CONTROLLER_PACKAGE+"' package");
-        }
-        String packageSuffix = className.substring(PropertiesConstants.CONTROLLER_PACKAGE.length(), className.lastIndexOf("."));
-        packageSuffix = packageSuffix.replace(".", "/");
-        if (packageSuffix.startsWith("/"))
-            packageSuffix = packageSuffix.substring(1);
-
-        return (packageSuffix.equals("") ? "" : "/" + packageSuffix) + "/" + StringUtil.underscore(simpleName.substring(0, simpleName.lastIndexOf("Controller")));
-    }
-
- 
     protected Map<String, Object> values() {
 //        return context.getViewObjects();//getValues();
 //        return context.getNewControllerResponse().getViewObjects();
