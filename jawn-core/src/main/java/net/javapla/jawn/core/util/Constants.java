@@ -75,6 +75,7 @@ public interface Constants {
     String PROPERTY_SECURITY_COOKIE_ENCRYPTION = "security.cookie.encryption"; // if true, encrypt the cookies
     
     String PROPERTY_COOKIE_PREFIX = "cookie.prefix";
+    String PROPERTY_SESSION_COOKIE_ONLY = "session.cookie_only"; // if true the session will store everything in the cookie
     
     /**
      * Used to set a single System property to be used immediately after reading the property files.

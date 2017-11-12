@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.google.inject.Inject;
 
+import net.javapla.jawn.core.cache.Cache;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.crypto.Crypto;
 import net.javapla.jawn.core.util.Constants;
@@ -18,27 +19,30 @@ import net.javapla.jawn.core.util.StringUtil;
 public class RealSession implements Session {
     
     private final Crypto crypto;
+    private final Cache cache;
+    private final HashMap<String, String> data = new HashMap<>();
+    private HashMap<String, Object> cachedData;
+
     
     private long sessionExpiryTimeInMs;
     private final long defaultSessionExpiryTimeInMs;
     private final boolean cookieOnlySession;
     private final String sessionCookieName;
-    private final String applicationSecret; //TODO probably needs to be store somewhere else (perhaps the Crypto)
+    private final String applicationSecret; //TODO probably needs to be stored somewhere else (perhaps the Crypto)
     private final boolean applicationCookieEncryption;
-    
-    private final Map<String, String> data = new HashMap<>();
     
     private boolean sessionDataHasChanged = false;
 
-
     @Inject
-    public RealSession(Crypto crypto, JawnConfigurations properties) {
+    public RealSession(Crypto crypto, JawnConfigurations properties, Cache cache) {
         this.crypto = crypto;
+        this.cache = cache;
         
         //TODO read a bunch of properties
         sessionExpiryTimeInMs = -1; // TODO should be configurable
         defaultSessionExpiryTimeInMs = sessionExpiryTimeInMs * 1000; //TODO should be configurable
-        cookieOnlySession = true; // if false have the cookie only save a session id that we then look up
+        
+        cookieOnlySession = properties.getBooleanSecure(Constants.PROPERTY_SESSION_COOKIE_ONLY).orElse(false); // if false have the cookie only save a session id that we then look up
         sessionCookieName = properties.getSecure(Constants.PROPERTY_COOKIE_PREFIX).orElse("JAWN") + Constants.SESSION_SUFFIX;
         
         Optional<String> secret = properties.getSecure(Constants.PROPERTY_SECURITY_SECRET);
@@ -52,7 +56,7 @@ public class RealSession implements Session {
     }
 
     @Override
-    public void init(Context context) {
+    public synchronized void init(Context context) {
         Cookie cookie = context.getCookie(sessionCookieName);
         
         if (cookie != null && !StringUtil.blank(cookie.getValue())) {
@@ -83,6 +87,13 @@ public class RealSession implements Session {
                 checkExpire();
             }
         }
+        
+        cachedData = cache.computeIfAbsent(SESSION_KEY + getId(), () -> new HashMap<>());
+    }
+    
+    @Override
+    public synchronized boolean isInitialised() {
+        return cachedData != null;
     }
 
     @Override
@@ -98,7 +109,9 @@ public class RealSession implements Session {
 
     @Override
     public Map<String, Object> getData() {
-        return Collections.unmodifiableMap(data);
+        if (cookieOnlySession)
+            return Collections.unmodifiableMap(data);
+        return Collections.unmodifiableMap(cachedData);
     }
 
     @Override
@@ -110,41 +123,51 @@ public class RealSession implements Session {
         if (value == null) {
             remove(key);
         } else {
-            data.put(key, (String) value); // TODO make sure to think about how methods should behave if cookieOnlySession (maps will only hold strings)
+            if (cookieOnlySession)
+                data.put(key, value.toString()); // TODO make sure to think about how methods should behave if cookieOnlySession (maps will only hold strings)
+            else
+                cachedData.put(key, value);
         }
     }
 
     @Override
     public String get(String key) {
-        return data.get(key);
+        String val = data.get(key);
+        if (val != null) return val;
+        
+        Object obj = cachedData.get(key);
+        return obj == null ? null : obj.toString();
     }
 
     @Override
     public <T> T get(String key, Class<T> type) {
         Object o = data.get(key);
-        return o == null? null : type.cast(o);
+        if (o == null) o = cachedData.get(key);
+        return o == null ? null : type.cast(o);
     }
 
     @Override
     public Object remove(String key) {
-        return data.remove(key);
+        Object o;
+        return (o = data.remove(key)) != null ? o : cachedData.remove(key);
     }
 
     @Override
     public <T> T remove(String key, Class<T> type) {
-        Object o = data.remove(key);
-        return o == null? null : type.cast(o);
+        Object o;
+        return (o = remove(key)) == null ? null : type.cast(o);
     }
     
     @Override
     public boolean containsKey(String key) {
-        return data.containsKey(key);
+        return data.containsKey(key) || cachedData.containsKey(key);
     }
 
     @Override
     public void invalidate() {
         sessionDataHasChanged = true;
         data.clear();
+        cachedData.clear();
     }
 
     @Override
@@ -156,7 +179,7 @@ public class RealSession implements Session {
         if (data.containsKey(EXPIRY_TIME_KEY)) {
             itemsToIgnore++;
         }
-        return (data.isEmpty() || data.size() == itemsToIgnore);
+        return (data.isEmpty() || data.size() + cachedData.size() == itemsToIgnore);
     }
 
     @Override
@@ -212,6 +235,7 @@ public class RealSession implements Session {
     private static final String TIMESTAMP_KEY = "__TK";
     private static final String EXPIRY_TIME_KEY = "__ETK";
     private static final String ID_KEY = "___ID";
+    private static final String SESSION_KEY = "__SESSION_";
     protected boolean shouldExpire() {
         if (sessionExpiryTimeInMs > 0) {
             if (!data.containsKey(TIMESTAMP_KEY)) {
