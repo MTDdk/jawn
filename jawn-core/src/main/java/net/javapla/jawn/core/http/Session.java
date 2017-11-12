@@ -5,6 +5,7 @@ import java.util.Map;
 public interface Session {
 
     void init(Context context);
+    boolean isInitialised();
     
     String getId();
     

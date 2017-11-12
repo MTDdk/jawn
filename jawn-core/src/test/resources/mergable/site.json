@@ -3,6 +3,6 @@
 	"overrideDefault": false,
 
 	"scripts": [
-		{"url": "script3.js"}
+		"script3.js"
 	]
 }

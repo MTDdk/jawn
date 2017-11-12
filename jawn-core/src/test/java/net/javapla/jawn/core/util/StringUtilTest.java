@@ -29,6 +29,8 @@ public class StringUtilTest {
         assertEquals("alice_in_wonderland", StringUtil.underscore("aliceInWonderland"));
         assertEquals("alice_in_wonder_land", StringUtil.underscore("aliceInWonderLand"));
         assertEquals("alice_in_wonder_lan_d", StringUtil.underscore("aliceInWonderLanD"));
+        
+        assertEquals("favicon.ico", StringUtil.underscore("favicon.ico"));
     }
 
     @Test

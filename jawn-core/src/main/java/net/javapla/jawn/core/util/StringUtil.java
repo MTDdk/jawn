@@ -161,17 +161,18 @@ public class StringUtil {
         StringBuilder bob = new StringBuilder(camel); // standard adds 16 extra slots for underscores
         
         // lowercase the first letter
-        if (camel.charAt(0) < 'a' || camel.charAt(0) > 'z')
-            bob.setCharAt(0, Character.toLowerCase(bob.charAt(0)));
+        if (camel.charAt(0) >= 'A' && camel.charAt(0) <= 'Z')
+            bob.setCharAt(0, Character.toLowerCase(camel.charAt(0)));
         
+        int extra = 0;
         // i = 1, because we already lowered it
-        for (int i = 1; i < bob.length(); i++) {
-            char b = bob.charAt(i);
-            if (b < 'a' || b > 'z') { // not within range
+        for (int i = 1; i < camel.length(); i++) {
+            char b = camel.charAt(i);
+            if (b >= 'A' && b <= 'Z') { // within range
                 // lower it
-                bob.setCharAt(i, Character.toLowerCase(bob.charAt(i)));
+                bob.setCharAt(i + extra, Character.toLowerCase(b));
                 // add underscore
-                bob.insert(i, '_');
+                bob.insert(i + extra++, '_');
             }
         }
 

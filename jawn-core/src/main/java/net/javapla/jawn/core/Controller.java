@@ -1141,7 +1141,7 @@ public abstract class Controller implements ResultHolder {
      * @return reference to a current session.
      */
     protected Session session(){
-        return context.getSession(false);
+        return context.getSession(true);
     }
     /**
      * Convenience method, sets an object on a session. Equivalent of:

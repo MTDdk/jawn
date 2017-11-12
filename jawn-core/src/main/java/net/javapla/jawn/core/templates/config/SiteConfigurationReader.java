@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
 import net.javapla.jawn.core.configuration.DeploymentInfo;
-import net.javapla.jawn.core.templates.config.SiteConfiguration.Tag;
 
 /**
  * 
@@ -55,15 +54,23 @@ public class SiteConfigurationReader {
      * Reads the {@value #SITE_FILE} of the <code>templateFolder</code> and merges with <code>templateFolder/controller</code>,
      * if any exists.
      * 
+     * flow:
+     * <ol>
+     * <li>look in <code>templateFolder/controller</code></li>
+     * <li>if <code>layout != / && != controller</code>, look in <code>templateFolder/layout</code> and merge</li>
+     * <li>continue on to look in <code>templateFolder</code> and merge</li>
+     * </ol>
+     * 
      * @param templateFolder 
      *      The root folder to read from. The {@value #SITE_FILE} in this location is the default configuration file.
-     *      Same as the index.html.st is the default layout.
+     *      Same as the index.html is the default layout.
      * @param controller
      *      The folder for the controller that is executed. This folder might hold an additional {@value #SITE_FILE},
      *      which will be used to merge with the default configuration file.
      *      This takes precedence over the values in default configuration file.
      * @param layout
-     * 
+     *      A layout can be specified which is not at <code>templateFolder</code>.<br>
+     *      In 
      * @param useCache
      *      Use caching of the read configuration
      * @return
@@ -80,8 +87,8 @@ public class SiteConfigurationReader {
         if (localConf.overrideDefault)
             return localConf;
             
-        // Use the SITE_FILE near the index.html
-        if (layout.length() > 1) {
+        // Use the SITE_FILE near the index.html (layout)
+        if (!isLayoutInControllerFolder(controller, layout)) {
             Path layoutFolder = rootFolder.resolve(layout);
             SiteConfiguration mergedConf = mergeSiteFilesWithCache(layoutFolder, controller, localConf, useCache);
             if (mergedConf.overrideDefault) {
@@ -105,6 +112,10 @@ public class SiteConfigurationReader {
             // Or we simply just try to look for it at the very root
             return mergeSiteFilesWithCache(rootFolder, controller, localConf, useCache);
         
+    }
+    
+    private final static boolean isLayoutInControllerFolder(final String controller, final String layout) {
+        return layout.length() > 1 && (layout.length() == controller.length() || layout.length() == controller.length()+1) && layout.startsWith(controller);
     }
     
     private SiteConfiguration readSiteFileWithCache(Path folder, boolean useCache) {

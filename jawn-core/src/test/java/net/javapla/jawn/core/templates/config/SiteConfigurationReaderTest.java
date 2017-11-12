@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.templates.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
@@ -135,6 +136,14 @@ public class SiteConfigurationReaderTest {
         
         Assert.assertFalse(localConf.styles[0].attr.isEmpty());
         Assert.assertTrue(topConf.styles[0].attr.isEmpty());
+	}
+	
+	@Test
+	public void merge_should_not_readTwiceWithLayoutInControllerFolder() {
+        SiteConfiguration controllerConf = confReader.read("src/test/resources/controllerandlayoutequal", "controller", "controller/", false);
+        
+        assertEquals(3, controllerConf.scripts.length);
+        assertEquals(3, controllerConf.styles.length);
 	}
 	
 	/*@Test

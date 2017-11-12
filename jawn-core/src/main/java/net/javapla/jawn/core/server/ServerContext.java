@@ -64,9 +64,6 @@ public class ServerContext implements Context.Internal2 {
         this.response = response;
         
         addResponseHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
-        
-        // init session scope
-        session.init(this);
     }
     
     @Override
@@ -105,6 +102,12 @@ public class ServerContext implements Context.Internal2 {
 
     @Override
     public Session getSession(boolean createIfNotExists) {
+        if (createIfNotExists && !session.isInitialised()) {
+            session.init(this);
+        } else if (!createIfNotExists && !session.isInitialised()) {
+            return null;
+        }
+        
         return session;//sessionManger.create();
     }
 
