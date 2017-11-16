@@ -100,11 +100,12 @@ public class RealSession implements Session {
     public String getId() {
         if (!data.containsKey(ID_KEY)) {
             String uuid = UUID.randomUUID().toString();
-            put(ID_KEY, uuid);
+            data.put(ID_KEY, uuid);
+            sessionDataHasChanged = true;
             return uuid;
         }
 
-        return get(ID_KEY);
+        return data.get(ID_KEY);
     }
 
     @Override
