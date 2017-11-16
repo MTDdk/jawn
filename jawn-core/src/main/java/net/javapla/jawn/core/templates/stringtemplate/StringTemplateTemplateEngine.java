@@ -132,9 +132,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
                 ST layoutTemplate = templateLoader.locateDefaultLayout(controller, layout);
                 
                 layout = layoutTemplate.getName(); // for later logging
-                long nano = System.nanoTime();
                 injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller);
-                System.out.println(System.nanoTime() - nano);
 
                 renderTemplate(layoutTemplate, writer, error);
             }
