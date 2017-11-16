@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
-import net.javapla.jawn.core.configuration.DeploymentInfo;
+import net.javapla.jawn.core.http.Context;
 
 /**
  * 
@@ -32,16 +32,17 @@ public class SiteConfigurationReader {
     public static final String STYLE_STANDARD_FOLDER = "/css/";
 
     private final ObjectMapper mapper;
-    private final DeploymentInfo deploymentInfo;
-    private final /*Concurrent*/HashMap<String, SiteConfiguration> configurationCache;
+    //private final DeploymentInfo deploymentInfo;
+    private final HashMap<String, SiteConfiguration> configurationCache = new HashMap<>();
     // README: ConcurrentHashMap might deadlock with the same hash - so do we really need the concurrency?
     // https://stackoverflow.com/questions/43861945/deadlock-in-concurrenthashmap
     
+    private final HashMap<String, Site> cachedSiteObjs = new HashMap<>();
+    
     @Inject
-    public SiteConfigurationReader(ObjectMapper mapper, DeploymentInfo deploymentInfo) {
+    public SiteConfigurationReader(ObjectMapper mapper/*, DeploymentInfo deploymentInfo*/) {
         this.mapper = mapper;
-        this.deploymentInfo = deploymentInfo;
-        this.configurationCache = new /*Concurrent*/HashMap<>();
+        //this.deploymentInfo = deploymentInfo;
     }
     
     /**
@@ -98,20 +99,31 @@ public class SiteConfigurationReader {
             localConf = mergedConf;
             controller = createPathIdentification(layout, controller);
         }
-        
-        //SiteConfiguration mergedConf = mergeSiteFilesWithCache(layoutFolder, controller, localConf, useCache);
             
-        //} else {
-            /*// find root site_file and eventual extra configurations of the controller folder
-            SiteConfiguration conf = readSiteFileWithCache(rootFolder, useCache);
-            
-            SiteConfiguration merged = mergeConfigurations(conf, localConf);
-            return merged;*/
-            
-            
-            // Or we simply just try to look for it at the very root
-            return mergeSiteFilesWithCache(rootFolder, controller, localConf, useCache);
-        
+        // Or we simply just try to look for it at the very root
+        return mergeSiteFilesWithCache(rootFolder, controller, localConf, useCache);
+    }
+    
+    public Site retrieveSite(Context ctx, SiteConfiguration conf, String path, String content, boolean useCache) {
+        if (useCache) {
+            // essentially caching a partial Site object (because a fresh 'content' needs to be injected always) 
+            return cachedSiteObjs.computeIfAbsent(path, key -> createSite(ctx, conf)).content(content);
+        } else {
+            return createSite(ctx, conf).content(content);
+        }
+    }
+    
+    private Site createSite(Context ctx, SiteConfiguration conf) {
+        // does not contain 'content'
+        return Site.builder()
+                    .url(ctx.requestUrl()) // add the URL
+                    .title(conf.title) // add title
+                    .mode(ctx.mode()) // state the current mode
+                    
+                    //add scripts
+                    .scripts(conf.scripts)
+                    .styles(conf.styles)
+                    .build();
     }
     
     private final static boolean isLayoutInControllerFolder(final String controller, final String layout) {

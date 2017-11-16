@@ -28,8 +28,8 @@ public class SiteConfigurationReaderTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		objectMapper = new JsonMapperProvider().get();
-		DeploymentInfo info = new DeploymentInfo(mock(JawnConfigurations.class));
-		confReader = new SiteConfigurationReader(objectMapper, info);
+		//DeploymentInfo info = new DeploymentInfo(mock(JawnConfigurations.class));
+		confReader = new SiteConfigurationReader(objectMapper/*, info*/);
 	}
 
 	@AfterClass

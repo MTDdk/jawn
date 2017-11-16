@@ -9,7 +9,7 @@ public class Site {
                         scripts,
                         styles;
     
-    public final String content;
+    public String content;
     
     public final Modes mode;
     
@@ -25,6 +25,11 @@ public class Site {
     public boolean isDev() { return mode == Modes.DEV; }
     public boolean isProd() { return mode == Modes.PROD; }
     public boolean isTest() { return mode == Modes.TEST; }
+    
+    public Site content(final String content) {
+        this.content = content;
+        return this;
+    }
     
     public static Site.Builder builder() {
         return new Site.Builder();
