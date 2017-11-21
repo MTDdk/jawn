@@ -88,7 +88,9 @@ public class RealSession implements Session {
             }
         }
         
+        
         cachedData = cache.computeIfAbsent(SESSION_KEY + getId(), () -> new HashMap<>());
+        
     }
     
     @Override
@@ -100,11 +102,12 @@ public class RealSession implements Session {
     public String getId() {
         if (!data.containsKey(ID_KEY)) {
             String uuid = UUID.randomUUID().toString();
-            put(ID_KEY, uuid);
+            data.put(ID_KEY, uuid);
+            sessionDataHasChanged = true;
             return uuid;
         }
 
-        return get(ID_KEY);
+        return data.get(ID_KEY);
     }
 
     @Override
@@ -179,7 +182,7 @@ public class RealSession implements Session {
         if (data.containsKey(EXPIRY_TIME_KEY)) {
             itemsToIgnore++;
         }
-        return (data.isEmpty() || data.size() + cachedData.size() == itemsToIgnore);
+        return ((data.isEmpty() && cachedData.isEmpty()) || data.size() + cachedData.size() == itemsToIgnore);
     }
 
     @Override
