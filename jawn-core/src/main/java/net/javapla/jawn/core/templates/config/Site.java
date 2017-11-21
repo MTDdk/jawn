@@ -60,7 +60,8 @@ public class Site {
             return this;
         }
         public Site.Builder scripts(SiteConfiguration.Tag[] links) {
-            this.scripts = createScripts(links);
+            if (links != null)
+                this.scripts = createScripts(links);
             return this;
         }
         public Site.Builder styles(String styles) {
@@ -68,7 +69,8 @@ public class Site {
             return this;
         }
         public Site.Builder styles(SiteConfiguration.Tag[] links) {
-            this.styles = createStyles(links);
+            if (links != null)
+                this.styles = createStyles(links);
             return this;
         }
         public Site.Builder content(String content) {
