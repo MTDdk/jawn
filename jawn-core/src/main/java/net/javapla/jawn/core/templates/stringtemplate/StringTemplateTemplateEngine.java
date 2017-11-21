@@ -2,7 +2,6 @@ package net.javapla.jawn.core.templates.stringtemplate;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -58,8 +57,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     private final boolean outputHtmlIndented;
     private final Modes mode;
     
-    private final HashMap<String,Site> cachedSiteObjs = new HashMap<>();
-
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
                                         JawnConfigurations properties,
@@ -122,20 +119,20 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
                     }
                     throw new ViewException("Could not find the template " + contentTemplate + ". Is it spelled correctly?");
                 }
-                renderContentTemplate(contentTemplate, writer, values/*, language*/, error);
+                renderContentTemplate(contentTemplate, writer, values, error);
 
             } else { // with layout
 
-                String content = renderContentTemplate(contentTemplate, values/*, language*/, error);
+                String content = renderContentTemplate(contentTemplate, values, error);
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
                 final String controller = TemplateEngineHelper.getControllerForResult(context.getRoute());
-                ST layoutTemplate = templateLoader.locateDefaultLayout(/*group,*/ controller, layout);
-                if (layoutTemplate == null) throw new ViewException(LAYOUT_DEFAULT + ".st is not to be found anywhere");
-
+                
+                ST layoutTemplate = templateLoader.locateDefaultLayout(controller, layout);
+                
                 layout = layoutTemplate.getName(); // for later logging
-                injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller/*, language*/, error);
+                injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller);
 
                 renderTemplate(layoutTemplate, writer, error);
             }
@@ -186,7 +183,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         // a little differently)
         boolean minimise = mode != Modes.DEV; // probably just as outputHtmlIndented
         
-        STGroupDir group = new STFastGroupDir/*STRawGroupDir*/(templateRootFolder, config.delimiterStart, config.delimiterEnd, minimise);
+        STGroupDir group = new STFastGroupDir(templateRootFolder, config.delimiterStart, config.delimiterEnd, minimise);
         
         // add the user configurations
         config.adaptors.forEach(group::registerModelAdaptor);
@@ -246,7 +243,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     
     protected final void injectValuesIntoLayoutTemplate(
             final ST layoutTemplate, final Context ctx, final String content, 
-            final Map<String, Object> values, final String controller/*, final String language*/, final ErrorBuffer error) {
+            final Map<String, Object> values, final String controller) {
         
         injectTemplateValues(layoutTemplate, values);
         
@@ -255,31 +252,11 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
 //        if (layoutTemplate.getAttribute("site") == null) return;
         
         SiteConfiguration conf = configReader.read(templateRootFolder, controller, layoutTemplate.impl.prefix.substring(1), useCache);
-        Site site;
-        
-        if (mode == Modes.DEV) {
-        	site = createSite(ctx, conf, content);
-        } else {
-        	site = cachedSiteObjs.computeIfAbsent(controller + layoutTemplate.impl.prefix, k -> createSite(ctx, conf, content));
-        }
+        Site site = configReader.retrieveSite(ctx, conf, controller + layoutTemplate.impl.prefix, content, useCache);
         
         // put everything into the reserved keyword
         layoutTemplate.add("site", site);
     }
-    
-    private Site createSite(Context ctx, SiteConfiguration conf, String content) {
-        return Site.builder()
-                    .url(ctx.requestUrl()) // add the URL
-                    .title(conf.title) // add title
-                    .content(content) // put the rendered content into the main template
-                    .mode(mode) // state the current mode
-                    
-                    //add scripts
-                    .scripts(conf.scripts)
-                    .styles(conf.styles)
-                    .build();
-    }
-    
     
     private final void injectTemplateValues(final ST template, final Map<String, Object> values) {
         if (values != null) {

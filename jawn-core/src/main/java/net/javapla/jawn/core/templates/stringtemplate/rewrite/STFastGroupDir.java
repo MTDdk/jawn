@@ -35,13 +35,11 @@ public final class STFastGroupDir extends STRawGroupDir {
             cl = this.getClass().getClassLoader();
             root = cl.getResource(dirName);
         }
-        if ( verbose ) System.out.println("STGroupDir("+dirName+") found via CLASSPATH at "+resourceRoot);
     }
 
     @Override
-    public final ST getInstanceOf(String name) {
-        if ( name.charAt(0)!='/' ) name = "/"+name;
-        CompiledST c = lookupTemplate(name);
+    public final ST getInstanceOf(final String name) {
+        CompiledST c = lookupTemplate( ( name.charAt(0)!='/' ) ? "/"+name : name);
         if ( c!=null ) {
             return createStringTemplate(c);
         }
@@ -52,8 +50,7 @@ public final class STFastGroupDir extends STRawGroupDir {
     public final CompiledST lookupTemplate(final String name) {
         CompiledST code = rawGetTemplate(name);
         if ( code == NOT_FOUND_ST ) {
-            if ( verbose ) System.out.println(name+" previously seen as not found");
-            return null;
+            return null; //  previously seen as not found
         }
         if (code != null) return tryClone(code);
         
@@ -83,9 +80,8 @@ public final class STFastGroupDir extends STRawGroupDir {
         return path.substring(index + 1);
     }
     private static final String getPrefix(String name) {
-        String parent = Misc.getParent(name);
-        String prefix = parent;
-        if ( !StringUtil.endsWith(parent, '/') ) prefix += '/';
+        String prefix = Misc.getParent(name);
+        if ( !StringUtil.endsWith(prefix, '/') ) return prefix + '/';
         return prefix;
     }
 
@@ -121,7 +117,7 @@ public final class STFastGroupDir extends STRawGroupDir {
     private final CompiledST loadTemplate(URL root, String prefix, String unqualifiedFileName) {
         try {
             
-            final URL f = new URL(root+prefix+unqualifiedFileName);
+            final URL f = new URL(root + prefix + unqualifiedFileName);
             
             return loadTemplateFile(prefix, unqualifiedFileName, constructStringStream(f));
 
@@ -141,7 +137,6 @@ public final class STFastGroupDir extends STRawGroupDir {
             skipLF ? 
             new ANTLRNoNewLineStream(f, encoding) : //removing \r and \n and trimming lines
             new ANTLRInputStream(f.openStream(), encoding); //reading templates as is
-            //TODO adding a HTML character converter here
     }
     
     private final CompiledST tryClone(CompiledST template) {
