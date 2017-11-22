@@ -6,17 +6,17 @@ repositories {
 
 dependencies {
 
-	compile ('com.google.inject:guice:4.1.0') {
+    compile ('com.google.inject:guice:4.1.0') {
         // Damn! Used in runtime by guice
-		exclude module: 'guava' // We import it elsewhere to be concise in the versioning
-	}
+        exclude module: 'guava' // We import it elsewhere to be concise in the versioning
+    }
     compile 'com.google.guava:guava:23.1-jre'
     
     
     //compile 'net.sf.trove4j:trove4j:3.0.3'
 
-	compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.1'
-	compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.9.1' // faster data binding
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.1'
+    compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.9.1' // faster data binding
     compile 'javax.ws.rs:javax.ws.rs-api:2.1'
     
     
@@ -31,21 +31,15 @@ dependencies {
     //compile 'org.ehcache:ehcache:3.0.0.m4'
     compile 'net.jodah:expiringmap:0.5.8'
     compile 'com.github.ben-manes.caffeine:caffeine:2.5.6'
-	
-	
-	/* Template Engines */
-	//StringTemplate
-	//compile('org.antlr:ST4:4.0.8')// { exclude module: 'antlr-runtime'}
-    
 
     //Config file read
     //compile 'com.typesafe:config:1.3.1'
-	
-	//ImgScalr (image manipulation)
-	compile 'org.imgscalr:imgscalr-lib:4.2'
+
+    //ImgScalr (image manipulation)
+    compile 'org.imgscalr:imgscalr-lib:4.2'
     
 
-	//Compiler
+    //Compiler
     runtime files("${System.env['JAVA_HOME']}/lib/tools.jar") // Can this be excluded entirely? Also if running on a JRE system?
 	
 	//Logging
