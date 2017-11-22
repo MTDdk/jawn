@@ -6,9 +6,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import net.javapla.jawn.core.templates.stringtemplate.StringTemplateTemplateEngine;
-import net.javapla.jawn.core.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +15,8 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+
+import net.javapla.jawn.core.util.StringUtil;
 
 @Singleton
 public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrator {
@@ -41,7 +40,7 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
              Provider<TextTemplateEngine>           text,
              Provider<StreamTemplateEngine>         stream,
              Provider<ImageTemplateEngine>          image,
-             Provider<StringTemplateTemplateEngine> html,
+             //Provider<StringTemplateTemplateEngine> html,
              Injector injector) {
         
         Map<String, Provider<? extends TemplateEngine>> map = new HashMap<String, Provider<? extends TemplateEngine>>();
@@ -52,7 +51,7 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
         mapEngine(map, text);
         mapEngine(map, stream);
         mapEngine(map, image);
-        mapEngine(map, html);
+        // mapEngine(map, html);
         
         
         // Find any other defined bindings for TemplateEngine,
@@ -86,6 +85,9 @@ public class TemplateEngineOrchestratorImpl implements TemplateEngineOrchestrato
             return provider.get();
         } else {
             log.warn("Did not find any engine for type: {}", contentType);
+            if (contentType.contains("html")) {
+                log.warn("You might want to include jawn-templates-stringtemplate or another template engine in your classpath");
+            }
             return null;
         }
     }

@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.templates.stringtemplate.rewrite;
+package net.javapla.jawn.templates.stringtemplate.rewrite;
 
 import java.io.BufferedReader;
 import java.io.IOException;

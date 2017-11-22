@@ -35,7 +35,7 @@ dependencies {
 	
 	/* Template Engines */
 	//StringTemplate
-	compile('org.antlr:ST4:4.0.8')// { exclude module: 'antlr-runtime'}
+	//compile('org.antlr:ST4:4.0.8')// { exclude module: 'antlr-runtime'}
     
 
     //Config file read
@@ -52,10 +52,6 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.25'
     
     //Test
-    testCompile ('junit:junit:4.12') {
-        exclude module: 'hamcrest-core'
-    }
-    testCompile 'org.hamcrest:java-hamcrest:2.0.0.0'
     testCompile 'org.mockito:mockito-core:2.10.0'
     testCompile ('com.google.truth:truth:0.36')  {
         exclude module: 'guava' // We import it elsewhere to be concise in the versioning

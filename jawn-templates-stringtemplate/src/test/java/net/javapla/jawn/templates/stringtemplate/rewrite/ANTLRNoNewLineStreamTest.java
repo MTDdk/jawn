@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.templates.stringtemplate.rewrite;
+package net.javapla.jawn.templates.stringtemplate.rewrite;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,9 +20,9 @@ public class ANTLRNoNewLineStreamTest {
         ANTLRNoNewLineStream templateStream = new ANTLRNoNewLineStream(file.toURI().toURL(), Constants.DEFAULT_ENCODING);
         
         String template = templateStream.substring(0, templateStream.size() - 1);
-        System.out.println(template);
         
         // Currently, we do not care if a single space is preserved "wrongly" as we are agnostic to the type of template, which might not be HTML but something else
+        // (like the space directly after <p>)
         String expected = "<p> Submit a hunting video, story, gear review, best practice article, or personal statement to share it with the hunting community.</p>";
         Assert.assertEquals(expected + expected, template);
     }

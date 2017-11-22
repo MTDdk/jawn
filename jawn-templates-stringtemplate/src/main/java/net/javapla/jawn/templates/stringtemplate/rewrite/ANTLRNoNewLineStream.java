@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.templates.stringtemplate.rewrite;
+package net.javapla.jawn.templates.stringtemplate.rewrite;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,6 +16,10 @@ import org.antlr.runtime.ANTLRStringStream;
 public class ANTLRNoNewLineStream extends ANTLRStringStream {
     
     protected final static int EXPECTED_LINE_LENGTH = 180;
+    
+    public ANTLRNoNewLineStream(URL f) throws IOException {
+        this(f, null);
+    }
     
     public ANTLRNoNewLineStream(URL f, String encoding) throws IOException {
         

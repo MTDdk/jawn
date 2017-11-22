@@ -61,7 +61,7 @@ public final class ResultRunner {
             return rsp;
         } else {
             throw new MediaTypeException(
-                    MessageFormat.format("Could not find a template engine supporting the content type of the response : {}", response.contentType()));
+                    MessageFormat.format("Could not find a template engine supporting the content type of the response : {0}", response.contentType()));
             //TODO Generic exception holding http method status error
         }
     }

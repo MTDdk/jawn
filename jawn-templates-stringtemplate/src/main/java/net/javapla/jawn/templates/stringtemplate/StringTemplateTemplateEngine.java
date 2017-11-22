@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.templates.stringtemplate;
+package net.javapla.jawn.templates.stringtemplate;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -36,9 +36,9 @@ import net.javapla.jawn.core.templates.config.SiteConfiguration;
 import net.javapla.jawn.core.templates.config.SiteConfigurationReader;
 import net.javapla.jawn.core.templates.config.TemplateConfig;
 import net.javapla.jawn.core.templates.config.TemplateConfigProvider;
-import net.javapla.jawn.core.templates.stringtemplate.rewrite.STFastGroupDir;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringBuilderWriter;
+import net.javapla.jawn.templates.stringtemplate.rewrite.STFastGroupDir;
 
 @Singleton
 public final class StringTemplateTemplateEngine implements TemplateEngine.TemplateRenderEngine<ST> {

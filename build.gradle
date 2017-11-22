@@ -27,6 +27,14 @@ subprojects {
     targetCompatibility = JavaVersion.VERSION_1_8
 
     repositories { mavenCentral() }
+    
+    dependencies {
+        //Test across all submodules
+        testCompile ('junit:junit:4.12') {
+            exclude module: 'hamcrest-core'
+        }
+        testCompile 'org.hamcrest:java-hamcrest:2.0.0.0'
+    }
 
     // test configurations
     tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
@@ -70,5 +78,7 @@ configurations.all {
 archivesBaseName = 'jawn'
 dependencies {
     // Currently, this is the only needed dependency that has everything you need
+    compile project(':jawn-core')
     compile project(':jawn-server-undertow')
+    compile project(':jawn-templates-stringtemplate')
 }

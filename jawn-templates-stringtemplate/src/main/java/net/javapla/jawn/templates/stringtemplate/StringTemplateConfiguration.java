@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.templates.stringtemplate;
+package net.javapla.jawn.templates.stringtemplate;
 
 import java.util.HashMap;
 import java.util.Map;
