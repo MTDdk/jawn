@@ -141,10 +141,12 @@ public class SiteConfigurationReader {
     private SiteConfiguration mergeSiteFilesWithCache(Path rootFolder, String controller, SiteConfiguration localConf, boolean useCache) {
         if (useCache) {
             String rootPlusController = createPathIdentification(rootFolder.toString(), controller);
-            return configurationCache
-                        .computeIfAbsent(rootPlusController, 
-                            f -> mergeConfigurations(readSiteFileWithCache(rootFolder, true), localConf)
-                        );
+            SiteConfiguration mergedConfiguration = configurationCache.get(rootPlusController);
+            if (mergedConfiguration == null) {
+                mergedConfiguration = mergeConfigurations(readSiteFileWithCache(rootFolder, true), localConf);
+                configurationCache.put(rootPlusController, mergedConfiguration);
+            }
+            return mergedConfiguration;
         } else {
             // find root site_file and eventual extra configurations of the controller folder
             SiteConfiguration conf = readSiteFileWithCache(rootFolder, useCache);
