@@ -1275,8 +1275,7 @@ public abstract class Controller implements ResultHolder {
     public Cookie cookie(String name){
         return context.getCookie(name);
     }
-
-
+    
     /**
      * Convenience method, returns cookie value.
      *
@@ -1284,7 +1283,8 @@ public abstract class Controller implements ResultHolder {
      * @return cookie value.
      */
     protected String cookieValue(String name){
-        return cookie(name).getValue();
+        Cookie cookie = cookie(name);
+        return cookie != null ? cookie.getValue() : null;
     }
 
     /**
