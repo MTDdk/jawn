@@ -2,6 +2,7 @@ package net.javapla.jawn.core.http;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -23,7 +24,9 @@ public interface Response {
     boolean committed();
     void end();
     void reset();
+    Writer writer();
     OutputStream outputStream();
+    boolean usingWriter();
     String contentType();
     void contentType(String contentType);
     void addCookie(Cookie cookie);

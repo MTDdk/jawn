@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import javax.ws.rs.core.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -17,18 +16,18 @@ import net.javapla.jawn.core.http.ResponseStream;
 @Singleton
 final class JsonTemplateEngine implements TemplateEngine {
 
-    private final ObjectWriter writer;
+    private final ObjectMapper mapper;
     
     @Inject
     public JsonTemplateEngine(ObjectMapper mapper) {
-        writer = mapper.writer();
+        this.mapper = mapper;
     }
     
     @Override
     public final void invoke(final Context context, final Result response, final ResponseStream stream) {
         try (final OutputStream output = stream.getOutputStream()) {
             
-            writer.writeValue(output, response.renderable());
+            output.write(mapper.writeValueAsBytes(response.renderable()));
             
         } catch (IOException e) {
             e.printStackTrace();
@@ -43,6 +42,4 @@ final class JsonTemplateEngine implements TemplateEngine {
     public ContentType[] getContentType2() {
         return new ContentType[]{ContentType.APPLICATION_JSON};
     }*/
-
-    
 }

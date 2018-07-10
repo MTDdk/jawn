@@ -20,7 +20,7 @@ public class ServerConfig {
      * <p><code>CUSTOM</code> Use the user-inputted configuration, like {@link ServerConfig#ioThreads(int)}
      *
      */
-    public enum PERFORMANCE_MODE { HIGHEST(512), HIGH(256), MEDIUM(50), LOW(5), CUSTOM(BACKLOG_DEFAULT);
+    public enum PERFORMANCE_MODE { HIGHEST(10_000), HIGH(1024), MEDIUM(256), LOW(50), CUSTOM(BACKLOG_DEFAULT);
         private final int backlog;
         private PERFORMANCE_MODE(final int backlog) {
             this.backlog = backlog;

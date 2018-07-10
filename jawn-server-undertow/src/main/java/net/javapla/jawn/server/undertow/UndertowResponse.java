@@ -3,6 +3,8 @@ package net.javapla.jawn.server.undertow;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -31,12 +33,15 @@ import net.javapla.jawn.core.http.Response;
 public class UndertowResponse implements Response {
     
     private final HttpServerExchange exchange;
+    private final Runnable blocking;
     
     private String contentType;
     private Optional<Charset> charset = Optional.empty();
+    private boolean writerCreated = false;
 
     public UndertowResponse(final HttpServerExchange exchange) {
         this.exchange = exchange;
+        this.blocking = () -> {if(!this.exchange.isBlocking()) this.exchange.startBlocking();};
     }
 
     @Override
@@ -121,9 +126,20 @@ public class UndertowResponse implements Response {
     }
 
     @Override
+    public Writer writer() {
+        writerCreated = true;
+        return new OutputStreamWriter(outputStream());
+    }
+    
+    @Override
     public OutputStream outputStream() {
-        exchange.startBlocking();
+        blocking.run();
         return exchange.getOutputStream();
+    }
+    
+    @Override
+    public boolean usingWriter() {
+        return writerCreated;
     }
     
     @Override

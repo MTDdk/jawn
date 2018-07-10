@@ -2,7 +2,6 @@ package net.javapla.jawn.core.server;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import net.javapla.jawn.core.http.Response;
@@ -25,7 +24,7 @@ public class ServerResponseStream implements ResponseStream {
 
     @Override
     public Writer getWriter() throws IOException {
-        return (writer = new ManagedWriter(new OutputStreamWriter(getOutputStream())));
+        return (writer = new ManagedWriter(response.writer()));
     }
 
     @Override
