@@ -1,4 +1,4 @@
-rootProject.name = 'java-web-planet / jawn'
+rootProject.name = 'jawn'
 
 //automatically include all jawn-*
 file('.')
