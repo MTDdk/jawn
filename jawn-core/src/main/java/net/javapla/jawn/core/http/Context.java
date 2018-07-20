@@ -203,8 +203,19 @@ public interface Context {
     
     public String getParameter(String name);
     
-    public Object getAttribute(String name);
-    public <T> T getAttribute(String name, Class<T> clazz);
+    /**
+     * Sets an attribute value.
+     * <p>
+     * Attributes are shared state for the duration of the request;
+     * useful to pass values between {@link Filter filters} and
+     * controllers.
+     *
+     * @see #getAttribute(String)
+     * @see #getAttribute(String, Class)
+     */
+    void setAttribute(String name, Object value);
+    Object getAttribute(String name);
+    <T> T getAttribute(String name, Class<T> clazz) throws ClassCastException;
     
     /**
      * Returns all headers from a request keyed by header name.
@@ -227,18 +238,6 @@ public interface Context {
     public boolean hasCookie(String cookieName);
     public List<Cookie> getCookies();
     
-    
-    /**
-     * Sets an attribute value.
-     * <p>
-     * Attributes are shared state for the duration of the request;
-     * useful to pass values between {@link Filter filters} and
-     * controllers.
-     *
-     * @see #getAttribute(String)
-     * @see #getAttribute(String, Class)
-     */
-    void setAttribute(String name, Object value);
     
     public void setRequestCharacterEncoding(String encoding) throws UnsupportedEncodingException;
     

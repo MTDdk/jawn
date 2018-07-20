@@ -140,22 +140,23 @@ public abstract class DynamicClassFactory {
 
         String classpath = getClasspath(urls);
 
-        StringBuilderWriter writer = new StringBuilderWriter();
-        PrintWriter out = new PrintWriter(writer);
-        
-        //TODO something needs to be done to alter this, so it does not cohere to standard Maven build output
-        // '-d' is the directory for outputting the compiled classes
-        //http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javac.html
-        String targetClasses = StringUtil.join(System.getProperty("file.separator"), "target", "classes");
-        String srcMainJava = StringUtil.join(System.getProperty("file.separator"), "src", "main", "java");
-
-        String[] args = {"-g:lines,source,vars", "-d", targetClasses, "-cp", classpath, srcMainJava + System.getProperty("file.separator") + controllerFileName};
-
-        Class<?> cl = Class.forName("com.sun.tools.javac.Main");
-        Method compile = cl.getMethod("compile", String[].class, PrintWriter.class);
-        compile.invoke(null, args, out);
-        out.flush();
-        return writer.toString();
+        try (StringBuilderWriter writer = new StringBuilderWriter();
+             PrintWriter out = new PrintWriter(writer)) {
+            
+            //TODO something needs to be done to alter this, so it does not cohere to standard Maven build output
+            // '-d' is the directory for outputting the compiled classes
+            //http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javac.html
+            String targetClasses = StringUtil.join(System.getProperty("file.separator"), "target", "classes");
+            String srcMainJava = StringUtil.join(System.getProperty("file.separator"), "src", "main", "java");
+    
+            String[] args = {"-g:lines,source,vars", "-d", targetClasses, "-cp", classpath, srcMainJava + System.getProperty("file.separator") + controllerFileName};
+    
+            Class<?> cl = Class.forName("com.sun.tools.javac.Main");
+            Method compile = cl.getMethod("compile", String[].class, PrintWriter.class);
+            compile.invoke(null, args, out);
+            out.flush();
+            return writer.toString();
+        }
     }
 
     private static final String getClasspath(URL[] urls) {
@@ -166,9 +167,9 @@ public abstract class DynamicClassFactory {
                 if(path.startsWith("/")){
                     path = path.substring(1);//loose leading slash
                 }
-                try{
+                try {
                     path = URLDecoder.decode(path, StandardCharsets.UTF_8.displayName());// fill in the spaces
-                }catch(java.io.UnsupportedEncodingException e){/*ignore*/}
+                } catch(java.io.UnsupportedEncodingException ignore){}
                 path = path.replace("/", "\\");//boy, do I dislike windoz!
             }
             classpath += path + System.getProperty("path.separator");

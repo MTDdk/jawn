@@ -39,6 +39,7 @@ public class ServerContext implements Context.Internal2 {
     private final JawnConfigurations properties;
     //private final SessionManager sessionManager;
     private final Session session;
+    private final HashMap<String, Object> contextAttributes = new HashMap<>(5);
     
     private Request request;
     private Response response;
@@ -212,6 +213,7 @@ public class ServerContext implements Context.Internal2 {
      *
      * @return IP address of the requesting client.
      */
+    @Override
     public String remoteIP(){
         String remoteAddr = request.ip();
         
@@ -254,15 +256,19 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    @Deprecated
-    public Object getAttribute(String name) {
-        return null;
+    public void setAttribute(String name, Object value) {
+        contextAttributes.put(name, value);
     }
 
     @Override
-    @Deprecated
-    public <T> T getAttribute(String name, Class<T> clazz) {
-        return null;
+    public final Object getAttribute(String name) {
+        return contextAttributes.get(name);
+    }
+
+    @Override
+    public <T> T getAttribute(String name, Class<T> type) throws ClassCastException {
+        Object o = getAttribute(name);
+        return o == null? null : type.cast(o);
     }
 
     @Override
@@ -304,11 +310,6 @@ public class ServerContext implements Context.Internal2 {
     @Override
     public List<Cookie> getCookies() {
         return request.cookies();
-    }
-
-    @Override
-    public void setAttribute(String name, Object value) {
-        //deprecate?
     }
 
     @Override
