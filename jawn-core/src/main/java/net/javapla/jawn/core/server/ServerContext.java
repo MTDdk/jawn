@@ -432,7 +432,7 @@ public class ServerContext implements Context.Internal2 {
         return new ServerResponseStream(response);
     }
     
-    private void instantiateContextAttributes() {
+    private void instantiateContextAttributes() { // synchronized *should* not be needed as a request should be executed non-parallel
         if (contextAttributes == null)
             contextAttributes = new HashMap<>(5);
     }
