@@ -39,8 +39,8 @@ public class ServerContext implements Context.Internal2 {
     private final JawnConfigurations properties;
     //private final SessionManager sessionManager;
     private final Session session;
-    private final HashMap<String, Object> contextAttributes = new HashMap<>(5);
     
+    private HashMap<String, Object> contextAttributes;
     private Request request;
     private Response response;
     
@@ -257,11 +257,13 @@ public class ServerContext implements Context.Internal2 {
 
     @Override
     public void setAttribute(String name, Object value) {
+        instantiateContextAttributes();
         contextAttributes.put(name, value);
     }
 
     @Override
     public final Object getAttribute(String name) {
+        if (contextAttributes == null) return null;
         return contextAttributes.get(name);
     }
 
@@ -428,6 +430,11 @@ public class ServerContext implements Context.Internal2 {
         }
         
         return new ServerResponseStream(response);
+    }
+    
+    private void instantiateContextAttributes() {
+        if (contextAttributes == null)
+            contextAttributes = new HashMap<>(5);
     }
 
 }
