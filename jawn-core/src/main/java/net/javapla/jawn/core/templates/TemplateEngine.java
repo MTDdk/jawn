@@ -51,7 +51,7 @@ public interface TemplateEngine {
         T readTemplate(String templatePath);
         
         /**
-         * For instance returns ".ftl.html" Or .ftl.json.
+         * For instance returns .st, .ftl.html, or .ftl.json.
          * <p>
          * Or anything else. To display error messages in a nice way...
          * <p>
@@ -62,6 +62,21 @@ public interface TemplateEngine {
          *      name of suffix or null if engine is not using a template on disk.
          */
         String getSuffixOfTemplatingEngine();
+        
+        /**
+         * When using caches we want to be able to clone the cached value, so
+         * nothing gets carried over when re-using the template
+         * <p>
+         * If the templates are re-usable out of the box, then no need to
+         * override this
+         * @param 
+         *      cloneThis the template to be cloned
+         * @return 
+         *      the cloned template or simply <code>cloneThis</code> if nothing needs
+         *      to be altered
+         * 
+         */
+        default T clone(T cloneThis) { return cloneThis; } 
     }
     
 }

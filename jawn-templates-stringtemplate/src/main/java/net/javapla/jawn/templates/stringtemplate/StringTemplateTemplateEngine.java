@@ -108,7 +108,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         final ErrorBuffer error = new ErrorBuffer();
         final ST contentTemplate = template != null ? readTemplate(template) : null;
 
-        try {final Writer writer = stream.getWriter();/*)*/ 
+        try (final Writer writer = stream.getWriter()) {
 
             if (layout == null) { // no layout
                 // both layout and template should not be null
@@ -123,14 +123,13 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
 
             } else { // with layout
 
-                String content = renderContentTemplate(contentTemplate, values, error);
+                String content = renderContentTemplate(contentTemplate, values, error, false);
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
                 final String controller = TemplateEngineHelper.getControllerForResult(context.getRoute());
                 
-                ST layoutTemplate = templateLoader.locateDefaultLayout(controller, layout);
-                
+                ST layoutTemplate = templateLoader.locateLayoutTemplate(controller, layout, useCache);
                 layout = layoutTemplate.getName(); // for later logging
                 injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller);
 
@@ -174,9 +173,17 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         return group.getInstanceOf(templatePath);
     }
     
+    @Override
+    public ST clone(ST cloneThis) {
+        if (cloneThis != null) {
+            cloneThis.impl.formalArguments = null; // this is apparently enough for "cloning"
+        }
+        return cloneThis;
+    }
+    
     private final STGroupDir setupTemplateGroup(String templateRootFolder, StringTemplateConfiguration config) {
             
-        //if in production or test
+        // TODO if in production or test
         // when reading the template from disk, do the minification at this point
         // so the STWriter does not have to handle that.
         // (This probably means something like extending STGroup and handle its caching
@@ -188,10 +195,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         // add the user configurations
         config.adaptors.forEach(group::registerModelAdaptor);
         config.renderers.forEach(group::registerRenderer);
-        
-        // adding a fallback group that will try to serve from resources instead of webapp/WEB-INF/
-//            STGroupDir fallbackGroup = new STRawGroupDir("views", config.delimiterStart, config.delimiterEnd);
-//            group.importTemplates(fallbackGroup);
         
         return group;
     }
@@ -213,30 +216,29 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
 
     /** Renders template into string
      * @return The rendered template if exists, or empty string */
-    private final String renderContentTemplate(final ST contentTemplate, final Map<String, Object> values/*, final String language*/, final ErrorBuffer error) {
+    private final String renderContentTemplate(final ST contentTemplate, final Map<String, Object> values, final ErrorBuffer error, boolean inErrorState) {
         if (contentTemplate != null) { // it has to be possible to use a layout without defining a template
-            Writer sw = new StringBuilderWriter();
+            try (Writer sw = new StringBuilderWriter()) {
             
-            final ErrorBuffer templateErrors = new ErrorBuffer();
-            renderContentTemplate(contentTemplate, sw, values/*, language*/, templateErrors);
-            
-            // handle potential errors
-            if (!templateErrors.errors.isEmpty()) {
-                for (STMessage err : templateErrors.errors) {
-                    if (err.error == ErrorType.INTERNAL_ERROR) {
-                        log.warn("Reloading GroupDir as we have found a problem during rendering of template \"{}\"\n{}",contentTemplate.getName(), templateErrors.errors.toString());
-                        //README when errors occur, try to reload the specified templates and try the whole thing again
-                        // this often rectifies the problem
-                        reloadGroup();
-                        ST reloadedContentTemplate = readTemplate(contentTemplate.getName());
-                        sw = new StringBuilderWriter();
-                        renderContentTemplate(reloadedContentTemplate, sw, values/*, language*/, error);
-                        break;
+                final ErrorBuffer templateErrors = new ErrorBuffer();
+                renderContentTemplate(contentTemplate, sw, values/*, language*/, templateErrors);
+                
+                // handle potential errors
+                if (!templateErrors.errors.isEmpty() && !inErrorState) {
+                    for (STMessage err : templateErrors.errors) {
+                        if (err.error == ErrorType.INTERNAL_ERROR) {
+                            log.warn("Reloading GroupDir as we have found a problem during rendering of template \"{}\"\n{}",contentTemplate.getName(), templateErrors.errors.toString());
+                            //README when errors occur, try to reload the specified templates and try the whole thing again
+                            // this often rectifies the problem
+                            reloadGroup();
+                            ST reloadedContentTemplate = readTemplate(contentTemplate.getName());
+                            return renderContentTemplate(reloadedContentTemplate, values, error, true);
+                        }
                     }
                 }
-            }
-
-            return sw.toString();
+    
+                return sw.toString();
+            } catch (IOException noMethodsThrowsIOE) { }
         }
         return "";
     }
@@ -258,6 +260,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         layoutTemplate.add("site", site);
     }
     
+    
     private final void injectTemplateValues(final ST template, final Map<String, Object> values) {
         if (values != null) {
             for (Entry<String, Object> entry : values.entrySet()) {
@@ -270,36 +273,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
             }
         }
     }
-    
-
-    /**
-     * Prefixes local resources with css/ or js/.
-     * "Local" is defined by not starting with 'http.*' or 'ftp.*'
-     */
-    /*private static final String[] prefixResourceLinks(final String[] links, final String prefix) {
-        return Arrays.stream(links).parallel()
-                .map(link -> { 
-                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
-                        link = prefix + link;
-                    return link; 
-                })
-                .toArray(String[]::new);
-    }
-    private static final SiteConfiguration.Script[] prefixResourceLinks(final SiteConfiguration.Script[] links, final String prefix) {
-    	return Arrays.stream(links).parallel().map(link -> {
-    	    if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
-                return link.url(prefix + link.url);
-    	    return link;
-    	}).toArray(SiteConfiguration.Script[]::new);
-    	
-//        return Arrays.stream(links).parallel()
-//                .map(SiteConfiguration.Script::getUrl).map(link -> { 
-//                    if (!(link.matches("^(ht|f)tp.*") || link.startsWith("//")))
-//                        link = prefix + link; 
-//                    return link; 
-//                })
-//                .toArray(String[]::new);
-    }*/
     
     private final void renderTemplate(final ST layoutTemplate, final Writer writer, final ErrorBuffer error) {
         layoutTemplate.write(createSTWriter(writer), error);

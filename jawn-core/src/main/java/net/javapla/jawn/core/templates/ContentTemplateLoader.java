@@ -80,42 +80,61 @@ public class ContentTemplateLoader<T> {
         }
     }
     
+    public T locateLayoutTemplate(String controller, final String layout) throws ViewException {
+        return locateLayoutTemplate(controller, layout, false);
+    }
+
     /**
      * If found, uses the provided layout within the controller folder.
      * If not found, it looks for the default template within the controller folder
      * then use this to override the root default template
      */
-    public T locateDefaultLayout(String controller, final String layout, boolean useCache) throws ViewException {
-        // look for a layout of a given name within the controller folder
-        T index = readTemplate(controller + '/' + layout, useCache);
-        if (index != null) {
-            return index;
-        }
-
+    public T locateLayoutTemplate(String controller, final String layout, boolean useCache) throws ViewException {
+        // first see if we have already looked for the template
+        final String controllerLayoutCombined = controller + '/' + layout;
+        if (useCache && cachedTemplates.containsKey(controllerLayoutCombined)) 
+            return engine.clone(cachedTemplates.get(controllerLayoutCombined)); // README: computeIfAbsent does not save the result if null - which it actually might need to do to minimise disk reads
+        
+        
+        T template;
+        if ((template = lookupLayoutWithNonDefaultName(controllerLayoutCombined)) != null) 
+            return cacheTemplate(controllerLayoutCombined, template, useCache);
+        
         // going for defaults
-        // look for the default layout in controller folder
-        // and bubble up one folder if nothing is found
-        while ((index = readTemplate(controller + '/' + TemplateEngine.LAYOUT_DEFAULT, useCache)) == null && controller.indexOf('/') > 0) {
-            controller = controller.substring(0,controller.lastIndexOf('/'));
-        }
-        if (index != null)
-            return index;
-
-        // last resort - this should always be present
-        index = readTemplate(TemplateEngine.LAYOUT_DEFAULT, useCache);
-        if (index != null) return index; 
+        if ((template = lookupDefaultLayoutInControllerPathChain(controller)) != null) 
+            return cacheTemplate(controllerLayoutCombined, template, useCache);
+        
+        if ((template = lookupDefaultLayout()) != null) 
+            return cacheTemplate(controllerLayoutCombined, template, useCache);
+        
         throw new ViewException(TemplateEngine.LAYOUT_DEFAULT + engine.getSuffixOfTemplatingEngine() + " is not to be found anywhere");
     }
     
-    public T locateDefaultLayout(String controller, final String layout) throws ViewException {
-        return locateDefaultLayout(controller, layout, false);
+    private T lookupLayoutWithNonDefaultName(final String controllerLayoutCombined) {
+        // look for a layout of a given name within the controller folder
+        return engine.readTemplate(controllerLayoutCombined);
     }
     
-    private T readTemplate(final String path, boolean useCache) {
-        if (useCache) {
-            return cachedTemplates.computeIfAbsent(path, key -> engine.readTemplate(key)); // README: does not save the result if null - which it actually might need to do to minimise disk reads
-        } else {
-            return engine.readTemplate(path);
+    private T lookupDefaultLayoutInControllerPathChain(String controller) {
+        // look for the default layout in controller folder
+        // and bubble up one folder if nothing is found
+        // (controller can be: /folder1/folder2/folder3 - so it is possible to bubble up)
+        T template;
+        while ((template = engine.readTemplate(controller + '/' + TemplateEngine.LAYOUT_DEFAULT)) == null && controller.indexOf('/') > 0) {
+            controller = controller.substring(0, controller.lastIndexOf('/'));
         }
+        return template;
+    }
+    
+    private T lookupDefaultLayout() {
+        // last resort - this should always be present
+        return engine.readTemplate(TemplateEngine.LAYOUT_DEFAULT);
+    }
+    
+    private T cacheTemplate(final String controllerLayoutCombined, final T template, final boolean useCache) {
+        if (useCache) {
+            cachedTemplates.putIfAbsent(controllerLayoutCombined, template);
+        }
+        return template;
     }
 }

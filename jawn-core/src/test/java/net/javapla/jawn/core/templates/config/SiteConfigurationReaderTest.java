@@ -1,7 +1,6 @@
 package net.javapla.jawn.core.templates.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 
@@ -14,8 +13,6 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import net.javapla.jawn.core.configuration.DeploymentInfo;
-import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 
 
@@ -145,6 +142,20 @@ public class SiteConfigurationReaderTest {
         assertEquals(3, controllerConf.scripts.length);
         assertEquals(3, controllerConf.styles.length);
 	}
+	
+	@Test
+    public void standardConf_should_not_readTwiceWithEmptyLayout() {
+        SiteConfiguration conf = confReader.read("src/test/resources", "index", "", false);
+        Assert.assertEquals("jawn test", conf.title);
+        Assert.assertEquals(false, conf.overrideDefault);
+        
+        Assert.assertEquals(2, conf.scripts.length);
+        Assert.assertEquals(2, conf.styles.length);
+        
+        conf = confReader.read("src/test/resources", "index", "/", false);
+        Assert.assertEquals(2, conf.scripts.length);
+        Assert.assertEquals(2, conf.styles.length);
+    }
 	
 	/*@Test
 	public void readSiteConfiguration_with_contextPath() {
