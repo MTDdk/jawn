@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -54,7 +53,7 @@ import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
-import net.javapla.jawn.core.util.StringBuilderWriter;
+import net.javapla.jawn.core.util.ResponseStreamWriter;
 import net.javapla.jawn.core.util.StringUtil;
 
 /**
@@ -1566,22 +1565,11 @@ public abstract class Controller implements ResultHolder {
      * @return instance of output stream to send raw data directly to HTTP client.
      */
     protected OutputStream outputStream(String contentType, Map<String, String> headers, int status) {
-//        context.setControllerResponse(new NopResponse(context, contentType, status));
-        //------
-        Result r = ResultBuilder.noBody(status).contentType(contentType);
-//        context.setControllerResponse(r);
-        setControllerResult(r);
+        setControllerResult(ResultBuilder.noBody(status).contentType(contentType));
         
         try {
-            if (headers != null) {
-                for (String key : headers.keySet()) {
-                    if (headers.get(key) != null)
-                        context.addResponseHeader(key.toString(), headers.get(key).toString());
-                }
-            }
-
-            return context.responseOutputStream();
-        }catch(Exception e){
+            return context.readyResponse(getControllerResult(), false).getOutputStream();
+        } catch(Exception e) {
             throw new ControllerException(e);
         }
     }
@@ -1593,7 +1581,7 @@ public abstract class Controller implements ResultHolder {
      * set to 200.
      * @return instance of a writer for writing content to HTTP client.
      */
-    protected PrintWriter writer(){
+    protected Writer writer(){
         return writer(null, null, 200);
     }
 
@@ -1605,20 +1593,13 @@ public abstract class Controller implements ResultHolder {
      * @param status will be sent to browser.
      * @return instance of a writer for writing content to HTTP client.
      */
-    protected PrintWriter writer(String contentType, Map<String, String> headers, int status){
+    protected Writer writer(String contentType, Map<String, String> headers, int status){
 //        context.setControllerResponse(new NopResponse(context, contentType, status));
-        result = ResultBuilder.noBody(status).contentType(contentType);
+        setControllerResult(ResultBuilder.noBody(status).contentType(contentType));
         //TODO TEST
-        try{
-            if (headers != null) {
-                for (Object key : headers.keySet()) {
-                    if (headers.get(key) != null)
-                        context.addResponseHeader(key.toString(), headers.get(key).toString());
-                }
-            }
-
-            return context.responseWriter();
-        }catch(Exception e){
+        try {
+            return context.readyResponse(getControllerResult(), false).getWriter();
+        } catch(Exception e) {
             throw new ControllerException(e);
         }
     }
@@ -1686,32 +1667,21 @@ public abstract class Controller implements ResultHolder {
      */
     //TODO TEST this mofo
     protected String merge(String template, Map<String, Object> values){
-        Writer stringWriter = new StringBuilderWriter();//StringWriter();
+        try (ResponseStream stream = new ResponseStreamWriter()) {
         
-        TemplateEngineOrchestrator manager = injector.getInstance(TemplateEngineOrchestrator.class);
-        TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
-        engine.invoke(
-                context, 
-                ResultBuilder.ok().addAllViewObjects(values).template(template).layout(null), 
-                new ResponseStream() {
-                    @Override
-                    public Writer getWriter() throws IOException {
-                        return stringWriter;
-                    }
-
-                    @Override
-                    public OutputStream getOutputStream() throws IOException {
-                        return null;
-                    }
-                    
-                    @Override
-                    public void close() {}
-                });
-        
-        
-//        Configuration.getTemplateManager().merge(values, template, stringWriter);
-        return stringWriter.toString();
-        
+            TemplateEngineOrchestrator manager = injector.getInstance(TemplateEngineOrchestrator.class);
+            TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
+            
+            engine.invoke(
+                    context, 
+                    ResultBuilder.ok().addAllViewObjects(values).template(template).layout(null), 
+                    stream);
+            
+            
+    //        Configuration.getTemplateManager().merge(values, template, stringWriter);
+            return stream.toString();
+        } catch (IOException notPossible) { }
+        return "";
     }
     
     /**

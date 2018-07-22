@@ -101,16 +101,16 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
             reloadGroup();
 
         //generate name of the template
-        final String template = templateLoader.getTemplateForResult(context.getRoute(), response);
-        String layout = templateLoader.handleLayoutEndings(response);
+        final String templateName = templateLoader.getTemplateNameForResult(context.getRoute(), response);
+        String layoutName = templateLoader.getLayoutNameForResult(response);
         //final String language = null;//context.getRouteLanguage();
 
         final ErrorBuffer error = new ErrorBuffer();
-        final ST contentTemplate = template != null ? readTemplate(template) : null;
+        final ST contentTemplate = templateName != null ? readTemplate(templateName) : null;
 
         try (final Writer writer = stream.getWriter()) {
 
-            if (layout == null) { // no layout
+            if (layoutName == null) { // no layout
                 // both layout and template should not be null
                 if (contentTemplate == null) {
                     if (response.renderable() != null) {
@@ -129,8 +129,8 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
                 // An action might specify a template that is not a part of the controller.
                 final String controller = TemplateEngineHelper.getControllerForResult(context.getRoute());
                 
-                ST layoutTemplate = templateLoader.locateLayoutTemplate(controller, layout, useCache);
-                layout = layoutTemplate.getName(); // for later logging
+                ST layoutTemplate = templateLoader.locateLayoutTemplate(controller, layoutName, useCache);
+                layoutName = layoutTemplate.getName(); // for later logging
                 injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller);
 
                 renderTemplate(layoutTemplate, writer, error);
@@ -141,7 +141,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
 
 
         if (log.isInfoEnabled())
-            log.info("Rendered template: '{}' with layout: '{}' in  {}ms", template, layout, (System.currentTimeMillis() - time));
+            log.info("Rendered template: '{}' with layout: '{}' in  {}ms", templateName, layoutName, (System.currentTimeMillis() - time));
 
         if (!error.errors.isEmpty() && log.isWarnEnabled())
             log.warn(error.errors.toString());
@@ -157,17 +157,6 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         return new String[]{MediaType.TEXT_HTML};
     }
     
-    
-    // It is not necessary to do complex synchronization on this
-    // though it may be set a few times, but it will always be set to the same value
-    // and by not synchronizing it, we might get some form of performance.
-    /*private String realPath;
-    private final String getTemplateFolder(final Context ctx) {
-        if (realPath == null)
-            realPath = ctx.getRealPath(TEMPLATES_FOLDER);
-        return realPath;
-    }*/
-    
     @Override
     public final ST readTemplate(String templatePath) {
         return group.getInstanceOf(templatePath);
@@ -177,6 +166,11 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     public ST clone(ST cloneThis) {
         if (cloneThis != null) {
             cloneThis.impl.formalArguments = null; // this is apparently enough for "cloning"
+            
+            // If the above is not enough, this seems like the way to go:
+            /*try {
+                return group.createStringTemplate(cloneThis.impl.clone());
+            } catch (CloneNotSupportedException ignore) {}*/
         }
         return cloneThis;
     }
@@ -243,7 +237,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         return "";
     }
     
-    protected final void injectValuesIntoLayoutTemplate(
+    private final void injectValuesIntoLayoutTemplate(
             final ST layoutTemplate, final Context ctx, final String content, 
             final Map<String, Object> values, final String controller) {
         
@@ -280,7 +274,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
     
     private final STWriter createSTWriter(final Writer writer) {
         if (outputHtmlIndented) {
-            return new AutoIndentWriter(writer); // README is this even needed when STFastGroupDir reads with and without indentation?
+            return new AutoIndentWriter(writer); // README is this even needed when/if STFastGroupDir reads with and without indentation?
         } else {
             return new NoIndentWriter(writer);//no indents for less HTML as a result
         }

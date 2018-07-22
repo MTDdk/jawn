@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.ws.rs.core.Response.Status;
+
 import java.util.Optional;
 
 import com.google.inject.Inject;
@@ -119,7 +122,7 @@ public class ServerContext implements Context.Internal2 {
         if (session.get(Context.FLASH_SESSION_KEYWORD) == null) {
             session.put(Context.FLASH_SESSION_KEYWORD, new HashMap<String, Object>());
         }
-        ((Map<String, Object>) session.get(Context.FLASH_SESSION_KEYWORD)).put(name, value);
+        session.get(Context.FLASH_SESSION_KEYWORD, Map.class).put(name, value);
     }
     
     @Override
@@ -409,18 +412,18 @@ public class ServerContext implements Context.Internal2 {
                 response.characterEncoding(Constants.DEFAULT_ENCODING); // use default
         }
         
-        // flash
+        Session session = getSession(true);
+        // flash (if not a redirect)
         if (handleFlash) {
-            Session session = getSession(false);
-            if (session != null) {
-                if (session.containsKey(FLASH_SESSION_KEYWORD)) {
-                    Object object = session.get(FLASH_SESSION_KEYWORD);
-                    controllerResponse.addViewObject(FLASH_KEYWORD, object);
-                    session.remove(FLASH_SESSION_KEYWORD);
-                }
-                session.save(this);
-            }
-        }
+            if (session.containsKey(FLASH_SESSION_KEYWORD)) {
+                Object object = session.get(FLASH_SESSION_KEYWORD, Object.class);
+                controllerResponse.addViewObject(FLASH_KEYWORD, object);
+                session.remove(FLASH_SESSION_KEYWORD);
+                session.save(this, false);
+            } else
+                session.save(this, false);
+        } else
+            session.save(this, false);
         
         // copy headers
         if (!controllerResponse.headers().isEmpty()) {

@@ -275,7 +275,7 @@ public interface Context {
     public Collection<String> responseHeaderNames();
     
     
-    
+    @Deprecated
     public PrintWriter responseWriter() throws IOException;
     /**
      * Use to send raw data to HTTP client.
@@ -286,6 +286,7 @@ public interface Context {
      * @return instance of output stream to send raw data directly to HTTP client.
      * @throws IOException 
      */
+    @Deprecated
     public OutputStream responseOutputStream() throws IOException;
     
     

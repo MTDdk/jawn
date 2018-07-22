@@ -65,7 +65,6 @@ public final class STFastGroupDir extends STRawGroupDir {
         //TODO rewrite in order to not use 'templates', which is synchronized
         // we can probably manage with only synchronising writes and not all reads
         
-        // TODO is the cloning even necessary??
         return code != null ? tryClone(code) : null;
     }
     

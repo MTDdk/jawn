@@ -22,7 +22,7 @@ public class LogRequestTimingFilter extends FilterAdapter {
     }
     
     private final long time() {
-        return System.currentTimeMillis();
+        return System.nanoTime();
     }
 
 }

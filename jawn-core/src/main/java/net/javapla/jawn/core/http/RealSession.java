@@ -206,7 +206,15 @@ public class RealSession implements Session {
     }
 
     @Override
-    public void save(Context context) {
+    public void save(Context context, boolean keepSessionID) {
+        if (!keepSessionID) {
+            if (!isEmpty() && data.containsKey(ID_KEY)) { // the ID is the only thing left
+                if (context.hasCookie(sessionCookieName))
+                    context.addCookie(Cookie.builder(context.getCookie(sessionCookieName)).setExpires(Cookie.EPOCH).build());
+                return;
+            }
+        }
+        
         if (!sessionDataHasChanged && sessionExpiryTimeInMs <= 0) return;
         
         if (isEmpty()) {

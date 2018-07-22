@@ -15,4 +15,7 @@ public interface ResponseStream extends AutoCloseable {
     OutputStream getOutputStream() throws IOException;
     
     Writer getWriter() throws IOException;
+    
+    @Override
+    void close() throws IOException;
 }

@@ -33,9 +33,10 @@ public class ContentTemplateLoader<T> {
         return realPath;
     }
 
-    public final String handleLayoutEndings(Result response) {
+    public final String getLayoutNameForResult(Result response) {
         String layout = response.layout();
         if (layout != null) {
+            // handle layout endings
             layout = layoutMap.computeIfAbsent(layout, (l -> {
                 if (l.endsWith(templateSuffix))
                     l = l.substring(0, l.length() - templateSuffixLengthToRemove);
@@ -55,7 +56,7 @@ public class ContentTemplateLoader<T> {
      * @param response
      * @return
      */
-    public String getTemplateForResult(Route route, Result response) {
+    public String getTemplateNameForResult(Route route, Result response) {
         String template = response.template();
         
         if (template == null) {

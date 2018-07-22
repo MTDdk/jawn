@@ -13,7 +13,7 @@ public interface Session {
     
     void put(String key, Object value);
     
-    Object get(String key);
+    String get(String key);
     <T> T get(String key, Class<T> type);
     
     Object remove(String key);
@@ -27,7 +27,7 @@ public interface Session {
     
     void setExpiryTime(long expiryTimeMS);
     
-    void save(Context context);
+    void save(Context context, boolean keepSessionID);
     
     //TODO authencity tokens for verification purposes
 }
