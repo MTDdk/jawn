@@ -3,8 +3,8 @@ package net.javapla.jawn.core.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -57,13 +57,14 @@ public interface Context {
 //    public String getRouteLanguage();
 //    public String getRouteFormat();
     
-    public String getRouteParam(String name);
-    public Map<String, String> getRouteParams();
+    String getRouteParam(String name);
+    Map<String, String> getRouteParams();
     
-    public Session getSession(boolean createIfNotExists);
-    public void setFlash(String name, Object value);
+    Session getSession(/*boolean createIfNotExists*/);
+    FlashScope getFlash();
+//    void setFlash(String name, String value);
     
-    public Modes mode();
+    Modes mode();
     
 /* *************** */
 /*   REQUEST       */
@@ -234,9 +235,9 @@ public interface Context {
     
     public Locale requestLocale();
     
-    public Cookie getCookie(String cookieName);
-    public boolean hasCookie(String cookieName);
-    public List<Cookie> getCookies();
+    Cookie getCookie(String cookieName);
+    boolean hasCookie(String cookieName);
+    Map<String, Cookie> getCookies();
     
     
     public void setRequestCharacterEncoding(String encoding) throws UnsupportedEncodingException;
@@ -275,8 +276,7 @@ public interface Context {
     public Collection<String> responseHeaderNames();
     
     
-    @Deprecated
-    public PrintWriter responseWriter() throws IOException;
+    public Writer responseWriter() throws IOException;
     /**
      * Use to send raw data to HTTP client.
      *
@@ -286,7 +286,6 @@ public interface Context {
      * @return instance of output stream to send raw data directly to HTTP client.
      * @throws IOException 
      */
-    @Deprecated
     public OutputStream responseOutputStream() throws IOException;
     
     
@@ -294,4 +293,5 @@ public interface Context {
 
     public ResponseStream readyResponse(Result controllerResponse);
     public ResponseStream readyResponse(Result controllerResponse, boolean handleFlash);
+
 }

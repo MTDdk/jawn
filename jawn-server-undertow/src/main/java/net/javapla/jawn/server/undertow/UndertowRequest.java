@@ -11,11 +11,13 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.core.MediaType;
 
@@ -162,10 +164,9 @@ public class UndertowRequest implements Request {
     }
 
     @Override
-    public List<Cookie> cookies() {
-        return exchange.getRequestCookies().values().stream()
-            .map(UndertowRequest::cookie)
-            .collect(Collectors.toList());
+    public Map<String, Cookie> cookies() {
+        Stream<Entry<String, io.undertow.server.handlers.Cookie>> stream = exchange.getRequestCookies().entrySet().stream();
+        return stream.collect(Collectors.toMap(Map.Entry::getKey, UndertowRequest::cookie));
     }
 
     @Override
@@ -212,7 +213,7 @@ public class UndertowRequest implements Request {
 
     @Override
     public void startAsync() {
-        exchange.dispatch(); //TODO
+        exchange.dispatch(); //TODO https://github.com/jooby-project/jooby/blob/master/modules/jooby-undertow/src/main/java/org/jooby/internal/undertow/UndertowRequest.java
     }
 
     
@@ -317,6 +318,9 @@ public class UndertowRequest implements Request {
         bob.setSecure(cookie.isSecure());
         //TODO more?
         return bob.build();
+    }
+    private static Cookie cookie(Map.Entry<String, io.undertow.server.handlers.Cookie> cookieEntry) {
+        return cookie(cookieEntry.getValue());
     }
 
 }

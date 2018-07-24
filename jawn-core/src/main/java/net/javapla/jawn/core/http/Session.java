@@ -27,7 +27,7 @@ public interface Session {
     
     void setExpiryTime(long expiryTimeMS);
     
-    void save(Context context, boolean keepSessionID);
+    void save(Context context);
     
     //TODO authencity tokens for verification purposes
 }

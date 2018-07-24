@@ -62,11 +62,13 @@ public class RealSession implements Session {
         if (cookie != null && !StringUtil.blank(cookie.getValue())) {
             String value = cookie.getValue();
             
+            final int indexOfSeperator = value.indexOf('-', crypto.hash().SHA256().outputLength());
+            
             // the first substring until "-" is the SHA signing
-            String signing = value.substring(0, value.indexOf("-"));
+            String signing = value.substring(0, indexOfSeperator);
 
             // rest from "-" until the end is the payload of the cookie
-            String payload = value.substring(value.indexOf("-") + 1);
+            String payload = value.substring(indexOfSeperator + 1);
 
             
             // check if payload is valid:
@@ -206,15 +208,7 @@ public class RealSession implements Session {
     }
 
     @Override
-    public void save(Context context, boolean keepSessionID) {
-        if (!keepSessionID) {
-            if (!isEmpty() && data.containsKey(ID_KEY)) { // the ID is the only thing left
-                if (context.hasCookie(sessionCookieName))
-                    context.addCookie(Cookie.builder(context.getCookie(sessionCookieName)).setExpires(Cookie.EPOCH).build());
-                return;
-            }
-        }
-        
+    public void save(Context context) {
         if (!sessionDataHasChanged && sessionExpiryTimeInMs <= 0) return;
         
         if (isEmpty()) {

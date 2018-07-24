@@ -36,7 +36,8 @@ public final class ResultRunner {
             // This indicates that we do not want to render anything in the body.
             // Can be used e.g. for a 204 No Content response or Redirect
             // and bypasses the rendering engines.
-            return context.readyResponse(response, false);//.end();
+            context.getFlash().clearCurrentFlashCookieData();
+            return context.readyResponse(response/*, false*/);//.end();
         } else {
             return renderWithTemplateEngine(context, response);
         }

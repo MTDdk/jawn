@@ -34,12 +34,12 @@ public class CryptoImpl implements Crypto {
     
     @Inject
     public CryptoImpl(JawnConfigurations properties) {
-        HMAC_SHA256 = new HmacSHA256();
-        
         Optional<String> secret = properties.getSecure(Constants.PROPERTY_SECURITY_SECRET);
         if (!secret.isPresent()) {
             logger.error("The key {} does not exist and encryption will not work properly. Please include it in your {}.", Constants.PROPERTY_SECURITY_SECRET, Constants.PROPERTIES_FILE_USER);
         }
+        
+        HMAC_SHA256 = new HmacSHA256(secret);
         AES = new AesEncryption(secret);
         
         signers = new Signers() {
@@ -69,8 +69,37 @@ public class CryptoImpl implements Crypto {
     
     private static class HmacSHA256 implements Signer {
         static final String ALGORITHM = "HmacSHA256";
+        private final Mac mac;
         
-        private HmacSHA256() { }
+        private HmacSHA256(Optional<String> secret) {
+            try {
+                // Get an hmac_sha256 key from the raw key bytes
+                byte[] keyBytes = secret.orElse("").getBytes(StandardCharsets.UTF_8);
+                SecretKeySpec signingKey = new SecretKeySpec(keyBytes, ALGORITHM);
+                
+                // Get an hmac_sha256 Mac instance and initialize with the signing key
+                mac = Mac.getInstance(ALGORITHM);
+                mac.init(signingKey);
+            } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        
+        
+        
+        public String sign(String value) {
+            try {
+                // Compute the hmac on input data bytes
+                byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
+                mac.reset();
+
+                // Convert raw bytes to Hex
+                return printHexBinary(rawHmac);
+                
+            } catch (IllegalStateException e) {
+                throw new RuntimeException(e);
+            }
+        }
         
         @Override
         public String sign(String value, String key) {
@@ -87,11 +116,16 @@ public class CryptoImpl implements Crypto {
                 byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
 
                 // Convert raw bytes to Hex
-                return new String(printHexBinary(rawHmac));
+                return printHexBinary(rawHmac);
                 
-            } catch (IllegalStateException | NoSuchAlgorithmException | InvalidKeyException e) {
+            } catch (IllegalStateException | InvalidKeyException | NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }
+        }
+        
+        @Override
+        public int outputLength() {
+            return 64;
         }
         
         // TODO should be extracted into some utility or abstract

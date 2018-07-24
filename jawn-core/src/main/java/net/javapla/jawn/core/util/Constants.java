@@ -45,6 +45,7 @@ public interface Constants {
     public static final String FRAMEWORK_NAME = "java-web-planet / jawn";
     
     public static final String SESSION_SUFFIX = "_SESSION";
+    public static final String FLASH_SUFFIX = "_FLASH";
     
     
 /* ************* 

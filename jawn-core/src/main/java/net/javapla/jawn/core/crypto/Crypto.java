@@ -17,7 +17,9 @@ public interface Crypto {
     }
     
     public static interface Signer {
+        String sign(String value);
         String sign(String value, String key);
+        int outputLength();
     }
     public static interface Encrypter {
         String encrypt(String data);

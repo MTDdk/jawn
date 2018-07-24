@@ -340,25 +340,14 @@ public abstract class Controller implements ResultHolder {
     /**
      * Convenience method, takes in a map of values to flash.
      *
-     * @see #flash(String, Object)
+     * @see #flash(String, String)
      *
      * @param values values to flash.
      */
-    protected void flash(Map<String, Object> values){
+    protected void flash(Map<String, String> values){
         for(Object key:values.keySet() ){
             flash(key.toString(), values.get(key));
         }
-    }
-
-    /**
-     * Convenience method, takes in a vararg of values to flash.
-     * Number of values must be even.
-     *
-     * @see #flash(String, Object)
-     * @param values values to flash.
-     */
-    protected void flash(Object ... values){
-        flash(CollectionUtil.map(values));
     }
 
     /**
@@ -389,12 +378,13 @@ public abstract class Controller implements ResultHolder {
      * @param name name of value to flash
      * @param value value to live for one more request in current session.
      */
-    protected void flash(String name, Object value) {
+    protected void flash(String name, String value) {
         /*if (session().get(Context.FLASH_SESSION_KEYWORD) == null) {
             session().put(Context.FLASH_SESSION_KEYWORD, new HashMap<String, Object>());
         }
         ((Map<String, Object>) session().get(Context.FLASH_SESSION_KEYWORD)).put(name, value);*/
-        context.setFlash(name, value);
+        //context.setFlash(name, value);
+        context.getFlash().put(name, value);
     }
     
 
@@ -1140,7 +1130,7 @@ public abstract class Controller implements ResultHolder {
      * @return reference to a current session.
      */
     protected Session session(){
-        return context.getSession(true);
+        return context.getSession(/*true*/);
     }
     /**
      * Convenience method, sets an object on a session. Equivalent of:
@@ -1261,7 +1251,7 @@ public abstract class Controller implements ResultHolder {
      *
      * @return collection of all cookies browser sent.
      */
-    public List<Cookie> cookies(){
+    public Map<String, Cookie> cookies(){
         return context.getCookies();
     }
 
@@ -1568,6 +1558,7 @@ public abstract class Controller implements ResultHolder {
         setControllerResult(ResultBuilder.noBody(status).contentType(contentType));
         
         try {
+            //return context.responseOutputStream(); //TODO not possible, is it?
             return context.readyResponse(getControllerResult(), false).getOutputStream();
         } catch(Exception e) {
             throw new ControllerException(e);
@@ -1594,11 +1585,11 @@ public abstract class Controller implements ResultHolder {
      * @return instance of a writer for writing content to HTTP client.
      */
     protected Writer writer(String contentType, Map<String, String> headers, int status){
-//        context.setControllerResponse(new NopResponse(context, contentType, status));
         setControllerResult(ResultBuilder.noBody(status).contentType(contentType));
         //TODO TEST
         try {
             return context.readyResponse(getControllerResult(), false).getWriter();
+            //return context.responseWriter(); //TODO not possible, is it?
         } catch(Exception e) {
             throw new ControllerException(e);
         }
