@@ -34,7 +34,20 @@ public class CryptoTest {
     }
 
     @Test
-    public void hashing() {
+    public void hashing_with_secret() {
+        when(props.getSecure(Constants.PROPERTY_SECURITY_SECRET)).thenReturn(Optional.of("SomeRandomLongString"));
+        Crypto crypto = new CryptoImpl(props);
+        
+        assertEquals("1432f1a1e8431c60a7117f831dc5d5c5e5cb00f15105558791ab9f1c3fdbb87a",
+                crypto.hash().SHA256().sign("But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain"));
+        assertEquals("41c32e6e9c69286263a2c7ef42509dc3248c40186172608a6034e9d45658cdba",
+                crypto.hash().SHA256().sign("was born and I will give you a complete account of the system"));
+        assertEquals("c8a5013890bccc204086e3923a26cb483f4ac8b31f564067854ef70714992606",
+                crypto.hash().SHA256().sign("and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness"));
+    }
+    
+    @Test
+    public void hashing_missing_secret() {
         Crypto crypto = new CryptoImpl(props);
         
         String key = "SomeRandomLongString";
@@ -45,6 +58,13 @@ public class CryptoTest {
                 crypto.hash().SHA256().sign("was born and I will give you a complete account of the system",key));
         assertEquals("c8a5013890bccc204086e3923a26cb483f4ac8b31f564067854ef70714992606",
                 crypto.hash().SHA256().sign("and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness",key));
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void hashing_missing_secretAndKey() {
+        Crypto crypto = new CryptoImpl(props);
+        
+        crypto.hash().SHA256().sign("anything");
     }
     
     @Test

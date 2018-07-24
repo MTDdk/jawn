@@ -53,7 +53,7 @@ task ensurePropertiesFile() {
 // ========================
 uploadArchives {
 
-    doLast {
+    //doLast {
 
         // TODO
         // This is not exactly how we want to do it,
@@ -111,5 +111,5 @@ uploadArchives {
                 }
             }
         }
-    }
+    //}
 }

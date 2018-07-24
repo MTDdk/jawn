@@ -73,13 +73,18 @@ public class CryptoImpl implements Crypto {
         
         private HmacSHA256(Optional<String> secret) {
             try {
-                // Get an hmac_sha256 key from the raw key bytes
-                byte[] keyBytes = secret.orElse("").getBytes(StandardCharsets.UTF_8);
-                SecretKeySpec signingKey = new SecretKeySpec(keyBytes, ALGORITHM);
-                
                 // Get an hmac_sha256 Mac instance and initialize with the signing key
                 mac = Mac.getInstance(ALGORITHM);
-                mac.init(signingKey);
+                
+                
+                if (secret.isPresent()) {
+                    // Get an hmac_sha256 key from the raw key bytes
+                    byte[] keyBytes = secret.orElse("").getBytes(StandardCharsets.UTF_8);
+                    SecretKeySpec signingKey = new SecretKeySpec(keyBytes, ALGORITHM);
+                    
+                    mac.init(signingKey);
+                }
+                
             } catch (NoSuchAlgorithmException | InvalidKeyException e) {
                 throw new RuntimeException(e);
             }
@@ -97,7 +102,8 @@ public class CryptoImpl implements Crypto {
                 return printHexBinary(rawHmac);
                 
             } catch (IllegalStateException e) {
-                throw new RuntimeException(e);
+                logger.error(getHelperLogMessage(), e);
+                throw new IllegalArgumentException(e);
             }
         }
         
@@ -252,12 +258,13 @@ public class CryptoImpl implements Crypto {
             return bob.toString();
         }
         
-        private String getHelperLogMessage() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Invalid key provided. Check if application secret is properly set.").append(System.lineSeparator());
-            sb.append("You can remove '").append(Constants.PROPERTY_SECURITY_SECRET).append("' key in configuration file ");
-            sb.append("and restart application. We will generate new key for you.");
-            return sb.toString();
-        }
+    }
+    
+    private static String getHelperLogMessage() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Invalid key provided. Check if application secret is properly set.").append(System.lineSeparator());
+        sb.append("You can remove '").append(Constants.PROPERTY_SECURITY_SECRET).append("' key in configuration file ");
+        sb.append("and restart application. We will generate new key for you.");
+        return sb.toString();
     }
 }

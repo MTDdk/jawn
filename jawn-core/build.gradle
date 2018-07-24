@@ -6,17 +6,17 @@ repositories {
 
 dependencies {
 
-    compile ('com.google.inject:guice:4.1.0') {
+    compile ('com.google.inject:guice:4.2.0') {
         // Damn! Used in runtime by guice
         exclude module: 'guava' // We import it elsewhere to be concise in the versioning
     }
-    compile 'com.google.guava:guava:23.1-jre'
+    compile 'com.google.guava:guava:25.1-jre'
     
     
     //compile 'net.sf.trove4j:trove4j:3.0.3'
 
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.1'
-    compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.9.1' // faster data binding
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.6'
+    compile 'com.fasterxml.jackson.module:jackson-module-afterburner:2.9.6' // faster data binding
     compile 'javax.ws.rs:javax.ws.rs-api:2.1'
     
     
@@ -25,12 +25,12 @@ dependencies {
 
     
     // Database
-    compile 'com.zaxxer:HikariCP:2.7.1'
+    compile 'com.zaxxer:HikariCP:3.2.0'
     
     // Cache
     //compile 'org.ehcache:ehcache:3.0.0.m4'
     compile 'net.jodah:expiringmap:0.5.8'
-    compile 'com.github.ben-manes.caffeine:caffeine:2.5.6'
+    compile 'com.github.ben-manes.caffeine:caffeine:2.6.2'
 
     //Config file read
     //compile 'com.typesafe:config:1.3.1'
@@ -46,8 +46,8 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.25'
     
     //Test
-    testCompile 'org.mockito:mockito-core:2.10.0'
-    testCompile ('com.google.truth:truth:0.36')  {
+    testCompile 'org.mockito:mockito-core:2.19.1'
+    testCompile ('com.google.truth:truth:0.42')  {
         exclude module: 'guava' // We import it elsewhere to be concise in the versioning
         exclude module: 'junit'
     }
