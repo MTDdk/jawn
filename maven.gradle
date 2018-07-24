@@ -53,7 +53,7 @@ task ensurePropertiesFile() {
 // ========================
 uploadArchives {
 
-    //doLast {
+    doLast {
 
         // TODO
         // This is not exactly how we want to do it,
@@ -61,7 +61,7 @@ uploadArchives {
         // but it works so we will leave it for now
         // UPDATE
         // doLast might actually be what we want to!
-        ensurePropertiesFile.execute()
+        //ensurePropertiesFile.execute()
 
         repositories {
             mavenDeployer {
@@ -111,5 +111,5 @@ uploadArchives {
                 }
             }
         }
-    //}
+    }
 }
