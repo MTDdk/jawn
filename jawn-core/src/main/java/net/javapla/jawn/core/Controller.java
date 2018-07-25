@@ -515,7 +515,7 @@ public abstract class Controller implements ResultHolder {
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
     protected <T extends Controller> void redirect(Class<T> controllerClass){
-        redirect(controllerClass, new HashMap<String, String>());
+        redirect(controllerClass, new HashMap<String, String>(0));
     }
 
     /**

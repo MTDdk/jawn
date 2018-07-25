@@ -1,27 +1,14 @@
 package net.javapla.jawn.core.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.junit.Test;
 
 
 public class StringUtilTest {
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {}
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {}
-
-    @Before
-    public void setUp() throws Exception {}
-
-    @After
-    public void tearDown() throws Exception {}
 
     @Test
     public void underscore() {
@@ -39,5 +26,19 @@ public class StringUtilTest {
         assertEquals("aliceIn", StringUtil.decapitalize("AliceIn"));
         assertEquals("aliceInWonderland", StringUtil.decapitalize("AliceInWonderland"));
     }
-    
+ 
+    @Test
+    public void splitWithCallback() {
+        String input = "qwerty&asdfgh&zxcvbn";
+        ArrayList<String> arr = new ArrayList<>();
+        
+        StringUtil.split(input, '&', arr::add);
+        assertEquals(Arrays.toString(StringUtil.split(input, '&')), arr.toString());
+        arr.clear();
+        
+        input = "+102394+&kmadælæ&&asdfas&";
+        StringUtil.split(input, '&', arr::add);
+        assertEquals(Arrays.toString(StringUtil.split(input, '&')), arr.toString());
+        arr.clear();
+    }
 }

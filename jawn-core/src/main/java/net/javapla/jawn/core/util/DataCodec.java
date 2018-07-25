@@ -28,38 +28,50 @@ import java.util.Map;
  * the secret is the same.
  * 
  */
-public class DataCodec {
+public final class DataCodec {
     
     /**
+     * A faster decode than the original from Play Framework, 
+     * but still equivalent in output
+     * 
      * @param map  the map to decode data into.
      * @param data the data to decode.
      */
-    public static void decode(Map<String, String> map, String data) {
-        String[] keyValues = data.split("&");
-        for (String keyValue : keyValues) {
-            String[] splitted = keyValue.split("=", 2);
-            if (splitted.length == 2) {
-                map.put(URLCodec.decode(splitted[0], StandardCharsets.UTF_8), URLCodec.decode(splitted[1], StandardCharsets.UTF_8));
+    public static void decode(final Map<String, String> map, final String data) {
+        //String[] keyValues = StringUtil.split(data, '&');
+        StringUtil.split(data, '&',  keyValue -> {
+            final int indexOfSeperator = keyValue.indexOf('=');
+            
+            if (indexOfSeperator > -1) {
+                if (indexOfSeperator == keyValue.length() - 1) { // The '=' is at the end of the string - this counts as an unsigned value
+                    map.put(URLCodec.decode(keyValue.substring(0, indexOfSeperator), StandardCharsets.UTF_8), "");
+                } else {  
+                    final String first  = keyValue.substring(0, indexOfSeperator),
+                                 second = keyValue.substring(indexOfSeperator + 1);
+                 
+                    map.put(URLCodec.decode(first, StandardCharsets.UTF_8), URLCodec.decode(second, StandardCharsets.UTF_8));
+                }
             }
-        }
+        });
     }
 
     /**
      * @param map the data to encode.
      * @return the encoded data.
      */
-    public static String encode(Map<String, String> map) {
-        StringBuilder data = new StringBuilder();
-        String separator = "";
+    public static String encode(final Map<String, String> map) {
+        if (map.isEmpty()) return "";
+        
+        final StringBuilder data = new StringBuilder();
         for (Map.Entry<String, String> entry : map.entrySet()) {
             if (entry.getValue() != null) {
-                data.append(separator)
-                        .append(URLCodec.encode(entry.getKey(), StandardCharsets.UTF_8))
-                        .append("=")
-                        .append(URLCodec.encode(entry.getValue(), StandardCharsets.UTF_8));
-                separator = "&";
+                data.append(URLCodec.encode(entry.getKey(), StandardCharsets.UTF_8))
+                    .append('=')
+                    .append(URLCodec.encode(entry.getValue(), StandardCharsets.UTF_8))
+                    .append('&');
             }
         }
+        data.deleteCharAt(data.length()-1);// remove last '&'
         return data.toString();
     }
 
