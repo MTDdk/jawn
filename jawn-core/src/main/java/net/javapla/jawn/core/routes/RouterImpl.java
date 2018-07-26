@@ -92,7 +92,9 @@ public class RouterImpl implements Router {
             if (route != null) return route;
 //        }
         
-        return calculateRoute(httpMethod, requestUri/*, invoker*//*injector*/);
+        Route r = calculateRoute(httpMethod, requestUri/*, invoker*//*injector*/);
+        deducedRoutes.insert(requestUri, r);
+        return r;
     }
     
     //TODO we need to have the injector somewhere else.
@@ -178,7 +180,7 @@ public class RouterImpl implements Router {
                 }
                 
                 // if the route only has an URI defined, then we process the route as if it was an InternalRoute
-                if (route.getActionName() == null) {
+                if (route.getActionName() == null || !route.isFullyQualified()) {
                     if (route.getController() == null) {
                         Route deferred = deduceRoute(route, httpMethod, requestUri, invoker);
                         if (deferred != null) return deferred;
@@ -237,7 +239,7 @@ public class RouterImpl implements Router {
     
     private String deduceActionName(Route route, String requestUri) {
         String actionName = route.getActionName();
-        if (actionName == null) {
+        if (actionName == null || !route.isFullyQualified()) {
             // try to infer the action
             Map<String, String> params = route.getPathParametersEncoded(requestUri);
             ControllerMeta c = new ControllerMeta(params);
