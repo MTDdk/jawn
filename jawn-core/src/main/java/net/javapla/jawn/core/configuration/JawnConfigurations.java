@@ -31,7 +31,7 @@ public class JawnConfigurations implements Configurations {
         
         readProperties();
         
-        String basePackage = props.getProperty(Constants.PROPERTY_APPLICATION_BASE_PACKAGE);
+        String basePackage = props.getProperty(Constants.PROPERTY_APPLICATION_BASE_PACKAGE, "app");
         System.setProperty(Constants.SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE, basePackage);
         
         ConfigurationsHelper.check(this);

@@ -84,7 +84,8 @@ public class RouterImpl implements Router {
     }*/
 
     
-    public final Route retrieveRoute(HttpMethod httpMethod, String requestUri/*, ActionInvoker invoker*//*Injector injector*/) throws RouteException {
+    @Override
+    public final Route retrieveRoute(HttpMethod httpMethod, String requestUri) throws RouteException {
         // Try with the deduced routes first
         // Only do this if we are not in development
 //        if (!isDev) {
@@ -92,8 +93,9 @@ public class RouterImpl implements Router {
             if (route != null) return route;
 //        }
         
-        Route r = calculateRoute(httpMethod, requestUri/*, invoker*//*injector*/);
-        deducedRoutes.insert(requestUri, r);
+        Route r = calculateRoute(httpMethod, requestUri);
+        if (!isDev)
+            deducedRoutes.insert(requestUri, r);
         return r;
     }
     
@@ -293,13 +295,11 @@ public class RouterImpl implements Router {
             String p = params.get("controller");
             if (StringUtil.blank(p)) return Constants.ROOT_CONTROLLER_NAME;
             return p;
-//            return params.getOrDefault("controller", NewRoute.ROOT_CONTROLLER_NAME);
         }
         public String getActionName() {
             String p = params.get("action");
             if (StringUtil.blank(p)) return Constants.DEFAULT_ACTION_NAME;
             return p;
-//            return params.getOrDefault("action", NewRoute.DEFAULT_ACTION_NAME);
         }
         
         public String getControllerClassName() {
