@@ -38,7 +38,6 @@ public class ServerContext implements Context.Internal2 {
     
     
     private final JawnConfigurations properties;
-    //private final SessionManager sessionManager;
     private final Session session;
     private final FlashScope flash;
     
