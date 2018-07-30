@@ -218,7 +218,15 @@ public class UndertowRequest implements Request {
 
     
     private static final String stripContextPath(final String contextPath, final String requestPath) {
-        return requestPath.substring(contextPath.length());
+        if (contextPath.isEmpty()) return requestPath;
+        
+        // remove from beginning
+        final int length = contextPath.length();
+        for (int c = 0; c < length; c++) {
+            if (contextPath.charAt(c) != requestPath.charAt(c)) return requestPath;
+        }
+        
+        return requestPath.substring(length);
     }
 
     private FormData parseForm(final HttpServerExchange exchange, final String charset) throws IOException {

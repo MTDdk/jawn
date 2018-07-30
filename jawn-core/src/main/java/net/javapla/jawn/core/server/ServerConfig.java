@@ -46,7 +46,8 @@ public class ServerConfig {
         return contextPath;
     }
     public ServerConfig contextPath(String contextPath) {
-        this.contextPath = contextPath;
+        if (contextPath.charAt(0) != '/') this.contextPath = '/' + contextPath;
+        else this.contextPath = contextPath;
         return this;
     }
     

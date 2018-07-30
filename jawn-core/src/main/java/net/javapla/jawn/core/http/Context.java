@@ -76,7 +76,7 @@ public interface Context {
      * <code>/mywebapp</code>
      *
      * @return a context of the request - usually an app name (as seen on URL of request).
-     * @deprecated {@link DeploymentInfo#getContextPath()}
+    // * @deprecated {@link DeploymentInfo#getContextPath()}
      */
     public String contextPath();
     
