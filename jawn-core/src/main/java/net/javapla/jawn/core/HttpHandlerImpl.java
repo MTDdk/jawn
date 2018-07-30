@@ -81,8 +81,7 @@ class HttpHandlerImpl implements HttpHandler {
      * @return true, if a filtering has happened and nothing else should be done by this current dispatcher
      */
     //TODO extract to an independent Filter
-    private final boolean filteringResources(Response response, final String path/*, final Function<String,String> needsTranslation*/) throws IOException {
-//        String translated = needsTranslation.apply(path);
+    private final boolean filteringResources(Response response, final String path) throws IOException {
         String translated = translateResource(path);
         if (translated != null) {
             
@@ -103,10 +102,10 @@ class HttpHandlerImpl implements HttpHandler {
             else if (translated.endsWith(".mp4"))
                 response.header(HttpHeaders.CONTENT_TYPE, "video/mp4");
             
-            //chain.doFilter(r, resp);
+            //try (FileInputStream fis = new FileInputStream(file)) {
             try {
-                response.send(new FileInputStream(file));
-                //response.end(); // << TODO maybe we should take a look at why this is failing when serving png (perhaps it is the same for all big files)
+                response.send(new FileInputStream(file)); // gets closed by the response
+                response.end();
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
