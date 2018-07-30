@@ -81,7 +81,17 @@ public class ContentTemplateLoader<T> {
         }
     }
     
-    public T locateLayoutTemplate(String controller, final String layout) throws ViewException {
+    public T locateContentTemplate(final String contentTemplateName, boolean useCache) {
+        if (useCache && cachedTemplates.containsKey(contentTemplateName)) 
+            return engine.clone(cachedTemplates.get(contentTemplateName));
+        
+        T template = engine.readTemplate(contentTemplateName);
+        if (template != null) return cacheTemplate(contentTemplateName, template, useCache);
+            
+        return null; //throws new ViewException();??
+    }
+    
+    public T locateLayoutTemplate(final String controller, final String layout) throws ViewException {
         return locateLayoutTemplate(controller, layout, false);
     }
 
@@ -90,7 +100,7 @@ public class ContentTemplateLoader<T> {
      * If not found, it looks for the default template within the controller folder
      * then use this to override the root default template
      */
-    public T locateLayoutTemplate(String controller, final String layout, boolean useCache) throws ViewException {
+    public T locateLayoutTemplate(String controller, final String layout, final boolean useCache) throws ViewException {
         // first see if we have already looked for the template
         final String controllerLayoutCombined = controller + '/' + layout;
         if (useCache && cachedTemplates.containsKey(controllerLayoutCombined)) 

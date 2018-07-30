@@ -106,7 +106,7 @@ public final class StringTemplateTemplateEngine implements TemplateEngine.Templa
         //final String language = null;//context.getRouteLanguage();
 
         final ErrorBuffer error = new ErrorBuffer();
-        final ST contentTemplate = templateName != null ? readTemplate(templateName) : null;
+        final ST contentTemplate = templateName != null ? templateLoader.locateContentTemplate(templateName, useCache) : null;
 
         try (final Writer writer = stream.getWriter()) {
 
