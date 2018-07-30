@@ -101,6 +101,11 @@ class HttpHandlerImpl implements HttpHandler {
                 response.header(HttpHeaders.CONTENT_TYPE, "video/webm");
             else if (translated.endsWith(".mp4"))
                 response.header(HttpHeaders.CONTENT_TYPE, "video/mp4");
+            else if (translated.endsWith(".svg")) {
+                response.header(HttpHeaders.CONTENT_TYPE, "image/svg+xml");
+                response.header("mime-type","image/svg+xml");
+                response.header(HttpHeaders.CONTENT_DISPOSITION, "");
+            }
             
             //try (FileInputStream fis = new FileInputStream(file)) {
             try {
