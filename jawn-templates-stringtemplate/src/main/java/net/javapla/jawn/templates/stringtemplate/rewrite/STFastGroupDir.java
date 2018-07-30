@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.FileSystem;
+import java.util.ArrayList;
+import java.util.Enumeration;
 
 import org.antlr.runtime.ANTLRInputStream;
 import org.antlr.runtime.ANTLRStringStream;
@@ -23,17 +25,27 @@ import net.javapla.jawn.core.util.StringUtil;
  */
 public final class STFastGroupDir extends STRawGroupDir {
     
-    protected final URL resourceRoot;
+    protected final ArrayList<URL> resourceRoots;
     protected final boolean skipLF;
     public STFastGroupDir(String dirName, char delimiterStartChar, char delimiterStopChar, boolean skipLF) {
         super(dirName, delimiterStartChar, delimiterStopChar);
         this.skipLF = skipLF;
         
+        resourceRoots = new ArrayList<>();
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        resourceRoot = cl.getResource(dirName);
-        if ( root == null && resourceRoot == null ) {
-            cl = this.getClass().getClassLoader();
-            root = cl.getResource(dirName);
+        try {
+            Enumeration<URL> resources = cl.getResources(dirName);
+            while (resources.hasMoreElements()) {
+                URL url = resources.nextElement();
+                if (!url.getPath().contains("/test/")) {
+                    resourceRoots.add(url);
+                }
+            }
+        } catch (IOException e) {
+            if ( root == null) {
+                cl = this.getClass().getClassLoader();
+                root = cl.getResource(dirName);
+            }
         }
     }
 
@@ -109,8 +121,15 @@ public final class STFastGroupDir extends STRawGroupDir {
      * directly on the filesystem.
      */
     private final CompiledST loadTemplateResource(String prefix, String unqualifiedFileName) {
-        if (resourceRoot == null) return null;
-        return loadTemplate(resourceRoot, prefix, unqualifiedFileName);
+        //if (resourceRoot == null) return null;
+        //return loadTemplate(resourceRoot, prefix, unqualifiedFileName);
+        if (resourceRoots.isEmpty()) return null;
+        CompiledST template = null;
+        for (URL resourceRoot : resourceRoots) {
+            if ((template = loadTemplate(resourceRoot, prefix, unqualifiedFileName)) != null)
+                return template;
+        }
+        return null;
     }
     
     private final CompiledST loadTemplate(URL root, String prefix, String unqualifiedFileName) {
