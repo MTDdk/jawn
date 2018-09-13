@@ -40,7 +40,7 @@ dependencies {
     
 
     //Compiler
-    runtime files("${System.env['JAVA_HOME']}/lib/tools.jar") // Can this be excluded entirely? Also if running on a JRE system?
+    //runtime files("${System.env['JAVA_HOME']}/lib/tools.jar") // Can this be excluded entirely? Also if running on a JRE system?
 	
 	//Logging
     compile 'org.slf4j:slf4j-api:1.7.25'
