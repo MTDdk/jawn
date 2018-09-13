@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
-public final class FrameworkEngine {
+final class FrameworkEngine {
     
     private static final String FRAMEWORK_SPLASH = "\n" 
             + "     ____.  _____  __      _________   \n"
@@ -63,7 +63,7 @@ public final class FrameworkEngine {
             
             // a filter might return a result, in which case do nothing
             if (result == null)
-                result = route.executeRouteAndRetrieveResponse(context);
+                result = route.executeRouteAndRetrieveResult(context);
             
             // close response streams in the end
             // README: is it possible that it never closes?
@@ -98,7 +98,7 @@ public final class FrameworkEngine {
         
     }
     
-    private void renderSystemError(Context context, String template, String layout, int status, Throwable e) {
+    private void renderSystemError(Context.Internal2 context, String template, String layout, int status, Throwable e) {
         logRequestProperties(context, status, e);
         
         try {
@@ -121,19 +121,18 @@ public final class FrameworkEngine {
                         .contentType(MediaType.TEXT_HTML);
 
                 runner.run(context, response).close();
-                // ParamCopy.copyInto(resp.values(), request, null);
             }
         } catch (Throwable t) {
 
             if (t instanceof IllegalStateException) {
                 logger.error("Failed to render a template: '" + template
                         + "' because templates are rendered with Writer, but you probably already used OutputStream");
-            } else {
+            }/* else {
                 logger.error("java-web-planet internal error: ", t);
-            }
+            }*/
             try {
-                Result renderable = ResultBuilder.ok().contentType(MediaType.TEXT_HTML).layout(null)
-                        .renderable("<html><head><title>Sorry!</title></head><body><div style='background-color:pink;'>internal error</div></body>");
+                Result renderable = ResultBuilder.notFound()/*.contentType(MediaType.TEXT_HTML).layout(null)
+                        .renderable("<html><head><title>Sorry!</title></head><body><div style='background-color:pink;'>internal error</div></body>")*/;
                 runner.run(context, renderable).close();
             } catch (Exception ex) {
                 logger.error(ex.toString(), ex);

@@ -5,11 +5,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -44,6 +42,7 @@ public class ServerContext implements Context.Internal2 {
     private HashMap<String, Object> contextAttributes;
     private Request request;
     private Response response;
+    private volatile ResponseStream responseCreated = null;
     
     private Route route;
     /**
@@ -68,7 +67,7 @@ public class ServerContext implements Context.Internal2 {
         this.request = request;
         this.response = response;
         
-        addResponseHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
+        addHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
     }
     
     @Override
@@ -292,23 +291,16 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    public Map<String, String> requestHeaders() {
-        return null;//TODO
+    public MultiList<String> requestHeaders() {
+        List<String> names = request.headerNames();
+        MultiList<String> list = new MultiList<>();
+        names.forEach(name -> list.put(name, request.headers(name)));
+        return list;
     }
 
     @Override
     public String requestHeader(String name) {
         return request.header(name).orElse(null);
-    }
-
-    @Override
-    public String[] requestParameterValues(String name) {
-        return null;
-    }
-
-    @Override
-    public Locale requestLocale() {
-        return null;
     }
 
     @Override
@@ -370,34 +362,23 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    @Deprecated
-    public void responseLocale(Locale locale) {
-    }
-
-    @Override
     public void addCookie(Cookie cookie) {
         response.addCookie(cookie);
     }
 
     @Override
-    public void addResponseHeader(String name, String value) {
+    public void addHeader(String name, String value) {
         response.header(name, value);
     }
 
     @Override
-    public Collection<String> responseHeaderNames() {
-        //TODO
-        return null;
+    public Writer responseWriter(Result result) throws IOException {
+        return readyResponse(result, false).getWriter();
     }
 
     @Override
-    public Writer responseWriter() throws IOException {
-        return response.writer();
-    }
-
-    @Override
-    public OutputStream responseOutputStream() throws IOException {
-        return response.outputStream();
+    public OutputStream responseOutputStream(Result result) throws IOException {
+        return readyResponse(result, false).getOutputStream();
     }
 
     @Override
@@ -406,7 +387,10 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    public ResponseStream readyResponse(Result controllerResponse, boolean handleFlashAndSession) {
+    public /*synchronized */ResponseStream readyResponse(Result controllerResponse, boolean handleFlashAndSession) {
+        if (responseCreated != null) return responseCreated;
+        if (controllerResponse == null) return responseCreated = new ServerResponseStream(response);
+        
         // status
         response.statusCode(controllerResponse.status());
         
@@ -442,7 +426,7 @@ public class ServerContext implements Context.Internal2 {
            }
         }
         
-        return new ServerResponseStream(response);
+        return responseCreated = new ServerResponseStream(response);
     }
     
     private void instantiateContextAttributes() { // synchronized *should* not be needed as a request should be executed non-parallel

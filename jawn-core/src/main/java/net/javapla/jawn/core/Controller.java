@@ -11,12 +11,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -578,7 +575,7 @@ public abstract class Controller implements ResultHolder {
      * @param name name of multiple values from request.
      * @return multiple request values for a name.
      */
-    protected List<Param> params(String name) {
+    /*protected List<Param> params(String name) {
         if (name.equals("id")) {
             String id = getIdString();
             return id != null ? Arrays.asList(new Param(id)) : Collections.emptyList();
@@ -594,7 +591,7 @@ public abstract class Controller implements ResultHolder {
             }
             return valuesList;
         }
-    }
+    }*/
     
     /**
      * Convenience method to get parameters in case <code>multipart/form-data</code> request was used.
@@ -811,7 +808,7 @@ public abstract class Controller implements ResultHolder {
     protected Param getId(){
         return new Param(context.param("id"));//new Param(getIdString());
     }
-    private String getIdString() {
+    /*private String getIdString() {
         String paramId = context.getParameter("id");
         if(paramId != null && context.getAttribute("id") != null){
             logger.warn("WARNING: probably you have 'id' supplied both as a HTTP parameter, as well as in the URI. Choosing parameter over URI value.");
@@ -825,7 +822,7 @@ public abstract class Controller implements ResultHolder {
             theId =  id != null ? id.toString() : null;
         }
         return StringUtil.blank(theId) ? null : theId;
-    }
+    }*/
     
 
 //    /**
@@ -1106,24 +1103,6 @@ public abstract class Controller implements ResultHolder {
     protected void encoding(String encoding) {
         setResponseEncoding(encoding);
     }
-
-    /**
-     * Sets locale on response.
-     *
-     * @param locale locale for response
-     */
-    protected void locale(Locale locale){
-        context.responseLocale(locale);//.getHttpResponse().setLocale(locale);
-    }
-    /**
-     * Returns locale of request.
-     *
-     * @return locale of request.
-     */
-    protected Locale locale(){
-        return context.requestLocale();//RequestUtils.locale();
-    }
-
 
     /**
      * Returns reference to a current session. Creates a new session of one does not exist.
@@ -1457,7 +1436,7 @@ public abstract class Controller implements ResultHolder {
      *
      * @return all headers from a request keyed by header name.
      */
-    protected Map<String, String> headers(){
+    protected MultiList<String> headers(){
         return context.requestHeaders();
     }
 
@@ -1468,7 +1447,7 @@ public abstract class Controller implements ResultHolder {
      * @param value value of header.
      */
     protected void header(String name, String value){
-        context.addResponseHeader(name, value);
+        context.addHeader(name, value);
     }
 
     /**
@@ -1554,12 +1533,14 @@ public abstract class Controller implements ResultHolder {
      * @param status status.
      * @return instance of output stream to send raw data directly to HTTP client.
      */
-    protected OutputStream outputStream(String contentType, Map<String, String> headers, int status) {
-        setControllerResult(ResultBuilder.noBody(status).contentType(contentType));
+    public OutputStream outputStream(String contentType, Map<String, String> headers, int status) {
+        Result result = ResultBuilder.noBody(status).contentType(contentType);
+        headers.entrySet().forEach(header -> result.addHeader(header.getKey(), header.getValue()));
+        setControllerResult(result);
         
         try {
             //return context.responseOutputStream(); //TODO not possible, is it?
-            return context.readyResponse(getControllerResult(), false).getOutputStream();
+            return context.responseOutputStream(result);
         } catch(Exception e) {
             throw new ControllerException(e);
         }
@@ -1584,11 +1565,13 @@ public abstract class Controller implements ResultHolder {
      * @param status will be sent to browser.
      * @return instance of a writer for writing content to HTTP client.
      */
-    protected Writer writer(String contentType, Map<String, String> headers, int status){
-        setControllerResult(ResultBuilder.noBody(status).contentType(contentType));
+    public Writer writer(String contentType, Map<String, String> headers, int status){
+        Result result = ResultBuilder.noBody(status).contentType(contentType);
+        headers.entrySet().forEach(header -> result.addHeader(header.getKey(), header.getValue()));
+        setControllerResult(result);
         //TODO TEST
         try {
-            return context.readyResponse(getControllerResult(), false).getWriter();
+            return context.responseWriter(result);
             //return context.responseWriter(); //TODO not possible, is it?
         } catch(Exception e) {
             throw new ControllerException(e);
@@ -1673,20 +1656,6 @@ public abstract class Controller implements ResultHolder {
             return stream.toString();
         } catch (IOException notPossible) { }
         return "";
-    }
-    
-    /**
-     * Returns response headers
-     *
-     * @return map with response headers.
-     */
-    protected Map<String, String> getResponseHeaders(){
-        Collection<String> names  = context.responseHeaderNames();
-        Map<String, String> headers = new HashMap<String, String>();
-        for (String name : names) {
-            headers.put(name, context.requestHeader(name));
-        }
-        return headers;
     }
     
     /*

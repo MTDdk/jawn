@@ -5,9 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,6 +35,8 @@ public interface Context {
         void setRouteInformation(Route route, String routedPath) throws IllegalArgumentException;
         Request request();
         Response response();
+        ResponseStream readyResponse(Result controllerResponse);
+        ResponseStream readyResponse(Result controllerResponse, boolean handleFlash);
     }
     
     /**
@@ -223,7 +223,7 @@ public interface Context {
      *
      * @return all headers from a request keyed by header name.
      */
-    public Map<String, String> requestHeaders();
+    public MultiList<String> requestHeaders();
     /**
      * Returns a request header by name.
      *
@@ -231,9 +231,6 @@ public interface Context {
      * @return header value.
      */
     public String requestHeader(String name);
-    public String[] requestParameterValues(String name);
-    
-    public Locale requestLocale();
     
     Cookie getCookie(String cookieName);
     boolean hasCookie(String cookieName);
@@ -261,22 +258,19 @@ public interface Context {
 /*   RESPONSE      */
 /* *************** */
     
-    public String getResponseEncoding();
+    String getResponseEncoding();
     /**
      * Character encoding for response
      * @param encoding
      */
-    public void setEncoding(String encoding);
+    void setEncoding(String encoding);
     
-    public void responseLocale(Locale locale);
+    void addCookie(Cookie cookie);
     
-    public void addCookie(Cookie cookie);
-    
-    public void addResponseHeader(String name, String value);
-    public Collection<String> responseHeaderNames();
+    void addHeader(String name, String value);
     
     
-    public Writer responseWriter() throws IOException;
+    Writer responseWriter(Result result) throws IOException;
     /**
      * Use to send raw data to HTTP client.
      *
@@ -286,12 +280,9 @@ public interface Context {
      * @return instance of output stream to send raw data directly to HTTP client.
      * @throws IOException 
      */
-    public OutputStream responseOutputStream() throws IOException;
+    OutputStream responseOutputStream(Result result) throws IOException;
     
     
 /* ****** */
-
-    public ResponseStream readyResponse(Result controllerResponse);
-    public ResponseStream readyResponse(Result controllerResponse, boolean handleFlash);
 
 }
