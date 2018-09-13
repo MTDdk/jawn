@@ -18,7 +18,7 @@ import net.javapla.jawn.core.templates.TemplateEngineOrchestrator;
  * @author MTD
  */
 //perhaps to be called ResponseHandler
-public final class ResultRunner {
+final class ResultRunner {
 
     private final TemplateEngineOrchestrator templateEngineManager;
     
@@ -27,9 +27,9 @@ public final class ResultRunner {
         this.templateEngineManager = templateEngineManager;
     }
     
-    public final ResponseStream run(final Context context, final Result response) throws ViewException, BadRequestException, MediaTypeException {
+    public final ResponseStream run(final Context.Internal2 context, final Result response) throws ViewException, BadRequestException, MediaTypeException {
         //might already have been handled by the controller or filters
-        //if (response == null) return;
+        if (response == null) return context.readyResponse(response);
         
         final Object renderable = response.renderable();
         if (renderable instanceof NoHttpBody) {
@@ -43,7 +43,7 @@ public final class ResultRunner {
         }
     }
     
-    private final ResponseStream renderWithTemplateEngine(final Context context, final Result response) throws ViewException, BadRequestException, MediaTypeException {
+    private final ResponseStream renderWithTemplateEngine(final Context.Internal2 context, final Result response) throws ViewException, BadRequestException, MediaTypeException {
         
         // if the response does not contain a content type, we try to look at the request 'accept' header
         if (response.contentType() == null) {

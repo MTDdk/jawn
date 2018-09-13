@@ -20,6 +20,7 @@ import net.javapla.jawn.core.database.DatabaseConnection;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.database.DatabaseConnections.DatabaseConnectionBuilder;
 import net.javapla.jawn.core.routes.Route.ResponseFunction;
+import net.javapla.jawn.core.routes.Route.VoidResponseFunction;
 import net.javapla.jawn.core.routes.Route.ZeroArgResponseFunction;
 import net.javapla.jawn.core.routes.RouteBuilder;
 import net.javapla.jawn.core.routes.RouterImpl;
@@ -140,6 +141,10 @@ public class Jawn {
         return this;
     }
     public Jawn get(String path, ZeroArgResponseFunction func) {
+        builders.add(RouteBuilder.get().route(path).with(func));
+        return this;
+    }
+    public Jawn get(String path, VoidResponseFunction func) {
         builders.add(RouteBuilder.get().route(path).with(func));
         return this;
     }

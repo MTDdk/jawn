@@ -97,7 +97,7 @@ public class Route extends InternalRoute {
         this.func = func;
         this.directlyExecutable = directlyExecutable;
     }
-    public Result executeRouteAndRetrieveResponse(Context context) {
+    public Result executeRouteAndRetrieveResult(Context context) {
         return func.handle(context);
     }
     public boolean isDirectlyExecutable() {

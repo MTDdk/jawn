@@ -59,18 +59,6 @@ class HttpHandlerImpl implements HttpHandler {
         // and convert them to an array for fast lookup
         exclusions = exclusionPaths.toArray(new String[exclusionPaths.size()]);
         logger.debug("Letting the server take care of providing resources from: {}", exclusionPaths);
-        
-        
-        // either the encoding was set by the user, or we default
-        //TODO make encoding configurable
-//        String enc = appContext.getAsString(AppContext.ENCODING);
-//        if (enc == null) {
-//            enc = Constants.ENCODING;
-//            appContext.set(AppContext.ENCODING, enc);
-//        }
-//        logger.debug("Setting encoding: " + enc);
-        
-//        root_controller = filterConfig.getInitParameter("root_controller");
     }
     
     /**
@@ -188,7 +176,7 @@ class HttpHandlerImpl implements HttpHandler {
     * Actually sorts the paths, which is not appreciated and not even used anywhere
     * @return
     */
-   private Set<String> findExclusionPaths() {
+   private Set<String> findExclusionPaths() throws InitException {
        Set<String> exclusions = new TreeSet<String>();
        
        // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF

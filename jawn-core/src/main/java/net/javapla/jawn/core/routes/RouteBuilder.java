@@ -17,6 +17,7 @@ import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.routes.Route.ResponseFunction;
+import net.javapla.jawn.core.routes.Route.VoidResponseFunction;
 import net.javapla.jawn.core.routes.Route.ZeroArgResponseFunction;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StringUtil;
@@ -117,6 +118,10 @@ public class RouteBuilder {
     }
     public RouteBuilder with(ZeroArgResponseFunction func) {
         this.func = (context) -> func.handle();
+        return this;
+    }
+    public RouteBuilder with(VoidResponseFunction func) {
+        this.func = (context) -> {func.handle(context); return null; };
         return this;
     }
     Consumer<Controller> ext;
