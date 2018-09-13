@@ -39,7 +39,7 @@ public class UndertowResponse implements Response {
     
     private String contentType;
     private Optional<Charset> charset = Optional.empty();
-    private boolean writerCreated = false;
+    private boolean streamCreated = false;
 
     public UndertowResponse(final HttpServerExchange exchange) {
         this.exchange = exchange;
@@ -131,7 +131,7 @@ public class UndertowResponse implements Response {
 
     @Override
     public Writer writer() {
-        writerCreated = true;
+        streamCreated = true;
         return new OutputStreamWriter(outputStream());
     }
     
@@ -142,8 +142,8 @@ public class UndertowResponse implements Response {
     }
     
     @Override
-    public boolean usingWriter() {
-        return writerCreated;
+    public boolean usingStream() {
+        return streamCreated;
     }
     
     @Override

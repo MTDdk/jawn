@@ -26,7 +26,7 @@ public interface Response {
     void reset();
     Writer writer();
     OutputStream outputStream();
-    boolean usingWriter();
+    boolean usingStream();
     String contentType();
     void contentType(String contentType);
     void addCookie(Cookie cookie);
