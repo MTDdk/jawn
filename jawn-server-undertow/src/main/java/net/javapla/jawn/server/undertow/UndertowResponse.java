@@ -131,12 +131,12 @@ public class UndertowResponse implements Response {
 
     @Override
     public Writer writer() {
-        streamCreated = true;
         return new OutputStreamWriter(outputStream());
     }
     
     @Override
     public OutputStream outputStream() {
+        streamCreated = true;
         blocking.run();
         return exchange.getOutputStream();
     }
