@@ -2,6 +2,8 @@ package net.javapla.jawn.core.reflection;
 
 import java.util.Optional;
 
+import org.slf4j.LoggerFactory;
+
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.FiltersHandler;
 import net.javapla.jawn.core.http.HttpMethod;
@@ -25,30 +27,36 @@ public class RoutesDeducer {
     
     public RoutesDeducer deduceRoutesFromControllers() {
         
-        ControllerLocator locator = new ControllerLocator(PropertiesConstants.CONTROLLER_PACKAGE);
+        try {
+            ControllerLocator locator = new ControllerLocator(PropertiesConstants.CONTROLLER_PACKAGE);
         
-        locator.controllerActions
-            .forEach((controllername,actions) -> {
-                // /{controller}
-                constructControllerRoute(locator, controllername);
-                
-                // /{controller}/{action}
-                actions.forEach(action -> {
-                    // find the httpmethod
-                    extractHttpMethod(action)
-                        .ifPresent(method -> {
-                            String actionName = action.substring(method.name().length());
-                            actionName = StringUtil.underscore(actionName);
-                            
-                            constructActionRoute(locator, controllername, action, actionName, method);
-                        });
+            locator.controllerActions
+                .forEach((controllername,actions) -> {
+                    // /{controller}
+                    constructControllerRoute(locator, controllername);
                     
+                    // /{controller}/{action}
+                    actions.forEach(action -> {
+                        // find the httpmethod
+                        extractHttpMethod(action)
+                            .ifPresent(method -> {
+                                String actionName = action.substring(method.name().length());
+                                actionName = StringUtil.underscore(actionName);
+                                constructActionRoute(locator, controllername, action, actionName, method);
+                            });
+                        
+                    });
                 });
-            });
+            
+            // insert IndexController
+            if (locator.containsControllerPath(Constants.ROOT_CONTROLLER_NAME)) {//finder.controllerExists(Constants.ROOT_CONTROLLER_NAME)) {
+                constructRoute(locator, "/", Constants.ROOT_CONTROLLER_NAME, Constants.DEFAULT_ACTION_NAME, HttpMethod.GET);
+            }
         
-        // insert IndexController
-        if (locator.containsControllerPath(Constants.ROOT_CONTROLLER_NAME)) {//finder.controllerExists(Constants.ROOT_CONTROLLER_NAME)) {
-            constructRoute(locator, "/", Constants.ROOT_CONTROLLER_NAME, Constants.DEFAULT_ACTION_NAME, HttpMethod.GET);
+        } catch (IllegalArgumentException e) {
+            LoggerFactory
+                .getLogger(getClass().getName())
+                .error(getClass().getSimpleName() + " did not find any controllers in " + PropertiesConstants.CONTROLLER_PACKAGE + " - not doing that, then..");
         }
         
         return this;
