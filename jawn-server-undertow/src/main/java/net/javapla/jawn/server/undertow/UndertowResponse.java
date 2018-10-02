@@ -165,6 +165,7 @@ public class UndertowResponse implements Response {
             exchange.removeAttachment(UndertowRequest.SOCKET);
           }
         }*/
+        
         // this is a noop when response has been set, still call it...
         if (endExchange)
             exchange.endExchange();
