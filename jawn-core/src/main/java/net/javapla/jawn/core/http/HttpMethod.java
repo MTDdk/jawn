@@ -11,7 +11,7 @@ import net.javapla.jawn.core.util.StringUtil;
  * @author MTD
  */
 public enum HttpMethod {
-    GET, POST, PUT, DELETE, HEAD;
+    GET, POST, PUT, DELETE, HEAD, OPTIONS;
     
     public static String[] listHttpMethods() {
         return Arrays.stream(HttpMethod.values()).map(method -> method.name().toLowerCase()).toArray(String[]::new);
