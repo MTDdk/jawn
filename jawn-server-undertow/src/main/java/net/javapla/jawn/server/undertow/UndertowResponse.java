@@ -131,12 +131,12 @@ public class UndertowResponse implements Response {
 
     @Override
     public Writer writer() {
-        streamCreated = true;
         return new OutputStreamWriter(outputStream());
     }
     
     @Override
     public OutputStream outputStream() {
+        streamCreated = true;
         blocking.run();
         return exchange.getOutputStream();
     }
@@ -165,6 +165,7 @@ public class UndertowResponse implements Response {
             exchange.removeAttachment(UndertowRequest.SOCKET);
           }
         }*/
+        
         // this is a noop when response has been set, still call it...
         if (endExchange)
             exchange.endExchange();
