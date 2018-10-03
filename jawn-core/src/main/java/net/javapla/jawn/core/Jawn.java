@@ -44,7 +44,7 @@ public class Jawn {
     
     private final ServerConfig serverConfig = new ServerConfig();
     
-    private Modes mode = Modes.determineModeFromSystem();
+    protected Modes mode = Modes.determineModeFromSystem();
     
     
     public Jawn() {
