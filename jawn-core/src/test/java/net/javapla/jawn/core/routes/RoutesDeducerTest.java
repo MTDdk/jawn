@@ -19,7 +19,7 @@ public class RoutesDeducerTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        System.setProperty(Constants.SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE, "app");
+        System.setProperty(Constants.SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE, Constants.APPLICATION_STANDARD_PACKAGE);
     }
 
     @AfterClass

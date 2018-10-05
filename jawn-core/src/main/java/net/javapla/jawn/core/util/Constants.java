@@ -10,6 +10,7 @@ public interface Constants {
      */
     public static final String APPLICATION_CONTROLLER_PACKAGE = "controllers";//"app.controllers";
     public static final String APPLICATION_CONFIGURATION_PACKAGE = "config";
+    public static final String APPLICATION_STANDARD_PACKAGE = "app";
     
     
     /**

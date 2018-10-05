@@ -44,7 +44,7 @@ public class Jawn {
     
     private final ServerConfig serverConfig = new ServerConfig();
     
-    protected Modes mode = Modes.determineModeFromSystem();
+    private Modes mode = Modes.determineModeFromSystem();
     
     
     public Jawn() {
@@ -156,10 +156,10 @@ public class Jawn {
         builders.add(RouteBuilder.get().route(path).to(controller));
         return this;
     }
-    /*public Jawn get(String path, Class<? extends Controller> controller, String action) {
+    public Jawn get(String path, Class<? extends Controller> controller, String action) {
         builders.add(RouteBuilder.get().route(path).to(controller, action));
         return this;
-    }*/
+    }
     //TESTING
     public <C extends Controller> Jawn get(String path, Class<C> controller, Consumer<C> action) {
         builders.add(RouteBuilder.get().route(path).to(controller, action));
@@ -177,6 +177,10 @@ public class Jawn {
         builders.add(RouteBuilder.post().route(path).with(func));
         return this;
     }
+    public Jawn post(String path, VoidResponseFunction func) {
+        builders.add(RouteBuilder.post().route(path).with(func));
+        return this;
+    }
     public Jawn post(String path, ResponseFunction func) {
         builders.add(RouteBuilder.post().route(path).with(func));
         return this;
@@ -185,10 +189,10 @@ public class Jawn {
         builders.add(RouteBuilder.post().route(path).to(controller));
         return this;
     }
-    /*public Jawn post(String path, Class<? extends Controller> controller, String action) {
+    public Jawn post(String path, Class<? extends Controller> controller, String action) {
         builders.add(RouteBuilder.post().route(path).to(controller, action));
         return this;
-    }*/
+    }
     //TESTING
     public <C extends Controller> Jawn post(String path, Class<C> controller, Consumer<C> action) {
         builders.add(RouteBuilder.post().route(path).to(controller, action));
@@ -206,6 +210,10 @@ public class Jawn {
         builders.add(RouteBuilder.put().route(path).with(func));
         return this;
     }
+    public Jawn put(String path, VoidResponseFunction func) {
+        builders.add(RouteBuilder.put().route(path).with(func));
+        return this;
+    }
     public Jawn put(String path, ResponseFunction func) {
         builders.add(RouteBuilder.put().route(path).with(func));
         return this;
@@ -214,10 +222,10 @@ public class Jawn {
         builders.add(RouteBuilder.put().route(path).to(controller));
         return this;
     }
-    /*public Jawn put(String path, Class<? extends Controller> controller, String action) {
+    public Jawn put(String path, Class<? extends Controller> controller, String action) {
         builders.add(RouteBuilder.put().route(path).to(controller, action));
         return this;
-    }*/
+    }
     //TESTING
     public <C extends Controller> Jawn put(String path, Class<C> controller, Consumer<C> action) {
         builders.add(RouteBuilder.put().route(path).to(controller, action));
@@ -235,6 +243,10 @@ public class Jawn {
         builders.add(RouteBuilder.delete().route(path).with(func));
         return this;
     }
+    public Jawn delete(String path, VoidResponseFunction func) {
+        builders.add(RouteBuilder.delete().route(path).with(func));
+        return this;
+    }
     public Jawn delete(String path, ResponseFunction func) {
         builders.add(RouteBuilder.delete().route(path).with(func));
         return this;
@@ -243,15 +255,20 @@ public class Jawn {
         builders.add(RouteBuilder.delete().route(path).to(controller));
         return this;
     }
-    /*public Jawn delete(String path, Class<? extends Controller> controller, String action) {
+    public Jawn delete(String path, Class<? extends Controller> controller, String action) {
         builders.add(RouteBuilder.delete().route(path).to(controller, action));
         return this;
-    }*/
+    }
     //TESTING
     public <C extends Controller> Jawn delete(String path, Class<C> controller, Consumer<C> action) {
         builders.add(RouteBuilder.delete().route(path).to(controller, action));
         return this;
     }
+    
+    //TODO
+    // ****************
+    // OPTION
+    // ****************
     
     // ****************
     // Injection
@@ -277,6 +294,10 @@ public class Jawn {
         filters.add(filter).to(controller);
         return this;
     }
+    public Jawn filter(Class<? extends Filter> filter) {
+        filters.add(filter);
+        return this;
+    }
     /*public Jawn filter(Filter filter, Class<? extends Controller> controller, String ... actions) {
         filters.add(filter).to(controller).forActions(actions);
         return this;
@@ -289,7 +310,7 @@ public class Jawn {
         return serverConfig;
     }
     
-    public void start(/*final String ... args*/) {
+    public void start() {
         long startupTime = System.currentTimeMillis();
         
         JawnConfigurations properties = new JawnConfigurations(mode);
@@ -313,9 +334,8 @@ public class Jawn {
      */
     public void stop() {
         CompletableFuture.runAsync(() -> {
-            Injector injector = bootstrapper.getInjector();
             try {
-                injector.getInstance(Server.class).stop();
+                bootstrapper.getInjector().getInstance(Server.class).stop();
             } catch (Exception ignore) {
                 // Ignore NPE. At this point the server REALLY should be possible to find
             }

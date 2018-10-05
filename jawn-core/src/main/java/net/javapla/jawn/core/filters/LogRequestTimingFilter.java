@@ -1,8 +1,11 @@
 package net.javapla.jawn.core.filters;
 
+import com.google.inject.Singleton;
+
 import net.javapla.jawn.core.api.FilterAdapter;
 import net.javapla.jawn.core.http.Context;
 
+@Singleton
 public class LogRequestTimingFilter extends FilterAdapter {
 
     @Override
