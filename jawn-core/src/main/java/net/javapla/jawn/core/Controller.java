@@ -1461,6 +1461,10 @@ public abstract class Controller implements ResultHolder {
 
         header(name, value.toString());
     }
+    
+    protected Object contextAttribute(String name) {
+        return context.getAttribute(name);
+    }
 
     /**
      * Streams content of the <code>reader</code> to the HTTP client.

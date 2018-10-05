@@ -88,10 +88,19 @@ public class RouterImpl implements Router {
     public final Route retrieveRoute(HttpMethod httpMethod, String requestUri) throws RouteException {
         // Try with the deduced routes first
         // Only do this if we are not in development
-//        if (!isDev) {
+        //if (!isDev) {
             final Route route = deducedRoutes.findExact(requestUri, httpMethod); //exact matches
-            if (route != null) return route;
-//        }
+            if (route != null) { 
+                if (isDev /*&& !route.isDirectlyExecutable()*/) {
+                    try {
+                        reloadController(route, false);
+                    } catch (CompilationException | ClassLoadException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return route;
+            }
+        //}
         
         Route r = calculateRoute(httpMethod, requestUri);
         if (!isDev)
@@ -161,7 +170,6 @@ public class RouterImpl implements Router {
                 if (route.isDirectlyExecutable()) {
                     return route;
                 }
-                
                 
                 // TODO something is inherently wrong here.. All of this ought to be the responsibility of ActionInvoker or some middleman.
                 // It definitely should not be here, but a part of the execution of the route instead, and set during RouteBuilder#build
@@ -278,6 +286,10 @@ public class RouterImpl implements Router {
                 .method(httpMethod)
                 .route(uri)
                 .to(controller, RouteBuilder.constructAction(actionName, httpMethod));
+    }
+    
+    private void reloadController(Route route, boolean useCache) throws CompilationException, ClassLoadException {
+        route.replaceController(DynamicClassFactory.getCompiledClass(route.getController().getName(), Controller.class, useCache));
     }
     
     private final class ControllerMeta {

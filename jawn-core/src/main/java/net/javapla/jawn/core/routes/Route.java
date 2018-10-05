@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.routes;
 
-import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
 import net.javapla.jawn.core.Controller;
@@ -41,6 +40,10 @@ public class Route extends InternalRoute {
         this.filterChain = chain;
     }
     
+    public Route(Route route) {
+        this(route.uri, route.httpMethod, route.controller, route.action, route.actionName, route.filterChain);
+    }
+    
     // Indicates that this Route does not have any route parameters that needs to be deduced in runtime.
     // E.g. /somecontroller/action is fully qualified
     //      /somecontroller/{action} is not
@@ -49,13 +52,13 @@ public class Route extends InternalRoute {
             this.parameters.stream().noneMatch(param -> param.equals(ACTION) || param.equals(CONTROLLER) || param.equals(ID) || param.equals(PACKAGE))*/;
     }
     
-    private Method actionMethod;
+    /*private Method actionMethod;
     public void setActionMethod(Method method) {
         this.actionMethod = method;
     }
     public Method getActionMethod() {
         return actionMethod;
-    }
+    }*/
     private Consumer<Controller> controllerAction;
     public void setControllerAction(Consumer<Controller> controllerAction) {
         this.controllerAction = controllerAction;
@@ -72,6 +75,9 @@ public class Route extends InternalRoute {
     }
     public Class<? extends Controller> getController() {
         return controller;
+    }
+    void replaceController(Class<? extends Controller> controller) {
+        this.controller = controller;
     }
     
     /**

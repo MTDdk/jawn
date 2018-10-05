@@ -23,15 +23,17 @@ public class JawnConfigurations implements Configurations {
     
     private final Properties props;
     private final Modes mode;
+    private final String modeLowerCased;
     
     
     public JawnConfigurations(Modes mode) throws InitException {
         this.mode = mode;
+        this.modeLowerCased = mode.name().toLowerCase() + '.';
         this.props = new Properties();
         
         readProperties();
         
-        String basePackage = props.getProperty(Constants.PROPERTY_APPLICATION_BASE_PACKAGE, "app");
+        String basePackage = props.getProperty(Constants.PROPERTY_APPLICATION_BASE_PACKAGE, Constants.APPLICATION_STANDARD_PACKAGE);
         System.setProperty(Constants.SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE, basePackage);
         
         ConfigurationsHelper.check(this);
@@ -69,7 +71,7 @@ public class JawnConfigurations implements Configurations {
     
     private void checkInitProperties() throws InitException {
         for (String param: PROPERTY_PARAMS) {
-            if (props.get(param) == null) {
+            if (getObject(param) == null) {
                 throw new InitException("Must provide property: " + param);
             }
         }
@@ -80,13 +82,13 @@ public class JawnConfigurations implements Configurations {
     }
     
     public boolean isProd() {
-        return mode.equals(Modes.PROD);
+        return mode == Modes.PROD;
     }
     public boolean isTest() {
-        return mode.equals(Modes.TEST);
+        return mode == Modes.TEST;
     }
     public boolean isDev() {
-        return mode.equals(Modes.DEV);
+        return mode == Modes.DEV;
     }
     /*public void set(Modes mode) {
         this.mode = mode;
@@ -103,13 +105,17 @@ public class JawnConfigurations implements Configurations {
     
     
     public String get(String name) {
-        return props.getProperty(name);
+        return _getString(name);
     }
+    
     public Optional<String> getSecure(String name) {
-        return Optional.ofNullable(props.getProperty(name));
+        return Optional.ofNullable(_getString(name));
     }
+    
     public String getOrDie(String name) {
-        if (props.containsKey(name)) return props.getProperty(name);
+        //if (props.containsKey(name)) return get(name);
+        String s = _getString(name);
+        if (s != null) return s;
         
         String KEY_NOT_FOUND = "Key %s does not exist. Please include it in your " + Constants.PROPERTIES_FILE_USER + ". Otherwise this app will not work";
         logger.error(String.format(KEY_NOT_FOUND, name));
@@ -117,13 +123,14 @@ public class JawnConfigurations implements Configurations {
     }
     
     public String[] getStringArray(String name) {
-        String prop = props.getProperty(name);
+        String prop = _getString(name);
         if (prop == null) return null;
         String[] arr = StringUtil.split(prop, ',');
         return arr;
     }
+    
     public int getInt(String name) {
-        return Integer.parseInt(get(name));
+        return Integer.parseInt(_getString(name));
     }
     
     /**
@@ -133,10 +140,10 @@ public class JawnConfigurations implements Configurations {
      * @return If the value is not set, it defaults to <code>false</code>
      */
     public boolean getBoolean(String name) {
-        return Boolean.parseBoolean(get(name));
+        return Boolean.parseBoolean(_getString(name));
     }
     public Optional<Boolean> getBooleanSecure(String name) {
-        return props.getProperty(name) != null ? Optional.of(getBoolean(name)) : Optional.empty();
+        return _contains(name) ? Optional.of(getBoolean(name)) : Optional.empty();
     }
     
     
@@ -149,13 +156,13 @@ public class JawnConfigurations implements Configurations {
         props.put(name, value);
     }
     public Object getObject(String name) {
-        return props.get(name);
+        return _getObject(name);
     }
     
     
     public void setSupportedLanguages(String[] languages) {
         if (languages != null)
-            props.put(Constants.SUPPORTED_LANGUAGES, languages);
+            set(Constants.SUPPORTED_LANGUAGES, languages);
     }
     /**
      * First element is the default language
@@ -173,7 +180,19 @@ public class JawnConfigurations implements Configurations {
      * @return object by name
      */
     public <T>  T get(String name, Class<T> type){
-        Object o = props.get(name);
-        return o == null? null : type.cast(o);
+        Object o = _getObject(name);
+        return o == null ? null : type.cast(o);
+    }
+    
+    private boolean _contains(String name) {
+        return props.containsKey(modeLowerCased + name) || props.containsKey(name);
+    }
+    
+    private String _getString(String name) {
+        return props.containsKey(modeLowerCased + name) ? props.getProperty(modeLowerCased + name) : props.getProperty(name);
+    }
+    
+    private Object _getObject(String name) {
+        return props.containsKey(modeLowerCased + name) ? props.get(modeLowerCased + name) : props.get(name);
     }
 }

@@ -72,7 +72,8 @@ public class ActionInvoker implements ResponseFunction {
             final Controller controller = DynamicClassFactory.createInstance(route.getController());
             injectControllerWithContext(controller, context, injector);
 
-            route.getActionMethod().invoke(controller);
+            route.getController().getMethod(route.getAction()).invoke(controller);
+            //route.getActionMethod().invoke(controller);
             return controller.getControllerResult();
         } catch (InvocationTargetException e) {
             if (e.getCause() != null) {
