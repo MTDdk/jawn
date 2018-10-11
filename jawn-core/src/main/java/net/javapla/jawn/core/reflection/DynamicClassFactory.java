@@ -39,12 +39,10 @@ public abstract class DynamicClassFactory {
      */
     public final static <T> T createInstance(String className, Class<T> expectedType, boolean useCache) throws CompilationException, ClassLoadException {
         try {
-            Object o = getCompiledClass(className, useCache).newInstance(); // a check to see if the class exists
+            Object o = createInstance(getCompiledClass(className, useCache)); // a check to see if the class exists
             T instance = expectedType.cast(o); // a check to see if the class is actually a correct subclass
             return instance ;
-        } catch (CompilationException e) {
-            throw e;
-        } catch (ClassLoadException e) {
+        } catch (CompilationException | ClassLoadException e) {
             throw e;
         } catch (ClassCastException e) {
             //from cast()
@@ -66,7 +64,7 @@ public abstract class DynamicClassFactory {
     
     public final static <T> T createInstance(Class<? extends T> clazz) throws ClassLoadException {
         try {
-            return clazz.newInstance();
+            return clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
             throw new ClassLoadException(e);
         } catch (Exception e) {
