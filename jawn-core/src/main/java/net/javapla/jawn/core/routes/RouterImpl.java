@@ -201,6 +201,9 @@ public class RouterImpl implements Router {
                         if (deferred != null) return deferred;
                         return route;
                     } else {
+                        if (route.getAction() != null)
+                            return route;
+                        
                         String actionName = deduceActionName(route, requestUri);
                         return RouteBuilder.build(route, actionName);
                     }
