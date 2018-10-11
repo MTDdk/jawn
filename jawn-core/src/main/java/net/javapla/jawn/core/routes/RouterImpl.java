@@ -177,6 +177,10 @@ public class RouterImpl implements Router {
                 // reload the controller, if we are not in production mode
                 if (isDev) {
                     try {
+                        if (route.getAction() != null) {
+                            return reloadController(route, false);
+                        }
+                        
                         // a route might not have the actionName or controller set by the user, so 
                         // we try to infer it from the URI
                         String actionName = deduceActionName(route, requestUri);
@@ -288,8 +292,9 @@ public class RouterImpl implements Router {
                 .to(controller, RouteBuilder.constructAction(actionName, httpMethod));
     }
     
-    private void reloadController(Route route, boolean useCache) throws CompilationException, ClassLoadException {
+    private Route reloadController(Route route, boolean useCache) throws CompilationException, ClassLoadException {
         route.replaceController(DynamicClassFactory.getCompiledClass(route.getController().getName(), Controller.class, useCache));
+        return route;
     }
     
     private final class ControllerMeta {
