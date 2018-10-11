@@ -43,7 +43,8 @@ dependencies {
     //runtime files("${System.env['JAVA_HOME']}/lib/tools.jar") // Can this be excluded entirely? Also if running on a JRE system?
 	
     //Logging
-    compile 'org.slf4j:slf4j-api:1.7.25'
+    //compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
     
     //Test
     testCompile 'org.mockito:mockito-core:2.19.1'
