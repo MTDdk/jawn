@@ -27,7 +27,13 @@ final class JsonTemplateEngine implements TemplateEngine {
     public final void invoke(final Context context, final Result response, final ResponseStream stream) {
         try (final OutputStream output = stream.getOutputStream()) {
             
-            output.write(mapper.writeValueAsBytes(response.renderable()));
+            Object object = response.renderable();
+            
+            if (object instanceof byte[]) {
+                output.write((byte[])object);
+            } else {
+                output.write(mapper.writeValueAsBytes(object));
+            }
             
         } catch (IOException e) {
             e.printStackTrace();

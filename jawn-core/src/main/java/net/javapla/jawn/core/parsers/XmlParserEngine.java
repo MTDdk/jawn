@@ -54,6 +54,16 @@ class XmlParserEngine implements ParserEngine {
             throw new ParsableException(e);
         }
     }
+    
+    @Override
+    public <T> T invoke(byte[] arr, Class<T> clazz) throws ParsableException {
+        try {
+            return mapper.readValue(arr, clazz);
+        } catch (IOException e) {
+            throw new ParsableException(e);
+        }
+    }
+    
     @Override
     public String getContentType() {
         return MediaType.APPLICATION_XML;

@@ -103,15 +103,18 @@ public final class ResultBuilder {
      * has its content type set to "application/json"
      */
     public final Result json(Object obj) {
-        final Result response = ok();
+        final Result response = ok().contentType(MediaType.APPLICATION_JSON).renderable(obj);
         holder.setControllerResult(response);
-        response.contentType(MediaType.APPLICATION_JSON).renderable(obj);
         return response;
     }
     public final Result json(Callable<Object> c) {
-        final Result response = ok();
+        final Result response = ok().contentType(MediaType.APPLICATION_JSON).renderable(c);
         holder.setControllerResult(response);
-        response.contentType(MediaType.APPLICATION_JSON).renderable(c);
+        return response;
+    }
+    public final Result json(byte[] arr) {
+        final Result response = ok().contentType(MediaType.APPLICATION_JSON).renderable(arr);
+        holder.setControllerResult(response);
         return response;
     }
     
