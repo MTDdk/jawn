@@ -50,7 +50,7 @@ public class ActionInvoker implements ResponseFunction {
                 Class<? extends Controller> compiledClass = DynamicClassFactory.getCompiledClass(route.getController().getName(), Controller.class, false);
                 controller = DynamicClassFactory.createInstance(compiledClass);
             } else */{
-                controller = DynamicClassFactory.createInstance(route.getController());
+                controller = injector.getInstance(route.getController());//DynamicClassFactory.createInstance(route.getController());
             }
             
             injectControllerWithContext(controller, context, injector);
@@ -69,7 +69,8 @@ public class ActionInvoker implements ResponseFunction {
         final Route route = context.getRoute();
 
         try {
-            final Controller controller = DynamicClassFactory.createInstance(route.getController());
+            final Controller controller = /*DynamicClassFactory.createInstance(route.getController());*/
+                injector.getInstance(route.getController());
             injectControllerWithContext(controller, context, injector);
 
             route.getController().getMethod(route.getAction()).invoke(controller);
@@ -97,7 +98,7 @@ public class ActionInvoker implements ResponseFunction {
         controller.init(context, injector);
         
         //Inject dependencies
-        injector.injectMembers(controller);
+        //injector.injectMembers(controller);
     }
     
     public final static boolean isAllowedAction(Class<? extends Controller> controller, String actionMethodName) {
