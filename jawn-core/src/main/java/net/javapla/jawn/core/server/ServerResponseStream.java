@@ -55,8 +55,14 @@ public class ServerResponseStream implements ResponseStream {
         }
         
         void managedClose() throws IOException {
-            original.flush();
-            original.close();
+            try {
+                original.flush();
+            } catch(IOException e) {
+                // The stream might already have been closed
+                // (most likely due to a reload of the browser)
+            } finally {
+                original.close();
+            }
         }
 
         @Override
