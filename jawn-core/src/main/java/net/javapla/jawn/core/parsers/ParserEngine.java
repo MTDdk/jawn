@@ -26,6 +26,8 @@ public interface ParserEngine {
     
     <T> T invoke(InputStream stream, Class<T> clazz) throws ParsableException;
     
+    <T> T invoke(byte[] arr, Class<T> clazz) throws ParsableException;
+    
     /**
      * The content type this BodyParserEngine can handle
      * 

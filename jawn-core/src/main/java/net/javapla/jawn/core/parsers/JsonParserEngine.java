@@ -22,19 +22,6 @@ class JsonParserEngine implements ParserEngine {
         this.mapper = mapper;
     }
     
-//    public final <T> T parseObject(Reader reader, Class<T> clazz) throws JsonParseException, JsonMappingException, IOException {
-//        return mapper.readValue(reader, clazz);
-//    }
-//    
-//    public final <T> T parseObject(InputStream input, Class<T> clazz) throws JsonParseException, JsonMappingException, IOException {
-//        return mapper.readValue(input, clazz);
-//    }
-    
-    
-//    public static final void writeObject(Object entity, Writer writer) throws JsonGenerationException, JsonMappingException, IOException {
-//        JSON_MAPPER.writeValue(writer, entity);
-//    }
-
     @Override
     public <T> T invoke(Reader reader, Class<T> clazz) throws ParsableException {
         try (Reader r = reader) {
@@ -46,8 +33,17 @@ class JsonParserEngine implements ParserEngine {
 
     @Override
     public <T> T invoke(InputStream stream, Class<T> clazz) throws ParsableException {
-        try (InputStream s = stream ){
+        try (InputStream s = stream ) {
             return mapper.readValue(s, clazz);
+        } catch (IOException e) {
+            throw new ParsableException(e);
+        }
+    }
+    
+    @Override
+    public <T> T invoke(byte[] arr, Class<T> clazz) throws ParsableException {
+        try {
+            return mapper.readValue(arr, clazz);
         } catch (IOException e) {
             throw new ParsableException(e);
         }
