@@ -15,6 +15,7 @@ public interface Response {
     List<String> headers(String name);
     void header(String name, List<String> values);
     void header(String name, String value);
+    void removeHeader(String name);
     void send(byte[] bytes) throws Exception;
     void send(ByteBuffer buffer) throws Exception;
     void send(InputStream stream) throws Exception;

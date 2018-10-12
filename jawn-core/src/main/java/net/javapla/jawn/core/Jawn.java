@@ -123,12 +123,6 @@ public class Jawn {
         return this;
     }*/
     
-    /*public Jawn lang() {
-        //README: should some kind of language settings be set here?
-        //bootstrapper.config().setSupportedLanguages(null);
-        return this;
-    }*/
-    
     public DatabaseConnectionBuilder database(Modes mode) {
         return databaseConnections.environment(mode);
     }
@@ -265,10 +259,61 @@ public class Jawn {
         return this;
     }
     
-    //TODO
     // ****************
-    // OPTION
+    // HEAD
     // ****************
+    public Jawn head(String path, Result response) {
+        builders.add(RouteBuilder.head().route(path).with(response));
+        return this;
+    }
+    public Jawn head(String path, ZeroArgResponseFunction func) {
+        builders.add(RouteBuilder.head().route(path).with(func));
+        return this;
+    }
+    public Jawn head(String path, VoidResponseFunction func) {
+        builders.add(RouteBuilder.head().route(path).with(func));
+        return this;
+    }
+    public Jawn head(String path, ResponseFunction func) {
+        builders.add(RouteBuilder.head().route(path).with(func));
+        return this;
+    }
+    public Jawn head(String path, Class<? extends Controller> controller) {
+        builders.add(RouteBuilder.head().route(path).to(controller));
+        return this;
+    }
+    public Jawn head(String path, Class<? extends Controller> controller, String action) {
+        builders.add(RouteBuilder.head().route(path).to(controller, action));
+        return this;
+    }
+    
+    // ****************
+    // OPTIONS
+    // ****************
+    public Jawn options(String path, Result response) {
+        builders.add(RouteBuilder.options().route(path).with(response));
+        return this;
+    }
+    public Jawn options(String path, ZeroArgResponseFunction func) {
+        builders.add(RouteBuilder.options().route(path).with(func));
+        return this;
+    }
+    public Jawn options(String path, VoidResponseFunction func) {
+        builders.add(RouteBuilder.options().route(path).with(func));
+        return this;
+    }
+    public Jawn options(String path, ResponseFunction func) {
+        builders.add(RouteBuilder.options().route(path).with(func));
+        return this;
+    }
+    public Jawn options(String path, Class<? extends Controller> controller) {
+        builders.add(RouteBuilder.options().route(path).to(controller));
+        return this;
+    }
+    public Jawn options(String path, Class<? extends Controller> controller, String action) {
+        builders.add(RouteBuilder.options().route(path).to(controller, action));
+        return this;
+    }
     
     // ****************
     // Injection

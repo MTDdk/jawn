@@ -1301,15 +1301,6 @@ public abstract class Controller implements ResultHolder {
     }
 
     /**
-     * Returns a full URL of the request, all except a query string.
-     *
-     * @return a full URL of the request, all except a query string.
-     */
-    protected  String url(){
-        return context.requestUrl();
-    }
-
-    /**
      * Returns query string of the request.
      *
      * @return query string of the request.
@@ -1393,15 +1384,6 @@ public abstract class Controller implements ResultHolder {
 
 
     /**
-     * Returns URI, or a full path of request. This does not include protocol, host or port. Just context and path.
-     * Examlpe: <code>/mywebapp/controller/action/id</code>
-     * @return  URI, or a full path of request.
-     */
-    protected String uri(){
-        return context.requestUri();//RequestUtils.uri();
-    }
-
-    /**
      * Host name of the requesting client.
      *
      * @return host name of the requesting client.
@@ -1447,7 +1429,7 @@ public abstract class Controller implements ResultHolder {
      * @param value value of header.
      */
     protected void header(String name, String value){
-        context.addHeader(name, value);
+        context.setHeader(name, value);
     }
 
     /**

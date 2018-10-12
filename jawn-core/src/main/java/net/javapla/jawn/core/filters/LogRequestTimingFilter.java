@@ -19,7 +19,7 @@ public class LogRequestTimingFilter extends FilterAdapter {
         Long time = context.getAttribute(getClass().getName(), Long.class);
         if (time != null) {
             String processingTime = String.valueOf(time() - time);
-            context.addHeader("X-Request-Processing-Time", processingTime);
+            context.setHeader("X-Request-Processing-Time", processingTime);
             logger.info("Processed request in: " + processingTime + " milliseconds, path: " + context.path() + ", method: " + context.httpMethod());
         }
     }

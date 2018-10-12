@@ -119,7 +119,7 @@ public class SiteConfigurationReader {
     private Site createCachableSite(Context ctx, SiteConfiguration conf) {
         // does not contain 'content'
         return Site.builder()
-                    .url(ctx.requestUrl()) // add the URL
+                    .url(ctx.path()) // add the URL
                     .title(conf.title) // add title
                     .mode(ctx.mode()) // state the current mode
                     

@@ -47,9 +47,13 @@ public class Route extends InternalRoute {
     // Indicates that this Route does not have any route parameters that needs to be deduced in runtime.
     // E.g. /somecontroller/action is fully qualified
     //      /somecontroller/{action} is not
-    public boolean isFullyQualified() {
+    public boolean isUrlFullyQualified() {
         return this.parameters.isEmpty() /*|| 
             this.parameters.stream().noneMatch(param -> param.equals(ACTION) || param.equals(CONTROLLER) || param.equals(ID) || param.equals(PACKAGE))*/;
+    }
+    
+    public boolean hasActionSet() {
+        return action != null && actionName != null;
     }
     
     /*private Method actionMethod;

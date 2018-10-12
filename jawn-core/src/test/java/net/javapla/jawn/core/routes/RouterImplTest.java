@@ -91,6 +91,17 @@ public class RouterImplTest {
     }
     
     @Test
+    public void customRoute_should_mapToStatedAction() {
+        builders.add(RouteBuilder.get().route("/{someid}").to(UnitTestController.class, "getLongerAction"));
+        RouterImpl router = setupRouter();
+        
+        try {
+            Route route = router.retrieveRoute(HttpMethod.GET, "/7777");
+            assertEquals("getLongerAction", route.getAction());
+        } catch (RouteException expected) {}
+    }
+    
+    @Test
     public void customRouteController() {
         builders.add(RouteBuilder.get().route("/start/{controller}"));
         builders.add(RouteBuilder.get().route("/start/{package: .*?}/{controller}"));

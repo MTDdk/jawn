@@ -112,7 +112,7 @@ public class RouteTest {
         String uri = "/something/getit";
         Route route = new Route(uri, HttpMethod.GET, null, null, null, null);
         
-        assertTrue(route.isFullyQualified());
+        assertTrue(route.isUrlFullyQualified());
     }
     
     @Test
@@ -120,21 +120,21 @@ public class RouteTest {
         String uri = "/something/getit/{action}";
         Route route = new Route(uri, HttpMethod.GET, null, null, null, null);
         
-        assertFalse(route.isFullyQualified());
+        assertFalse(route.isUrlFullyQualified());
         
         uri = "/{controller}/getit/{action}";
         route = new Route(uri, HttpMethod.GET, null, null, null, null);
         
-        assertFalse(route.isFullyQualified());
+        assertFalse(route.isUrlFullyQualified());
         
         uri = "/{controller}/getit/{id}";
         route = new Route(uri, HttpMethod.GET, null, null, null, null);
         
-        assertFalse(route.isFullyQualified());
+        assertFalse(route.isUrlFullyQualified());
         
         uri = "/{package}/something";
         route = new Route(uri, HttpMethod.GET, null, null, null, null);
         
-        assertFalse(route.isFullyQualified());
+        assertFalse(route.isUrlFullyQualified());
     }
 }

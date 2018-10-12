@@ -69,6 +69,11 @@ public class UndertowResponse implements Response {
     public void header(String name, String value) {
         exchange.getResponseHeaders().put(new HttpString(name), value);
     }
+    
+    @Override
+    public void removeHeader(String name) {
+        exchange.getResponseHeaders().remove(name);
+    }
 
     @Override
     public void send(byte[] bytes) throws Exception {

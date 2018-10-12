@@ -151,10 +151,9 @@ final class FrameworkEngine {
     
     private String getRequestProperties(Context context) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Request URL: ").append(context.requestUrl()).append("\n");
+        sb.append("Request URL: ").append(context.path()).append("\n");
         sb.append("ContextPath: ").append(context.contextPath()).append("\n");
         sb.append("Query String: ").append(context.queryString()).append("\n");
-        sb.append("URI Path: ").append(context.path()).append("\n");
         sb.append("Method: ").append(context.httpMethod().name()).append("\n");    
         sb.append("IP: ").append(context.remoteIP()).append("\n");
         sb.append("Protocol: ").append(context.protocol()).append("\n");
