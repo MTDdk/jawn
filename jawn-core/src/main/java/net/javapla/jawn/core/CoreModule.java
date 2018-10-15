@@ -11,6 +11,8 @@ import net.javapla.jawn.core.cache.CacheProvider;
 import net.javapla.jawn.core.configuration.Configurations;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
+import net.javapla.jawn.core.http.FlashScope;
+import net.javapla.jawn.core.http.RealFlashScope;
 import net.javapla.jawn.core.http.RealSession;
 import net.javapla.jawn.core.http.Session;
 import net.javapla.jawn.core.i18n.Lang;
@@ -62,6 +64,7 @@ public class CoreModule extends AbstractModule {
         bind(Router.class).toInstance(router);
         bind(Lang.class).in(Singleton.class);
         bind(Session.class).to(RealSession.class);
+        bind(FlashScope.class).to(RealFlashScope.class);
     }
 
     

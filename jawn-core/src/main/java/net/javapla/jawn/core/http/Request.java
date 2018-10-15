@@ -3,6 +3,7 @@ package net.javapla.jawn.core.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import net.javapla.jawn.core.util.MultiList;
@@ -19,7 +20,7 @@ public interface Request {
     List<String> headers(String name);
     Optional<String> header(final String name);
     List<String> headerNames();
-    List<Cookie> cookies();
+    Map<String, Cookie> cookies();
     //something handling upload
     List<FormItem> files();//throws Exception
     

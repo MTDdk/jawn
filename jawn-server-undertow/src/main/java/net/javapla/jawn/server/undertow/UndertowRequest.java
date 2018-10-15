@@ -11,15 +11,16 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.core.MediaType;
 
-import io.undertow.server.BlockingHttpExchange;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
@@ -27,8 +28,8 @@ import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.HttpString;
 import net.javapla.jawn.core.http.Cookie;
-import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.Cookie.Builder;
+import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.Request;
 import net.javapla.jawn.core.util.MultiList;
@@ -47,12 +48,13 @@ public class UndertowRequest implements Request {
     private final String contextPath;
     
     private final FormData form;
-    private Supplier<BlockingHttpExchange> blocking;
+    private final Runnable blocking;
+    
 
     public UndertowRequest(final HttpServerExchange exchange, final String contextPath) throws IOException {
         this.exchange = exchange;
         
-        this.blocking = new MemoizingSupplier<>(() -> this.exchange.startBlocking());
+        this.blocking = () -> {if(!this.exchange.isBlocking()) this.exchange.startBlocking();};
         
         this.form = parseForm(exchange, StandardCharsets.UTF_8.name());//conf.getString("application.tmpdir"), conf.getString("application.charset"));
         
@@ -162,15 +164,14 @@ public class UndertowRequest implements Request {
     }
 
     @Override
-    public List<Cookie> cookies() {
-        return exchange.getRequestCookies().values().stream()
-            .map(UndertowRequest::cookie)
-            .collect(Collectors.toList());
+    public Map<String, Cookie> cookies() {
+        Stream<Entry<String, io.undertow.server.handlers.Cookie>> stream = exchange.getRequestCookies().entrySet().stream();
+        return stream.collect(Collectors.toMap(Map.Entry::getKey, UndertowRequest::cookie));
     }
 
     @Override
     public InputStream in() throws IOException {
-        blocking.get();
+        blocking.run();
         return exchange.getInputStream();
     }
     
@@ -212,25 +213,33 @@ public class UndertowRequest implements Request {
 
     @Override
     public void startAsync() {
-        exchange.dispatch(); //TODO
+        exchange.dispatch(); //TODO https://github.com/jooby-project/jooby/blob/master/modules/jooby-undertow/src/main/java/org/jooby/internal/undertow/UndertowRequest.java
     }
 
     
     private static final String stripContextPath(final String contextPath, final String requestPath) {
-        return requestPath.substring(contextPath.length());
+        if (contextPath.isEmpty()) return requestPath;
+        
+        // remove from beginning
+        final int length = contextPath.length();
+        for (int c = 0; c < length; c++) {
+            if (contextPath.charAt(c) != requestPath.charAt(c)) return requestPath;
+        }
+        
+        return requestPath.substring(length);
     }
 
     private FormData parseForm(final HttpServerExchange exchange, final String charset) throws IOException {
         String value = exchange.getRequestHeaders().getFirst("Content-Type");
         if (value != null) {
             if (value.startsWith(MediaType.APPLICATION_FORM_URLENCODED)) {
-                blocking.get();
+                blocking.run();
                 return new FormEncodedDataDefinition()
                         .setDefaultEncoding(charset)
                         .create(exchange)
                         .parseBlocking();
             } else if (value.startsWith(MediaType.MULTIPART_FORM_DATA)) {
-                blocking.get();
+                blocking.run();
                 return new MultiPartParserDefinition()
                         .setTempFileLocation(TMP_DIR.toPath())
                         .setDefaultEncoding(charset)
@@ -317,6 +326,9 @@ public class UndertowRequest implements Request {
         bob.setSecure(cookie.isSecure());
         //TODO more?
         return bob.build();
+    }
+    private static Cookie cookie(Map.Entry<String, io.undertow.server.handlers.Cookie> cookieEntry) {
+        return cookie(cookieEntry.getValue());
     }
 
 }

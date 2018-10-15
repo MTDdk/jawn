@@ -1,13 +1,12 @@
 package net.javapla.jawn.core.util;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.StringJoiner;
 import java.util.StringTokenizer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class StringUtil {
+public final class StringUtil {
 
     /**
      * Splits a string into an array using a provided delimiter. The split chunks are also trimmed.
@@ -19,7 +18,7 @@ public class StringUtil {
     public static String[] split(String input, char delimiter){
         if(input == null) throw new NullPointerException("input cannot be null");
 
-        int len = input.length();
+        final int len = input.length();
         
         // find the number of strings to split into
         int nSplits = 1;
@@ -43,6 +42,29 @@ public class StringUtil {
         result[lastSplit] = input.substring(lastMark, len);
 
         return result;
+    }
+    
+    /**
+     * Splits a string into an array using a provided delimiter.
+     * The callback will be invoked once per each found substring
+     * 
+     * @param input string to split.
+     * @param delimiter  delimiter
+     * @param callbackPerSubstring called for each splitted string
+     */
+    public static void split(String input, char delimiter, Consumer<String> callbackPerSubstring) {
+        if(input == null) throw new NullPointerException("input cannot be null");
+        
+        final int len = input.length();
+        
+        int lastMark = 0;
+        for (int i = 0; i < len; i++) {
+            if (input.charAt(i) == delimiter) {
+                callbackPerSubstring.accept(input.substring(lastMark, i));
+                lastMark = i + 1;// 1 == delimiter length
+            }
+        }
+        callbackPerSubstring.accept(input.substring(lastMark, len));
     }
     
     /**
@@ -137,7 +159,7 @@ public class StringUtil {
      * @return same as input argument, but the first character is capitalized.
      */
     public static String capitalize(String word){
-        return word.substring(0, 1).toUpperCase() + word.substring(1);
+        return Character.toUpperCase(word.charAt(0)) + word.substring(1);
     }
     
     /**
@@ -148,7 +170,7 @@ public class StringUtil {
      * @return same as input argument, but the first character is in lower case.
      */
     public static String decapitalize(String word) {
-        return word.substring(0, 1).toLowerCase() + word.substring(1);
+        return Character.toLowerCase(word.charAt(0)) + word.substring(1);
     }
     
     /**
@@ -160,23 +182,25 @@ public class StringUtil {
      */
     public static String underscore(String camel) {
 
-        List<Integer> upper = new ArrayList<Integer>();
-        byte[] bytes = camel.getBytes();
-        for (int i = 0; i < bytes.length; i++) {
-            byte b = bytes[i];
-            if (b < 97 || b > 122) {
-                upper.add(i);
+        StringBuilder bob = new StringBuilder(camel); // standard adds 16 extra slots for underscores
+        
+        // lowercase the first letter
+        if (camel.charAt(0) >= 'A' && camel.charAt(0) <= 'Z')
+            bob.setCharAt(0, Character.toLowerCase(camel.charAt(0)));
+        
+        int extra = 0;
+        // i = 1, because we already lowered it
+        for (int i = 1; i < camel.length(); i++) {
+            char b = camel.charAt(i);
+            if (b >= 'A' && b <= 'Z') { // within range
+                // lower it
+                bob.setCharAt(i + extra, Character.toLowerCase(b));
+                // add underscore
+                bob.insert(i + extra++, '_');
             }
         }
 
-        StringBuffer b = new StringBuffer(camel);
-        for (int i = upper.size() - 1; i >= 0; i--) {
-            Integer index = upper.get(i);
-            if (index != 0)
-                b.insert(index, "_");
-        }
-
-        return b.toString().toLowerCase();
+        return bob.toString();
     }
     
     /**
@@ -189,11 +213,11 @@ public class StringUtil {
         return value == null || value.trim().isEmpty();
     }
     
-    public static final boolean contains(String s, char c) {
+    public static boolean contains(String s, char c) {
         return s.indexOf(c) > -1;
     }
     
-    public static final String padEnd(String string, int minLength, char padChar) {
+    public static String padEnd(String string, int minLength, char padChar) {
         
         StringBuilder bob = new StringBuilder(minLength);
         bob.append(string);
@@ -204,26 +228,26 @@ public class StringUtil {
         return bob.toString();
     }
     
-    public static final boolean startsWith(String string, char ... ca) {
+    public static boolean startsWith(String string, char ... ca) {
         int l = ca.length;
         for (int i = 0; i < l; i++) {
             if (string.charAt(i) != ca[i]) return false;
         }
         return true;
     }
-    public static final boolean startsWith(String string, char ca, char cb) {
+    public static boolean startsWith(String string, char ca, char cb) {
         if (string.charAt(0) != ca) return false;
         if (string.charAt(1) != cb) return false;
         return true;
     }
-    public static final boolean startsWith(String string, char ca, char cb, char cc) {
+    public static boolean startsWith(String string, char ca, char cb, char cc) {
         if (string.charAt(0) != ca) return false;
         if (string.charAt(1) != cb) return false;
-        if (string.charAt(1) != cc) return false;
+        if (string.charAt(2) != cc) return false;
         return true;
     }
     
-    public static final boolean endsWith(String string, char c) {
+    public static boolean endsWith(String string, char c) {
         return string.charAt(string.length()-1) == c;
     }
     
@@ -235,7 +259,7 @@ public class StringUtil {
      * @param replace The character to replace the disallowed characters with
      * @return The sanitized input
      */
-    public static final String sanitizeForUri(String uri, String replace) {
+    public static String sanitizeForUri(String uri, String replace) {
         /*
          * Explanation:
          * [a-zA-Z0-9\\._-] matches a letter from a-z lower or uppercase, numbers, dots, underscores and hyphen
@@ -246,4 +270,5 @@ public class StringUtil {
         uri = uri.replaceAll("[^a-zA-Z0-9\\._-]+", replace);
         return uri;
     }
+
 }

@@ -61,7 +61,7 @@ uploadArchives {
         // but it works so we will leave it for now
         // UPDATE
         // doLast might actually be what we want to!
-        ensurePropertiesFile.execute()
+        //ensurePropertiesFile.execute()
 
         repositories {
             mavenDeployer {
@@ -84,7 +84,7 @@ uploadArchives {
                     packaging 'jar'
 
                     scm {
-                        connection 'scm:git:git@github.com:MTDdk/jawn.git'
+                        connection 'scm:git://github.com/MTDdk/jawn.git'
                         developerConnection 'scm:git:git@github.com:MTDdk/jawn.git'
                         url 'https://github.com/MTDdk/jawn'
                     }

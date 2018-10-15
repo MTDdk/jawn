@@ -1,5 +1,7 @@
 package net.javapla.jawn.core.routes;
 
+import java.io.PrintStream;
+
 import net.javapla.jawn.core.http.HttpMethod;
 
 /**
@@ -40,6 +42,7 @@ public final class RouteTrie {
         current.routeIndex = index;
     }*/
     public synchronized void insert(final char[] input, Route route) {
+//        System.out.println("inserting " + route.uri);
         TrieNode current = root, child;
         for (char c : input) {
             child = current.nodes[c];
@@ -227,25 +230,5 @@ public final class RouteTrie {
             return content + " " + bob.toString();
         }
     }
-    
-    public static void main(String[] args) {
-        RouteTrie trie = new RouteTrie();
-        trie.insert("some/path/resource", new Route("some/path/resource", HttpMethod.GET, null, null, null, null));
-        trie.insert("newsome/*/resource", new Route("newsome/*/resource", HttpMethod.GET, null, null, null, null));
-        trie.insert("some/*/resource", new Route("some/*/resource", HttpMethod.GET, null, null, null, null));
-        trie.insert("some/diff/path/*", new Route("some/diff/path/*", HttpMethod.GET, null, null, null, null));
-        trie.insert("some/*/path/*", new Route("some/*/path/*", HttpMethod.GET, null, null, null, null));
-        
-        long time = System.nanoTime();
-        System.out.println(trie.findExact("some/path/resource".toCharArray(), HttpMethod.GET));
-//        System.out.println(trie.findRoute("some/path/resourcessss".toCharArray()));
-//        System.out.println(trie.findRoute("newsome/path/resource".toCharArray()));
-//        System.out.println(trie.findRoute("newsome/path/more/resource".toCharArray()));
-//        System.out.println(trie.findRoute("news/path/resource".toCharArray()));
-//        System.out.println(trie.findRoute("some/diff/path/resource".toCharArray()));
-//        System.out.println(trie.findRoute("some/testing/path/more/resource".toCharArray()));
-        System.out.println("timing :: " + (System.nanoTime() - time));
-    }
-    
 }
 

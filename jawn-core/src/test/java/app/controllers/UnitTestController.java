@@ -9,4 +9,6 @@ public class UnitTestController extends Controller {
     public void getSimple() {}
     
     public void getLongerAction() {}
+    
+    public void postSimple() {}
 }

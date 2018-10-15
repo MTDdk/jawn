@@ -5,21 +5,24 @@ import net.javapla.jawn.core.http.Context;
 
 public class LogRequestTimingFilter extends FilterAdapter {
 
-    // must be threadlocal - filters are NOT thread safe!
-    private static ThreadLocal<Long> time = new ThreadLocal<Long>();
-
     @Override
     public void before(Context context) {
-        time.set(System.currentTimeMillis());
+        // filters are NOT thread safe!
+        context.setAttribute(getClass().getName(), time());
     }
 
     @Override
     public void after(Context context) {
-        if (time.get() != null) {
-            String processingTime = String.valueOf(System.currentTimeMillis() - time.get());
-            context.addResponseHeader("X-Request-Processing-Time", processingTime);
+        Long time = context.getAttribute(getClass().getName(), Long.class);
+        if (time != null) {
+            String processingTime = String.valueOf(time() - time);
+            context.addHeader("X-Request-Processing-Time", processingTime);
             logger.info("Processed request in: " + processingTime + " milliseconds, path: " + context.path() + ", method: " + context.httpMethod());
         }
+    }
+    
+    private final long time() {
+        return System.currentTimeMillis();
     }
 
 }

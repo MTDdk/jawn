@@ -33,6 +33,11 @@ public class UndertowServer implements Server {
             
             // from undertow-edge benchmark
             .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false) //don't send a keep-alive header for HTTP/1.1 requests, as it is not required
+            
+            // from ActFramework
+            .setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, true)
+            .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
+            .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
             ;
         
         configureServerPerformance(builder, serverConfig);
@@ -92,7 +97,9 @@ public class UndertowServer implements Server {
         
         serverBuilder.setIoThreads(ioThreads);
         serverBuilder.setWorkerThreads(workerThreads);
+        
         serverBuilder.setSocketOption(Options.BACKLOG, config.backlog());
+        serverBuilder.setSocketOption(Options.WORKER_IO_THREADS, ioThreads);
     }
 
 }

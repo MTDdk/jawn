@@ -16,53 +16,83 @@ import net.javapla.jawn.core.util.URLCodec;
 
 public class JarLoader implements AutoCloseable {
     
-    private final String SCANNED_PATH;
-    private final String JAR_FILE;
-    private final JarFile zf;
+    private final String scannedPath;
+    private final ArrayList<JarFileTuple> jarfiles;
     
     public JarLoader(final String scannedPath) throws ZipException, IOException {
-        SCANNED_PATH = scannedPath;
+        this.scannedPath = scannedPath;
+        jarfiles = new ArrayList<>();
         
         
-        String jarFile = Thread.currentThread().getContextClassLoader().getResource(scannedPath).getFile();
-        jarFile = URLCodec.decode(jarFile, StandardCharsets.UTF_8); // Perhaps this is only necessary on windows systems, 
+        Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(scannedPath);
+        while (resources.hasMoreElements()) {
+            URL resource = (URL) resources.nextElement();
+            
+        
+            String jarFile = resource.getFile();
+            jarFile = URLCodec.decode(jarFile, StandardCharsets.UTF_8); // Perhaps this is only necessary on windows systems, 
                                                                     // but it seems to be crucial to decode spaces
         
-        JAR_FILE = extractJarFileFromClassPathFilename(jarFile);
         
-        zf = new JarFile(JAR_FILE);
+            String jarFileName = extractJarFileFromClassPathFilename(jarFile);
+            jarfiles.add(new JarFileTuple(jarFileName, new JarFile(jarFileName)));
+        }
     }
 
     public Enumeration<URL> getResourcesFromJarFile() {
         final List<URL> retval = new ArrayList<>();
+        
+        for (JarFileTuple jarFile : jarfiles) {
+            
 
-        final Enumeration<JarEntry> e = zf.entries();
-
-        while(e.hasMoreElements()){
-            final JarEntry ze = (JarEntry) e.nextElement();
-            if (ze.isDirectory()) continue;
-
-            final String classname = ze.getName();
-            if (classname.startsWith(SCANNED_PATH)/* && classname.endsWith(ControllerFinder.CONTROLLER_CLASS_SUFFIX)*/) {
-                try {
-                    URL url = new URL(String.format("jar:file:%s!/%s", JAR_FILE, classname));
-                    retval.add(url);
-                } catch (MalformedURLException e1) {
-                    throw new Error(e1);
+//        for (int i = 0; i < JAR_FILE.size(); i++) {
+            
+            final Enumeration<JarEntry> e = jarFile.file.entries();
+            
+            while(e.hasMoreElements()){
+                final JarEntry ze = (JarEntry) e.nextElement();
+                if (ze.isDirectory()) continue;
+                
+                final String classname = ze.getName();
+                if (classname.startsWith(scannedPath)) {
+                    try {
+                        URL url = new URL(String.format("jar:file:%s!/%s", jarFile.fileName, classname));
+                        retval.add(url);
+                    } catch (MalformedURLException e1) {
+                        throw new Error(e1);
+                    }
                 }
             }
         }
+        
 
         return Collections.enumeration(retval);
     }
 
     @Override
     public void close() throws IOException {
-        zf.close();
+        IOException ex = null;
+        for (JarFileTuple jarFile : jarfiles) {
+            try {
+                jarFile.file.close();
+            } catch (IOException e) {
+                if (ex != null) ex = e;
+            }
+        }
+        if (ex != null) throw ex;
     }
 
     private static String extractJarFileFromClassPathFilename(String file) {
         return file.substring("file:".length(), file.indexOf('!'));
+    }
+    
+    private static final class JarFileTuple {
+        public final String fileName;
+        public final JarFile file;
+        public JarFileTuple(String fileName, JarFile file) {
+            this.fileName = fileName;
+            this.file = file;
+        }
     }
 
 }

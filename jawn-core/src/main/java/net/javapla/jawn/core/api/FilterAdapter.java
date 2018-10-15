@@ -38,4 +38,9 @@ public abstract class FilterAdapter implements Filter {
      * @param context
      */
     protected void after(Context context) {}
+    
+    @Override
+    public String toString() {
+        return getClass().getName();
+    }
 }

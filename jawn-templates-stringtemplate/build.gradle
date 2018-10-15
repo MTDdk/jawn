@@ -1,0 +1,16 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // Framework
+    compile project(':jawn-core')
+	
+	//Template Engine
+	//StringTemplate
+	compile('org.antlr:ST4:4.0.8')// { exclude module: 'antlr-runtime'}
+    
+}

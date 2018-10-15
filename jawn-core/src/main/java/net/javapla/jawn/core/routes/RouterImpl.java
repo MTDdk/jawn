@@ -12,7 +12,6 @@ import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.exceptions.CompilationException;
-import net.javapla.jawn.core.exceptions.ControllerException;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ActionInvoker;
@@ -85,7 +84,8 @@ public class RouterImpl implements Router {
     }*/
 
     
-    public final Route retrieveRoute(HttpMethod httpMethod, String requestUri/*, ActionInvoker invoker*//*Injector injector*/) throws RouteException {
+    @Override
+    public final Route retrieveRoute(HttpMethod httpMethod, String requestUri) throws RouteException {
         // Try with the deduced routes first
         // Only do this if we are not in development
 //        if (!isDev) {
@@ -93,12 +93,15 @@ public class RouterImpl implements Router {
             if (route != null) return route;
 //        }
         
-        return calculateRoute(httpMethod, requestUri/*, invoker*//*injector*/);
+        Route r = calculateRoute(httpMethod, requestUri);
+        if (!isDev)
+            deducedRoutes.insert(requestUri, r);
+        return r;
     }
     
     //TODO we need to have the injector somewhere else.
     //It is not consistent that this particular injector handles implementations from both core and server
-    private final Route calculateRoute(HttpMethod httpMethod, String requestUri/*, ActionInvoker invoker*//*Injector injector*/) throws RouteException {
+    private final Route calculateRoute(HttpMethod httpMethod, String requestUri/*, ActionInvoker invoker*//*,Injector injector*/) throws RouteException {
         if (routes == null) throw new IllegalStateException("Routes have not been compiled. Call #compileRoutes() first");
         
         final Route route = matchCustom(httpMethod, requestUri);
@@ -159,6 +162,7 @@ public class RouterImpl implements Router {
                     return route;
                 }
                 
+                
                 // TODO something is inherently wrong here.. All of this ought to be the responsibility of ActionInvoker or some middleman.
                 // It definitely should not be here, but a part of the execution of the route instead, and set during RouteBuilder#build
                 
@@ -179,7 +183,7 @@ public class RouterImpl implements Router {
                 }
                 
                 // if the route only has an URI defined, then we process the route as if it was an InternalRoute
-                if (route.getActionName() == null) {
+                if (route.getActionName() == null || !route.isFullyQualified()) {
                     if (route.getController() == null) {
                         Route deferred = deduceRoute(route, httpMethod, requestUri, invoker);
                         if (deferred != null) return deferred;
@@ -205,11 +209,11 @@ public class RouterImpl implements Router {
      * @return
      * @throws ClassLoadException
      */
-    private Route matchStandard(HttpMethod httpMethod, String requestUri, ActionInvoker invoker/*Injector injector*/) throws ClassLoadException {
+    private Route matchStandard(HttpMethod httpMethod, String requestUri, ActionInvoker invoker) throws ClassLoadException {
         // find potential routes
         for (InternalRoute internalRoute : internalRoutes) {
             if (internalRoute.matches(requestUri) ) {
-                Route deferred = deduceRoute(internalRoute, httpMethod, requestUri, invoker/*injector*/);
+                Route deferred = deduceRoute(internalRoute, httpMethod, requestUri, invoker);
                 if (deferred != null) return deferred;
             }
         }
@@ -224,12 +228,10 @@ public class RouterImpl implements Router {
         // find a route that actually exists
         try {
             String className = c.getControllerClassName();
-            RouteBuilder bob = loadController(className, httpMethod, route.uri, c.getAction(), !isDev);
+            RouteBuilder bob = loadController(className, httpMethod, route.uri, c.getActionName(), !isDev);
             
             //TODO cache the routes if !isDev
             return bob.build(filters, invoker); // this might throw if the controller does not have the action
-        } catch (ControllerException e) {
-            //to() failed - the controller does not contain the corresponding action
         } catch (IllegalStateException e) {
             //build() failed
         } catch(CompilationException | ClassLoadException e) {
@@ -240,11 +242,11 @@ public class RouterImpl implements Router {
     
     private String deduceActionName(Route route, String requestUri) {
         String actionName = route.getActionName();
-        if (actionName == null) {
+        if (actionName == null || !route.isFullyQualified()) {
             // try to infer the action
             Map<String, String> params = route.getPathParametersEncoded(requestUri);
             ControllerMeta c = new ControllerMeta(params);
-            actionName = c.getAction();
+            actionName = c.getActionName();
         }
         return actionName;
     }
@@ -275,7 +277,7 @@ public class RouterImpl implements Router {
         return RouteBuilder
                 .method(httpMethod)
                 .route(uri)
-                .to(controller, actionName);
+                .to(controller, RouteBuilder.constructAction(actionName, httpMethod));
     }
     
     private final class ControllerMeta {
@@ -294,13 +296,11 @@ public class RouterImpl implements Router {
             String p = params.get("controller");
             if (StringUtil.blank(p)) return Constants.ROOT_CONTROLLER_NAME;
             return p;
-//            return params.getOrDefault("controller", NewRoute.ROOT_CONTROLLER_NAME);
         }
-        public String getAction() {
+        public String getActionName() {
             String p = params.get("action");
             if (StringUtil.blank(p)) return Constants.DEFAULT_ACTION_NAME;
             return p;
-//            return params.getOrDefault("action", NewRoute.DEFAULT_ACTION_NAME);
         }
         
         public String getControllerClassName() {

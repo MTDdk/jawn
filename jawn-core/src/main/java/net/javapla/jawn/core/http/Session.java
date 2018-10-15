@@ -5,6 +5,7 @@ import java.util.Map;
 public interface Session {
 
     void init(Context context);
+    boolean isInitialised();
     
     String getId();
     
@@ -12,7 +13,7 @@ public interface Session {
     
     void put(String key, Object value);
     
-    Object get(String key);
+    String get(String key);
     <T> T get(String key, Class<T> type);
     
     Object remove(String key);

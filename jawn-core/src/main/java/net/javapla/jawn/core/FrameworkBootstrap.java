@@ -21,6 +21,7 @@ import com.google.inject.Stage;
 import com.google.inject.util.Modules;
 
 import net.javapla.jawn.core.api.ApplicationBootstrap;
+import net.javapla.jawn.core.api.Filters;
 import net.javapla.jawn.core.api.Router;
 import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
@@ -65,7 +66,7 @@ public class FrameworkBootstrap {
         combinedModules = new ArrayList<>();
     }
     
-    public synchronized void boot(final JawnConfigurations conf, final Router router, DatabaseConnections databaseConnections) {
+    public synchronized void boot(final JawnConfigurations conf, final Filters filters, final Router router, DatabaseConnections databaseConnections) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
         configure(conf, router, databaseConnections);
@@ -83,7 +84,7 @@ public class FrameworkBootstrap {
         
         // If any initialisation of filters needs to be done, like injecting ServletContext,
         // it can be done here.
-        //initiateFilters(filters, localInjector/*, security*/);
+        initiateFilters(filters, localInjector);
         
         
         // compiling of routes needs element from the injector, so this is done after the creation
@@ -198,6 +199,10 @@ public class FrameworkBootstrap {
         }
         
         return Guice.createInjector(Stage.PRODUCTION, combined);
+    }
+    
+    private void initiateFilters(Filters filters, Injector injector) {
+        filters.initialiseFilters(injector);
     }
     
     private void initRouter(Router router, Injector localInjector) {

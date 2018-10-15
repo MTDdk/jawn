@@ -2,7 +2,6 @@ package net.javapla.jawn.core.server;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import net.javapla.jawn.core.http.Response;
@@ -25,7 +24,7 @@ public class ServerResponseStream implements ResponseStream {
 
     @Override
     public Writer getWriter() throws IOException {
-        return (writer = new ManagedWriter(new OutputStreamWriter(getOutputStream())));
+        return (writer = new ManagedWriter(response.writer()));
     }
 
     @Override
@@ -55,7 +54,8 @@ public class ServerResponseStream implements ResponseStream {
             // It should be up to the framework to handle it
         }
         
-        public void managedClose() throws IOException {
+        void managedClose() throws IOException {
+            original.flush();
             original.close();
         }
 
@@ -76,8 +76,8 @@ public class ServerResponseStream implements ResponseStream {
         
         @Override
         public void flush() throws IOException {
-            if (!response.committed())
-                original.flush();
+            /*if (!response.committed())
+                original.flush();*/
         }
     }
     
@@ -131,8 +131,8 @@ public class ServerResponseStream implements ResponseStream {
 
         @Override
         public void flush() throws IOException {
-            if (!response.committed())
-                original.flush();
+            /*if (!response.committed())
+                original.flush();*/
         }
 
         @Override
@@ -143,6 +143,7 @@ public class ServerResponseStream implements ResponseStream {
         }
         
         public void managedClose() throws IOException {
+            original.flush();
             original.close();
         }
         

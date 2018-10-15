@@ -20,13 +20,13 @@ public class ContentTemplateLoaderTest {
 		TemplateRenderEngine<String> treMock = mock(TemplateEngine.TemplateRenderEngine.class);
 		
 		when(treMock.getSuffixOfTemplatingEngine()).thenReturn(".st");
-		assertEquals("test.html", new ContentTemplateLoader<>(mock(DeploymentInfo.class), treMock).handleLayoutEndings(new Result(200).layout("test.st")));
+		assertEquals("test.html", new ContentTemplateLoader<>(mock(DeploymentInfo.class), treMock).getLayoutNameForResult(new Result(200).layout("test.st")));
 		when(treMock.getSuffixOfTemplatingEngine()).thenReturn("st");
-		assertEquals("test.html", new ContentTemplateLoader<>(mock(DeploymentInfo.class), treMock).handleLayoutEndings(new Result(200).layout("test.st")));
+		assertEquals("test.html", new ContentTemplateLoader<>(mock(DeploymentInfo.class), treMock).getLayoutNameForResult(new Result(200).layout("test.st")));
 		when(treMock.getSuffixOfTemplatingEngine()).thenReturn(".test");
-		assertEquals("test.html", new ContentTemplateLoader<>(mock(DeploymentInfo.class), treMock).handleLayoutEndings(new Result(200).layout("test.test")));
+		assertEquals("test.html", new ContentTemplateLoader<>(mock(DeploymentInfo.class), treMock).getLayoutNameForResult(new Result(200).layout("test.test")));
 		when(treMock.getSuffixOfTemplatingEngine()).thenReturn(".st");
-		assertEquals("test.html", new ContentTemplateLoader<>(mock(DeploymentInfo.class), treMock).handleLayoutEndings(new Result(200).layout("test.html.st")));
+		assertEquals("test.html", new ContentTemplateLoader<>(mock(DeploymentInfo.class), treMock).getLayoutNameForResult(new Result(200).layout("test.html.st")));
 
 	}
 

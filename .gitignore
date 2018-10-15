@@ -7,3 +7,4 @@ build/
 gradle.properties
 .settings
 */.settings
+jawn-core/src/main/resources/jawn.properties

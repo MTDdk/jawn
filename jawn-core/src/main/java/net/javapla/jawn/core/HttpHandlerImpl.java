@@ -59,18 +59,6 @@ class HttpHandlerImpl implements HttpHandler {
         // and convert them to an array for fast lookup
         exclusions = exclusionPaths.toArray(new String[exclusionPaths.size()]);
         logger.debug("Letting the server take care of providing resources from: {}", exclusionPaths);
-        
-        
-        // either the encoding was set by the user, or we default
-        //TODO make encoding configurable
-//        String enc = appContext.getAsString(AppContext.ENCODING);
-//        if (enc == null) {
-//            enc = Constants.ENCODING;
-//            appContext.set(AppContext.ENCODING, enc);
-//        }
-//        logger.debug("Setting encoding: " + enc);
-        
-//        root_controller = filterConfig.getInitParameter("root_controller");
     }
     
     /**
@@ -81,8 +69,7 @@ class HttpHandlerImpl implements HttpHandler {
      * @return true, if a filtering has happened and nothing else should be done by this current dispatcher
      */
     //TODO extract to an independent Filter
-    private final boolean filteringResources(Response response, final String path/*, final Function<String,String> needsTranslation*/) throws IOException {
-//        String translated = needsTranslation.apply(path);
+    private final boolean filteringResources(Response response, final String path) throws IOException {
         String translated = translateResource(path);
         if (translated != null) {
             
@@ -102,11 +89,16 @@ class HttpHandlerImpl implements HttpHandler {
                 response.header(HttpHeaders.CONTENT_TYPE, "video/webm");
             else if (translated.endsWith(".mp4"))
                 response.header(HttpHeaders.CONTENT_TYPE, "video/mp4");
+            else if (translated.endsWith(".svg")) {
+                response.header(HttpHeaders.CONTENT_TYPE, "image/svg+xml");
+                response.header("mime-type","image/svg+xml");
+                response.header(HttpHeaders.CONTENT_DISPOSITION, "");
+            }
             
-            //chain.doFilter(r, resp);
+            //try (FileInputStream fis = new FileInputStream(file)) {
             try {
-                response.send(new FileInputStream(file));
-                //response.end(); // << TODO maybe we should take a look at why this is failing when serving png (perhaps it is the same for all big files)
+                response.send(new FileInputStream(file)); // gets closed by the response
+                response.end();
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -184,7 +176,7 @@ class HttpHandlerImpl implements HttpHandler {
     * Actually sorts the paths, which is not appreciated and not even used anywhere
     * @return
     */
-   private Set<String> findExclusionPaths() {
+   private Set<String> findExclusionPaths() throws InitException {
        Set<String> exclusions = new TreeSet<String>();
        
        // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF

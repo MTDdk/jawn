@@ -10,6 +10,7 @@ import java.util.Set;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.http.HttpMethod;
+import net.javapla.jawn.core.routes.RouterHelper;
 import net.javapla.jawn.core.util.Constants;
 
 public class ControllerLocator extends ClassLocator {
@@ -24,7 +25,7 @@ public class ControllerLocator extends ClassLocator {
 
     //         controllerPath, actions
     public final Map<String, Set<String>> controllerActions;
-    public final Map<String, Class<? extends Controller>> controllers;
+    public final Map<String, Class<? extends Controller>> controllers; // name -> controllers
     //TODO: having these public is of course not viable
     
     public ControllerLocator(String packageToScan) throws IllegalArgumentException {
@@ -42,12 +43,12 @@ public class ControllerLocator extends ClassLocator {
         // and lastly we see if there exists a method with the name, we are looking for, prepended with a given httpmethod (GET,POST,..)
         for (Class<? extends Controller> cls : foundControllers) {
             // README
-            // declaredMethods only takes found methods by the class itself.
+            // Class#getDeclaredMethods only takes found methods by the class itself.
             // It does not expose any parent methods, which *could* be a problem
             // when controllers try to inherit from each other
-            controllerActions.put( extractControllerPath(cls), listActionMethods(cls.getMethods()));
+            controllerActions.put( RouterHelper.getReverseRouteFast(cls)/*extractControllerPath(cls)*/, listActionMethods(cls.getMethods()));
             
-            controllers.put( extractControllerPath(cls), cls);
+            controllers.put( RouterHelper.getReverseRouteFast(cls)/*extractControllerPath(cls)*/, cls);
         }
     }
 

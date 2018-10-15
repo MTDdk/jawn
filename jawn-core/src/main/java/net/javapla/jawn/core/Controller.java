@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -12,12 +11,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -54,8 +50,7 @@ import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.HttpHeaderUtil;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.MultiList;
-import net.javapla.jawn.core.util.PropertiesConstants;
-import net.javapla.jawn.core.util.StringBuilderWriter;
+import net.javapla.jawn.core.util.ResponseStreamWriter;
 import net.javapla.jawn.core.util.StringUtil;
 
 /**
@@ -124,7 +119,7 @@ public abstract class Controller implements ResultHolder {
      * @return instance of {@link RenderBuilder}, which is used to provide additional parameters.
      */
     protected NewRenderBuilder render(String template) {
-        String targetTemplate = template.startsWith("/")? template: getControllerPath(getClass())
+        String targetTemplate = template.startsWith("/")? template: RouterHelper.getReverseRouteFast(getClass())
                 + "/" + template;
 
         return internalRender(targetTemplate);
@@ -137,7 +132,7 @@ public abstract class Controller implements ResultHolder {
      * @return instance of {@link RenderBuilder}, which is used to provide additional parameters.
      */
     protected NewRenderBuilder render(){
-        String template = getControllerPath(getClass()) + "/" + getRoute().getActionName();
+        String template = RouterHelper.getReverseRouteFast(getClass()) + "/" + getRoute().getActionName();
         return internalRender(template);
     }
 
@@ -288,41 +283,6 @@ public abstract class Controller implements ResultHolder {
         }
     }
     
-    /**
-     * Generates a path to a controller based on its package and class name. The path always starts with a slash: "/".
-     * Examples:
-     * <p></p>
-     * <ul>
-     * <li>For class: <code>app.controllers.Simple</code> the path will be: <code>/simple</code>.</li>
-     * <li>For class: <code>app.controllers.admin.PeopleAdmin</code> the path will be: <code>/admin/people_admin</code>.</li>
-     * <li>For class: <code>app.controllers.admin.simple.PeopleAdmin</code> the path will be: <code>/admin/simple/people_admin</code>.</li>
-     * </ul>
-     * <p></p>
-     * Class name looses the "Controller" suffix and gets converted to underscore format, while packages stay unchanged.
-     *
-     * @param controllerClass class of a controller.
-     * @param <T> class extending {@link Controller}
-     * @return standard path for a controller.
-     */
-    static <T extends Controller> String getControllerPath(Class<T> controllerClass) {
-        String simpleName = controllerClass.getSimpleName();
-        if (!simpleName.endsWith("Controller")) {
-            throw new ControllerException("controller name must end with 'Controller' suffix");
-        }
-
-        String className = controllerClass.getName();
-        if (!className.startsWith(PropertiesConstants.CONTROLLER_PACKAGE)) {
-            throw new ControllerException("controller must be in the '"+PropertiesConstants.CONTROLLER_PACKAGE+"' package");
-        }
-        String packageSuffix = className.substring(PropertiesConstants.CONTROLLER_PACKAGE.length(), className.lastIndexOf("."));
-        packageSuffix = packageSuffix.replace(".", "/");
-        if (packageSuffix.startsWith("/"))
-            packageSuffix = packageSuffix.substring(1);
-
-        return (packageSuffix.equals("") ? "" : "/" + packageSuffix) + "/" + StringUtil.underscore(simpleName.substring(0, simpleName.lastIndexOf("Controller")));
-    }
-
- 
     protected Map<String, Object> values() {
 //        return context.getViewObjects();//getValues();
 //        return context.getNewControllerResponse().getViewObjects();
@@ -377,25 +337,14 @@ public abstract class Controller implements ResultHolder {
     /**
      * Convenience method, takes in a map of values to flash.
      *
-     * @see #flash(String, Object)
+     * @see #flash(String, String)
      *
      * @param values values to flash.
      */
-    protected void flash(Map<String, Object> values){
+    protected void flash(Map<String, String> values){
         for(Object key:values.keySet() ){
             flash(key.toString(), values.get(key));
         }
-    }
-
-    /**
-     * Convenience method, takes in a vararg of values to flash.
-     * Number of values must be even.
-     *
-     * @see #flash(String, Object)
-     * @param values values to flash.
-     */
-    protected void flash(Object ... values){
-        flash(CollectionUtil.map(values));
     }
 
     /**
@@ -426,12 +375,13 @@ public abstract class Controller implements ResultHolder {
      * @param name name of value to flash
      * @param value value to live for one more request in current session.
      */
-    protected void flash(String name, Object value) {
+    protected void flash(String name, String value) {
         /*if (session().get(Context.FLASH_SESSION_KEYWORD) == null) {
             session().put(Context.FLASH_SESSION_KEYWORD, new HashMap<String, Object>());
         }
         ((Map<String, Object>) session().get(Context.FLASH_SESSION_KEYWORD)).put(name, value);*/
-        context.setFlash(name, value);
+        //context.setFlash(name, value);
+        context.getFlash().put(name, value);
     }
     
 
@@ -562,7 +512,7 @@ public abstract class Controller implements ResultHolder {
      * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
      */
     protected <T extends Controller> void redirect(Class<T> controllerClass){
-        redirect(controllerClass, new HashMap<String, String>());
+        redirect(controllerClass, new HashMap<String, String>(0));
     }
 
     /**
@@ -625,7 +575,7 @@ public abstract class Controller implements ResultHolder {
      * @param name name of multiple values from request.
      * @return multiple request values for a name.
      */
-    protected List<Param> params(String name) {
+    /*protected List<Param> params(String name) {
         if (name.equals("id")) {
             String id = getIdString();
             return id != null ? Arrays.asList(new Param(id)) : Collections.emptyList();
@@ -641,7 +591,7 @@ public abstract class Controller implements ResultHolder {
             }
             return valuesList;
         }
-    }
+    }*/
     
     /**
      * Convenience method to get parameters in case <code>multipart/form-data</code> request was used.
@@ -858,7 +808,7 @@ public abstract class Controller implements ResultHolder {
     protected Param getId(){
         return new Param(context.param("id"));//new Param(getIdString());
     }
-    private String getIdString() {
+    /*private String getIdString() {
         String paramId = context.getParameter("id");
         if(paramId != null && context.getAttribute("id") != null){
             logger.warn("WARNING: probably you have 'id' supplied both as a HTTP parameter, as well as in the URI. Choosing parameter over URI value.");
@@ -872,7 +822,7 @@ public abstract class Controller implements ResultHolder {
             theId =  id != null ? id.toString() : null;
         }
         return StringUtil.blank(theId) ? null : theId;
-    }
+    }*/
     
 
 //    /**
@@ -1155,29 +1105,11 @@ public abstract class Controller implements ResultHolder {
     }
 
     /**
-     * Sets locale on response.
-     *
-     * @param locale locale for response
-     */
-    protected void locale(Locale locale){
-        context.responseLocale(locale);//.getHttpResponse().setLocale(locale);
-    }
-    /**
-     * Returns locale of request.
-     *
-     * @return locale of request.
-     */
-    protected Locale locale(){
-        return context.requestLocale();//RequestUtils.locale();
-    }
-
-
-    /**
      * Returns reference to a current session. Creates a new session of one does not exist.
      * @return reference to a current session.
      */
     protected Session session(){
-        return context.getSession(false);
+        return context.getSession(/*true*/);
     }
     /**
      * Convenience method, sets an object on a session. Equivalent of:
@@ -1298,7 +1230,7 @@ public abstract class Controller implements ResultHolder {
      *
      * @return collection of all cookies browser sent.
      */
-    public List<Cookie> cookies(){
+    public Map<String, Cookie> cookies(){
         return context.getCookies();
     }
 
@@ -1504,7 +1436,7 @@ public abstract class Controller implements ResultHolder {
      *
      * @return all headers from a request keyed by header name.
      */
-    protected Map<String, String> headers(){
+    protected MultiList<String> headers(){
         return context.requestHeaders();
     }
 
@@ -1515,7 +1447,7 @@ public abstract class Controller implements ResultHolder {
      * @param value value of header.
      */
     protected void header(String name, String value){
-        context.addResponseHeader(name, value);
+        context.addHeader(name, value);
     }
 
     /**
@@ -1601,23 +1533,15 @@ public abstract class Controller implements ResultHolder {
      * @param status status.
      * @return instance of output stream to send raw data directly to HTTP client.
      */
-    protected OutputStream outputStream(String contentType, Map<String, String> headers, int status) {
-//        context.setControllerResponse(new NopResponse(context, contentType, status));
-        //------
-        Result r = ResultBuilder.noBody(status).contentType(contentType);
-//        context.setControllerResponse(r);
-        setControllerResult(r);
+    public OutputStream outputStream(String contentType, Map<String, String> headers, int status) {
+        Result result = ResultBuilder.noBody(status).contentType(contentType);
+        headers.entrySet().forEach(header -> result.addHeader(header.getKey(), header.getValue()));
+        setControllerResult(result);
         
         try {
-            if (headers != null) {
-                for (String key : headers.keySet()) {
-                    if (headers.get(key) != null)
-                        context.addResponseHeader(key.toString(), headers.get(key).toString());
-                }
-            }
-
-            return context.responseOutputStream();
-        }catch(Exception e){
+            //return context.responseOutputStream(); //TODO not possible, is it?
+            return context.responseOutputStream(result);
+        } catch(Exception e) {
             throw new ControllerException(e);
         }
     }
@@ -1629,7 +1553,7 @@ public abstract class Controller implements ResultHolder {
      * set to 200.
      * @return instance of a writer for writing content to HTTP client.
      */
-    protected PrintWriter writer(){
+    protected Writer writer(){
         return writer(null, null, 200);
     }
 
@@ -1641,20 +1565,15 @@ public abstract class Controller implements ResultHolder {
      * @param status will be sent to browser.
      * @return instance of a writer for writing content to HTTP client.
      */
-    protected PrintWriter writer(String contentType, Map<String, String> headers, int status){
-//        context.setControllerResponse(new NopResponse(context, contentType, status));
-        result = ResultBuilder.noBody(status).contentType(contentType);
+    public Writer writer(String contentType, Map<String, String> headers, int status){
+        Result result = ResultBuilder.noBody(status).contentType(contentType);
+        headers.entrySet().forEach(header -> result.addHeader(header.getKey(), header.getValue()));
+        setControllerResult(result);
         //TODO TEST
-        try{
-            if (headers != null) {
-                for (Object key : headers.keySet()) {
-                    if (headers.get(key) != null)
-                        context.addResponseHeader(key.toString(), headers.get(key).toString());
-                }
-            }
-
-            return context.responseWriter();
-        }catch(Exception e){
+        try {
+            return context.responseWriter(result);
+            //return context.responseWriter(); //TODO not possible, is it?
+        } catch(Exception e) {
             throw new ControllerException(e);
         }
     }
@@ -1722,46 +1641,21 @@ public abstract class Controller implements ResultHolder {
      */
     //TODO TEST this mofo
     protected String merge(String template, Map<String, Object> values){
-        Writer stringWriter = new StringBuilderWriter();//StringWriter();
+        try (ResponseStream stream = new ResponseStreamWriter()) {
         
-        TemplateEngineOrchestrator manager = injector.getInstance(TemplateEngineOrchestrator.class);
-        TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
-        engine.invoke(
-                context, 
-                ResultBuilder.ok().addAllViewObjects(values).template(template).layout(null), 
-                new ResponseStream() {
-                    @Override
-                    public Writer getWriter() throws IOException {
-                        return stringWriter;
-                    }
-
-                    @Override
-                    public OutputStream getOutputStream() throws IOException {
-                        return null;
-                    }
-                    
-                    @Override
-                    public void close() {}
-                });
-        
-        
-//        Configuration.getTemplateManager().merge(values, template, stringWriter);
-        return stringWriter.toString();
-        
-    }
-    
-    /**
-     * Returns response headers
-     *
-     * @return map with response headers.
-     */
-    protected Map<String, String> getResponseHeaders(){
-        Collection<String> names  = context.responseHeaderNames();
-        Map<String, String> headers = new HashMap<String, String>();
-        for (String name : names) {
-            headers.put(name, context.requestHeader(name));
-        }
-        return headers;
+            TemplateEngineOrchestrator manager = injector.getInstance(TemplateEngineOrchestrator.class);
+            TemplateEngine engine = manager.getTemplateEngineForContentType(MediaType.TEXT_HTML);
+            
+            engine.invoke(
+                    context, 
+                    ResultBuilder.ok().addAllViewObjects(values).template(template).layout(null), 
+                    stream);
+            
+            
+    //        Configuration.getTemplateManager().merge(values, template, stringWriter);
+            return stream.toString();
+        } catch (IOException notPossible) { }
+        return "";
     }
     
     /*

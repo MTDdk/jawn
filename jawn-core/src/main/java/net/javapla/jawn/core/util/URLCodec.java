@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.util;
 
-import java.io.CharArrayWriter;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -16,7 +15,7 @@ import java.util.BitSet;
  */
 public class URLCodec {
     
-    static BitSet dontNeedEncoding;
+    static final BitSet dontNeedEncoding;
     static final int caseDiff = ('a' - 'A');
 
     static {
@@ -85,8 +84,8 @@ public class URLCodec {
      */
     public static String encode(String s, Charset charset) {
         boolean needToChange = false;
-        StringBuilder out = new StringBuilder(s.length()); // Using StringBuilder instead of the much slower StringBuffer
-        CharArrayWriter charArrayWriter = new CharArrayWriter();
+        StringBuilder out = new StringBuilder(s.length()); // MTD: Using StringBuilder instead of the much slower StringBuffer
+        CharArrayList charArrayWriter = new CharArrayList(); // MTD: non-synchronised CharArrayWriter
 
         for (int i = 0; i < s.length();) {
             int c = (int) s.charAt(i);
@@ -121,8 +120,8 @@ public class URLCodec {
                     i++;
                 } while (i < s.length() && !dontNeedEncoding.get((c = (int) s.charAt(i))));
 
-                charArrayWriter.flush();
-                String str = new String(charArrayWriter.toCharArray());
+                //charArrayWriter.flush(); //MTD: does absolutely nothing
+                String str = charArrayWriter.toString();//new String(charArrayWriter.toCharArray());
                 byte[] ba = str.getBytes(charset);
                 for (int j = 0; j < ba.length; j++) {
                     out.append('%');
@@ -157,7 +156,7 @@ public class URLCodec {
     public static String decode(String s, Charset cs) {
         boolean needToChange = false;
         int numChars = s.length();
-        StringBuilder sb = new StringBuilder(numChars > 500 ? numChars / 2 : numChars); // Using StringBuilder instead of StringBuffer
+        StringBuilder sb = new StringBuilder(numChars > 500 ? numChars / 2 : numChars); // MTD: Using StringBuilder instead of StringBuffer
         int i = 0;
 
         char c;
@@ -206,7 +205,7 @@ public class URLCodec {
                         throw new IllegalArgumentException(
                          "ExtendedURLDecoder: Incomplete trailing escape (%) pattern");
 
-                    sb.append(new String(bytes, 0, pos, cs)); // Using the Charset directly instead of first have to look it up from a string at this point
+                    sb.append(new String(bytes, 0, pos, cs)); // MTD: Using the Charset directly instead of first have to look it up from a string at this point
                 } catch (NumberFormatException e) {
                     throw new IllegalArgumentException(
                     "ExtendedURLDecoder: Illegal hex characters in escape (%) pattern - "

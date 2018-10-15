@@ -1,15 +1,12 @@
 package net.javapla.jawn.core.routes;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import net.javapla.jawn.core.Controller;
 import net.javapla.jawn.core.exceptions.ControllerException;
+import net.javapla.jawn.core.util.DataCodec;
 import net.javapla.jawn.core.util.PropertiesConstants;
 import net.javapla.jawn.core.util.StringUtil;
-import net.javapla.jawn.core.util.URLCodec;
 
 public class RouterHelper {
 
@@ -50,6 +47,22 @@ public class RouterHelper {
     
     private static final int CONTROLLER_PACKAGE_LENGTH = PropertiesConstants.CONTROLLER_PACKAGE.length();
     private static final int CONTROLLER_LENGTH = "Controller".length();
+    /**
+     * Generates a path to a controller based on its package and class name. The path always starts with a slash: "/".
+     * Examples:
+     * <p></p>
+     * <ul>
+     * <li>For class: <code>app.controllers.Simple</code> the path will be: <code>/simple</code>.</li>
+     * <li>For class: <code>app.controllers.admin.PeopleAdmin</code> the path will be: <code>/admin/people_admin</code>.</li>
+     * <li>For class: <code>app.controllers.admin.simple.PeopleAdmin</code> the path will be: <code>/admin/simple/people_admin</code>.</li>
+     * </ul>
+     * <p></p>
+     * Class name looses the "Controller" suffix and gets converted to underscore format, while packages stay unchanged.
+     *
+     * @param controllerClass class of a controller.
+     * @param <T> class extending {@link Controller}
+     * @return standard path for a controller.
+     */
     public static String getReverseRouteFast(Class<? extends Controller> clazz) {
     	String simpleName = clazz.getSimpleName();
         if (! simpleName.endsWith("Controller")) {
@@ -60,12 +73,22 @@ public class RouterHelper {
         if (!className.startsWith(PropertiesConstants.CONTROLLER_PACKAGE)) {
             throw new ControllerException("controller must be in the '"+PropertiesConstants.CONTROLLER_PACKAGE+"' package");
         }
-    	String packageSuffix = className.substring(CONTROLLER_PACKAGE_LENGTH, className.lastIndexOf("."));
-        packageSuffix = packageSuffix.replace(".", "/");
-        if (packageSuffix.startsWith("/"))
-            packageSuffix = packageSuffix.substring(1);
-
-        return (packageSuffix.equals("") ? "" : "/" + packageSuffix) + "/" + StringUtil.underscore(simpleName.substring(0, simpleName.length()-CONTROLLER_LENGTH));
+        
+        
+    	int lastDot = className.lastIndexOf('.');
+    	if (lastDot == CONTROLLER_PACKAGE_LENGTH) {
+    	    return "/" + StringUtil.underscore(simpleName.substring(0, simpleName.length()-CONTROLLER_LENGTH));
+    	} else {
+    	    // we know that CONTROLLER_PACKAGE_LENGTH < lastDot
+    	    String packageSuffix = className.substring(CONTROLLER_PACKAGE_LENGTH, lastDot);
+    	    packageSuffix = packageSuffix.replace('.', '/');
+    	    
+    	    return new StringBuilder(packageSuffix.length() + simpleName.length())
+    	        .append(packageSuffix)
+    	        .append('/')
+    	        .append(StringUtil.underscore(simpleName.substring(0, simpleName.length()-CONTROLLER_LENGTH)))
+    	        .toString();
+    	}
     }
     
     /**
@@ -79,30 +102,24 @@ public class RouterHelper {
      */
     public static String generate(String controllerPath, String action, String id,  Map<String, String> params) {
 
+        StringBuilder uri = new StringBuilder(100);
+        
         //prepend slash if missing
-        StringBuilder uri = new StringBuilder(controllerPath.startsWith("/") ? controllerPath : "/" + controllerPath);
+        if (controllerPath.charAt(0) != '/') uri.append('/');
+        uri.append(controllerPath);
 
         if (action != null) {
-            uri.append("/").append(action);
+            uri.append('/').append(action);
         }
 
         if (id != null) {
-            uri.append("/").append(id);
+            uri.append('/').append(id);
         }
 
         if (params.size() > 0) {
-            uri.append("?");
+            uri.append('?');
+            uri.append(DataCodec.encode(params));
         }
-
-        List<String> pairs = new ArrayList<String>();
-
-        params.forEach((key,value) ->  {
-            try {
-                pairs.add(URLCodec.encode(key, StandardCharsets.UTF_8) + "=" + URLCodec.encode(value, StandardCharsets.UTF_8));
-            } catch (Exception ignore) {/* By using StandardCharsets an exception ought not occur*/}
-        });
-
-        uri.append(StringUtil.join(pairs, "&"));
 
         return uri.toString();
     }

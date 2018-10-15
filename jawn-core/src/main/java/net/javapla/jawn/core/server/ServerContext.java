@@ -3,13 +3,11 @@ package net.javapla.jawn.core.server;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Collection;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -20,6 +18,7 @@ import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.http.Context;
 import net.javapla.jawn.core.http.Cookie;
+import net.javapla.jawn.core.http.FlashScope;
 import net.javapla.jawn.core.http.FormItem;
 import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.http.Request;
@@ -37,11 +36,13 @@ public class ServerContext implements Context.Internal2 {
     
     
     private final JawnConfigurations properties;
-    //private final SessionManager sessionManager;
     private final Session session;
+    private final FlashScope flash;
     
+    private HashMap<String, Object> contextAttributes;
     private Request request;
     private Response response;
+    private volatile ResponseStream responseCreated = null;
     
     private Route route;
     /**
@@ -50,23 +51,23 @@ public class ServerContext implements Context.Internal2 {
      */
     private String routedPath;
 
+    private Map<String, Cookie> cookies;
+
 
     
     
     @Inject
-    ServerContext(JawnConfigurations properties, Session session) {
+    ServerContext(JawnConfigurations properties, Session session, FlashScope flash) {
         this.properties = properties;
         this.session = session;
+        this.flash = flash;
     }
     
     public void init(Request request, Response response) {
         this.request = request;
         this.response = response;
         
-        addResponseHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
-        
-        // init session scope
-        session.init(this);
+        addHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
     }
     
     @Override
@@ -104,19 +105,39 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    public Session getSession(boolean createIfNotExists) {
-        return session;//sessionManger.create();
+    public Session getSession(/*boolean createIfNotExists*/) {
+//        if (createIfNotExists && !session.isInitialised()) {
+//            session.init(this);
+//        } else if (!createIfNotExists && !session.isInitialised()) {
+//            return null;
+//        }
+//        
+//        return session;//sessionManger.create();
+        if (!session.isInitialised()) {
+            session.init(this);
+        }
+        return session;
+    }
+    
+    @Override
+    public FlashScope getFlash() {
+        if (!flash.isInitialised()) {
+            flash.init(this);
+        }
+        return flash;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public void setFlash(String name, Object value) {
+    /*@Override
+    public void setFlash(String name, String value) {
+        
+        
+        
         Session session = getSession(true);
         if (session.get(Context.FLASH_SESSION_KEYWORD) == null) {
             session.put(Context.FLASH_SESSION_KEYWORD, new HashMap<String, Object>());
         }
-        ((Map<String, Object>) session.get(Context.FLASH_SESSION_KEYWORD)).put(name, value);
-    }
+        session.get(Context.FLASH_SESSION_KEYWORD, Map.class).put(name, value);
+    }*/
     
     @Override
     public Modes mode() {
@@ -209,6 +230,7 @@ public class ServerContext implements Context.Internal2 {
      *
      * @return IP address of the requesting client.
      */
+    @Override
     public String remoteIP(){
         String remoteAddr = request.ip();
         
@@ -251,20 +273,29 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    @Deprecated
-    public Object getAttribute(String name) {
-        return null;
+    public void setAttribute(String name, Object value) {
+        instantiateContextAttributes();
+        contextAttributes.put(name, value);
     }
 
     @Override
-    @Deprecated
-    public <T> T getAttribute(String name, Class<T> clazz) {
-        return null;
+    public final Object getAttribute(String name) {
+        if (contextAttributes == null) return null;
+        return contextAttributes.get(name);
     }
 
     @Override
-    public Map<String, String> requestHeaders() {
-        return null;//TODO
+    public <T> T getAttribute(String name, Class<T> type) throws ClassCastException {
+        Object o = getAttribute(name);
+        return o == null? null : type.cast(o);
+    }
+
+    @Override
+    public MultiList<String> requestHeaders() {
+        List<String> names = request.headerNames();
+        MultiList<String> list = new MultiList<>();
+        names.forEach(name -> list.put(name, request.headers(name)));
+        return list;
     }
 
     @Override
@@ -273,39 +304,21 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    public String[] requestParameterValues(String name) {
-        return null;
-    }
-
-    @Override
-    public Locale requestLocale() {
-        return null;
-    }
-
-    @Override
-    @Deprecated
     public Cookie getCookie(String cookieName) {
-        //could as well just be in the Controller
-        for (Cookie c : request.cookies()) {
-            if (c.getName().equals(cookieName)) return c;
-        }
-        return null;
+        return getCookies().get(cookieName);
     }
 
     @Override
-    @Deprecated
     public boolean hasCookie(String cookieName) {
-        return false;
+        return getCookie(cookieName) != null;
     }
 
     @Override
-    public List<Cookie> getCookies() {
-        return request.cookies();
-    }
-
-    @Override
-    public void setAttribute(String name, Object value) {
-        //deprecate?
+    public Map<String, Cookie> getCookies() {
+        if (cookies == null) {
+            cookies = request.cookies();
+        }
+        return cookies;
     }
 
     @Override
@@ -349,36 +362,23 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    @Deprecated
-    public void responseLocale(Locale locale) {
-    }
-
-    @Override
     public void addCookie(Cookie cookie) {
         response.addCookie(cookie);
     }
 
     @Override
-    public void addResponseHeader(String name, String value) {
+    public void addHeader(String name, String value) {
         response.header(name, value);
     }
 
     @Override
-    public Collection<String> responseHeaderNames() {
-        //TODO
-        return null;
+    public Writer responseWriter(Result result) throws IOException {
+        return readyResponse(result, false).getWriter();
     }
 
     @Override
-    @Deprecated
-    public PrintWriter responseWriter() throws IOException {
-        return null;
-    }
-
-    @Override
-    @Deprecated
-    public OutputStream responseOutputStream() throws IOException {
-        return null;
+    public OutputStream responseOutputStream(Result result) throws IOException {
+        return readyResponse(result, false).getOutputStream();
     }
 
     @Override
@@ -387,7 +387,10 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    public ResponseStream readyResponse(Result controllerResponse, boolean handleFlash) {
+    public /*synchronized */ResponseStream readyResponse(Result controllerResponse, boolean handleFlashAndSession) {
+        if (responseCreated != null) return responseCreated;
+        if (controllerResponse == null) return responseCreated = new ServerResponseStream(response);
+        
         // status
         response.statusCode(controllerResponse.status());
         
@@ -403,17 +406,17 @@ public class ServerContext implements Context.Internal2 {
                 response.characterEncoding(Constants.DEFAULT_ENCODING); // use default
         }
         
-        // flash
-        if (handleFlash) {
-            Session session = getSession(false);
-            if (session != null) {
-                if (session.containsKey(FLASH_SESSION_KEYWORD)) {
-                    Object object = session.get(FLASH_SESSION_KEYWORD);
-                    controllerResponse.addViewObject(FLASH_KEYWORD, object);
-                    session.remove(FLASH_SESSION_KEYWORD);
-                }
-                session.save(this);
+        // flash and session cookies
+        if (handleFlashAndSession) {
+            FlashScope flash = getFlash();
+            Map<String, String> currentFlashCookieData = flash.getCurrentFlashCookieData();
+            if (!currentFlashCookieData.isEmpty()) {
+                controllerResponse.addViewObject(FLASH_KEYWORD, currentFlashCookieData);
             }
+            flash.save(this);
+            
+            if (session.isInitialised())
+                session.save(this);
         }
         
         // copy headers
@@ -423,7 +426,12 @@ public class ServerContext implements Context.Internal2 {
            }
         }
         
-        return new ServerResponseStream(response);
+        return responseCreated = new ServerResponseStream(response);
+    }
+    
+    private void instantiateContextAttributes() { // synchronized *should* not be needed as a request should be executed non-parallel
+        if (contextAttributes == null)
+            contextAttributes = new HashMap<>(5);
     }
 
 }

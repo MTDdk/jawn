@@ -3,11 +3,9 @@ package net.javapla.jawn.core.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Collection;
+import java.io.Writer;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,6 +35,8 @@ public interface Context {
         void setRouteInformation(Route route, String routedPath) throws IllegalArgumentException;
         Request request();
         Response response();
+        ResponseStream readyResponse(Result controllerResponse);
+        ResponseStream readyResponse(Result controllerResponse, boolean handleFlash);
     }
     
     /**
@@ -57,13 +57,14 @@ public interface Context {
 //    public String getRouteLanguage();
 //    public String getRouteFormat();
     
-    public String getRouteParam(String name);
-    public Map<String, String> getRouteParams();
+    String getRouteParam(String name);
+    Map<String, String> getRouteParams();
     
-    public Session getSession(boolean createIfNotExists);
-    public void setFlash(String name, Object value);
+    Session getSession(/*boolean createIfNotExists*/);
+    FlashScope getFlash();
+//    void setFlash(String name, String value);
     
-    public Modes mode();
+    Modes mode();
     
 /* *************** */
 /*   REQUEST       */
@@ -75,7 +76,7 @@ public interface Context {
      * <code>/mywebapp</code>
      *
      * @return a context of the request - usually an app name (as seen on URL of request).
-     * @deprecated {@link DeploymentInfo#getContextPath()}
+    // * @deprecated {@link DeploymentInfo#getContextPath()}
      */
     public String contextPath();
     
@@ -203,31 +204,6 @@ public interface Context {
     
     public String getParameter(String name);
     
-    public Object getAttribute(String name);
-    public <T> T getAttribute(String name, Class<T> clazz);
-    
-    /**
-     * Returns all headers from a request keyed by header name.
-     *
-     * @return all headers from a request keyed by header name.
-     */
-    public Map<String, String> requestHeaders();
-    /**
-     * Returns a request header by name.
-     *
-     * @param name name of header
-     * @return header value.
-     */
-    public String requestHeader(String name);
-    public String[] requestParameterValues(String name);
-    
-    public Locale requestLocale();
-    
-    public Cookie getCookie(String cookieName);
-    public boolean hasCookie(String cookieName);
-    public List<Cookie> getCookies();
-    
-    
     /**
      * Sets an attribute value.
      * <p>
@@ -239,6 +215,27 @@ public interface Context {
      * @see #getAttribute(String, Class)
      */
     void setAttribute(String name, Object value);
+    Object getAttribute(String name);
+    <T> T getAttribute(String name, Class<T> clazz) throws ClassCastException;
+    
+    /**
+     * Returns all headers from a request keyed by header name.
+     *
+     * @return all headers from a request keyed by header name.
+     */
+    public MultiList<String> requestHeaders();
+    /**
+     * Returns a request header by name.
+     *
+     * @param name name of header
+     * @return header value.
+     */
+    public String requestHeader(String name);
+    
+    Cookie getCookie(String cookieName);
+    boolean hasCookie(String cookieName);
+    Map<String, Cookie> getCookies();
+    
     
     public void setRequestCharacterEncoding(String encoding) throws UnsupportedEncodingException;
     
@@ -261,23 +258,19 @@ public interface Context {
 /*   RESPONSE      */
 /* *************** */
     
-    public String getResponseEncoding();
+    String getResponseEncoding();
     /**
      * Character encoding for response
      * @param encoding
      */
-    public void setEncoding(String encoding);
+    void setEncoding(String encoding);
     
-    public void responseLocale(Locale locale);
+    void addCookie(Cookie cookie);
     
-    public void addCookie(Cookie cookie);
-    
-    public void addResponseHeader(String name, String value);
-    public Collection<String> responseHeaderNames();
+    void addHeader(String name, String value);
     
     
-    
-    public PrintWriter responseWriter() throws IOException;
+    Writer responseWriter(Result result) throws IOException;
     /**
      * Use to send raw data to HTTP client.
      *
@@ -287,11 +280,9 @@ public interface Context {
      * @return instance of output stream to send raw data directly to HTTP client.
      * @throws IOException 
      */
-    public OutputStream responseOutputStream() throws IOException;
+    OutputStream responseOutputStream(Result result) throws IOException;
     
     
 /* ****** */
 
-    public ResponseStream readyResponse(Result controllerResponse);
-    public ResponseStream readyResponse(Result controllerResponse, boolean handleFlash);
 }

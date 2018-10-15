@@ -1,7 +1,11 @@
-rootProject.name = 'java-web-planet / jawn'
+rootProject.name = 'jawn'
+
+include 'jawn-core'
+include 'jawn-server-undertow'
+include 'jawn-templates-stringtemplate'
 
 //automatically include all jawn-*
-file('.')
+/*file('.')
     .listFiles() // find all files in rootDir
     .findAll {
         it.isDirectory() && // only look at folders
@@ -10,3 +14,4 @@ file('.')
     .each {
         include it.name // let the root project include each of these folders
     }
+*/

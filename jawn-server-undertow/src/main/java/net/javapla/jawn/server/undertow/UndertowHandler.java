@@ -21,6 +21,16 @@ public class UndertowHandler implements HttpHandler {
         }
         //exchange.getResponseHeaders().add(HttpString.tryFromString("Server"), "Undertow");
         
+        // TODO do this in a runnable (test)
         handler.handle(new UndertowRequest(exchange, contextPath), new UndertowResponse(exchange));
+        
+        //TODO probably extend Undertow's HttpHandler to have an exception callback or something
+        /*exchange.dispatch(() -> {
+            try {
+                handler.handle(new UndertowRequest(exchange, contextPath), new UndertowResponse(exchange));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });*/
     }
 }

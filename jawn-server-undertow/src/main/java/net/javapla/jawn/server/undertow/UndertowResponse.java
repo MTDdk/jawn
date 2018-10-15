@@ -3,6 +3,8 @@ package net.javapla.jawn.server.undertow;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -31,12 +33,17 @@ import net.javapla.jawn.core.http.Response;
 public class UndertowResponse implements Response {
     
     private final HttpServerExchange exchange;
+    private final Runnable blocking;
+    
+    private volatile boolean endExchange = true;
     
     private String contentType;
     private Optional<Charset> charset = Optional.empty();
+    private boolean streamCreated = false;
 
     public UndertowResponse(final HttpServerExchange exchange) {
         this.exchange = exchange;
+        this.blocking = () -> {if(!this.exchange.isBlocking()) this.exchange.startBlocking();};
     }
 
     @Override
@@ -75,11 +82,13 @@ public class UndertowResponse implements Response {
 
     @Override
     public void send(InputStream stream) throws Exception {
+        endExchange = false;
         new ChunkedStream().send(Channels.newChannel(stream), exchange, IoCallback.END_EXCHANGE);
     }
 
     @Override
     public void send(FileChannel channel) throws Exception {
+        endExchange = false;
         new ChunkedStream().send(channel, exchange, IoCallback.END_EXCHANGE);
     }
 
@@ -121,9 +130,20 @@ public class UndertowResponse implements Response {
     }
 
     @Override
+    public Writer writer() {
+        return new OutputStreamWriter(outputStream());
+    }
+    
+    @Override
     public OutputStream outputStream() {
-        exchange.startBlocking();
+        streamCreated = true;
+        blocking.run();
         return exchange.getOutputStream();
+    }
+    
+    @Override
+    public boolean usingStream() {
+        return streamCreated;
     }
     
     @Override
@@ -145,8 +165,10 @@ public class UndertowResponse implements Response {
             exchange.removeAttachment(UndertowRequest.SOCKET);
           }
         }*/
+        
         // this is a noop when response has been set, still call it...
-        exchange.endExchange();
+        if (endExchange)
+            exchange.endExchange();
     }
 
     @Override
@@ -175,9 +197,20 @@ public class UndertowResponse implements Response {
         private int bufferSize;
 
         private int chunk;
+        
+        private final long len;
 
-        public void send(final ReadableByteChannel source, final HttpServerExchange exchange,
-                final IoCallback callback) {
+        private long total;
+        
+        public ChunkedStream(final long len) {
+            this.len = len;
+        }
+
+        public ChunkedStream() {
+            this(-1);
+        }
+
+        public void send(final ReadableByteChannel source, final HttpServerExchange exchange, final IoCallback callback) {
             this.source = source;
             this.exchange = exchange;
             this.callback = callback;
@@ -196,10 +229,11 @@ public class UndertowResponse implements Response {
             try {
                 buffer.clear();
                 int count = source.read(buffer);
-                if (count == -1) {
+                if (count == -1 || (len != -1 && total >= len)) {
                     done();
                     callback.onComplete(exchange, sender);
                 } else {
+                    total += count;
                     if (chunk == 1) {
                         if (count < bufferSize) {
                             HeaderMap headers = exchange.getResponseHeaders();
@@ -216,6 +250,12 @@ public class UndertowResponse implements Response {
                         }
                     }
                     buffer.flip();
+                    if (len > 0) {
+                        if (total > len) {
+                            long limit = count - (total - len);
+                            buffer.limit((int) limit);
+                        }
+                    }
                     sender.send(buffer, this);
                 }
             } catch (IOException ex) {

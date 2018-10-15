@@ -177,4 +177,27 @@ public class DataCodecTest {
         DataCodec.decode(outMap, data);
         assertEquals(0, outMap.size());
     }
+    
+    /*@Test
+    public void timing_test() {
+        int loops = 30000_000;
+        Supplier<Long> time = () -> System.currentTimeMillis();
+        final Map<String, String> map1 = new HashMap<String, String>(10);
+        final Map<String, String> map2 = new HashMap<String, String>(10);
+        final String data = "asfjasdf=dasdfflka&sjdf=lasdfasdfk&&asdddf=&afff";
+        
+        long t = time.get();
+        for (int i = 0; i < loops; i++) {
+            DataCodec.decodeFast(map1, data);
+        }
+        System.out.println((time.get() - t));
+        
+        t = time.get();
+        for (int i = 0; i < loops; i++) {
+            DataCodec.decode(map2, data);
+        }
+        System.out.println((time.get() - t));
+        
+        System.out.println(map1 + "\n" + map2);
+    }*/
 }
