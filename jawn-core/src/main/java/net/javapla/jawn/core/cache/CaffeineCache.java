@@ -69,7 +69,12 @@ public class CaffeineCache implements Cache {
     @Override
     public void setExpiration(String key, int seconds) {
     }
-
+    
+    @Override
+    public long getExpectedExpiration(String key) {
+        return 0;
+    }
+    
     @Override
     public boolean isSet(String key) {
         return false;

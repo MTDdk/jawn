@@ -58,5 +58,10 @@ public class CacheTestImpl implements Cache {
     public int getExpiration(String key) {
         return 0;
     }
+    
+    @Override
+    public long getExpectedExpiration(String key) {
+        return 0;
+    }
 
 }

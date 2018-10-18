@@ -90,6 +90,14 @@ public interface Cache {
     void setExpiration(String key, int seconds);
     
     /**
+     * Gets the expected expiration, in milliseconds from the current time, for the entry corresponding to the given key.
+     * @param key
+     * @return in milliseconds
+     */
+    long getExpectedExpiration(String key);
+    //int currentAge(String key); TODO
+    
+    /**
      * 
      * @return in seconds
      */
