@@ -225,11 +225,24 @@ public final class ResultBuilder {
             return builder;
         }
         /**
+         * 401 Unauthorized
+         * @return The original builder
+         */
+        public ResultBuilder unauthorized() {
+            builder.setStatus(Status.UNAUTHORIZED.getStatusCode());
+            return builder;
+        }
+        /**
          * 500 Internal Server Error
          * @return The original builder
          */
         public ResultBuilder internalServerError() {
             builder.setStatus(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            return builder;
+        }
+        
+        public ResultBuilder code(int statuscode) {
+            builder.setStatus(statuscode);
             return builder;
         }
     }

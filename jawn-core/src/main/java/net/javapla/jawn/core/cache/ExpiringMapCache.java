@@ -107,7 +107,7 @@ public class ExpiringMapCache implements Cache {
     @Override
     public boolean isSet(String key) {
         if (StringUtil.blank(key)) throw new IllegalArgumentException("Key must not be null or empty");
-        return cache.containsKey(key);
+        return cache.containsKey(key);// && cache.getExpectedExpiration(key) > 0;
     }
     
     @Override
