@@ -1,0 +1,20 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%-8.8thread] %-5level %-20logger{30} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- The server package is a bit noisy -->
+    <logger name="org.xnio.nio" level="WARN" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="net.javapla.jawn.core.templates.config.SiteConfigurationReader" level="OFF" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>
