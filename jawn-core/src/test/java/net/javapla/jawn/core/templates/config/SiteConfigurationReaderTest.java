@@ -47,15 +47,15 @@ public class SiteConfigurationReaderTest {
 		Assert.assertEquals("jawn test", conf.title);
 		
 		Assert.assertEquals(2, conf.scripts.length);
-		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
-		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
 		
 		Assert.assertEquals(2, conf.styles.length);
-		Assert.assertEquals(SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style1.css", conf.styles[0].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style1.css", conf.styles[0].url);
 		Assert.assertNull(conf.styles[0].attr.get("integrity"));
 		Assert.assertNull(conf.styles[0].attr.get("crossorigin"));
 		
-		Assert.assertEquals(SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style2.css", conf.styles[1].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style2.css", conf.styles[1].url);
 		Assert.assertEquals("#2", conf.styles[1].attr.get("integrity"));
 		Assert.assertEquals("none", conf.styles[1].attr.get("crossorigin"));
 		
@@ -88,7 +88,7 @@ public class SiteConfigurationReaderTest {
 		Assert.assertEquals(true, conf.overrideDefault);
 		
 		Assert.assertEquals(1, conf.scripts.length);
-		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script3.js", conf.scripts[0].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script3.js", conf.scripts[0].url);
 	}
 	
 	@Test
@@ -156,6 +156,19 @@ public class SiteConfigurationReaderTest {
         Assert.assertEquals(2, conf.scripts.length);
         Assert.assertEquals(2, conf.styles.length);
     }
+	
+	@Test
+	public void isLocal() {
+	    Assert.assertTrue(SiteConfigurationReader.isLocal(""));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("http://something.com"));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("https://something.com"));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("ftp://something.com"));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("ftps://something.com"));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("//something.com"));
+	    Assert.assertTrue(SiteConfigurationReader.isLocal("file://something"));
+	    Assert.assertTrue(SiteConfigurationReader.isLocal("something.css"));
+	    Assert.assertTrue(SiteConfigurationReader.isLocal("something.js"));
+	}
 	
 	/*@Test
 	public void readSiteConfiguration_with_contextPath() {

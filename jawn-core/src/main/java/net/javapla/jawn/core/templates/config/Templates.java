@@ -1,5 +1,9 @@
 package net.javapla.jawn.core.templates.config;
 
+/**
+ * @deprecated is it used ANYWHERE?
+ */
+@Deprecated
 public class Templates {
     
     public final String template;

@@ -64,7 +64,7 @@ public class RouterImpl implements Router {
         //if (!isDev) {
             final Route route = deducedRoutes.findExact(requestUri, httpMethod); //exact matches
             if (route != null) { 
-                if (isDev /*&& !route.isDirectlyExecutable()*/) {
+                if (isDev && !route.isDirectlyExecutable()) {
                     reloadController(route, false);
                 }
                 return route;

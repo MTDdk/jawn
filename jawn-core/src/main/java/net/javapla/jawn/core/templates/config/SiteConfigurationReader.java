@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.templates.config;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -26,11 +27,11 @@ import net.javapla.jawn.core.http.Context;
  */
 public class SiteConfigurationReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
-
+    
     public static final String SITE_FILE = "site.json";
-    public static final String SCRIPT_STANDARD_FOLDER = "/js/";
-    public static final String STYLE_STANDARD_FOLDER = "/css/";
-
+    public static final String SCRIPT_STANDARD_FOLDER = "js/";
+    public static final String STYLE_STANDARD_FOLDER = "css/";
+    
     private final ObjectMapper mapper;
     //private final DeploymentInfo deploymentInfo;
     private final HashMap<String, SiteConfiguration> configurationCache = new HashMap<>();
@@ -169,8 +170,11 @@ public class SiteConfigurationReader {
 
         try (Reader r = new FileReader(rootFile.toFile())) {
             SiteConfiguration configuration = mapper.readValue(r, SiteConfiguration.class);
-            prefixResourceLinks(configuration.scripts, SCRIPT_STANDARD_FOLDER);
-            prefixResourceLinks(configuration.styles, STYLE_STANDARD_FOLDER);
+            
+            Path parent = folder.getParent(); // we always assume that "js/" and "css/" is at the same level as "folder" (which is most likely "webapp/views"
+            decorateLocalResourceLinks(configuration.scripts, SCRIPT_STANDARD_FOLDER, parent);
+            decorateLocalResourceLinks(configuration.styles, STYLE_STANDARD_FOLDER, parent);
+            
             return configuration;
         } catch (IOException e) {
             log.error("Reading site_file {} \n{}", rootFile, e.getMessage());
@@ -226,13 +230,51 @@ public class SiteConfigurationReader {
     /**
      * Prefixes local resources with css/ or js/.
      * "Local" is defined by not starting with 'http.*' or 'ftp.*'
+     * 
+     * Adds a version query param to local resources.
+     * The <code>version</code> is currently just an epoch
      */
-    private final void prefixResourceLinks(final SiteConfiguration.Tag[] links, final String prefix) {
-        if(links != null) {
-            for(SiteConfiguration.Tag link : links) {
-                if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
-                    link.url = /*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/;
+    private final void decorateLocalResourceLinks(final SiteConfiguration.Tag[] links, final String prefix, final Path root) {
+        if (links == null) return;
+        
+        for(SiteConfiguration.Tag link : links) {
+            if (isLocal(link.url)) {
+                //link.url = /*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/
+                link.url = toAddOrNotToAddModified(link.url, prefix, root);
             }
+        }
+    }
+    
+    final static boolean isLocal(String url) {
+        //return !(url.matches("^(ht|f)tp.*") || url.startsWith("//"));
+        
+        //assert (url.length() < 5);
+        return ! (
+            url.startsWith("http", 0) ||
+            url.startsWith("ftp", 0) ||
+            url.startsWith("//", 0)
+            ); 
+    }
+    
+    final String toAddOrNotToAddModified(final String url, final String prefix, final Path root) {
+        StringBuilder result = new StringBuilder(1 + 4 + url.length() + 3 + 13);
+        result.append(prefix); // length 3 or 4
+        result.append(url);
+        
+        File resolved = root.resolve(result.toString()).toFile();
+        
+        // prepending with '/' makes the resource not depending on the URL it is called from
+        result.insert(0, '/'); // length 1
+        
+        if (resolved.exists() /*&& resolved.canRead()*/) { // TODO at this point we actually could do some minification as well
+            result.append("?v="); // length 3
+            result.append(resolved.lastModified()); // length 13
+            return result.toString();
+        } else {
+            log.error("File not found:: " + result + " - Perhaps a spelling error?");
+            // README: this is frankly mostly for testing purposes - probably should be omitted all together
+            result.insert(0, '/');
+            return result.toString();
         }
     }
 }

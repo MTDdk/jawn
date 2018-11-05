@@ -14,6 +14,7 @@ import org.junit.Test;
 import app.controllers.UnitTestController;
 import app.controllers.testing.more.CakeController;
 import net.javapla.jawn.core.FiltersHandler;
+import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
@@ -43,7 +44,7 @@ public class RouterImplTest {
     }
 
     @Test
-    public void test() {
+    public void runStandardTests() {
         standardTests();
     }
     
@@ -139,6 +140,16 @@ public class RouterImplTest {
         assertEquals("postSimple", route.getAction());
         assertEquals("simple", route.getActionName());
         assertEquals(UnitTestController.class.getName(), route.getController().getName());
+    }
+    
+    @Test
+    public void extremelySimpleJsonResponseAsDEV() {
+        builders.add(RouteBuilder.get().route("/test").with(Results.json("test")));
+        configurations = new JawnConfigurations(Modes.DEV);
+        RouterImpl router = setupRouter();
+        
+        router.retrieveRoute(HttpMethod.GET, "/test");
+        //not throwing
     }
 
     private void standardTests() {
