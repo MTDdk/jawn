@@ -8,8 +8,8 @@
 	],
 	
 	"styles": [
-		{url: "style1.css"},
-		{url: "style2.css", attr:{
+		{"url": "style1.css"},
+		{"url": "style2.css", "attr":{
 			"integrity":"#2",
 			"crossorigin":"none"
 		}}
