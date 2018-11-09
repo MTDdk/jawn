@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import net.javapla.jawn.core.util.CollectionUtil;
+import net.javapla.jawn.core.util.Modes;
 
 public class SiteBuilderTest {
     
@@ -13,9 +14,22 @@ public class SiteBuilderTest {
             new SiteConfiguration.Tag("script1.js")
         };
         
-        String html = Site.builder().createScripts(scripts);
+        String html = Site.builder(Modes.DEV).createScripts(scripts);
         
         Assert.assertEquals("<script src=\"script1.js\"></script>\n", html);
+    }
+    
+    @Test
+    public void simpleScriptsFormattingNotDEV() {
+        SiteConfiguration.Tag[] scripts = new SiteConfiguration.Tag[]{
+            new SiteConfiguration.Tag("script1.js")
+        };
+        
+        String html = Site.builder(Modes.TEST).createScripts(scripts);
+        Assert.assertEquals("<script src=\"script1.js\"></script>", html);
+        
+        html = Site.builder(Modes.PROD).createScripts(scripts);
+        Assert.assertEquals("<script src=\"script1.js\"></script>", html);
     }
     
     @Test
@@ -40,7 +54,7 @@ public class SiteBuilderTest {
 			)
 		};
 		
-		String html = Site.builder().createScripts(scripts);
+		String html = Site.builder(Modes.DEV).createScripts(scripts);
 		
 		Assert.assertTrue(html.indexOf("script1.js") < html.indexOf("script2.js"));
 		Assert.assertTrue(html.indexOf("script2.js") < html.indexOf("defer"));
@@ -58,7 +72,7 @@ public class SiteBuilderTest {
             new SiteConfiguration.Tag("style1.css")
 	    };
         
-        String html = Site.builder().createStyles(styles);
+        String html = Site.builder(Modes.DEV).createStyles(styles);
         
         Assert.assertEquals("<link rel=\"stylesheet\" type=\"text/css\" href=\"style1.css\">\n", html);
     }
@@ -75,7 +89,7 @@ public class SiteBuilderTest {
             )
         };
         
-        String html = Site.builder().createStyles(styles);
+        String html = Site.builder(Modes.DEV).createStyles(styles);
         
         // attributes are sorted due to the nature of HashMap
         Assert.assertEquals("<link rel=\"stylesheet\" type=\"text/css\" href=\"style1.css\">\n"
@@ -94,7 +108,7 @@ public class SiteBuilderTest {
 				)
 		};
 		
-		String html = Site.builder().createStyles(styles);
+		String html = Site.builder(Modes.DEV).createStyles(styles);
 		
 		Assert.assertTrue(html.indexOf("style1.css") < html.indexOf("style2.css"));
 		Assert.assertTrue(html.indexOf("style2.css") < html.indexOf("integrity=\"test_integrity\""));

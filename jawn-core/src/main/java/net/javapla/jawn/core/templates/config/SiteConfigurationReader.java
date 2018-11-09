@@ -119,10 +119,9 @@ public class SiteConfigurationReader {
     
     private Site createCachableSite(Context ctx, SiteConfiguration conf) {
         // does not contain 'content'
-        return Site.builder()
+        return Site.builder(ctx.mode()) // state the current mode
                     .url(ctx.path()) // add the URL
                     .title(conf.title) // add title
-                    .mode(ctx.mode()) // state the current mode
                     
                     //add scripts
                     .scripts(conf.scripts)
