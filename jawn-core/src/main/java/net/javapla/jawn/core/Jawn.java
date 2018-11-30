@@ -315,6 +315,16 @@ public class Jawn {
         return this;
     }
     
+    // *******************
+    // Scannable packages
+    // *******************
+    public Jawn controllerPackage(String packagePath) {
+        
+        return this;
+    }
+    
+    
+    
     // ****************
     // Injection
     // ****************

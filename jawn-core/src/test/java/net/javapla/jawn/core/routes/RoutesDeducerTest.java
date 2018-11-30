@@ -14,6 +14,7 @@ import net.javapla.jawn.core.http.HttpMethod;
 import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.reflection.RoutesDeducer;
 import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.PropertiesConstants;
 
 public class RoutesDeducerTest {
 
@@ -34,7 +35,7 @@ public class RoutesDeducerTest {
     @Test
     public void test() {
         RoutesDeducer deducer = new RoutesDeducer(mock(FiltersHandler.class), mock(ActionInvoker.class));
-        RoutesDeducer controllers = deducer.deduceRoutesFromControllers();
+        RoutesDeducer controllers = deducer.deduceRoutesFromControllers(PropertiesConstants.CONTROLLER_PACKAGE);
         
         RouteTrie trie = controllers.getRoutes();
         assertNotNull(trie.findExact("/mock", HttpMethod.GET));

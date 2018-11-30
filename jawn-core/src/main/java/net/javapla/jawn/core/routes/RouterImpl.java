@@ -103,7 +103,7 @@ public class RouterImpl implements Router {
         
         // Build the built in routes
         if (!isDev)
-            deducedRoutes = new RoutesDeducer(filters, invoker).deduceRoutesFromControllers().getRoutes();
+            deducedRoutes = new RoutesDeducer(filters, invoker).deduceRoutesFromControllers(PropertiesConstants.CONTROLLER_PACKAGE).getRoutes();
         else
             deducedRoutes = new RouteTrie();
         this.invoker = invoker;
