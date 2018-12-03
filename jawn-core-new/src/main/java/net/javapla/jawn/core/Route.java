@@ -6,7 +6,7 @@ public interface Route {
     
     
     public interface Filter {
-        //void handle(DRequest req, DResponse resp, DRoute.Chain chain);
+        //void handle(Request req, Response resp, Route.Chain chain);
         /**
          * Filter the request. Filters should invoke the {@link FilterChain#before(Context)}
          * method if they wish the request to proceed.

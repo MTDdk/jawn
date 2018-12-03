@@ -20,9 +20,9 @@ public enum HttpMethod {
     /**
      * Detects an HTTP method from a request.
      */
-    public static HttpMethod getMethod(Context context) {
-        return _getMethod(context.method(), () -> context.getParameter("_method"));
-    }
+    /*public static HttpMethod getMethod(Context context) {
+        return _getMethod(context.httpMethod(), () -> context.getParameter("_method"));
+    }*/
     
     public static HttpMethod getMethod(String requestMethod, MultiList<String> params) {
         return _getMethod(requestMethod, () -> params.first("_method"));

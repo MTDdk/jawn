@@ -56,16 +56,18 @@ public interface Request {
     int port();
     String scheme();
     //boolean secure();
-    /**
-     * Upgrade the request to something else...like a web socket.
-     *
-     * @param type Upgrade type.
-     * @param <T> Upgrade type.
-     * @return A instance of the upgrade.
-     * @throws Exception If the upgrade fails or it is un-supported.
-     * @see NativeWebSocket
-     */
+    
+//    /**
+//     * Upgrade the request to something else...like a web socket.
+//     *
+//     * @param type Upgrade type.
+//     * @param <T> Upgrade type.
+//     * @return A instance of the upgrade.
+//     * @throws Exception If the upgrade fails or it is un-supported.
+//     * @see NativeWebSocket
+//     */
     //<T> T upgrade(Class<T> type) throws Exception;
+    
     void startAsync();
     
     
@@ -82,5 +84,6 @@ public interface Request {
      * @throws ParsableException If the parsing from the given content type to class failed
      * @throws MediaTypeException If the media type of the request was not specified
      */
+    <T> T parseBody() throws Exception;
     //<T> T parseBody(Class<T> clazz) throws ParsableException, MediaTypeException;
 }
