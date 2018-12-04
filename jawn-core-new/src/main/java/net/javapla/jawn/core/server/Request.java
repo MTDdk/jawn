@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
@@ -16,15 +17,23 @@ public interface Request {
     String path();
     String contextPath();
     String queryString();
-    Optional<String> param(String name);
+    
+    /**
+     * Only query parameters - not any form data
+     * @return
+     */
     MultiList<String> params();
+    Optional<String> param(String name);
     List<String> params(String name) throws Exception;
+    
     List<String> headers(String name);
     Optional<String> header(final String name);
     List<String> headerNames();
+    
     Map<String, Cookie> cookies();
+    
     //something handling upload
-    //List<FormItem> files();//throws Exception
+    List<FormItem> formData() throws IOException;
     
     
     // ****************
@@ -36,6 +45,7 @@ public interface Request {
      * @throws IOException if an input or output error occurs
      */
     InputStream in() throws IOException;
+    
     /**
      * Reads entire request data as byte array. Do not use for large data sets to avoid
      * memory issues.
@@ -68,22 +78,22 @@ public interface Request {
 //     */
     //<T> T upgrade(Class<T> type) throws Exception;
     
-    void startAsync();
+    void startAsync(final Executor executor, final Runnable runnable);
     
-    
-    /**
-     * This will try to parse the request body nicely into an object.
-     * It determines the parser based on the request type.
-     * 
-     * You can register your own parsers for other request types, if needed.
-     * Take a look at: {@link ParserEngine} and {@link ParserEngineManager}
-     * 
-     * @param clazz A representation of the expected body
-     * @return The parsed request object, or <code>throws</code> if the body could not be correctly deserialized,
-     *         or the media type was incorrect.
-     * @throws ParsableException If the parsing from the given content type to class failed
-     * @throws MediaTypeException If the media type of the request was not specified
-     */
-    <T> T parseBody() throws Exception;
+    //TODO this should be a part of Context
+//    /**
+//     * This will try to parse the request body nicely into an object.
+//     * It determines the parser based on the request type.
+//     * 
+//     * You can register your own parsers for other request types, if needed.
+//     * Take a look at: {@link ParserEngine} and {@link ParserEngineManager}
+//     * 
+//     * @param clazz A representation of the expected body
+//     * @return The parsed request object, or <code>throws</code> if the body could not be correctly deserialized,
+//     *         or the media type was incorrect.
+//     * @throws ParsableException If the parsing from the given content type to class failed
+//     * @throws MediaTypeException If the media type of the request was not specified
+//     */
+//    <T> T parseBody() throws Exception;
     //<T> T parseBody(Class<T> clazz) throws ParsableException, MediaTypeException;
 }

@@ -23,6 +23,22 @@ public class Err extends RuntimeException {
         }
     }
     
+    public static class Compilation extends Err {
+        public Compilation(final Throwable err) {
+            super(Status.SERVER_ERROR, err);
+        }
+    }
+    
+    public static class UnloadableClass extends Err {
+        public UnloadableClass(final Throwable err) {
+            super(Status.SERVER_ERROR, err);
+        }
+        
+        public UnloadableClass(final String msg) {
+            super(Status.SERVER_ERROR, msg);
+        }
+    }
+    
     private final int statusCode;
     
     public Err(final Status status, final String message, final Throwable cause) {
