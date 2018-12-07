@@ -34,6 +34,7 @@ public class FrameworkBootstrap {
     
     protected final ApplicationConfig appConfig;
     private final List<Module> combinedModules;
+    private final Env env;
     
     protected Injector injector;
     
@@ -46,6 +47,8 @@ public class FrameworkBootstrap {
     public FrameworkBootstrap(final Env env) {
         appConfig = new ApplicationConfig(env);
         combinedModules = new ArrayList<>();
+        
+        this.env = env;
     }
     
     public synchronized void boot(/*final JawnConfigurations conf, final Filters filters, final Router router *//*, DatabaseConnections databaseConnections*/) {
@@ -54,8 +57,8 @@ public class FrameworkBootstrap {
         //configure(conf, router/*, databaseConnections*/);
         
         // read plugins
-        ApplicationConfig pluginConfig = new ApplicationConfig();
-        plugins = readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+        ApplicationConfig pluginConfig = new ApplicationConfig(env);
+        plugins = new ModuleBootstrap[0];//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
         List<AbstractModule> pluginModules = pluginConfig.getRegisteredModules();
         
         // create a single injector for both the framework and the user registered modules
@@ -66,16 +69,16 @@ public class FrameworkBootstrap {
         
         // If any initialisation of filters needs to be done, like injecting ServletContext,
         // it can be done here.
-        initiateFilters(filters, localInjector);
+        //initiateFilters(filters, localInjector);
         
         
         // compiling of routes needs element from the injector, so this is done after the creation
-        initRouter(router, localInjector);
+        //initRouter(router, localInjector);
         
         injector = localInjector;
         
-        FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
-        engine.onFrameworkStartup(); // signal startup
+        //FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
+        //engine.onFrameworkStartup(); // signal startup
         
         onStartup.forEach(Runnable::run);
     }
@@ -103,7 +106,7 @@ public class FrameworkBootstrap {
         
         onShutdown.forEach(Runnable::run);
         
-        if (injector != null) {
+        /*if (injector != null) {
             
             // shutdown the database connection pool
             try {
@@ -119,28 +122,27 @@ public class FrameworkBootstrap {
             
             injector = null;
             engine = null;
-        }
+        }*/
     }
     
     protected void addModule(Module module) {
         this.combinedModules.add(module);
     }
     
-    protected void configure(JawnConfigurations properties, Router router/*, DatabaseConnections connections*/) {
+    protected void configure(/*JawnConfigurations properties, Router router*//*, DatabaseConnections connections*/) {
         
         // supported languages are needed in the creation of the injector
-        properties.setSupportedLanguages(appConfig.getSupportedLanguages());
-        properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
+        //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
+        //properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
         
-        addModule(new CoreModule(properties, new DeploymentInfo(properties), router));
+        //addModule(new CoreModule(properties, new DeploymentInfo(properties), router));
         //addModule(new DatabaseModule(connections, properties));
         addModule(new AbstractModule() {
             //ServerModule
             @Override
             protected void configure() {
-              //bind(Context.class).to(JawnServletContext.class);
-                bind(Context.class).to(ServerContext.class);
-                bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
+                /*bind(Context.class).to(ServerContext.class);
+                bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);*/
             }
         });
     }
@@ -162,19 +164,20 @@ public class FrameworkBootstrap {
             combined = Modules.override(combined).with(userModules);
         }
         
-        return Guice.createInjector(Stage.PRODUCTION, combined);
+        //Stage stage = env.mode() == Mode.PRODUCTION ? Stage.PRODUCTION : Stage.DEVELOPMENT;
+        return Guice.createInjector(/*stage*/Stage.PRODUCTION, combined);
     }
     
-    private void initiateFilters(Filters filters, Injector injector) {
+    /*private void initiateFilters(Filters filters, Injector injector) {
         filters.initialiseFilters(injector);
-    }
+    }*/
     
-    private void initRouter(Router router, Injector localInjector) {
-        //router.compileRoutes(localInjector.getInstance(ActionInvoker.class)/*localInjector*/);
+    /*private void initRouter(Router router, Injector localInjector) {
+        //router.compileRoutes(localInjector.getInstance(ActionInvoker.class));
         //RouterImpl router = (RouterImpl)localInjector.getInstance(Router.class);
         ActionInvoker invoker = localInjector.getInstance(ActionInvoker.class);
         ((RouterImpl)router).compileRoutes(invoker);
-    }
+    }*/
     
     private ModuleBootstrap[] readRegisteredPlugins(ApplicationConfig config, String pluginsPackage) {
         try {
