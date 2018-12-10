@@ -24,8 +24,12 @@ public enum HttpMethod {
         return _getMethod(context.httpMethod(), () -> context.getParameter("_method"));
     }*/
     
-    public static HttpMethod getMethod(String requestMethod, MultiList<String> params) {
+    /*public static HttpMethod getMethod(String requestMethod, MultiList<String> params) {
         return _getMethod(requestMethod, () -> params.first("_method"));
+    }*/
+    
+    public static HttpMethod getMethod(String requestMethod, Supplier<MultiList<String>> params) {
+        return _getMethod(requestMethod, () -> params.get().first("_method"));
     }
     
     // Using a supplier in order to postpone calculation to later if necessary

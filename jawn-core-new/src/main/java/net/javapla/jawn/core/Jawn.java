@@ -10,6 +10,7 @@ import com.google.inject.Injector;
 
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
+import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.util.Modes;
 
 public class Jawn {
@@ -30,16 +31,18 @@ public class Jawn {
         // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
+        bootstrap.boot();
+        
         /*JawnConfigurations properties = new JawnConfigurations(mode);
-        bootstrapper.boot(properties, filters, new RouterImpl(builders, filters, properties), databaseConnections);
-        Injector injector = bootstrapper.getInjector();
+        bootstrapper.boot(properties, filters, new RouterImpl(builders, filters, properties), databaseConnections);*/
+        Injector injector = bootstrap.getInjector();
         try {
-            injector.getInstance(Server.class).start(serverConfig);
+            injector.getInstance(Server.class).start(/*serverConfig*/);
         } catch (Exception e) {
             e.printStackTrace();
             stop();
             return;
-        }*/
+        }
         
         logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
 //        logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(JawnConfigurations.class).getMode());
@@ -51,12 +54,12 @@ public class Jawn {
      */
     public void stop() {
         CompletableFuture.runAsync(() -> {
-            /*try {
-                bootstrapper.getInjector().getInstance(Server.class).stop();
+            try {
+                bootstrap.getInjector().getInstance(Server.class).stop();
             } catch (Exception ignore) {
                 // Ignore NPE. At this point the server REALLY should be possible to find
             }
-            bootstrapper.shutdown();*/
+            bootstrap.shutdown();
         });
     }
     

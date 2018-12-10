@@ -15,7 +15,7 @@ public interface Request {
     
     HttpMethod method();
     String path();
-    String contextPath();
+    //String contextPath();
     String queryString();
     
     /**
@@ -23,17 +23,17 @@ public interface Request {
      * @return
      */
     MultiList<String> params();
+    List<String> params(String name);
     Optional<String> param(String name);
-    List<String> params(String name) throws Exception;
     
+    MultiList<String> headers();
     List<String> headers(String name);
     Optional<String> header(final String name);
-    List<String> headerNames();
     
     Map<String, Cookie> cookies();
     
     //something handling upload
-    List<FormItem> formData() throws IOException;
+    MultiList<FormItem> formData() throws IOException;
     
     
     // ****************

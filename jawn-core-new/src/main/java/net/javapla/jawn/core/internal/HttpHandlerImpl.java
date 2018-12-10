@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.internal;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;

@@ -24,6 +24,7 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Env;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
+import net.javapla.jawn.core.internal.server.undertow.UndertowConfiguration;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
@@ -54,11 +55,11 @@ public class FrameworkBootstrap {
     public synchronized void boot(/*final JawnConfigurations conf, final Filters filters, final Router router *//*, DatabaseConnections databaseConnections*/) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
-        //configure(conf, router/*, databaseConnections*/);
+        configure(/*conf, router/*, databaseConnections*/);
         
         // read plugins
         ApplicationConfig pluginConfig = new ApplicationConfig(env);
-        plugins = new ModuleBootstrap[0];//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+        plugins = readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//new ModuleBootstrap[0];//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
         List<AbstractModule> pluginModules = pluginConfig.getRegisteredModules();
         
         // create a single injector for both the framework and the user registered modules
@@ -137,12 +138,13 @@ public class FrameworkBootstrap {
         
         //addModule(new CoreModule(properties, new DeploymentInfo(properties), router));
         //addModule(new DatabaseModule(connections, properties));
+        //TODO to be removed once the server-undertow is updated
         addModule(new AbstractModule() {
             //ServerModule
             @Override
             protected void configure() {
-                /*bind(Context.class).to(ServerContext.class);
-                bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);*/
+                /*bind(Context.class).to(ServerContext.class);*/
+                bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
             }
         });
     }

@@ -71,11 +71,11 @@ public class Cookie {
         return comment;
     }
 
-    /*public int getVersion() {
+    public int getVersion() {
         return version;
     }
     
-    public Date getExpires() {
+    /*public Date getExpires() {
         return expires;
     }*/
     
@@ -123,7 +123,7 @@ public class Cookie {
                 ;
     }
     
-    class Builder {
+    public static class Builder {
         private final String name;
         private String value;
         private String domain;
@@ -189,6 +189,11 @@ public class Cookie {
 
         public Builder secure(boolean secure) {
             this.secure = secure;
+            return this;
+        }
+        
+        public Builder version(final int version) {
+            this.version = version;
             return this;
         }
 

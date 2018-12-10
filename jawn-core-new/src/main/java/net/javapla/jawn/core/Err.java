@@ -39,6 +39,16 @@ public class Err extends RuntimeException {
         }
     }
     
+    public static class IO extends Err {
+        public IO(final Throwable err) {
+            super(Status.SERVER_ERROR, err);
+        }
+        
+        public IO(final String msg) {
+            super(Status.SERVER_ERROR, msg);
+        }
+    }
+    
     private final int statusCode;
     
     public Err(final Status status, final String message, final Throwable cause) {
