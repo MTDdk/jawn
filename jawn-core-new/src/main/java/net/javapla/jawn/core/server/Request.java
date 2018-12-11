@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.server;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -53,7 +54,12 @@ public interface Request {
      * @return data sent by client as string.
      * @throws IOException
      */
-    byte[] bytes() throws IOException;
+    default byte[] bytes() throws IOException {
+        try (InputStream stream = in()) {
+            ByteArrayOutputStream array = new ByteArrayOutputStream(stream.available());
+            return array.toByteArray();
+        }
+    }
     
     
     String ip();

@@ -1,19 +1,20 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.util.Modes;
 
-public class ConfigTest {
+public class ConfigImplTest {
     
     static Config config;
     
     @BeforeClass
     public static void beforeClass() throws Exception {
-        config = Config.parse(Modes.DEV, "jawn_defaults_test.properties");
+        config = ConfigImpl.parse(Modes.DEV, "jawn_defaults_test.properties");
     }
     
 
@@ -24,7 +25,7 @@ public class ConfigTest {
 
     @Test
     public void parseWithoutExtention() {
-        Config config = Config.parse(Modes.DEV, "jawn_defaults_test");
+        Config config = ConfigImpl.parse(Modes.DEV, "jawn_defaults_test");
         assertThat(config).isNotNull();
     }
     
@@ -50,5 +51,34 @@ public class ConfigTest {
     public void readBoolValue() {
         assertThat(config.getBooleanOptionally("application.somebool").isPresent()).isTrue();
         assertThat(config.getBoolean("application.somebool")).isFalse();
+    }
+    
+    @Test
+    public void merge() {
+        Config conf1 = ConfigImpl.empty();
+        Config conf2 = ConfigImpl.empty();
+        
+        conf1.set("test", "test");
+        conf2.set("test", "overridden");
+        conf2.set("extra", "3");
+        
+        assertThat(conf1.get("extra")).isNull();
+        
+        ((ConfigImpl) conf1).merge(conf2);
+        
+        assertThat(conf1.get("test")).isEqualTo("overridden");
+        assertThat(conf1.get("extra")).isNotNull();
+    }
+    
+    @Test
+    public void mergeWithDifferentModes() {
+        Config conf1 = ConfigImpl.empty();
+        Config conf2 = ConfigImpl.empty(Modes.TEST);
+        
+        assertThat(conf1.getMode()).isEqualTo(Modes.DEV);
+        
+        ((ConfigImpl) conf1).merge(conf2);
+        
+        assertThat(conf1.getMode()).isEqualTo(Modes.TEST);
     }
 }

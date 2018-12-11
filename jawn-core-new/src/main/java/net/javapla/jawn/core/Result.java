@@ -78,6 +78,7 @@ public class Result {
     public Map<String, String> headers() {
         return Collections.unmodifiableMap(headers);
     }
+    
     public Result header(final String name, final String value) {
         headers.put(name, value);
         return this;

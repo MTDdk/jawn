@@ -1,5 +1,8 @@
 package net.javapla.jawn.core.internal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -11,15 +14,17 @@ import net.javapla.jawn.core.server.Response;
 @Singleton
 class HttpHandlerImpl implements HttpHandler {
     
-    private Injector injector;
+    protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
+    
+    private final Injector injector;
     
     @Inject
-    public HttpHandlerImpl(Injector injector) {
+    public HttpHandlerImpl(final Injector injector) {
         this.injector = injector;
     }
 
     @Override
-    public void handle(Request request, Response response) throws Exception {
+    public void handle(final Request request, final Response response) throws Exception {
         
     }
 

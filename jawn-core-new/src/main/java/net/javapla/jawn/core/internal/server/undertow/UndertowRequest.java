@@ -2,18 +2,16 @@ package net.javapla.jawn.core.internal.server.undertow;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,7 +22,6 @@ import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
-import io.undertow.util.HttpString;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
@@ -165,32 +162,33 @@ public class UndertowRequest implements Request {
     }
 
     @Override
-    public byte[] bytes() throws IOException {
-        return null;
-    }
-
-    @Override
     public String ip() {
-        return null;
+        return Optional.ofNullable(exchange.getSourceAddress())
+            .map(src -> Optional.ofNullable(src.getAddress())
+                .map(InetAddress::getHostAddress)
+                .orElse(""))
+            .orElse("");
     }
 
     @Override
     public String protocol() {
-        return null;
+        return exchange.getProtocol().toString();
     }
 
     @Override
     public int port() {
-        return 0;
+        return exchange.getHostPort();
     }
 
     @Override
     public String scheme() {
-        return null;
+        return exchange.getRequestScheme();
     }
 
     @Override
-    public void startAsync(Executor executor, Runnable runnable) {}
+    public void startAsync(Executor executor, Runnable runnable) {
+        exchange.dispatch(executor, runnable);
+    }
     
     private FormData parseForm() {
         if (form == null) {
@@ -219,6 +217,10 @@ public class UndertowRequest implements Request {
         return form;
     }
 
+    private static Cookie cookie(Map.Entry<String, io.undertow.server.handlers.Cookie> cookieEntry) {
+        return cookie(cookieEntry.getValue());
+    }
+
     private static Cookie cookie(final io.undertow.server.handlers.Cookie cookie) {
         Cookie.Builder bob = new Cookie.Builder(cookie.getName(), cookie.getValue());
         Optional.ofNullable(cookie.getComment()).ifPresent(bob::comment);
@@ -229,10 +231,6 @@ public class UndertowRequest implements Request {
         //Optional.ofNullable(cookie.getExpires()).ifPresent(bob::expires);
         bob.httpOnly(cookie.isHttpOnly());
         bob.secure(cookie.isSecure());
-        //TODO more?
         return bob.build();
-    }
-    private static Cookie cookie(Map.Entry<String, io.undertow.server.handlers.Cookie> cookieEntry) {
-        return cookie(cookieEntry.getValue());
     }
 }

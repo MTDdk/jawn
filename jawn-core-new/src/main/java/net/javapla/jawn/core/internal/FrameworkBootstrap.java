@@ -11,8 +11,9 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.AbstractModule;
-import com.google.inject.ConfigurationException;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -20,22 +21,23 @@ import com.google.inject.Singleton;
 import com.google.inject.Stage;
 import com.google.inject.util.Modules;
 
+import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.Env;
+import net.javapla.jawn.core.Err;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
-import net.javapla.jawn.core.internal.server.undertow.UndertowConfiguration;
+import net.javapla.jawn.core.parsers.JsonMapperProvider;
+import net.javapla.jawn.core.parsers.XmlMapperProvider;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
-import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.Modes;
 
 public class FrameworkBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
     protected final ApplicationConfig appConfig;
     private final List<Module> combinedModules;
-    private final Env env;
     
     protected Injector injector;
     
@@ -45,21 +47,21 @@ public class FrameworkBootstrap {
     private ArrayList<Runnable> onShutdown = new ArrayList<>();
 
     
-    public FrameworkBootstrap(final Env env) {
-        appConfig = new ApplicationConfig(env);
+    public FrameworkBootstrap() {
+        appConfig = new ApplicationConfig();
         combinedModules = new ArrayList<>();
-        
-        this.env = env;
     }
     
-    public synchronized void boot(/*final JawnConfigurations conf, final Filters filters, final Router router *//*, DatabaseConnections databaseConnections*/) {
+    public synchronized void boot(final Modes mode/*final Config config/*, final Filters filters, final Router router *//*, DatabaseConnections databaseConnections*/) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
-        configure(/*conf, router/*, databaseConnections*/);
+        Config frameworkConfig = readConfigurations(mode);
+        
+        registerModules(frameworkConfig/*conf, router/*, databaseConnections*/);
         
         // read plugins
-        ApplicationConfig pluginConfig = new ApplicationConfig(env);
-        plugins = readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//new ModuleBootstrap[0];//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+        ApplicationConfig pluginConfig = new ApplicationConfig();
+        plugins = readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
         List<AbstractModule> pluginModules = pluginConfig.getRegisteredModules();
         
         // create a single injector for both the framework and the user registered modules
@@ -130,7 +132,7 @@ public class FrameworkBootstrap {
         this.combinedModules.add(module);
     }
     
-    protected void configure(/*JawnConfigurations properties, Router router*//*, DatabaseConnections connections*/) {
+    protected void registerModules(Config config/*, Router router*//*, DatabaseConnections connections*/) {
         
         // supported languages are needed in the creation of the injector
         //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -140,13 +142,31 @@ public class FrameworkBootstrap {
         //addModule(new DatabaseModule(connections, properties));
         //TODO to be removed once the server-undertow is updated
         addModule(new AbstractModule() {
-            //ServerModule
             @Override
             protected void configure() {
-                /*bind(Context.class).to(ServerContext.class);*/
+                
+                // CoreModule
+                bind(Config.class).toInstance(config);
+                
+                // Marshallers
+                bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
+                bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
+                
+                // ServerModule
+                /*bind(Context.class).to(ContextImpl.class);*/
                 bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
             }
         });
+    }
+    
+    private Config readConfigurations(final Modes mode) {
+        Config frameworkConfig = ConfigImpl.framework(mode);
+        try {
+            Config userConfig = ConfigImpl.user(mode);
+            ((ConfigImpl) frameworkConfig).merge(userConfig);
+        } catch (Err.IO ignore) {} //Resource 'jawn.properties' was not found
+        
+        return frameworkConfig;
     }
     
     private Injector initInjector(final List<AbstractModule> userModules, List<AbstractModule> pluginModules) {

@@ -6,16 +6,14 @@ import java.util.List;
 
 import com.google.inject.AbstractModule;
 
-import net.javapla.jawn.core.Env;
-
 public class ApplicationConfig {
 
     private final List<AbstractModule> modules;
-    private final Env env;
+    //private final Config config;
     
-    public ApplicationConfig(Env env) {
+    public ApplicationConfig(/*final Config config*/) {
         modules = new ArrayList<>();
-        this.env = env;
+        //this.config = config;
     }
     
     public void registerModules(AbstractModule... modules) {
@@ -27,7 +25,7 @@ public class ApplicationConfig {
         return this.modules;
     }
     
-    public Env env() {
-        return env;
-    }
+    /*public Config config() {
+        return config;
+    }*/
 }

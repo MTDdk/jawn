@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Optional;
 
 import io.undertow.server.handlers.form.FormData.FormValue;
+import io.undertow.util.HeaderMap;
+import io.undertow.util.HeaderValues;
 import io.undertow.util.HttpString;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.util.MultiList;
@@ -36,8 +38,17 @@ public class UndertowFormItem implements FormItem {
 
     @Override
     public MultiList<String> headers() {
-        //TODO
-        return null;
+        MultiList<String> h = new MultiList<>();
+        
+        HeaderMap values = value.getHeaders();
+        if (values == null) return h;
+        
+        for (var it = values.iterator(); it.hasNext();) {
+            HeaderValues header = it.next();
+            header.forEach(v -> h.put(header.getHeaderName().toString(), v));
+        }
+        
+        return h;
     }
 
     @Override

@@ -17,11 +17,30 @@ public class Jawn {
     
     protected static final Logger logger = LoggerFactory.getLogger(Jawn.class);
     
-    private final Env env = new Env();
     private final FrameworkBootstrap bootstrap;
+    
+    private Modes mode = Modes.DEV;
 
     public Jawn() {
-        bootstrap = new FrameworkBootstrap(env);
+        bootstrap = new FrameworkBootstrap();
+    }
+    
+    // ****************
+    // Configuration
+    // ****************
+    protected Jawn mode(Modes mode) {
+        if (mode != null)
+            this.mode = mode;
+        return this;
+    }
+    
+    
+    // ****************
+    // Router
+    // ****************
+    public Jawn get(final String path) {
+        
+        return this;
     }
     
     
@@ -31,7 +50,7 @@ public class Jawn {
         // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
-        bootstrap.boot();
+        bootstrap.boot(mode);
         
         /*JawnConfigurations properties = new JawnConfigurations(mode);
         bootstrapper.boot(properties, filters, new RouterImpl(builders, filters, properties), databaseConnections);*/

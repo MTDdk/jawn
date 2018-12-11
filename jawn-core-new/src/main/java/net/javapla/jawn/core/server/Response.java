@@ -33,7 +33,12 @@ public interface Response {
     String contentType();
     void contentType(String contentType);
     void addCookie(Cookie cookie);
-    void characterEncoding(String encoding);
+    
+    default void characterEncoding(String encoding) {
+        try {
+            characterEncoding(Charset.forName(encoding));
+        } catch (Throwable e) {}
+    }
+    void characterEncoding(Charset encoding);
     Optional<Charset> characterEncoding();
-
 }
