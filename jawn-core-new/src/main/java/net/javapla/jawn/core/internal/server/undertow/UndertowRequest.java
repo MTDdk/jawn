@@ -10,11 +10,9 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
@@ -27,11 +25,11 @@ import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.server.FormItem;
-import net.javapla.jawn.core.server.Request;
+import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.URLCodec;
 
-public class UndertowRequest implements Request {
+public class UndertowRequest implements ServerRequest {
     
     // TODO should be instantiated in the core module instead of a server module
     private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/);
@@ -137,9 +135,8 @@ public class UndertowRequest implements Request {
     }
 
     @Override
-    public Map<String, Cookie> cookies() {
-        Stream<Entry<String, io.undertow.server.handlers.Cookie>> stream = exchange.getRequestCookies().entrySet().stream();
-        return stream.collect(Collectors.toMap(Map.Entry::getKey, UndertowRequest::cookie));
+    public List<Cookie> cookies() {
+        return exchange.getRequestCookies().values().stream().map(UndertowRequest::cookie).collect(Collectors.toList());
     }
 
     @Override
@@ -215,10 +212,6 @@ public class UndertowRequest implements Request {
             } catch (IOException ignore) {}
         }
         return form;
-    }
-
-    private static Cookie cookie(Map.Entry<String, io.undertow.server.handlers.Cookie> cookieEntry) {
-        return cookie(cookieEntry.getValue());
     }
 
     private static Cookie cookie(final io.undertow.server.handlers.Cookie cookie) {

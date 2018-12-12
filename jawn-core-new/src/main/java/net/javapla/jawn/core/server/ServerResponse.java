@@ -9,9 +9,9 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 
-import net.javapla.jawn.core.Cookie;
+import net.javapla.jawn.core.MediaType;
 
-public interface Response {
+public interface ServerResponse {
     
     Optional<String> header(final String name);
     List<String> headers(String name);
@@ -30,15 +30,18 @@ public interface Response {
     Writer writer();
     OutputStream outputStream();
     boolean usingStream();
+    
     String contentType();
     void contentType(String contentType);
-    void addCookie(Cookie cookie);
+    default void contentType(MediaType type) {
+        contentType(type.name());
+    }
     
+    Optional<Charset> characterEncoding();
+    void characterEncoding(Charset encoding);
     default void characterEncoding(String encoding) {
         try {
             characterEncoding(Charset.forName(encoding));
         } catch (Throwable e) {}
     }
-    void characterEncoding(Charset encoding);
-    Optional<Charset> characterEncoding();
 }

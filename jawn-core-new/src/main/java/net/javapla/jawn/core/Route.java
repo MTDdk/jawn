@@ -79,16 +79,16 @@ public interface Route {
         private final HttpMethod method;
         private String uri;
         
-        Builder(final HttpMethod method) {
+        public Builder(final HttpMethod method) {
             this.method = method;
         }
         
-        Builder path(final String path) {
+        public Builder path(final String path) {
             this.uri = (uri.charAt(0) != '/') ? "/" + uri : uri;
             return this;
         }
         
-        Route build() {
+        public Route build() {
             final ArrayList<String> parameters = parseParameters(uri);
             final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
             

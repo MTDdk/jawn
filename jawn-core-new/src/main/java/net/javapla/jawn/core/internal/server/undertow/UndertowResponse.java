@@ -22,15 +22,13 @@ import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.ServerConnection;
-import io.undertow.server.handlers.CookieImpl;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
-import net.javapla.jawn.core.Cookie;
-import net.javapla.jawn.core.server.Response;
+import net.javapla.jawn.core.server.ServerResponse;
 
-public class UndertowResponse implements Response {
+public class UndertowResponse implements ServerResponse {
     
     private final HttpServerExchange exchange;
     private final Runnable blocking;
@@ -166,11 +164,6 @@ public class UndertowResponse implements Response {
     }
 
     @Override
-    public void addCookie(Cookie cookie) {
-        exchange.setResponseCookie(cookie(cookie));
-    }
-
-    @Override
     public void characterEncoding(Charset encoding) {
         charset = Optional.ofNullable(encoding);
         setContentType();
@@ -185,18 +178,6 @@ public class UndertowResponse implements Response {
         if (contentType != null) {
             exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, contentType + charset.map(ch -> "; charset=" + ch).orElse("") );
         }
-    }
-    
-    private static io.undertow.server.handlers.Cookie cookie(final Cookie cookie) {
-        return new CookieImpl(cookie.name(),cookie.value())
-                .setComment(cookie.comment())
-                .setDomain(cookie.domain())
-                .setPath(cookie.path())
-                .setVersion(cookie.version())
-                .setMaxAge(cookie.maxAge())
-                .setHttpOnly(cookie.httpOnly())
-                .setSecure(cookie.secure());
-                //.setExpires(cookie.expires());
     }
     
     static class ChunkedStream implements IoCallback, Runnable {

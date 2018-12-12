@@ -1,10 +1,30 @@
 package net.javapla.jawn.core.internal;
 
+import net.javapla.jawn.core.Err;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 
 public class Router {
     
+    private final RouteTrie deducedRoutes;
+    
+    public Router() {
+        
+        deducedRoutes = new RouteTrie();
+        deducedRoutes.insert("/test", new Route.Builder(HttpMethod.GET).path("/test").build());
+    }
+    
+    Route retrieve(HttpMethod httpMethod, String requestUri) {
+        
+        Route route = deducedRoutes.findExact(requestUri, httpMethod);
+        if (route == null) throw new Err.RouteError("Failed to map resource to URI: " + httpMethod.name() + "/" + requestUri);
+        
+        return route;
+    }
+    
+    void compileRoutes() {
+        //TODO necessary?
+    }
     
 
     /**

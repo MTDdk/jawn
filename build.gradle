@@ -11,7 +11,7 @@ allprojects {
 
     // maven metadata
     group = "net.javapla.jawn"
-    version = "0.9.14-SNAPSHOT"
+    version = "2.0.0-SNAPSHOT"
 
     tasks.withType(Javadoc).all { enabled = true }
 }
@@ -23,8 +23,8 @@ subprojects {
 
 
     // compiler options
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_10
+    targetCompatibility = JavaVersion.VERSION_1_10
 
     repositories { mavenCentral() }
     

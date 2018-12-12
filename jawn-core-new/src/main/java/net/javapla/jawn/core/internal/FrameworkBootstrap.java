@@ -22,7 +22,6 @@ import com.google.inject.Stage;
 import com.google.inject.util.Modules;
 
 import net.javapla.jawn.core.Config;
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Err;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
@@ -147,6 +146,7 @@ public class FrameworkBootstrap {
                 
                 // CoreModule
                 bind(Config.class).toInstance(config);
+                bind(Router.class);
                 
                 // Marshallers
                 bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);

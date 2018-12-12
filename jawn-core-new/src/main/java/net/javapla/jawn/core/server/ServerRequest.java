@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
@@ -12,7 +11,7 @@ import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.util.MultiList;
 
-public interface Request {
+public interface ServerRequest {
     
     HttpMethod method();
     String path();
@@ -31,7 +30,7 @@ public interface Request {
     List<String> headers(String name);
     Optional<String> header(final String name);
     
-    Map<String, Cookie> cookies();
+    List<Cookie> cookies();
     
     //something handling upload
     MultiList<FormItem> formData() throws IOException;

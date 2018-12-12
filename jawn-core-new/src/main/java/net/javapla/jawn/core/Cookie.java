@@ -1,6 +1,12 @@
 package net.javapla.jawn.core;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Locale;
+import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 /**
  * We need an internal Cookie representation, as this will make it agnostic to
@@ -9,6 +15,12 @@ import java.util.Date;
  * @author MTD
  */
 public class Cookie {
+    
+    static final DateTimeFormatter fmt = DateTimeFormatter
+        .ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH)
+        .withZone(ZoneId.of("GMT"));
+
+    private static final String __COOKIE_DELIM = "\",;\\ \t";
 
     /**
      * The number of seconds in one day (= 60 * 60 * 24).
@@ -21,7 +33,7 @@ public class Cookie {
     /**
      * The number of seconds in half a year (= 60 * 60 * 24 * 365 / 2).
      */
-    public static final int HALF_YEAR = ONE_YEAR / 2;
+    public static final int HALF_YEAR = ONE_YEAR >> 1;
     /**
      * Beginning of time
      */
@@ -70,10 +82,6 @@ public class Cookie {
     public String comment() {
         return comment;
     }
-
-    public int getVersion() {
-        return version;
-    }
     
     /*public Date getExpires() {
         return expires;
@@ -111,17 +119,88 @@ public class Cookie {
 
     @Override
     public String toString() {
-        return "Cookie {"
-                +   "name='" + name + '\''
-                + ", value='" + value + '\''
-                + ", domain='" + domain + '\''
-                + ", path='" + path + '\''
-                + ", comment='" + comment + '\''
-                + ", secure=" + secure + '\''
-                + ", maxAge=" + maxAge + '\''
-                + ", version=" + version + '}'
-                ;
+        StringBuilder sb = new StringBuilder();
+
+        // name = value
+        appender.accept(sb, name);
+        sb.append("=");
+        appender.accept(sb, value);
+
+        sb.append(";Version=");
+        sb.append(version);
+
+        // Path
+        if (path != null) {
+            sb.append(";Path=");
+            appender.accept(sb, path);
+        }
+
+        // Domain
+        if (domain != null) {
+            sb.append(";Domain=");
+            appender.accept(sb, domain);
+        }
+        
+        // Secure
+        if (secure) {
+          sb.append(";Secure");
+        }
+
+        // HttpOnly
+        if (httpOnly) {
+          sb.append(";HttpOnly");
+        }
+
+        // Max-Age
+        if (maxAge >= 0) {
+          sb.append(";Max-Age=").append(maxAge);
+
+          Instant instant = Instant
+              .ofEpochMilli(maxAge > 0 ? System.currentTimeMillis() + maxAge * 1000L : 0);
+          sb.append(";Expires=").append(fmt.format(instant));
+        }
+
+        // Comment
+        if (comment != null) {
+            sb.append(";Comment=");
+            appender.accept(sb, comment);
+        }
+
+        return sb.toString();
     }
+    
+    static final Predicate<String> needQuote = (str) -> {
+        if (str.length() > 1 && str.charAt(0) == '"' && str.charAt(str.length() - 1) == '"') {
+            return false;
+        }
+
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (__COOKIE_DELIM.indexOf(c) >= 0) {
+                return true;
+            }
+            if (c < 0x20 || c >= 0x7f) {
+                throw new IllegalArgumentException("Illegal character found at: [" + i + "]");
+            }
+        }
+        return false;
+    };
+    
+    static final BiConsumer<StringBuilder,String> appender = (sb,str) -> {
+        if (needQuote.test(str)) {
+            sb.append('"');
+            for (int i = 0; i < str.length(); ++i) {
+                char c = str.charAt(i);
+                if (c == '"' || c == '\\') {
+                    sb.append('\\');
+                }
+                sb.append(c);
+            }
+            sb.append('"');
+        } else {
+            sb.append(str);
+        }
+    };
     
     public static class Builder {
         private final String name;
@@ -137,7 +216,7 @@ public class Cookie {
         /** Default is -1, which indicates that the cookie will persist until browser shutdown */
         private int maxAge = -1;
         
-        private int version;
+        private int version = 1;
         /*private Date expires;*/
 
         public Builder(String name, String value) {
@@ -184,6 +263,11 @@ public class Cookie {
 
         public Builder path(String path) {
             this.path = path;
+            return this;
+        }
+        
+        public Builder secure() {
+            this.secure = true;
             return this;
         }
 

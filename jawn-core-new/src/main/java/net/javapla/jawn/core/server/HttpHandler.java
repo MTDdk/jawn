@@ -2,5 +2,5 @@ package net.javapla.jawn.core.server;
 
 public interface HttpHandler {
 
-    void handle(final Request request, final Response response) throws Exception;
+    void handle(final ServerRequest request, final ServerResponse response) throws Exception;
 }

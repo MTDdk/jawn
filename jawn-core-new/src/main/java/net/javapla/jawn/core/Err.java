@@ -49,6 +49,12 @@ public class Err extends RuntimeException {
         }
     }
     
+    public static class RouteError extends Err {
+        public RouteError(final String msg) {
+            super(Status.SERVER_ERROR, msg);
+        }
+    }
+    
     private final int statusCode;
     
     public Err(final Status status, final String message, final Throwable cause) {
