@@ -45,29 +45,44 @@ public interface Route {
     }
     
     interface Chain {
-        /**
-         * Pass the request to the next filter
-         * 
-         * @param context
-         *          The context for the request
-         */
-        Result before(Context context);
         
-        /**
-         * Remember that you cannot effectively add headers after the response has been sent.
-         * 
-         * @param context
-         *          The context for the request
-         */
-        void after(Context context);
         
-        void onException(Exception e);
+//        /**
+//         * Pass the request to the next filter
+//         * 
+//         * @param context
+//         *          The context for the request
+//         */
+//        Result before(Context context);
+//        
+//        /**
+//         * Remember that you cannot effectively add headers after the response has been sent.
+//         * 
+//         * @param context
+//         *          The context for the request
+//         */
+//        void after(Context context);
+//        
+//        void onException(Exception e);
     }
     
     @FunctionalInterface
-    interface ResponseFunction {
+    interface Handler {
         Result handle(Context context);
     }
+    
+    @FunctionalInterface
+    interface  ZeroArgHandler extends Handler {
+        @Override
+        default Result handle(Context context) {
+            return handle();
+        }
+        
+        // could also be just returning Object, and always assume status 200 type HTML
+        Result handle();
+    }
+    
+    interface RouteHandler extends Route, Route.Handler {}
     
     class Builder {
         protected final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
@@ -78,13 +93,19 @@ public interface Route {
         
         private final HttpMethod method;
         private String uri;
+        private Route.Handler handler;
         
         public Builder(final HttpMethod method) {
             this.method = method;
         }
         
         public Builder path(final String path) {
-            this.uri = (uri.charAt(0) != '/') ? "/" + uri : uri;
+            this.uri = (path.charAt(0) != '/') ? "/" + path : path;
+            return this;
+        }
+        
+        public Builder handler(final Route.Handler handler) {
+            this.handler = handler;
             return this;
         }
         
@@ -92,7 +113,7 @@ public interface Route {
             final ArrayList<String> parameters = parseParameters(uri);
             final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
             
-            return new Route() {
+            return new RouteHandler() {
                 
                 @Override
                 public HttpMethod method() {
@@ -102,6 +123,11 @@ public interface Route {
                 @Override
                 public String path() {
                     return uri;
+                }
+                
+                @Override
+                public Result handle(Context context) {
+                    return handler.handle(context);
                 }
                 
                 @Override

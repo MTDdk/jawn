@@ -1,5 +1,6 @@
 package net.javapla.jawn.core;
 
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.Route.RouteHandler;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.server.Server;
@@ -18,11 +20,13 @@ public class Jawn {
     protected static final Logger logger = LoggerFactory.getLogger(Jawn.class);
     
     private final FrameworkBootstrap bootstrap;
+    private final ArrayList<RouteHandler> routes;
     
     private Modes mode = Modes.DEV;
 
     public Jawn() {
         bootstrap = new FrameworkBootstrap();
+        routes = new ArrayList<>();
     }
     
     // ****************
@@ -38,8 +42,11 @@ public class Jawn {
     // ****************
     // Router
     // ****************
-    public Jawn get(final String path) {
-        
+    public Jawn get(final String path, final Result result) {
+        return get(path, () -> result);
+    }
+    public Jawn get(final String path, final Route.ZeroArgHandler hander) {
+        routes.add((RouteHandler)new Route.Builder(HttpMethod.GET).path(path).handler(hander).build());
         return this;
     }
     
@@ -50,7 +57,7 @@ public class Jawn {
         // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
-        bootstrap.boot(mode);
+        bootstrap.boot(mode, routes);
         
         /*JawnConfigurations properties = new JawnConfigurations(mode);
         bootstrapper.boot(properties, filters, new RouterImpl(builders, filters, properties), databaseConnections);*/
@@ -63,9 +70,9 @@ public class Jawn {
             return;
         }
         
-        logger.info("Bootstrap of framework started in " + (System.currentTimeMillis() - startupTime) + " ms");
-//        logger.info("Java-web-planet: starting the app in environment: " + injector.getInstance(JawnConfigurations.class).getMode());
-//        logger.info("Java-web-planet: running on port: " + serverConfig.port());
+        logger.info("Bootstrap of framework started in: " + (System.currentTimeMillis() - startupTime) + " ms");
+        logger.info("Jawn: Environment:                 " + mode);
+        logger.info("Jawn: Running on port:             " + 8080);
     }
     
     /**
@@ -114,9 +121,9 @@ public class Jawn {
         return this;
     }
     
-    private void checkState(boolean expression, String errorMessage) throws IllegalStateException {
+    /*private void checkState(boolean expression, String errorMessage) throws IllegalStateException {
         if (!expression) {
             throw new IllegalStateException(errorMessage);
         }
-    }
+    }*/
 }

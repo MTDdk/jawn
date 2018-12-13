@@ -20,7 +20,7 @@ public class ParserEngineManagerImpl implements ParserEngineManager {
     
     
     // Keep a reference of providers rather than instances, so body parser engines
-    // don't have to be singleton if they don't want
+    // don't have to be singleton if they don't want to
     private final Map<MediaType, Provider<? extends ParserEngine>> contentTypeToParserMap;
     
     

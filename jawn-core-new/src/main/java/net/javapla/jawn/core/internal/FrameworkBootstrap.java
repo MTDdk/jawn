@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.internal;
 
 import java.lang.reflect.Array;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -23,10 +24,15 @@ import com.google.inject.util.Modules;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
+import net.javapla.jawn.core.parsers.ParserEngineManager;
+import net.javapla.jawn.core.parsers.ParserEngineManagerImpl;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestratorImpl;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
@@ -51,12 +57,13 @@ public class FrameworkBootstrap {
         combinedModules = new ArrayList<>();
     }
     
-    public synchronized void boot(final Modes mode/*final Config config/*, final Filters filters, final Router router *//*, DatabaseConnections databaseConnections*/) {
+    public synchronized void boot(final Modes mode, final List<Route.RouteHandler> routes) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
         Config frameworkConfig = readConfigurations(mode);
+        Router router = new Router(routes);
         
-        registerModules(frameworkConfig/*conf, router/*, databaseConnections*/);
+        registerModules(mode, frameworkConfig, router);
         
         // read plugins
         ApplicationConfig pluginConfig = new ApplicationConfig();
@@ -131,7 +138,7 @@ public class FrameworkBootstrap {
         this.combinedModules.add(module);
     }
     
-    protected void registerModules(Config config/*, Router router*//*, DatabaseConnections connections*/) {
+    protected void registerModules(final Modes mode, final Config config, final Router router) {
         
         // supported languages are needed in the creation of the injector
         //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -145,12 +152,20 @@ public class FrameworkBootstrap {
             protected void configure() {
                 
                 // CoreModule
+                bind(Charset.class).toInstance(Charset.forName(config.getOrDie("application.charset")));
+                bind(Modes.class).toInstance(mode);
                 bind(Config.class).toInstance(config);
-                bind(Router.class);
                 
                 // Marshallers
                 bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
                 bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
+                bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
+                bind(RendererEngineOrchestrator.class).to(RendererEngineOrchestratorImpl.class).in(Singleton.class);
+                
+                
+                // Framework
+                bind(Router.class).toInstance(router);
+                bind(ResultRunner.class).in(Singleton.class);
                 
                 // ServerModule
                 /*bind(Context.class).to(ContextImpl.class);*/

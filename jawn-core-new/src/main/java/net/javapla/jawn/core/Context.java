@@ -1,11 +1,26 @@
 package net.javapla.jawn.core;
 
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Optional;
 
 public interface Context {
     
     interface Response {
+        
+        Status status();
+        
+        Response clearCookie(String name);
+        
+        Response cookie(Cookie cookie);
+
+        void send(byte[] bytes) throws Exception;
+        
+        void send(InputStream stream) throws Exception;
+
+        boolean committed();
+
         
         /*interface Builder {
             Response build(ServerResponse resp);
@@ -32,6 +47,10 @@ public interface Context {
         String ip();
         
         String path();
+
+        Charset charset();
+
+        MediaType contentType();
     }
     
 

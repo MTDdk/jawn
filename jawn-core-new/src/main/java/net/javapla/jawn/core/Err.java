@@ -23,6 +23,12 @@ public class Err extends RuntimeException {
         }
     }
     
+    public static class RenderableError extends Err {
+        public RenderableError(final Throwable err) {
+            super(Status.SERVER_ERROR, err);
+        }
+    }
+    
     public static class Compilation extends Err {
         public Compilation(final Throwable err) {
             super(Status.SERVER_ERROR, err);
@@ -51,7 +57,7 @@ public class Err extends RuntimeException {
     
     public static class RouteError extends Err {
         public RouteError(final String msg) {
-            super(Status.SERVER_ERROR, msg);
+            super(Status.NOT_FOUND, msg);
         }
     }
     

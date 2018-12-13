@@ -43,6 +43,10 @@ public class Results {
         return ok().renderable(entity).contentType(MediaType.XML);
     }
     
+    public static Result text(final Object entity) {
+        return ok().renderable(entity).contentType(MediaType.PLAIN);
+    }
+    
     public static Result ok(final Object entity) {
         return ok().renderable(entity);
     }

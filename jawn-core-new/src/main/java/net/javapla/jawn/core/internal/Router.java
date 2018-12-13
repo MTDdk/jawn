@@ -1,30 +1,38 @@
 package net.javapla.jawn.core.internal;
 
+import java.util.List;
+
+import com.google.inject.Singleton;
+
 import net.javapla.jawn.core.Err;
 import net.javapla.jawn.core.HttpMethod;
-import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Route.RouteHandler;
 
+@Singleton
 public class Router {
     
     private final RouteTrie deducedRoutes;
     
-    public Router() {
+    Router(List<RouteHandler> routes) {
         
         deducedRoutes = new RouteTrie();
-        deducedRoutes.insert("/test", new Route.Builder(HttpMethod.GET).path("/test").build());
+        
+        compileRoutes(routes);
     }
     
-    Route retrieve(HttpMethod httpMethod, String requestUri) {
+    RouteHandler retrieve(HttpMethod httpMethod, String requestUri) {
         
-        Route route = deducedRoutes.findExact(requestUri, httpMethod);
-        if (route == null) throw new Err.RouteError("Failed to map resource to URI: " + httpMethod.name() + "/" + requestUri);
+        
+        RouteHandler route = deducedRoutes.findExact(requestUri, httpMethod);
+        if (route == null) throw new Err.RouteError("Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);
         
         return route;
     }
     
-    void compileRoutes() {
-        //TODO necessary?
+    private void compileRoutes(List<RouteHandler> routes) {
+        routes.stream().forEach(route -> deducedRoutes.insert(route.path(), route));
     }
+    
     
 
     /**
@@ -41,11 +49,11 @@ public class Router {
             root = new TrieNode('#');
         }
         
-        public void insert(String uri, Route route) {
+        public void insert(String uri, RouteHandler route) {
             insert(uri.toCharArray(), route);
         }
         
-        public synchronized void insert(final char[] input, Route route) {
+        public synchronized void insert(final char[] input, RouteHandler route) {
             TrieNode current = root, child;
             for (char c : input) {
                 child = current.nodes[c];
@@ -56,6 +64,7 @@ public class Router {
                 current = child;
             }
             current.routes[route.method().ordinal()] = route;
+            current.routes[HttpMethod.HEAD.ordinal()] = route;
         }
         
         public boolean startsWith(final String input) {
@@ -78,7 +87,7 @@ public class Router {
          * @param arr
          * @return
          */
-        public Route findExact(final char[] arr, final HttpMethod method) {
+        public RouteHandler findExact(final char[] arr, final HttpMethod method) {
             TrieNode current = root;
             //for(char c : arr) {
             for (int i = 0; i < arr.length; i++) {
@@ -91,7 +100,7 @@ public class Router {
             return current.routes[method.ordinal()];
         }
         
-        public Route findExact(final String str, final HttpMethod method) {
+        public RouteHandler findExact(final String str, final HttpMethod method) {
             TrieNode current = root;
             for (int i = 0; i < str.length(); i++) {
                 char c = str.charAt(i);
@@ -172,13 +181,13 @@ public class Router {
         final class TrieNode {
             final TrieNode[] nodes;
             final char content;
-            final Route[] routes;
+            final RouteHandler[] routes;
             
             TrieNode(char c) {
                 //nodes = new SearchTrie[255];//extended ascii
                 nodes = new TrieNode[128];//ascii
                 content = c;
-                routes = new Route[HttpMethod.values().length];
+                routes = new RouteHandler[HttpMethod.values().length];
             }
             
             @Override

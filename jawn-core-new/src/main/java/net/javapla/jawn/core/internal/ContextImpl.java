@@ -1,5 +1,7 @@
 package net.javapla.jawn.core.internal;
 
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +13,6 @@ import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
-import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
@@ -24,16 +25,12 @@ class ContextImpl implements Context {
     
     private final Request req;
     private final Response resp;
-    private final ServerRequest sreq;
     private final ServerResponse sresp;
-    private final Route route;
     
     private final HashMap<String, Cookie> cookies = new HashMap<>();
     
-    public ContextImpl(final ServerRequest req, final ServerResponse resp, final Route route) {
-        this.sreq = req;
+    public ContextImpl(final ServerRequest req, final ServerResponse resp, final Charset charset) {
         this.sresp = resp;
-        this.route = route;
         
         this.req = new Context.Request() {
             @Override
@@ -61,10 +58,67 @@ class ContextImpl implements Context {
             public Map<String, Cookie> cookies() {
                 return req.cookies().stream().collect(Collectors.toMap(Cookie::name, cookie -> cookie));
             }
+            
+            @Override
+            public MediaType contentType() {
+                // can be made final if we discover it to be called often
+                return req.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
+            }
+            
+            @Override
+            public Charset charset() {
+                /*String cs = contentType().params().get(MediaType.CHARSET_PARAMETER);
+                return cs != null ? Charset.forName(cs) : charset;*/
+                return charset;
+            }
         };
         
         this.resp = new Context.Response() {
             
+            @Override
+            public Status status() {
+                return Status.valueOf(resp.statusCode());
+            }
+            
+            @Override
+            public Response clearCookie(final String name) {
+                return cookie(new Cookie.Builder(name, "").maxAge(0).build());
+            }
+            
+            @Override
+            public Response cookie(final Cookie cookie) {
+                String name = cookie.name();
+                // clear cookie?
+                if (cookie.maxAge() == 0) {
+                    // clear previously set cookie
+                    if (cookies.remove(name) == null) {
+                        // we add the cookie to send it with an expire header
+                        cookies.put(name, cookie);
+                    }
+                } else {
+                    cookies.put(name, cookie);
+                }
+                return this;
+            }
+            
+            @Override
+            public void send(final byte[] bytes) throws Exception {
+                resp.send(bytes);
+            }
+            
+            @Override
+            public void send(final InputStream stream) throws Exception {
+                // we could at this point take a look at the following
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
+                // req.header("Range")
+                // .. do something where we only read 'end'-'start' amount of bytes of 'stream'
+                resp.send(stream);
+            }
+            
+            @Override
+            public boolean committed() {
+                return resp.committed();
+            }
             
         };
     }
@@ -79,8 +133,7 @@ class ContextImpl implements Context {
         return resp;
     }
     
-    void execute(final Result result) {
-        
+    void readyResponse(final Result result) {
         result.contentType()
             .map(MediaType::name).ifPresent(sresp::contentType);
         
@@ -91,12 +144,19 @@ class ContextImpl implements Context {
             .forEach(sresp::header);
         
         writeCookies();
-        
-        if (HttpMethod.HEAD == req.httpMethod()) {
-            // end();
-            return;
+    }
+    
+    void end() {
+        if (!sresp.committed()) {
+            writeCookies();
         }
         
+        // something, something, content-length header ..
+        sresp.header("Content-Length").or(() -> sresp.header("Transfer-Encoding")).ifPresent(header -> {
+            
+        });
+        
+        sresp.end();
     }
     
     private void writeCookies() {
