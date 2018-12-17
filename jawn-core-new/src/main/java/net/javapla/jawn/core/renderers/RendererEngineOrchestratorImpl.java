@@ -1,10 +1,12 @@
 package net.javapla.jawn.core.renderers;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,17 +18,18 @@ import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
+import net.javapla.jawn.core.Err;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.util.StringUtil;
 
 @Singleton
-public class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator {
+public final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     
     // Keep a reference of providers rather than instances, so template engines
     // don't have to be singleton if they don't want
-    private final Map<MediaType, Provider<? extends RendererEngine>> contentTypeToTemplateEngineMap;
+    private final Map<MediaType, Provider<? extends RendererEngine>> contentTypeToRendererEngineMap;
     //TODO
     // This map NEEDS to be of a different type, as the HashMap#get is fairly slow.
     // A suggested modification could be to introduce enums as Content Types for TemplateEngine#getContentType.
@@ -35,16 +38,16 @@ public class RendererEngineOrchestratorImpl implements RendererEngineOrchestrato
     // How to handle user defined content types has not yet been devised
     
     @Inject
-    public RendererEngineOrchestratorImpl(
-             Provider<JsonRendererEngine>           json,
-             Provider<XmlRendererEngine>            xml,
-             Provider<TextRendererEngine>           text,
-             Provider<StreamRendererEngine>         stream,
+    RendererEngineOrchestratorImpl(
+             final Provider<JsonRendererEngine>           json,
+             final Provider<XmlRendererEngine>            xml,
+             final Provider<TextRendererEngine>           text,
+             final Provider<StreamRendererEngine>         stream,
              //Provider<ImageRendererEngine>          image,
              //Provider<StringTemplateTemplateEngine> html,
-             Injector injector) {
+             final Injector injector) {
         
-        Map<MediaType, Provider<? extends RendererEngine>> map = new HashMap<>();
+        final Map<MediaType, Provider<? extends RendererEngine>> map = new HashMap<>();
 
         // Map built in content type bindings
         mapEngine(map, json);
@@ -68,28 +71,28 @@ public class RendererEngineOrchestratorImpl implements RendererEngineOrchestrato
             }
         }
         
-        this.contentTypeToTemplateEngineMap = Collections.unmodifiableMap(map);
+        this.contentTypeToRendererEngineMap = Collections.unmodifiableMap(map);
         
         logEngines();
     }
     
     @Override
     public Set<MediaType> getContentTypes() {
-        return contentTypeToTemplateEngineMap.keySet();
+        return contentTypeToRendererEngineMap.keySet();
     }
 
     @Override
-    public final RendererEngine getTemplateEngineForContentType(MediaType contentType) {
-        final Provider<? extends RendererEngine> provider = contentTypeToTemplateEngineMap.get(contentType);
-
+    public final void getRendererEngineForContentType(final MediaType contentType, final Consumer<RendererEngine> callback) throws Err.BadMediaType {
+        final Provider<? extends RendererEngine> provider = contentTypeToRendererEngineMap.get(contentType);
+        
         if (provider != null) {
-            return provider.get();
+            callback.accept(provider.get());
         } else {
-            log.warn("Did not find any engine for type: {}", contentType);
             if (contentType.matches(MediaType.HTML)) {
                 log.warn("You might want to include jawn-templates-stringtemplate or another template engine in your classpath");
             }
-            return null;
+            throw new Err.BadMediaType(
+                MessageFormat.format("Could not find a template engine supporting the content type of the response : {0}", contentType));
         }
     }
     
@@ -112,12 +115,11 @@ public class RendererEngineOrchestratorImpl implements RendererEngineOrchestrato
         int maxParserEngineLen = 0;
 
         for (MediaType contentType : types) {
-
-            RendererEngine engine = getTemplateEngineForContentType(contentType);
-
+            
+            RendererEngine engine = contentTypeToRendererEngineMap.get(contentType).get();
+            
             maxContentTypeLen = Math.max(maxContentTypeLen, contentType.name().length());
             maxParserEngineLen = Math.max(maxParserEngineLen, engine.getClass().getName().length());
-
         }
 
         int borderLen = 6 + maxContentTypeLen + maxParserEngineLen;
@@ -128,7 +130,7 @@ public class RendererEngineOrchestratorImpl implements RendererEngineOrchestrato
         log.info(border);
 
         for (MediaType contentType : types) {
-            RendererEngine engine = getTemplateEngineForContentType(contentType);
+            RendererEngine engine = contentTypeToRendererEngineMap.get(contentType).get();
             log.info("{}  =>  {}", StringUtil.padEnd(contentType.name(), maxContentTypeLen, ' '), engine.getClass().getName());
         }
     }

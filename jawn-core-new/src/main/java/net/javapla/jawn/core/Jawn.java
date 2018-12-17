@@ -13,6 +13,7 @@ import net.javapla.jawn.core.Route.RouteHandler;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.server.Server;
+import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.Modes;
 
 public class Jawn {
@@ -38,15 +39,49 @@ public class Jawn {
         return this;
     }
     
+    protected Jawn use(final ModuleBootstrap module) {
+        bootstrap.register(module);
+        return this;
+    }
+    
     
     // ****************
     // Router
     // ****************
-    public Jawn get(final String path, final Result result) {
+    protected Jawn get(final String path, final Result result) {
         return get(path, () -> result);
     }
-    public Jawn get(final String path, final Route.ZeroArgHandler hander) {
-        routes.add((RouteHandler)new Route.Builder(HttpMethod.GET).path(path).handler(hander).build());
+    protected Jawn get(final String path, final Route.ZeroArgHandler handler) {
+        routes.add((RouteHandler) new Route.Builder(HttpMethod.GET).path(path).handler(handler).build());
+        return this;
+    }
+    protected Jawn get(final String path, final Route.Handler handler) {
+        routes.add((RouteHandler) new Route.Builder(HttpMethod.GET).path(path).handler(handler).build());
+        return this;
+    }
+    
+    protected Jawn post(final String path, final Route.Handler handler) {
+        routes.add((RouteHandler) new Route.Builder(HttpMethod.POST).path(path).handler(handler).build());
+        return this;
+    }
+    
+    protected Jawn put(final String path, final Route.Handler handler) {
+        routes.add((RouteHandler) new Route.Builder(HttpMethod.PUT).path(path).handler(handler).build());
+        return this;
+    }
+    
+    protected Jawn delete(final String path, final Route.Handler handler) {
+        routes.add((RouteHandler) new Route.Builder(HttpMethod.DELETE).path(path).handler(handler).build());
+        return this;
+    }
+    
+    protected Jawn head(final String path, final Route.Handler handler) {
+        routes.add((RouteHandler) new Route.Builder(HttpMethod.HEAD).path(path).handler(handler).build());
+        return this;
+    }
+    
+    protected Jawn options(final String path, final Route.Handler handler) {
+        routes.add((RouteHandler) new Route.Builder(HttpMethod.OPTIONS).path(path).handler(handler).build());
         return this;
     }
     
@@ -70,6 +105,7 @@ public class Jawn {
             return;
         }
         
+        logger.info(FrameworkBootstrap.FRAMEWORK_SPLASH);
         logger.info("Bootstrap of framework started in: " + (System.currentTimeMillis() - startupTime) + " ms");
         logger.info("Jawn: Environment:                 " + mode);
         logger.info("Jawn: Running on port:             " + 8080);

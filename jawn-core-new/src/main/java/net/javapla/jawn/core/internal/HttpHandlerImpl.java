@@ -18,18 +18,16 @@ import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
 
 @Singleton
-class HttpHandlerImpl implements HttpHandler {
+final class HttpHandlerImpl implements HttpHandler {
     
     protected final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
-    //private final Injector injector;
     private final Charset charset;
     private final Router router;
     private final ResultRunner runner;
     
     @Inject
-    HttpHandlerImpl(/*final Injector injector, */final Charset charset, final Router router, final ResultRunner runner) {
-        //this.injector = injector;
+    HttpHandlerImpl(final Charset charset, final Router router, final ResultRunner runner) {
         this.charset = charset;
         this.router = router;
         this.runner = runner;
@@ -42,6 +40,7 @@ class HttpHandlerImpl implements HttpHandler {
         ContextImpl context = new ContextImpl(req, resp, charset);
         try {
             RouteHandler route = router.retrieve(req.method(), uri);
+            context.route(route);
             Result result = route.handle(context);
             
             // Execute handler
@@ -71,6 +70,7 @@ class HttpHandlerImpl implements HttpHandler {
     
     void renderSystemError(final ContextImpl context, final int status, Throwable e) {
         runner.execute(Results.status(Status.valueOf(status)), context);
+        logger.error("Status: " + status, e);
     }
 
 }

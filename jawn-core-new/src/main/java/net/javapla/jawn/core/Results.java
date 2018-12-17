@@ -1,6 +1,6 @@
 package net.javapla.jawn.core;
 
-public class Results {
+public final class Results {
     
     public static Result status(final Status status) {
         return new Result().status(status);
@@ -28,6 +28,10 @@ public class Results {
     
     public static Result seeOther(final String location) {
         return redirect(Status.SEE_OTHER, location);
+    }
+    
+    public static Result notFound() {
+        return status(Status.NOT_FOUND);
     }
     
     

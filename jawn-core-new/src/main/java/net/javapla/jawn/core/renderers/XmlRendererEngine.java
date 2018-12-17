@@ -8,12 +8,12 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 
 @Singleton
-class XmlRendererEngine implements RendererEngine {
+final class XmlRendererEngine implements RendererEngine {
 
     private final XmlMapper mapper;
     
     @Inject
-    public XmlRendererEngine(XmlMapper mapper) {
+    public XmlRendererEngine(final XmlMapper mapper) {
         this.mapper = mapper;
     }
     

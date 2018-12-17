@@ -3,8 +3,8 @@ package net.javapla.jawn.core.internal;
 import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -14,13 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.Singleton;
 import com.google.inject.Stage;
-import com.google.inject.util.Modules;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Err;
@@ -38,42 +36,63 @@ import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.Modes;
 
-public class FrameworkBootstrap {
+public final class FrameworkBootstrap {
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
-    protected final ApplicationConfig appConfig;
-    private final List<Module> combinedModules;
+    private final ArrayList<ModuleBootstrap> userPlugins;
     
     protected Injector injector;
     
-    protected ModuleBootstrap[] plugins;
-
-    private ArrayList<Runnable> onStartup = new ArrayList<>();
-    private ArrayList<Runnable> onShutdown = new ArrayList<>();
+    private LinkedList<Runnable> onStartup = new LinkedList<>();
+    private LinkedList<Runnable> onShutdown = new LinkedList<>();
 
     
     public FrameworkBootstrap() {
-        appConfig = new ApplicationConfig();
-        combinedModules = new ArrayList<>();
+        userPlugins = new ArrayList<>();
     }
     
     public synchronized void boot(final Modes mode, final List<Route.RouteHandler> routes) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
-        Config frameworkConfig = readConfigurations(mode);
-        Router router = new Router(routes);
+        final Config frameworkConfig = readConfigurations(mode);
+        final Router router = new Router(routes);
         
-        registerModules(mode, frameworkConfig, router);
         
-        // read plugins
-        ApplicationConfig pluginConfig = new ApplicationConfig();
-        plugins = readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
-        List<AbstractModule> pluginModules = pluginConfig.getRegisteredModules();
+        final com.google.inject.Module jawnModule = binder -> {
+            registerFrameworkModules(binder, mode, frameworkConfig, router);
+            
+            final ApplicationConfig pluginConfig = new ApplicationConfig() {
+
+                @Override
+                public Binder binder() {
+                    return binder;
+                }
+
+                @Override
+                public Modes mode() {
+                    return mode;
+                }
+
+                @Override
+                public void onStartup(Runnable task) {
+                    onStartup.add(task);
+                }
+
+                @Override
+                public void onShutdown(Runnable task) {
+                    onShutdown.add(task);
+                }
+            };
+            // Makes it possible for plugins to override framework-specific implementations
+            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+            
+            // Makes it possible for users to override single framework-specific implementations
+            userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
+        };
+        final Stage stage = mode == Modes.PROD ? Stage.PRODUCTION : Stage.DEVELOPMENT;
+        final Injector localInjector = Guice.createInjector(stage, jawnModule);
         
-        // create a single injector for both the framework and the user registered modules
-        List<AbstractModule> userModules = appConfig.getRegisteredModules();
         
-        Injector localInjector = initInjector(userModules, pluginModules);
         
         
         // If any initialisation of filters needs to be done, like injecting ServletContext,
@@ -86,32 +105,33 @@ public class FrameworkBootstrap {
         
         injector = localInjector;
         
-        //FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
-        //engine.onFrameworkStartup(); // signal startup
-        
-        onStartup.forEach(Runnable::run);
+        // signal startup
+        startup();
     }
     
     public Injector getInjector() {
         return injector;
     }
     
-    public ApplicationConfig config() {
-        return appConfig;
+    public void register(final ModuleBootstrap plugin) {
+        userPlugins.add(plugin);
     }
     
-    public void onStartup(Runnable r) {
+    public void onStartup(final Runnable r) {
         onStartup.add(r);
     }
     
-    public void onShutdown(Runnable r) {
+    public void onShutdown(final Runnable r) {
         onShutdown.add(r);
     }
     
+    private void startup() {
+        onStartup.forEach(Runnable::run);
+    }
+    
     public synchronized void shutdown() {
-        if (plugins != null) {
-            Arrays.stream(plugins).forEach(plugin -> plugin.destroy());
-        }
+
+        logger.info("Shutting down ..");
         
         onShutdown.forEach(Runnable::run);
         
@@ -134,11 +154,7 @@ public class FrameworkBootstrap {
         }*/
     }
     
-    protected void addModule(Module module) {
-        this.combinedModules.add(module);
-    }
-    
-    protected void registerModules(final Modes mode, final Config config, final Router router) {
+    protected void registerFrameworkModules(final Binder binder, final Modes mode, final Config config, final Router router) {
         
         // supported languages are needed in the creation of the injector
         //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -146,32 +162,25 @@ public class FrameworkBootstrap {
         
         //addModule(new CoreModule(properties, new DeploymentInfo(properties), router));
         //addModule(new DatabaseModule(connections, properties));
-        //TODO to be removed once the server-undertow is updated
-        addModule(new AbstractModule() {
-            @Override
-            protected void configure() {
                 
-                // CoreModule
-                bind(Charset.class).toInstance(Charset.forName(config.getOrDie("application.charset")));
-                bind(Modes.class).toInstance(mode);
-                bind(Config.class).toInstance(config);
-                
-                // Marshallers
-                bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
-                bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
-                bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
-                bind(RendererEngineOrchestrator.class).to(RendererEngineOrchestratorImpl.class).in(Singleton.class);
-                
-                
-                // Framework
-                bind(Router.class).toInstance(router);
-                bind(ResultRunner.class).in(Singleton.class);
-                
-                // ServerModule
-                /*bind(Context.class).to(ContextImpl.class);*/
-                bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
-            }
-        });
+        // CoreModule
+        binder.bind(Charset.class).toInstance(Charset.forName(config.getOrDie("application.charset")));
+        binder.bind(Modes.class).toInstance(mode);
+        binder.bind(Config.class).toInstance(config);
+        
+        // Marshallers
+        binder.bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
+        binder.bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
+        binder.bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
+        binder.bind(RendererEngineOrchestrator.class).to(RendererEngineOrchestratorImpl.class).in(Singleton.class);
+        
+        
+        // Framework
+        binder.bind(Router.class).toInstance(router);
+        binder.bind(ResultRunner.class).in(Singleton.class);
+        
+        // ServerModule
+        binder.bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
     }
     
     private Config readConfigurations(final Modes mode) {
@@ -182,27 +191,6 @@ public class FrameworkBootstrap {
         } catch (Err.IO ignore) {} //Resource 'jawn.properties' was not found
         
         return frameworkConfig;
-    }
-    
-    private Injector initInjector(final List<AbstractModule> userModules, List<AbstractModule> pluginModules) {
-        // this class is a part of the core project
-        // configure all the needed dependencies for the server
-        // this includes injecting templatemanager
-        
-        Module combined = Modules.combine(combinedModules);
-        
-        if ( ! pluginModules.isEmpty()) {
-            // Makes it possible for plugins to override framework-specific implementations
-            combined = Modules.override(combined).with(pluginModules);
-        }
-        
-        if ( ! userModules.isEmpty()) {
-            // Makes it possible for users to override single framework-specific implementations
-            combined = Modules.override(combined).with(userModules);
-        }
-        
-        //Stage stage = env.mode() == Mode.PRODUCTION ? Stage.PRODUCTION : Stage.DEVELOPMENT;
-        return Guice.createInjector(/*stage*/Stage.PRODUCTION, combined);
     }
     
     /*private void initiateFilters(Filters filters, Injector injector) {
@@ -275,4 +263,12 @@ public class FrameworkBootstrap {
         return list.get(0).getMessage();
     }
 
+    
+    public static final String FRAMEWORK_SPLASH = "\n" 
+        + "     ____.  _____  __      _________   \n"
+        + "    |    | /  _  \\/  \\    /  \\      \\  \n"
+        + "    |    |/  /_\\  \\   \\/\\/   /   |   \\ \n"
+        + "/\\__|    /    |    \\        /    |    \\ \n"
+        + "\\________\\____|__  /\\__/\\  /\\____|__  /\n"
+        + "  web framework  \\/      \\/         \\/ http://www.javapla.net\n";
 }

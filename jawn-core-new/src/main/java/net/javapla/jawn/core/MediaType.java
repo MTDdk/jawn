@@ -3,10 +3,10 @@ package net.javapla.jawn.core;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class MediaType implements Comparable<MediaType> {
     
@@ -55,7 +55,7 @@ public class MediaType implements Comparable<MediaType> {
     /**
      * Alias for most used types.
      */
-    private static final ConcurrentHashMap<String, List<MediaType>> cache = new ConcurrentHashMap<>();
+    private static final HashMap<String, List<MediaType>> cache = new HashMap<>();
 
     static {
       cache.put("html", Collections.singletonList(HTML));//ImmutableList.of(html));

@@ -13,26 +13,29 @@ import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
+import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
+import net.javapla.jawn.core.util.MultiList;
 
-
-//TODO, thoughts: 
-// Have a context unifying server.Request and server.Response OR create separate Request and Response with logic and convert
-// current server.Request -> server.ServerRequest/NativeRequest +  server.Response -> server.ServerResponse/NativeResponse
-class ContextImpl implements Context {
+final class ContextImpl implements Context {
     
     private final Request req;
     private final Response resp;
     private final ServerResponse sresp;
+    private Route route;
     
     private final HashMap<String, Cookie> cookies = new HashMap<>();
     
-    public ContextImpl(final ServerRequest req, final ServerResponse resp, final Charset charset) {
+    ContextImpl(final ServerRequest req, final ServerResponse resp, final Charset charset) {
         this.sresp = resp;
         
         this.req = new Context.Request() {
+            final MediaType contentType = req.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
+            final Charset cs = contentType.params().get(MediaType.CHARSET_PARAMETER) == null ? charset : Charset.forName(contentType.params().get(MediaType.CHARSET_PARAMETER));
+            
             @Override
             public HttpMethod httpMethod() {
                 return req.method();
@@ -61,15 +64,32 @@ class ContextImpl implements Context {
             
             @Override
             public MediaType contentType() {
-                // can be made final if we discover it to be called often
-                return req.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
+                return contentType;
             }
             
             @Override
             public Charset charset() {
-                /*String cs = contentType().params().get(MediaType.CHARSET_PARAMETER);
-                return cs != null ? Charset.forName(cs) : charset;*/
-                return charset;
+                return cs;
+            }
+            
+            @Override
+            public Optional<String> queryParam(final String name) {
+                return req.queryParam(name);
+            }
+            
+            @Override
+            public MultiList<String> queryParams() {
+                return req.queryParams();
+            }
+            
+            @Override
+            public List<String> queryParams(final String name) {
+                return req.queryParams(name);
+            }
+            
+            @Override
+            public MultiList<FormItem> formData() {
+                return req.formData();
             }
         };
         
@@ -78,6 +98,12 @@ class ContextImpl implements Context {
             @Override
             public Status status() {
                 return Status.valueOf(resp.statusCode());
+            }
+            
+            @Override
+            public Response header(final String name, final String value) {
+                resp.header(name, value);
+                return this;
             }
             
             @Override
@@ -133,7 +159,27 @@ class ContextImpl implements Context {
         return resp;
     }
     
+    @Override
+    public Optional<String> param(final String name) {
+        return 
+            req.queryParam(name)
+                .or(() -> Optional
+                    .ofNullable(req.formData().first(name)).map(FormItem::value)
+                    .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name)))
+                )
+            ;
+    }
+    
+    void route(final Route route) {
+        this.route = route;
+    }
+    Optional<Route> route() {
+        return Optional.ofNullable(route);
+    }
+    
     void readyResponse(final Result result) {
+        if (sresp.committed()) return;
+        
         result.contentType()
             .map(MediaType::name).ifPresent(sresp::contentType);
         
@@ -151,10 +197,10 @@ class ContextImpl implements Context {
             writeCookies();
         }
         
-        // something, something, content-length header ..
-        sresp.header("Content-Length").or(() -> sresp.header("Transfer-Encoding")).ifPresent(header -> {
+        // something, something, content-length header .. ?
+        /*sresp.header("Content-Length").or(() -> sresp.header("Transfer-Encoding")).ifPresent(header -> {
             
-        });
+        });*/
         
         sresp.end();
     }

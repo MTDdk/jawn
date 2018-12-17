@@ -2,14 +2,20 @@ package net.javapla.jawn.core;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import net.javapla.jawn.core.server.FormItem;
+import net.javapla.jawn.core.util.MultiList;
 
 public interface Context {
     
     interface Response {
         
         Status status();
+        
+        Response header(String name, String value);
         
         Response clearCookie(String name);
         
@@ -20,6 +26,7 @@ public interface Context {
         void send(InputStream stream) throws Exception;
 
         boolean committed();
+
 
         
         /*interface Builder {
@@ -51,9 +58,18 @@ public interface Context {
         Charset charset();
 
         MediaType contentType();
+
+        Optional<String> queryParam(String name);
+
+        MultiList<String> queryParams();
+
+        List<String> queryParams(String name);
+
+        MultiList<FormItem> formData();
     }
     
 
     Request req();
     Response resp();
+    Optional<String> param(String name);
 }

@@ -6,5 +6,4 @@ package net.javapla.jawn.core.spi;
 public interface ModuleBootstrap {
 
     void bootstrap(ApplicationConfig config);
-    void destroy();
 }

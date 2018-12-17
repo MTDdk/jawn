@@ -28,7 +28,7 @@ import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import net.javapla.jawn.core.server.ServerResponse;
 
-public class UndertowResponse implements ServerResponse {
+public final class UndertowResponse implements ServerResponse {
     
     private final HttpServerExchange exchange;
     private final Runnable blocking;
@@ -36,7 +36,7 @@ public class UndertowResponse implements ServerResponse {
     private volatile boolean endExchange = true;
     
     private String contentType;
-    private Optional<Charset> charset = Optional.empty();
+    private Charset charset;
     private boolean streamCreated = false;
 
     public UndertowResponse(final HttpServerExchange exchange) {
@@ -158,25 +158,25 @@ public class UndertowResponse implements ServerResponse {
     }
 
     @Override
-    public void contentType(String contentType) {
+    public void contentType(final String contentType) {
         this.contentType = contentType;
         setContentType();
     }
 
     @Override
-    public void characterEncoding(Charset encoding) {
-        charset = Optional.ofNullable(encoding);
+    public void characterEncoding(final Charset encoding) {
+        charset = encoding;
         setContentType();
     }
 
     @Override
     public Optional<Charset> characterEncoding() {
-        return charset;
+        return Optional.ofNullable(charset);
     }
 
     private void setContentType() {
         if (contentType != null) {
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, contentType + charset.map(ch -> "; charset=" + ch).orElse("") );
+            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, contentType + (charset != null ? ("; charset=" + charset) : "") );
         }
     }
     

@@ -1,17 +1,22 @@
 package net.javapla.jawn.core.internal;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Err;
 import net.javapla.jawn.core.HttpMethod;
+import net.javapla.jawn.core.Results;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Route.RouteHandler;
 
 @Singleton
-public class Router {
+final class Router {
     
     private final RouteTrie deducedRoutes;
+    private final List<RouteHandler> routes = new LinkedList<>();
     
     Router(List<RouteHandler> routes) {
         
@@ -20,19 +25,36 @@ public class Router {
         compileRoutes(routes);
     }
     
-    RouteHandler retrieve(HttpMethod httpMethod, String requestUri) {
+    RouteHandler retrieve(HttpMethod httpMethod, String requestUri) throws Err.RouteError {
         
         
         RouteHandler route = deducedRoutes.findExact(requestUri, httpMethod);
+        if (route == null) {
+            for (var r : routes) {
+                if (r.matches(requestUri)) {
+                    route = r;
+                    break;
+                }
+            }
+        }
         if (route == null) throw new Err.RouteError("Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);
         
         return route;
     }
     
     private void compileRoutes(List<RouteHandler> routes) {
-        routes.stream().forEach(route -> deducedRoutes.insert(route.path(), route));
+        
+        for (RouteHandler route : routes) {
+            if (route.isUrlFullyQualified()) {
+                deducedRoutes.insert(route.path(), route);
+            } else {
+                this.routes.add(route);
+            }
+        }
     }
     
+    
+    final static BiFunction<HttpMethod, String, Route> NOT_FOUND = (method, uri) -> new Route.Builder(method).path(uri).handler(() -> Results.notFound()).build();
     
 
     /**

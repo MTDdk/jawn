@@ -109,6 +109,11 @@ public interface Route {
             return this;
         }
         
+        public Builder handler(final Route.ZeroArgHandler handler) {
+            this.handler = handler;
+            return this;
+        }
+        
         public Route build() {
             final ArrayList<String> parameters = parseParameters(uri);
             final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
@@ -128,6 +133,11 @@ public interface Route {
                 @Override
                 public Result handle(Context context) {
                     return handler.handle(context);
+                }
+                
+                @Override
+                public boolean isUrlFullyQualified() {
+                    return parameters.isEmpty();
                 }
                 
                 @Override
@@ -245,6 +255,8 @@ public interface Route {
      */
     HttpMethod method();
     
+    boolean isUrlFullyQualified();
+
     /**
      * @return Current request path.
      */

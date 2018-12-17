@@ -5,14 +5,14 @@ import org.xnio.Options;
 import com.google.inject.Inject;
 
 import io.undertow.Undertow;
-import io.undertow.UndertowOptions;
 import io.undertow.Undertow.Builder;
+import io.undertow.UndertowOptions;
 import io.undertow.server.handlers.GracefulShutdownHandler;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.Server;
 
-public class UndertowServer implements Server {
+public final class UndertowServer implements Server {
     
     private final HttpHandler dispatcher;
     private final Config conf;
@@ -20,7 +20,7 @@ public class UndertowServer implements Server {
     private GracefulShutdownHandler shutdownHandler;
     
     @Inject
-    public UndertowServer(final HttpHandler dispatcher, final Config conf) {
+    UndertowServer(final HttpHandler dispatcher, final Config conf) {
         this.dispatcher = dispatcher;
         this.conf = conf;
     }
@@ -38,8 +38,8 @@ public class UndertowServer implements Server {
             .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false) //don't send a keep-alive header for HTTP/1.1 requests, as it is not required
             
             // from ActFramework
-            .setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, true)
-            .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
+            //.setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, true)
+            //.setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
             .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
             
             ;
@@ -52,13 +52,10 @@ public class UndertowServer implements Server {
         
         server = builder.build();
         server.start();
-        
-        System.out.println("Server started");
     }
 
     @Override
     public void stop() throws Exception {
-        System.out.println("Server stopped");
         shutdownHandler.shutdown();
         shutdownHandler.awaitShutdown(5000);
         server.stop();
@@ -93,7 +90,7 @@ public class UndertowServer implements Server {
                 break;
             default:
             case MEDIUM:*/
-                ioThreads = Math.max(Runtime.getRuntime().availableProcessors() / 2, undertow_minimum);
+                ioThreads = Math.max(Runtime.getRuntime().availableProcessors() , undertow_minimum);
                 workerThreads = ioThreads * 4;
                 /*break;
             case LOW:

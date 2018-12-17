@@ -13,7 +13,7 @@ final class JsonRendererEngine implements RendererEngine {
     private final ObjectMapper mapper;
     
     @Inject
-    public JsonRendererEngine(ObjectMapper mapper) {
+    JsonRendererEngine(final ObjectMapper mapper) {
         this.mapper = mapper;
     }
     

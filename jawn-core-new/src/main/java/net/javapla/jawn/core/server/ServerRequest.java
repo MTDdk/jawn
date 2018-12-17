@@ -22,9 +22,9 @@ public interface ServerRequest {
      * Only query parameters - not any form data
      * @return
      */
-    MultiList<String> params();
-    List<String> params(String name);
-    Optional<String> param(String name);
+    MultiList<String> queryParams();
+    List<String> queryParams(String name);
+    Optional<String> queryParam(String name);
     
     MultiList<String> headers();
     List<String> headers(String name);
@@ -33,7 +33,7 @@ public interface ServerRequest {
     List<Cookie> cookies();
     
     //something handling upload
-    MultiList<FormItem> formData() throws IOException;
+    MultiList<FormItem> formData();
     
     
     // ****************

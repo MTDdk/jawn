@@ -13,7 +13,7 @@ public class UndertowHandler implements HttpHandler {
     private final net.javapla.jawn.core.server.HttpHandler dispatcher;
     private final Config config;
 
-    public UndertowHandler(final net.javapla.jawn.core.server.HttpHandler dispatcher, final Config config) {
+    UndertowHandler(final net.javapla.jawn.core.server.HttpHandler dispatcher, final Config config) {
         this.dispatcher = dispatcher;
         this.config = config;
     }

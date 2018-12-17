@@ -29,7 +29,7 @@ import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.URLCodec;
 
-public class UndertowRequest implements ServerRequest {
+public final class UndertowRequest implements ServerRequest {
     
     // TODO should be instantiated in the core module instead of a server module
     private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/);
@@ -41,6 +41,7 @@ public class UndertowRequest implements ServerRequest {
     private final HttpServerExchange exchange;
     private final String path;
     private final Runnable blocking;
+    private final HttpMethod method;
     
     private FormData form;
     private MultiList<String> params;
@@ -51,11 +52,13 @@ public class UndertowRequest implements ServerRequest {
         this.path = URLCodec.decode(exchange.getRequestPath(), StandardCharsets.UTF_8);
         
         this.blocking = () -> {if(!this.exchange.isBlocking()) this.exchange.startBlocking();};
+        
+        this.method = HttpMethod.getMethod(exchange.getRequestMethod().toString(), () -> queryParams());
     }
 
     @Override
     public HttpMethod method() {
-        return HttpMethod.getMethod(exchange.getRequestMethod().toString(), () -> params());
+        return method;
     }
 
     @Override
@@ -69,7 +72,7 @@ public class UndertowRequest implements ServerRequest {
     }
 
     @Override
-    public MultiList<String> params() {
+    public MultiList<String> queryParams() {
         if (params == null) {
             MultiList<String> params = new MultiList<>();
             
@@ -96,13 +99,13 @@ public class UndertowRequest implements ServerRequest {
     }
 
     @Override
-    public Optional<String> param(String name) {
-        return Optional.ofNullable(params().first(name));
+    public Optional<String> queryParam(String name) {
+        return Optional.ofNullable(queryParams().first(name));
     }
 
     @Override
-    public List<String> params(String name) {
-        List<String> list = params().list(name);
+    public List<String> queryParams(String name) {
+        List<String> list = queryParams().list(name);
         return list == null ? Collections.emptyList() : list;
     }
     
@@ -140,7 +143,7 @@ public class UndertowRequest implements ServerRequest {
     }
 
     @Override
-    public MultiList<FormItem> formData() throws IOException {
+    public MultiList<FormItem> formData() {
         MultiList<FormItem> list = new MultiList<>();
         
         FormData form = parseForm();

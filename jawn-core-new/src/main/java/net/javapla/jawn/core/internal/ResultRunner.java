@@ -1,7 +1,5 @@
 package net.javapla.jawn.core.internal;
 
-import java.text.MessageFormat;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -15,7 +13,7 @@ import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
 @Singleton
-class ResultRunner {
+final class ResultRunner {
     
     private final RendererEngineOrchestrator engines;
     
@@ -35,14 +33,9 @@ class ResultRunner {
         }
         
         result.renderable().ifPresent(renderable -> {
-            MediaType type = result.contentType().orElseThrow(() -> new Err(Status.NOT_ACCEPTABLE, "Could not find any suitable way to serve you your content"));
+            final MediaType type = result.contentType().orElseThrow(() -> new Err(Status.NOT_ACCEPTABLE, "Could not find any suitable way to serve you your content"));
             
-            RendererEngine engine = engines.getTemplateEngineForContentType(type);
-            if (engine != null) {
-                invoke(engine, context, renderable);
-            } else {
-                throw new Err.BadMediaType(MessageFormat.format("Could not find a template engine supporting the content type of the response : {0}", type));
-            }
+            engines.getRendererEngineForContentType(type, engine -> invoke(engine, context, renderable));
         });
         
         context.end();

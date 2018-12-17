@@ -34,8 +34,16 @@ public enum HttpMethod {
     
     // Using a supplier in order to postpone calculation to later if necessary
     private static HttpMethod _getMethod(String requestMethod, Supplier<String> _method) {
-        if (requestMethod.charAt(0) == 'G') {
-            return HttpMethod.GET;
+        char first = requestMethod.charAt(0);
+        switch (first) {
+            case 'G':
+                return HttpMethod.GET;
+            case 'D':
+                return HttpMethod.DELETE;
+            case 'H':
+                return HttpMethod.HEAD;
+            case 'O':
+                return HttpMethod.OPTIONS;
         }
         
         // Sometimes an ajax request can only be sent as GET or POST.

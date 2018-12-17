@@ -1,6 +1,6 @@
 package net.javapla.jawn.core;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.After;
 import org.junit.AfterClass;

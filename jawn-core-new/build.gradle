@@ -4,6 +4,12 @@ repositories {
   mavenCentral()
 }
 
+jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
 dependencies {
   // Server (to be extracted into jawn-server-undertow)
   compile 'io.undertow:undertow-core:2.0.16.Final'
