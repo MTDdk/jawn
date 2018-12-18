@@ -37,7 +37,7 @@ final class Router {
                 }
             }
         }
-        if (route == null) throw new Err.RouteError("Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);
+        if (route == null) throw new Err.RouteError(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);
         
         return route;
     }

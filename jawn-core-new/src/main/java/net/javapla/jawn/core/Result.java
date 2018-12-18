@@ -15,7 +15,7 @@ public class Result {
     /**
      * Something like: "text/html" or "application/json"
      */
-    protected MediaType contentType;
+    protected MediaType contentType = MediaType.PLAIN;
 
     /**
      * Object to be handled by a rendering engine

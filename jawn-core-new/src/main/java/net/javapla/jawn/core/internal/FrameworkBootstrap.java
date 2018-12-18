@@ -84,7 +84,7 @@ public final class FrameworkBootstrap {
                 }
             };
             // Makes it possible for plugins to override framework-specific implementations
-            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.netty");//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
             
             // Makes it possible for users to override single framework-specific implementations
             userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));

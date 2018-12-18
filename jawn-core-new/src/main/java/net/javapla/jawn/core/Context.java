@@ -17,6 +17,27 @@ public interface Context {
         
         Response header(String name, String value);
         
+        Optional<String> header(String name);
+        
+        Optional<MediaType> contentType();
+        
+        Response contentType(MediaType type);
+        
+        default Response contentType(String contentType) {
+            return contentType(MediaType.valueOf(contentType));
+        }
+        
+        Response characterEncoding(Charset encoding);
+        
+        Optional<Charset> characterEncoding();
+        
+        default Response characterEncoding(String encoding) {
+            try {
+                return characterEncoding(Charset.forName(encoding));
+            } catch (Throwable e) {}
+            return this;
+        }
+        
         Response clearCookie(String name);
         
         Response cookie(Cookie cookie);

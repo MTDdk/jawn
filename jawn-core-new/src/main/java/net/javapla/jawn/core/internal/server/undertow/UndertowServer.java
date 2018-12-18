@@ -1,5 +1,8 @@
 package net.javapla.jawn.core.internal.server.undertow;
 
+import java.util.Optional;
+import java.util.concurrent.Executor;
+
 import org.xnio.Options;
 
 import com.google.inject.Inject;
@@ -41,7 +44,6 @@ public final class UndertowServer implements Server {
             //.setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, true)
             //.setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
             .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
-            
             ;
         
         
@@ -64,6 +66,11 @@ public final class UndertowServer implements Server {
     @Override
     public void join() throws InterruptedException {
         //NO-OP
+    }
+    
+    @Override
+    public Optional<Executor> executor() {
+        return Optional.ofNullable(server.getWorker());
     }
     
     private static final io.undertow.server.HttpHandler createHandler(final HttpHandler dispatcher, final Config config ) {

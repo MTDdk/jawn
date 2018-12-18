@@ -13,6 +13,10 @@ jar {
 dependencies {
   // Server (to be extracted into jawn-server-undertow)
   compile 'io.undertow:undertow-core:2.0.16.Final'
+  
+  // Server
+  compile group: 'io.netty', name: 'netty-all', version: '4.1.32.Final'
+
 
 
     compile ('com.google.inject:guice:4.2.2') {

@@ -99,17 +99,6 @@ public final class UndertowRequest implements ServerRequest {
     }
 
     @Override
-    public Optional<String> queryParam(String name) {
-        return Optional.ofNullable(queryParams().first(name));
-    }
-
-    @Override
-    public List<String> queryParams(String name) {
-        List<String> list = queryParams().list(name);
-        return list == null ? Collections.emptyList() : list;
-    }
-    
-    @Override
     public MultiList<String> headers() {
         if (headers == null) {
             MultiList<String> h = new MultiList<>();

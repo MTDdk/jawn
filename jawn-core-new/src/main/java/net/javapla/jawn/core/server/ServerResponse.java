@@ -5,11 +5,8 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
-
-import net.javapla.jawn.core.MediaType;
 
 public interface ServerResponse {
     
@@ -30,18 +27,4 @@ public interface ServerResponse {
     Writer writer();
     OutputStream outputStream();
     boolean usingStream();
-    
-    String contentType();
-    void contentType(String contentType);
-    default void contentType(MediaType type) {
-        contentType(type.name());
-    }
-    
-    Optional<Charset> characterEncoding();
-    void characterEncoding(Charset encoding);
-    default void characterEncoding(String encoding) {
-        try {
-            characterEncoding(Charset.forName(encoding));
-        } catch (Throwable e) {}
-    }
 }

@@ -94,6 +94,8 @@ final class ContextImpl implements Context {
         };
         
         this.resp = new Context.Response() {
+            private MediaType contentType;
+            private Charset charset;
             
             @Override
             public Status status() {
@@ -104,6 +106,41 @@ final class ContextImpl implements Context {
             public Response header(final String name, final String value) {
                 resp.header(name, value);
                 return this;
+            }
+            
+            @Override
+            public Optional<String> header(final String name) {
+                return resp.header(name);
+            }
+            
+            @Override
+            public Optional<MediaType> contentType() {
+                return Optional.ofNullable(contentType);
+            }
+
+            @Override
+            public Response contentType(final MediaType contentType) {
+                this.contentType = contentType;
+                setContentType();
+                return this;
+            }
+            
+            @Override
+            public Response characterEncoding(final Charset encoding) {
+                charset = encoding;
+                setContentType();
+                return this;
+            }
+
+            @Override
+            public Optional<Charset> characterEncoding() {
+                return Optional.ofNullable(charset);
+            }
+            
+            private void setContentType() {
+                if (contentType != null) {
+                    resp.header("Content-Type", contentType + (charset != null ? ("; charset=" + charset) : "") );
+                }
             }
             
             @Override
@@ -181,10 +218,10 @@ final class ContextImpl implements Context {
         if (sresp.committed()) return;
         
         result.contentType()
-            .map(MediaType::name).ifPresent(sresp::contentType);
+            .map(MediaType::name).ifPresent(resp::contentType);
         
         sresp.statusCode(result.status()
-            .map(Status::value).orElse(Status.OK.value()));
+            .map(Status::value).orElse(200));
         
         result.headers()
             .forEach(sresp::header);

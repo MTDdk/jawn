@@ -3,6 +3,7 @@ package net.javapla.jawn.core.server;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
@@ -23,8 +24,13 @@ public interface ServerRequest {
      * @return
      */
     MultiList<String> queryParams();
-    List<String> queryParams(String name);
-    Optional<String> queryParam(String name);
+    default List<String> queryParams(String name) {
+        List<String> list = queryParams().list(name);
+        return list == null ? Collections.emptyList() : list;
+    }
+    default Optional<String> queryParam(String name) {
+        return Optional.ofNullable(queryParams().first(name));
+    }
     
     MultiList<String> headers();
     List<String> headers(String name);

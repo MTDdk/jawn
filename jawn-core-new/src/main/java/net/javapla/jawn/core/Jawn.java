@@ -1,6 +1,6 @@
 package net.javapla.jawn.core;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -21,13 +21,15 @@ public class Jawn {
     protected static final Logger logger = LoggerFactory.getLogger(Jawn.class);
     
     private final FrameworkBootstrap bootstrap;
-    private final ArrayList<RouteHandler> routes;
+    private final LinkedList<RouteHandler> routes;
+    private final LinkedList<Class<? extends Route.Filter>> filters;
     
     private Modes mode = Modes.DEV;
 
     public Jawn() {
         bootstrap = new FrameworkBootstrap();
-        routes = new ArrayList<>();
+        routes = new LinkedList<>();
+        filters = new LinkedList<>();
     }
     
     // ****************
@@ -82,6 +84,19 @@ public class Jawn {
     
     protected Jawn options(final String path, final Route.Handler handler) {
         routes.add((RouteHandler) new Route.Builder(HttpMethod.OPTIONS).path(path).handler(handler).build());
+        return this;
+    }
+    
+    // ****************
+    // Filters
+    // ****************
+    protected Jawn filter(final Class<? extends Route.Filter> filter) {
+        filters.add(filter);
+        return this;
+    }
+    
+    protected Jawn filter(final String path, final Class<? extends Route.Filter> filter) {
+        filters.add(filter);
         return this;
     }
     

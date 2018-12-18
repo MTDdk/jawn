@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -35,8 +34,6 @@ public final class UndertowResponse implements ServerResponse {
     
     private volatile boolean endExchange = true;
     
-    private String contentType;
-    private Charset charset;
     private boolean streamCreated = false;
 
     public UndertowResponse(final HttpServerExchange exchange) {
@@ -150,34 +147,6 @@ public final class UndertowResponse implements ServerResponse {
     @Override
     public boolean usingStream() {
         return streamCreated;
-    }
-
-    @Override
-    public String contentType() {
-        return contentType;
-    }
-
-    @Override
-    public void contentType(final String contentType) {
-        this.contentType = contentType;
-        setContentType();
-    }
-
-    @Override
-    public void characterEncoding(final Charset encoding) {
-        charset = encoding;
-        setContentType();
-    }
-
-    @Override
-    public Optional<Charset> characterEncoding() {
-        return Optional.ofNullable(charset);
-    }
-
-    private void setContentType() {
-        if (contentType != null) {
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, contentType + (charset != null ? ("; charset=" + charset) : "") );
-        }
     }
     
     static class ChunkedStream implements IoCallback, Runnable {

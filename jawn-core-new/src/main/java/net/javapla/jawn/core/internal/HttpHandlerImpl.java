@@ -37,18 +37,30 @@ final class HttpHandlerImpl implements HttpHandler {
     public void handle(final ServerRequest req, final ServerResponse resp) throws Exception {
         String uri = normaliseURI(req.path());
         
+        
         ContextImpl context = new ContextImpl(req, resp, charset);
         try {
             RouteHandler route = router.retrieve(req.method(), uri);
             context.route(route);
+            
+            // Before filters
+            
+            
             Result result = route.handle(context);
+            
+            // After filters
+            
             
             // Execute handler
             runner.execute(result, context);
         
         } catch (Err.RouteError e) {
             // 404
-            renderSystemError(context, /*"/system/404", "index",*/ 404, e);
+            if (e.path.equals("/favicon.ico")) {
+                runner.execute(Results.status(Status.NOT_FOUND), context);
+            } else {
+                renderSystemError(context, /*"/system/404", "index",*/ 404, e);
+            }
         } /*catch (ViewException e) {
             // 501
             renderSystemError(context, "/system/500", "index", 501, e);

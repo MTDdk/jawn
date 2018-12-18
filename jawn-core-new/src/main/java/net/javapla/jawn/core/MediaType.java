@@ -16,20 +16,32 @@ public class MediaType implements Comparable<MediaType> {
      */
     public static final String CHARSET_PARAMETER = "charset";
     
+    /** application/xml */
     public final static MediaType XML = new MediaType("application", "xml");
+    /** application/*+xml */
     public final static MediaType XML_LIKE = new MediaType("application", "*+xml");
+    /** application/json */
     public final static MediaType JSON = new MediaType("application", "json");
+    /** application/*+json */
     public final static MediaType JSON_LIKE = new MediaType("application", "*+json");
+    /** application/x-www-form-urlencoded */
     public final static MediaType FORM = new MediaType("application", "x-www-form-urlencoded");
+    /** multipart/form-data */
     public final static MediaType MULTIPART = new MediaType("multipart", "form-data");
+    /** application/octet-stream */
     public final static MediaType OCTET_STREAM = new MediaType("application", "octet-stream");
+    /** text/plain */
     public final static MediaType PLAIN = new MediaType("text", "plain");
+    /** text/html */
     public final static MediaType HTML = new MediaType("text", "html");
+    /** text/* */
     public final static MediaType TEXT = new MediaType("text", WILDCARD_TYPE);
     /**
      * Server sent events media type.
      */
+    /** text/event-stream */
     public static final MediaType SERVER_SENT_EVENTS = new MediaType("text", "event-stream");
+    /** {@link WILDCARD_TYPE}/{@link WILDCARD_TYPE} */
     public final static MediaType WILDCARD = new MediaType(WILDCARD_TYPE, WILDCARD_TYPE);
     
     public final static List<MediaType> ALL = Collections.singletonList(WILDCARD);

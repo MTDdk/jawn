@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -24,9 +25,14 @@ public class MultiList<T> {
         this.parts = new HashMap<String, List<T>>();
     }
     
-    public MultiList(Map<String, T> map) {
+    public MultiList(Map<String, List<T>> map) {
         this();
-        map.forEach((key, value) -> put(key, value));
+        map.forEach(this::put);
+    }
+    
+    public MultiList(List<Entry<String, T>> entries) {
+        this();
+        entries.forEach(entry -> put(entry.getKey(),entry.getValue()));
     }
     
     @SafeVarargs

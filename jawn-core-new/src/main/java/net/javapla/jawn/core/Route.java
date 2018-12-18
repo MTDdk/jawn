@@ -25,7 +25,7 @@ public interface Route {
          * @return
          *      A response if anything needs to be redirected or 404'd
          */
-        Result before(Route.Chain chain, Context context);
+        Result before(/*Route.Chain chain, */Context context);
         
         /**
          * Called by framework after executing a controller.
@@ -34,14 +34,14 @@ public interface Route {
          * or by the controller, as the response is most likely already started at this point, which
          * means that headers are already sent to the browser/caller.
          */
-        void after(Route.Chain chain, Context context);
+        void after(/*Route.Chain chain,*/ Context context);
         
         /**
          * Called by framework in case there was an exception inside a controller
          *
          * @param e exception.
          */
-        void onException(Route.Chain chain, Exception e);
+        void onException(/*Route.Chain chain,*/ Exception e);
     }
     
     interface Chain {
@@ -280,4 +280,6 @@ public interface Route {
      * @return A map with all parameters of that uri. Encoded in => encoded out.
      */
     Map<String, String> getPathParametersEncoded(String requestUri);
+    
+    
 }
