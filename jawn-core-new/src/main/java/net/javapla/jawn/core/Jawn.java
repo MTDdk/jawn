@@ -3,12 +3,14 @@ package net.javapla.jawn.core;
 import java.util.LinkedList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.Route.RouteHandler;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
@@ -21,8 +23,8 @@ public class Jawn {
     protected static final Logger logger = LoggerFactory.getLogger(Jawn.class);
     
     private final FrameworkBootstrap bootstrap;
-    private final LinkedList<RouteHandler> routes;
-    private final LinkedList<Class<? extends Route.Filter>> filters;
+    private final LinkedList<Route.Builder> routes;
+    private final LinkedList<Class<? extends Route.Chain>> filters;
     
     private Modes mode = Modes.DEV;
 
@@ -50,19 +52,21 @@ public class Jawn {
     // ****************
     // Router
     // ****************
-    protected Jawn get(final String path, final Result result) {
+    protected Route.Builder get(final String path, final Result result) {
         return get(path, () -> result);
     }
-    protected Jawn get(final String path, final Route.ZeroArgHandler handler) {
-        routes.add((RouteHandler) new Route.Builder(HttpMethod.GET).path(path).handler(handler).build());
-        return this;
+    protected Route.Builder get(final String path, final Route.ZeroArgHandler handler) {
+        Builder builder = new Route.Builder(HttpMethod.GET).path(path).handler(handler);
+        routes.add(builder);
+        return builder;
     }
-    protected Jawn get(final String path, final Route.Handler handler) {
-        routes.add((RouteHandler) new Route.Builder(HttpMethod.GET).path(path).handler(handler).build());
-        return this;
+    protected Route.Builder get(final String path, final Route.Handler handler) {
+        Builder builder = new Route.Builder(HttpMethod.GET).path(path).handler(handler);
+        routes.add(builder);
+        return builder;
     }
     
-    protected Jawn post(final String path, final Route.Handler handler) {
+    /*protected Jawn post(final String path, final Route.Handler handler) {
         routes.add((RouteHandler) new Route.Builder(HttpMethod.POST).path(path).handler(handler).build());
         return this;
     }
@@ -85,17 +89,17 @@ public class Jawn {
     protected Jawn options(final String path, final Route.Handler handler) {
         routes.add((RouteHandler) new Route.Builder(HttpMethod.OPTIONS).path(path).handler(handler).build());
         return this;
-    }
+    }*/
     
     // ****************
     // Filters
     // ****************
-    protected Jawn filter(final Class<? extends Route.Filter> filter) {
+    protected Jawn filter(final Class<? extends Route.Chain> filter) {
         filters.add(filter);
         return this;
     }
     
-    protected Jawn filter(final String path, final Class<? extends Route.Filter> filter) {
+    protected Jawn filter(final String path, final Class<? extends Route.Chain> filter) {
         filters.add(filter);
         return this;
     }
@@ -107,7 +111,7 @@ public class Jawn {
         // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
-        bootstrap.boot(mode, routes);
+        bootstrap.boot(mode, routes.stream().map(Route.Builder::build).collect(Collectors.toList()));
         
         /*JawnConfigurations properties = new JawnConfigurations(mode);
         bootstrapper.boot(properties, filters, new RouterImpl(builders, filters, properties), databaseConnections);*/

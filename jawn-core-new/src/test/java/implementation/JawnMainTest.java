@@ -1,5 +1,10 @@
-package net.javapla.jawn.core;
+package implementation;
 
+import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.Jawn;
+import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Results;
+import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.renderers.RendererEngine;
 
 public class JawnMainTest extends Jawn {
@@ -24,7 +29,7 @@ public class JawnMainTest extends Jawn {
         get("/xml", Results.xml("<xml>teeeest</xml>"));
         get("/json", Results.json("{\"key\":\"teeeest\"}"));
         
-        post("/test/{dd}", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(Status.ALREADY_REPORTED));
+        //post("/test/{dd}", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(Status.ALREADY_REPORTED));
     }
 
     public static void main(String[] args) {

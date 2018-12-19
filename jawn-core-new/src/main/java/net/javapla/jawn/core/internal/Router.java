@@ -2,14 +2,11 @@ package net.javapla.jawn.core.internal;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.BiFunction;
 
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Err;
 import net.javapla.jawn.core.HttpMethod;
-import net.javapla.jawn.core.Results;
-import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Route.RouteHandler;
 
 @Singleton
@@ -53,10 +50,6 @@ final class Router {
         }
     }
     
-    
-    final static BiFunction<HttpMethod, String, Route> NOT_FOUND = (method, uri) -> new Route.Builder(method).path(uri).handler(() -> Results.notFound()).build();
-    
-
     /**
      * @author MTD (github/mtddk)
      */

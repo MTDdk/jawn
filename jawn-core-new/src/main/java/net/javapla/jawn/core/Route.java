@@ -6,13 +6,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.javapla.jawn.core.util.URLCodec;
 
 public interface Route {
 
     
     
-    public interface Filter {
+    public interface Chain /*extends FChain */{
         //void handle(Request req, Response resp, Route.Chain chain);
         /**
          * Filter the request. Filters should invoke the {@link FilterChain#before(Context)}
@@ -25,7 +28,18 @@ public interface Route {
          * @return
          *      A response if anything needs to be redirected or 404'd
          */
-        Result before(/*Route.Chain chain, */Context context);
+        /*default Result before(final Route.Filter chain, final Context context) {
+            try {
+                Result result = before(context);
+                if (result != null) {
+                    return result;
+                }
+            } catch (Exception e) {
+                onException(e);
+            }
+            
+            return chain.before(context);
+        }*/
         
         /**
          * Called by framework after executing a controller.
@@ -34,17 +48,40 @@ public interface Route {
          * or by the controller, as the response is most likely already started at this point, which
          * means that headers are already sent to the browser/caller.
          */
-        void after(/*Route.Chain chain,*/ Context context);
+        /*default void after(final Route.Filter chain, final Context context) {
+            chain.after(context);
+        }*/
         
         /**
          * Called by framework in case there was an exception inside a controller
          *
          * @param e exception.
          */
-        void onException(/*Route.Chain chain,*/ Exception e);
+        /*default void onException(Route.Chain chain, Exception e) {
+            chain.onException(e);
+        }*/
+        
+        void nextBefore(Context context);
+        void nextAfter(Context context);
     }
     
-    interface Chain {
+    /*class FilterChain implements Chain {
+        final Chain chain;
+        final Filter filter;
+        FilterChain(final Chain chain, final Filter filter) {
+            this.chain = chain;
+            this.filter = filter;
+        }
+    }*/
+    
+    interface Filter {
+        static final Logger logger = LoggerFactory.getLogger(Route.Filter.class);
+        
+        void before(/*Route.Chain next, */Context context);
+        void after(/*Route.Chain next, */Context context);
+        default void onException(/*Route.Chain chain, */Exception e) {
+            logger.error("Filter chain broke", e);
+        }
         
         
 //        /**
@@ -82,7 +119,15 @@ public interface Route {
         Result handle();
     }
     
-    interface RouteHandler extends Route, Route.Handler {}
+    interface RouteHandler extends Route, Route.Handler {
+
+        /**
+         * @return might be null if no filters
+         */
+        /*FilterChain chain();
+        
+        void putFilterAtHead(Chain f);*/
+    }
     
     class Builder {
         protected final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
@@ -99,26 +144,27 @@ public interface Route {
             this.method = method;
         }
         
-        public Builder path(final String path) {
+        Builder path(final String path) {
             this.uri = (path.charAt(0) != '/') ? "/" + path : path;
             return this;
         }
         
-        public Builder handler(final Route.Handler handler) {
+        Builder handler(final Route.Handler handler) {
             this.handler = handler;
             return this;
         }
         
-        public Builder handler(final Route.ZeroArgHandler handler) {
+        Builder handler(final Route.ZeroArgHandler handler) {
             this.handler = handler;
             return this;
         }
         
-        public Route build() {
+        RouteHandler build() {
             final ArrayList<String> parameters = parseParameters(uri);
             final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
             
             return new RouteHandler() {
+                //FilterChain chain;
                 
                 @Override
                 public HttpMethod method() {
@@ -131,7 +177,7 @@ public interface Route {
                 }
                 
                 @Override
-                public Result handle(Context context) {
+                public Result handle(final Context context) {
                     return handler.handle(context);
                 }
                 
@@ -139,6 +185,16 @@ public interface Route {
                 public boolean isUrlFullyQualified() {
                     return parameters.isEmpty();
                 }
+                
+                /*@Override
+                public FilterChain chain() {
+                    return chain;
+                }
+                
+                @Override
+                public void putFilterAtHead(final Chain f) {
+                    chain = new FilterChain(f, chain);
+                }*/
                 
                 @Override
                 public boolean matches(String requestUri) {
@@ -197,7 +253,7 @@ public interface Route {
          * @return The converted regex with default matching regex - or the regex
          *          specified by the user.
          */
-        protected static String convertRawUriToRegex(String rawUri) {
+        private static String convertRawUriToRegex(String rawUri) {
 
             Matcher matcher = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(rawUri);
 
@@ -230,7 +286,7 @@ public interface Route {
             return stringBuffer.toString();
         }
         
-        public static Map<String, String> mapPathParameters(String requestUri) {
+        private static Map<String, String> mapPathParameters(String requestUri) {
             ArrayList<String> parameters = parseParameters(requestUri);
             
             Pattern regex = Pattern.compile(convertRawUriToRegex(requestUri));
@@ -280,6 +336,5 @@ public interface Route {
      * @return A map with all parameters of that uri. Encoded in => encoded out.
      */
     Map<String, String> getPathParametersEncoded(String requestUri);
-    
     
 }
