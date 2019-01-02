@@ -165,16 +165,6 @@ public final class UndertowRequest implements ServerRequest {
     }
 
     @Override
-    public int port() {
-        return exchange.getHostPort();
-    }
-
-    @Override
-    public String scheme() {
-        return exchange.getRequestScheme();
-    }
-
-    @Override
     public void startAsync(Executor executor, Runnable runnable) {
         exchange.dispatch(executor, runnable);
     }

@@ -2,105 +2,35 @@ package net.javapla.jawn.core;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.javapla.jawn.core.util.URLCodec;
 
 public interface Route {
 
+    interface Filter extends Before, After {}
     
-    
-    public interface Chain /*extends FChain */{
-        //void handle(Request req, Response resp, Route.Chain chain);
+    interface Before extends Handler {
+        @Override
+        default Result handle(final Context context) {
+            before(context);
+            return null;
+        }
+        
         /**
-         * Filter the request. Filters should invoke the {@link FilterChain#before(Context)}
-         * method if they wish the request to proceed.
+         * Execute the filter
          * 
-         * @param chain
-         *      The filter chain
          * @param context
-         *      The context
-         * @return
-         *      A response if anything needs to be redirected or 404'd
+         *          The context for the request
          */
-        /*default Result before(final Route.Filter chain, final Context context) {
-            try {
-                Result result = before(context);
-                if (result != null) {
-                    return result;
-                }
-            } catch (Exception e) {
-                onException(e);
-            }
-            
-            return chain.before(context);
-        }*/
-        
-        /**
-         * Called by framework after executing a controller.
-         * 
-         * <p>Response headers and the like should be added in {@linkplain #before(FilterChain, Context)}
-         * or by the controller, as the response is most likely already started at this point, which
-         * means that headers are already sent to the browser/caller.
-         */
-        /*default void after(final Route.Filter chain, final Context context) {
-            chain.after(context);
-        }*/
-        
-        /**
-         * Called by framework in case there was an exception inside a controller
-         *
-         * @param e exception.
-         */
-        /*default void onException(Route.Chain chain, Exception e) {
-            chain.onException(e);
-        }*/
-        
-        void nextBefore(Context context);
-        void nextAfter(Context context);
+        void before(final Context context);
     }
     
-    /*class FilterChain implements Chain {
-        final Chain chain;
-        final Filter filter;
-        FilterChain(final Chain chain, final Filter filter) {
-            this.chain = chain;
-            this.filter = filter;
-        }
-    }*/
-    
-    interface Filter {
-        static final Logger logger = LoggerFactory.getLogger(Route.Filter.class);
-        
-        void before(/*Route.Chain next, */Context context);
-        void after(/*Route.Chain next, */Context context);
-        default void onException(/*Route.Chain chain, */Exception e) {
-            logger.error("Filter chain broke", e);
-        }
-        
-        
-//        /**
-//         * Pass the request to the next filter
-//         * 
-//         * @param context
-//         *          The context for the request
-//         */
-//        Result before(Context context);
-//        
-//        /**
-//         * Remember that you cannot effectively add headers after the response has been sent.
-//         * 
-//         * @param context
-//         *          The context for the request
-//         */
-//        void after(Context context);
-//        
-//        void onException(Exception e);
+    interface After {
+        void after(final Context context, final Result result);
     }
     
     @FunctionalInterface
@@ -119,52 +49,87 @@ public interface Route {
         Result handle();
     }
     
-    interface RouteHandler extends Route, Route.Handler {
+    interface RouteHandler extends Route, Route.Handler {}
+    
+    /**
+     * Public part of the Route.Builder
+     */
+    interface Filtering {//Perhaps called RouteBuilder ?
 
-        /**
-         * @return might be null if no filters
-         */
-        /*FilterChain chain();
+        Builder filter(final Filter filter);
+
+        Builder before(final Before handler);
+
+        Builder after(final After handler);
         
-        void putFilterAtHead(Chain f);*/
     }
     
-    class Builder {
-        protected final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
+    final class Builder implements Filtering {
+        private final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
         /**
          * This regex matches everything in between path slashes.
          */
-        final static String VARIABLE_ROUTES_DEFAULT_REGEX = "([^/]*)";
+        private final static String VARIABLE_ROUTES_DEFAULT_REGEX = "([^/]*)";
         
         private final HttpMethod method;
         private String uri;
         private Route.Handler handler;
+        private LinkedList<Route.Before> before = new LinkedList<>();
+        private LinkedList<Route.After> after = new LinkedList<>();
         
         public Builder(final HttpMethod method) {
             this.method = method;
         }
         
-        Builder path(final String path) {
+        public Builder path(final String path) {
             this.uri = (path.charAt(0) != '/') ? "/" + path : path;
             return this;
         }
         
-        Builder handler(final Route.Handler handler) {
+        public Builder handler(final Route.Handler handler) {
             this.handler = handler;
             return this;
         }
         
-        Builder handler(final Route.ZeroArgHandler handler) {
+        public Builder handler(final Route.ZeroArgHandler handler) {
             this.handler = handler;
             return this;
         }
         
-        RouteHandler build() {
-            final ArrayList<String> parameters = parseParameters(uri);
-            final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
-            
+        @Override
+        public Builder filter(final Filter filter) {
+            this.before.add(filter);
+            this.after.add(filter);
+            return this;
+        }
+        
+        /*public Builder filter(final Class<? extends Filter> filter) {
+            // for this to work, the Route.Builder needs an Injector at some point
+            // - perhaps we do not want this, but if we do, then this method should be
+            // completely isolated to Jawn/Bootstrap
+        }*/
+        
+        @Override
+        public Builder before(final Route.Before handler) {
+            this.before.add(handler);
+            return this;
+        }
+        
+        @Override
+        public Builder after(final Route.After handler) {
+            this.after.add(handler);
+            return this;
+        }
+        
+        public RouteHandler build() {
             return new RouteHandler() {
-                //FilterChain chain;
+                
+                private final Route.Handler routehandler = handler;
+                private final ArrayList<String> parameters = parseParameters(uri);
+                private final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
+                
+                private final Before[] befores = before.isEmpty() ? null : before.stream().toArray(Before[]::new);
+                private final After[] afters = after.isEmpty() ? null : after.stream().toArray(After[]::new);
                 
                 @Override
                 public HttpMethod method() {
@@ -178,7 +143,7 @@ public interface Route {
                 
                 @Override
                 public Result handle(final Context context) {
-                    return handler.handle(context);
+                    return routehandler.handle(context);
                 }
                 
                 @Override
@@ -186,15 +151,15 @@ public interface Route {
                     return parameters.isEmpty();
                 }
                 
-                /*@Override
-                public FilterChain chain() {
-                    return chain;
+                @Override
+                public Before[] before() {
+                    return befores;
                 }
                 
                 @Override
-                public void putFilterAtHead(final Chain f) {
-                    chain = new FilterChain(f, chain);
-                }*/
+                public After[] after() {
+                    return afters;
+                }
                 
                 @Override
                 public boolean matches(String requestUri) {
@@ -204,31 +169,29 @@ public interface Route {
                 
                 @Override
                 public Map<String, String> getPathParametersEncoded(String requestUri) {
-                    
                     Matcher m = regex.matcher(requestUri);
-                    
                     return mapParametersFromPath(requestUri, parameters, m);
                 }
                 
                 @Override
                 public String toString() {
-                    return uri;
+                    return method + uri;
                 }
                 
                 @Override
                 public int hashCode() {
-                    return uri.hashCode();
+                    return toString().hashCode();
                 }
                 
                 @Override
                 public boolean equals(Object obj) {
-                    return uri.equals(obj.toString());
+                    return toString().equals(obj.toString());
                 }
                 
             };
         }
         
-        private static ArrayList<String> parseParameters(String uri) {
+        private static ArrayList<String> parseParameters(final String uri) {
             ArrayList<String> params = new ArrayList<>();
             
             Matcher m = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(uri);
@@ -253,11 +216,11 @@ public interface Route {
          * @return The converted regex with default matching regex - or the regex
          *          specified by the user.
          */
-        private static String convertRawUriToRegex(String rawUri) {
+        private static String convertRawUriToRegex(final String rawUri) {
 
             Matcher matcher = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(rawUri);
 
-            StringBuffer stringBuffer = new StringBuffer();
+            StringBuilder stringBuilder = new StringBuilder();
 
             while (matcher.find()) {
 
@@ -276,24 +239,24 @@ public interface Route {
                         = VARIABLE_ROUTES_DEFAULT_REGEX;
                 }
                 // we replace the current namedVariablePartOfRoute group
-                matcher.appendReplacement(stringBuffer, namedVariablePartOfORouteReplacedWithRegex);
+                matcher.appendReplacement(stringBuilder, namedVariablePartOfORouteReplacedWithRegex);
 
             }
 
             // .. and we append the tail to complete the stringBuffer
-            matcher.appendTail(stringBuffer);
+            matcher.appendTail(stringBuilder);
 
-            return stringBuffer.toString();
+            return stringBuilder.toString();
         }
         
-        private static Map<String, String> mapPathParameters(String requestUri) {
+        /*private static Map<String, String> mapPathParameters(String requestUri) {
             ArrayList<String> parameters = parseParameters(requestUri);
             
             Pattern regex = Pattern.compile(convertRawUriToRegex(requestUri));
             Matcher m = regex.matcher(requestUri);
             
             return mapParametersFromPath(requestUri, parameters, m);
-        }
+        }*/
         private final static HashMap<String, String> mapParametersFromPath(String requestUri, ArrayList<String> parameters, Matcher m) {
             HashMap<String, String> map = new HashMap<>();
             if (m.matches()) {
@@ -311,6 +274,10 @@ public interface Route {
      */
     HttpMethod method();
     
+    Before[] before();
+
+    After[] after();
+
     boolean isUrlFullyQualified();
 
     /**
@@ -336,5 +303,4 @@ public interface Route {
      * @return A map with all parameters of that uri. Encoded in => encoded out.
      */
     Map<String, String> getPathParametersEncoded(String requestUri);
-    
 }

@@ -28,13 +28,13 @@ class NettyHandler extends SimpleChannelInboundHandler<Object> {
     private final HttpHandler handler;
     private final String tmpdir;
     private final int bufferSize;
-    private final int wsMaxMessageSize;
+    //private final int wsMaxMessageSize;
 
-    NettyHandler(final HttpHandler dispatcher, final String tmpdir, final int bufferSize, final int wsBufferSize) {
+    NettyHandler(final HttpHandler dispatcher, final String tmpdir, final int bufferSize/*, final int wsBufferSize*/) {
         this.handler = dispatcher;
         this.tmpdir = tmpdir;
         this.bufferSize = bufferSize;
-        this.wsMaxMessageSize = wsBufferSize;
+        //this.wsMaxMessageSize = wsBufferSize;
     }
 
     @Override
@@ -56,7 +56,7 @@ class NettyHandler extends SimpleChannelInboundHandler<Object> {
 
                 HttpHeaders headers = new DefaultHttpHeaders();
                 handler.handle(
-                    new NettyRequest(ctx, req, headers, tmpdir, wsMaxMessageSize),
+                    new NettyRequest(ctx, req, tmpdir),
                     new NettyResponse(ctx, headers, bufferSize, keepAlive, streamId));
 
             } catch (Throwable ex) {

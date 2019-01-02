@@ -59,7 +59,7 @@ public final class FrameworkBootstrap {
         
         
         final com.google.inject.Module jawnModule = binder -> {
-            registerFrameworkModules(binder, mode, frameworkConfig, router);
+            registerCoreModules(binder, mode, frameworkConfig, router);
             
             final ApplicationConfig pluginConfig = new ApplicationConfig() {
 
@@ -84,12 +84,12 @@ public final class FrameworkBootstrap {
                 }
             };
             // Makes it possible for plugins to override framework-specific implementations
-            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.netty");//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
             
             // Makes it possible for users to override single framework-specific implementations
             userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
         };
-        final Stage stage = mode == Modes.PROD ? Stage.PRODUCTION : Stage.DEVELOPMENT;
+        final Stage stage = mode == Modes.DEV ? Stage.DEVELOPMENT : Stage.PRODUCTION;
         final Injector localInjector = Guice.createInjector(stage, jawnModule);
         
         
@@ -107,6 +107,11 @@ public final class FrameworkBootstrap {
         
         // signal startup
         startup();
+    }
+    
+    public void reboot___strap(final List<Route.RouteHandler> routes) {
+        Router router = injector.getInstance(Router.class);
+        router.recompileRoutes(routes);
     }
     
     public Injector getInjector() {
@@ -154,7 +159,7 @@ public final class FrameworkBootstrap {
         }*/
     }
     
-    protected void registerFrameworkModules(final Binder binder, final Modes mode, final Config config, final Router router) {
+    protected void registerCoreModules(final Binder binder, final Modes mode, final Config config, final Router router) {
         
         // supported languages are needed in the creation of the injector
         //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -173,7 +178,6 @@ public final class FrameworkBootstrap {
         binder.bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
         binder.bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
         binder.bind(RendererEngineOrchestrator.class).to(RendererEngineOrchestratorImpl.class).in(Singleton.class);
-        
         
         // Framework
         binder.bind(Router.class).toInstance(router);

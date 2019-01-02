@@ -58,20 +58,22 @@ public abstract class DynamicClassFactory {
     }
 
     /**
-     * Handles caching of classes if not active_reload
-     * @param className
+     * Handles caching of classes if not useCache
+     * @param fullClassName including package name
      * @param useCache flag to specify whether to cache the controller or not
      * @return
      * @throws CompilationException
      * @throws ClassLoadException
      */
-    public final static Class<?> getCompiledClass(String className, boolean useCache) throws Err.Compilation, Err.UnloadableClass {
+    public final static Class<?> getCompiledClass(String fullClassName, boolean useCache) throws Err.Compilation, Err.UnloadableClass {
         try {
             if (! useCache) {
-                DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(DynamicClassFactory.class.getClassLoader());
-                return dynamicClassLoader.loadClass(className);
+                DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(fullClassName.substring(0, fullClassName.lastIndexOf('.')));
+                Class<?> cl = dynamicClassLoader.loadClass(fullClassName);
+                dynamicClassLoader = null;
+                return cl;
             } else {
-                return CACHED_CONTROLLERS.computeIfAbsent(className, WRAP_FORNAME);
+                return CACHED_CONTROLLERS.computeIfAbsent(fullClassName, WRAP_FORNAME);
             }
         } catch (Exception e) {
             throw new Err.UnloadableClass(e);

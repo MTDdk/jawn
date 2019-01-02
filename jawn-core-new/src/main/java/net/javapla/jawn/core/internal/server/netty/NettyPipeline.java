@@ -113,7 +113,7 @@ final class NettyPipeline extends ChannelInitializer<SocketChannel> {
     }
 
     private void framework(final ChannelPipeline p) {
-        p.addLast(executor, "framework", new NettyHandler(handler, TMP_DIR.toString(), bufferSize, wsMaxMessageSize));
+        p.addLast(executor, "framework", new NettyHandler(handler, TMP_DIR.toString(), bufferSize/*, wsMaxMessageSize*/));
     }
 
 }

@@ -1,6 +1,6 @@
 package net.javapla.jawn.core.internal;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.inject.Singleton;
@@ -12,30 +12,46 @@ import net.javapla.jawn.core.Route.RouteHandler;
 @Singleton
 final class Router {
     
-    private final RouteTrie deducedRoutes;
-    private final List<RouteHandler> routes = new LinkedList<>();
+    private final RouteTrie trie;
+    
+    /** Used for wildcard routes */
+    private final List<RouteHandler> routes = new ArrayList<>();
     
     Router(List<RouteHandler> routes) {
         
-        deducedRoutes = new RouteTrie();
+        trie = new RouteTrie();
         
         compileRoutes(routes);
+        
+        // Right now, we use the _routes_ list for all wildcard routes, 
+        // and we cache the route for each URL that matches the wildcard routes.
+        // This should serve as a quick lookup if we ever stumble upon that same
+        // path again.
+        //
+        // Even though these extra cached routes in the trie should not strain the
+        // memory much, as the trie merely stores references to, perhaps, multiple
+        // route objects, but this behaviour has not been tested throughly in real life
+        // and theoretically we might want to store the wildcard routes AS wildcards
+        // in the trie to minimise stored routes, if the trie ends up storing too many
+        // routes and TrieNodes
     }
     
-    RouteHandler retrieve(HttpMethod httpMethod, String requestUri) throws Err.RouteError {
+    RouteHandler retrieve(final HttpMethod httpMethod, final String requestUri) throws Err.RouteMissing {
         
+        // first, take a look in the trie
+        RouteHandler route = trie.findExact(requestUri, httpMethod);
         
-        RouteHandler route = deducedRoutes.findExact(requestUri, httpMethod);
+        // the trie did not have any for us
         if (route == null) {
             for (var r : routes) {
                 if (r.matches(requestUri)) {
-                    route = r;
-                    break;
+                    trie.insert(requestUri, r); // cache it
+                    return r;
                 }
             }
         }
-        if (route == null) throw new Err.RouteError(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);
         
+        if (route == null) throw new Err.RouteMissing(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);
         return route;
     }
     
@@ -43,25 +59,36 @@ final class Router {
         
         for (RouteHandler route : routes) {
             if (route.isUrlFullyQualified()) {
-                deducedRoutes.insert(route.path(), route);
+                trie.insert(route.path(), route);
             } else {
                 this.routes.add(route);
             }
         }
     }
     
+    public void recompileRoutes(final List<RouteHandler> newOrAlteredRoutes) {
+        this.routes.clear();
+        this.trie.clear();
+        
+        compileRoutes(newOrAlteredRoutes);
+    }
+    
     /**
      * @author MTD (github/mtddk)
      */
-    final class RouteTrie {
+    static final class RouteTrie {
         
-        //public static final char WILDCARD = '*';
+        public static final char WILDCARD = '*';
         
         private final TrieNode root;
         
         
         public RouteTrie() {
             root = new TrieNode('#');
+        }
+        
+        public void clear() {
+            root.clear();
         }
         
         public void insert(String uri, RouteHandler route) {
@@ -75,6 +102,7 @@ final class Router {
                 if(child == null) {
                     child = new TrieNode(c);
                     current.nodes[c] = child;
+                    current.end = false;
                 }
                 current = child;
             }
@@ -104,10 +132,9 @@ final class Router {
          */
         public RouteHandler findExact(final char[] arr, final HttpMethod method) {
             TrieNode current = root;
-            //for(char c : arr) {
             for (int i = 0; i < arr.length; i++) {
                 char c = arr[i];
-                if(current.nodes[c] == null)
+                if (current.nodes[c] == null)
                     return null;
                 else
                     current = current.nodes[c];
@@ -115,11 +142,11 @@ final class Router {
             return current.routes[method.ordinal()];
         }
         
-        public RouteHandler findExact(final String str, final HttpMethod method) {
+        public RouteHandler findExact(final CharSequence str, final HttpMethod method) {
             TrieNode current = root;
             for (int i = 0; i < str.length(); i++) {
                 char c = str.charAt(i);
-                if(current.nodes[c] == null)
+                if (current.nodes[c] == null)
                     return null;
                 else
                     current = current.nodes[c];
@@ -132,36 +159,39 @@ final class Router {
          * @param arr
          * @return
          */
-        /*public final Route findRoute(final char[] arr) {
+        public final RouteHandler findRoute(final char[] arr, final HttpMethod method) {
             TrieNode current = root;
             char c;
             for (int i = 0; i < arr.length; i++) {
                 c = arr[i];
                 
-                if(current.nodes[c] == null) {
+                if (current.nodes[c] == null) {
                     // might be a wildcard search
                     if (current.nodes[WILDCARD] != null) {
                         // if this is the last part of a possible route, then just return the route
-                        if (current.nodes[WILDCARD].routeIndex > -1)
-                            return routes.get(current.nodes[WILDCARD].routeIndex);
+                        if (current.nodes[WILDCARD].end)
+                            return current.nodes[WILDCARD].routes[method.ordinal()];//routes.get(current.nodes[WILDCARD].routeIndex);
                         
                         // try the wildcard search
 //                        TrieNode node = doWildcardSearch(current.nodes[WILDCARD], arr, i);
 //                        if (node != null) return routes.get(node.routeIndex);
+                        
+                        // we are at the wildcard, so we continue to the next char, which should be a slash '/'
                         current = current.nodes[WILDCARD].nodes['/'];
                         do {
+                            // jump to next segment
                             while(++i < arr.length && arr[i] != '/');
                             i++;
                         } while (current.nodes[arr[i]] == null);
                         current = current.nodes[arr[i]];
                     } else
-                    return null;
+                        return null;
                 } else {
                     current = current.nodes[c];
                 }
             }
-            return routes.get(current.routeIndex);
-        }*/
+            return current.routes[method.ordinal()];
+        }
         
         /**
          * Whenever a wildcard is detected during ordinary traversal,
@@ -196,13 +226,23 @@ final class Router {
         final class TrieNode {
             final TrieNode[] nodes;
             final char content;
-            final RouteHandler[] routes;
+            final RouteHandler[] routes; // a route can exist for GET,POST,PUT,etc
+            boolean end = true;
             
             TrieNode(char c) {
                 //nodes = new SearchTrie[255];//extended ascii
                 nodes = new TrieNode[128];//ascii
                 content = c;
                 routes = new RouteHandler[HttpMethod.values().length];
+            }
+            
+            public void clear() {
+                for (int i = 0; i < nodes.length; i++) {
+                    nodes[i] = null;
+                }
+                for (int i = 0; i < routes.length; i++) {
+                    routes[i] = null;
+                }
             }
             
             @Override

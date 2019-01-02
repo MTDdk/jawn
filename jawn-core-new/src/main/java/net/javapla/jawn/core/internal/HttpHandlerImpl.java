@@ -11,6 +11,8 @@ import com.google.inject.Singleton;
 import net.javapla.jawn.core.Err;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
+import net.javapla.jawn.core.Route.After;
+import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Route.RouteHandler;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.server.HttpHandler;
@@ -36,25 +38,42 @@ final class HttpHandlerImpl implements HttpHandler {
     @Override
     public void handle(final ServerRequest req, final ServerResponse resp) throws Exception {
         String uri = normaliseURI(req.path());
+        resp.header("Server", "jawn");
         
         
-        ContextImpl context = new ContextImpl(req, resp, charset);
+        final ContextImpl context = new ContextImpl(req, resp, charset);
         try {
             RouteHandler route = router.retrieve(req.method(), uri);
             context.route(route);
             
+            Result result = null;
+            
             // Before filters
+            Before[] before = route.before();
+            if (before != null/*before.length > 0*/) {
+                int i = 0;
+                do {
+                    before[i].before(context);
+                } while (result == null && ++i < before.length);
+            }
             
-            
-            Result result = route.handle(context);
+            // execute
+            if (result == null) {
+                result = route.handle(context);
+            }
             
             // After filters
-            
+            After[] after = route.after();
+            if (after != null/*after.length > 0*/) {
+                for (int i = 0; i < after.length; i++) {
+                    after[i].after(context, result);
+                }
+            }
             
             // Execute handler
             runner.execute(result, context);
         
-        } catch (Err.RouteError e) {
+        } catch (Err.RouteMissing e) {
             // 404
             if (e.path.equals("/favicon.ico")) {
                 runner.execute(Results.status(Status.NOT_FOUND), context);
@@ -82,7 +101,12 @@ final class HttpHandlerImpl implements HttpHandler {
     
     void renderSystemError(final ContextImpl context, final int status, Throwable e) {
         runner.execute(Results.status(Status.valueOf(status)), context);
-        logger.error("Status: " + status, e);
+        
+        if (status == 404) {
+            logger.error("Status: " + status);
+        } else {
+            logger.error("Status: " + status, e);
+        }
     }
 
 }

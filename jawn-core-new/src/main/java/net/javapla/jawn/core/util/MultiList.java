@@ -36,22 +36,31 @@ public class MultiList<T> {
     }
     
     @SafeVarargs
-    public final void put(String key, T... param) {
-        if (!parts.containsKey(key)) {
-            parts.put(key, new ArrayList<T>());
-        }
+    public final MultiList<T> put(final String key, T... param) {
+        parts.putIfAbsent(key, new ArrayList<T>());
         
         for (T p : param) {
             parts.get(key).add(p);
         }
+        
+        return this;
     }
     
-    public final void put(String key, Collection<T> params) {
+    public final MultiList<T> put(final String key, Collection<T> params) {
         parts.putIfAbsent(key, new ArrayList<T>());
         
         for (T p : params) {
             parts.get(key).add(p);
         }
+        
+        return this;
+    }
+    
+    public final MultiList<T> put(final String key, T param) {
+        parts.putIfAbsent(key, new ArrayList<T>());
+        parts.get(key).add(param);
+        
+        return this;
     }
     
     /**
