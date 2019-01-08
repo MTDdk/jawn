@@ -28,6 +28,7 @@ final class ContextImpl implements Context {
     private Route route;
     
     private final HashMap<String, Cookie> cookies = new HashMap<>();
+    private HashMap<String, Object> attributes;
     
     ContextImpl(final ServerRequest req, final ServerResponse resp, final Charset charset) {
         this.sresp = resp;
@@ -207,6 +208,23 @@ final class ContextImpl implements Context {
             ;
     }
     
+    @Override
+    public void attribute(final String name, final Object value) {
+        instantiateAttributes();
+        attributes.put(name, value);
+    }
+    
+    @Override
+    public Optional<Object> attribute(final String name) {
+        if (attributes == null || attributes.isEmpty()) return Optional.empty();
+        return Optional.ofNullable(attributes.get(name));
+    }
+    
+    @Override
+    public <T> Optional<T> attribute(final String name, final Class<T> type) {
+        return attribute(name).map(type::cast);
+    }
+    
     void route(final Route route) {
         this.route = route;
     }
@@ -248,5 +266,9 @@ final class ContextImpl implements Context {
             sresp.header("Set-Cookie", setCookie);
             cookies.clear();
         }
+    }
+    
+    private void instantiateAttributes() {
+        if (attributes == null) attributes = new HashMap<>(5);
     }
 }

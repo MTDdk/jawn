@@ -213,8 +213,12 @@ public final class StringUtil {
         return value == null || value.trim().isEmpty();
     }
     
-    public static boolean contains(String s, char c) {
-        return s.indexOf(c) > -1;
+    public static boolean contains(final CharSequence s, final char c) {
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == c) return true;
+        }
+        
+        return false;
     }
     
     public static String padEnd(String string, int minLength, char padChar) {
@@ -228,26 +232,26 @@ public final class StringUtil {
         return bob.toString();
     }
     
-    public static boolean startsWith(String string, char ... ca) {
+    public static boolean startsWith(final CharSequence string, char ... ca) {
         int l = ca.length;
         for (int i = 0; i < l; i++) {
             if (string.charAt(i) != ca[i]) return false;
         }
         return true;
     }
-    public static boolean startsWith(String string, char ca, char cb) {
+    public static boolean startsWith(final CharSequence string, char ca, char cb) {
         if (string.charAt(0) != ca) return false;
         if (string.charAt(1) != cb) return false;
         return true;
     }
-    public static boolean startsWith(String string, char ca, char cb, char cc) {
+    public static boolean startsWith(final CharSequence string, char ca, char cb, char cc) {
         if (string.charAt(0) != ca) return false;
         if (string.charAt(1) != cb) return false;
         if (string.charAt(2) != cc) return false;
         return true;
     }
     
-    public static boolean endsWith(String string, char c) {
+    public static boolean endsWith(final CharSequence string, char c) {
         return string.charAt(string.length()-1) == c;
     }
     

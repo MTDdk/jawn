@@ -11,12 +11,12 @@ import io.undertow.util.HttpString;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.util.MultiList;
 
-public class UndertowFormItem implements FormItem {
+final class UndertowFormItem implements FormItem {
     
     private final FormValue value;
     private final String fieldName;
     
-    public UndertowFormItem(FormValue value, String fieldName) {
+    UndertowFormItem(final FormValue value, final String fieldName) {
         this.value = value;
         this.fieldName = fieldName;
     }

@@ -93,4 +93,7 @@ public interface Context {
     Request req();
     Response resp();
     Optional<String> param(String name);
+    void attribute(String name, Object value);
+    Optional<Object> attribute(String name);
+    <T> Optional<T> attribute(String name, Class<T> type);
 }

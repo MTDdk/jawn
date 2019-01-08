@@ -55,9 +55,9 @@ public class Err extends RuntimeException {
         }
     }
     
-    public static class RouteError extends Err {
+    public static class RouteMissing extends Err {
         public final String path;
-        public RouteError(final String path, final String msg) {
+        public RouteMissing(final String path, final String msg) {
             super(Status.NOT_FOUND, msg);
             this.path = path;
         }

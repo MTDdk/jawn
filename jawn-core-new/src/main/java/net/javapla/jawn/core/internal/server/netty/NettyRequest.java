@@ -3,25 +3,47 @@ package net.javapla.jawn.core.internal.server.netty;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufHolder;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
+import io.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.HttpData;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCounted;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
+import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.util.MultiList;
 
 public class NettyRequest implements ServerRequest {
+    // TODO should be instantiated in the core module instead of a server module
+    private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/);
+    static {
+        if (!TMP_DIR.toFile().exists()) TMP_DIR.toFile().mkdirs();
+    }
+    
     public static final AttributeKey<String> PROTOCOL = AttributeKey
         .newInstance(NettyRequest.class.getName() + ".protol");
 
@@ -37,22 +59,23 @@ public class NettyRequest implements ServerRequest {
     
     private final ChannelHandlerContext ctx;
     private final HttpRequest req;
-    private final HttpHeaders responseHeaders;
     private final String tmpdir;
     private final QueryStringDecoder query;
     private final String path;
-    private final int wsMaxMessageSize;
+    
+    private final HttpMethod method;
     
     private MultiList<String> params;
+    private MultiList<FormItem> formData;
 
-    NettyRequest(final ChannelHandlerContext ctx, final HttpRequest req, final HttpHeaders responseHeaders, final String tmpdir, final int wsMaxMessageSize) {
+    NettyRequest(final ChannelHandlerContext ctx, final HttpRequest req, final String tmpdir) {
         this.ctx = ctx;
         this.req = req;
-        this.responseHeaders = responseHeaders;
         this.tmpdir = tmpdir;
         this.query = new QueryStringDecoder(req.uri());
         this.path = query.path(); //any decoding needed?
-        this.wsMaxMessageSize = wsMaxMessageSize;
+        
+        this.method = HttpMethod.getMethod(req.method().asciiName(), () -> queryParams());
         
         Channel channel = ctx.channel();
         channel.attr(ASYNC).set(false);
@@ -60,7 +83,7 @@ public class NettyRequest implements ServerRequest {
 
     @Override
     public HttpMethod method() {
-        return HttpMethod.valueOf(req.method().name());
+        return method;
     }
 
     @Override
@@ -103,17 +126,27 @@ public class NettyRequest implements ServerRequest {
 
     @Override
     public List<Cookie> cookies() {
-        throw new UnsupportedOperationException("Not implented, yet");//TODO
+        // could be cached
+        String cookieString = req.headers().get(HttpHeaderNames.COOKIE);
+        if (cookieString != null) {
+            return ServerCookieDecoder.STRICT.decode(cookieString).stream()
+                .map(NettyRequest::cookie)
+                .collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     @Override
     public MultiList<FormItem> formData() {
-        return new MultiList<>();//throw new UnsupportedOperationException("Not implented, yet");//TODO
+        decodeFormData();
+        return formData;
     }
 
     @Override
     public InputStream in() throws IOException {
-        throw new UnsupportedOperationException("Not implented, yet");//TODO
+        ByteBuf content = ((HttpContent) req).content();
+        return new ByteBufInputStream(content);
     }
 
     @Override
@@ -127,16 +160,6 @@ public class NettyRequest implements ServerRequest {
         return ctx.pipeline().get("h2") == null
             ? req.protocolVersion().text()
             : "HTTP/2.0";
-    }
-
-    @Override
-    public int port() {
-        throw new UnsupportedOperationException("Not implented, yet");//TODO
-    }
-
-    @Override
-    public String scheme() {
-        throw new UnsupportedOperationException("Not implented, yet");//TODO
     }
 
     @Override
@@ -154,6 +177,62 @@ public class NettyRequest implements ServerRequest {
                 body.release();
             }
         });
+    }
+    
+    private void decodeFormData() {
+        if (formData == null) {
+            MultiList<FormItem> data = new MultiList<>();
+            
+            HttpMethod method = method();
+            boolean hasBody = method == HttpMethod.POST || method == HttpMethod.PUT;// || method == HttpMethod.PATCH;
+            boolean formLike = false;
+            if (req.headers().contains("Content-Type")) {
+                String contentType = req.headers().get("Content-Type").toLowerCase();
+                formLike = (contentType.startsWith(MediaType.MULTIPART.name()) || contentType.startsWith(MediaType.FORM.name()));
+            }
+            if (hasBody && formLike) {
+                HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(), req);
+                try {
+                    Function<HttpPostRequestDecoder, Boolean> hasNext = it -> {
+                        try {
+                            return it.hasNext();
+                        } catch (HttpPostRequestDecoder.EndOfDataDecoderException ex) {
+                            return false;
+                        }
+                    };
+                    while (hasNext.apply(decoder)) {
+                        HttpData field = (HttpData) decoder.next();
+                        String name = field.getName();
+                        try {
+                            if (field.getHttpDataType() == HttpDataType.FileUpload) {
+                                // Is File
+                                data.put(name, new NettyFormItem(name, (FileUpload) field, TMP_DIR));
+                            } else {
+                                // Is Value
+                                data.put(name, new NettyFormItem(name, field.getString(StandardCharsets.UTF_8)));
+                            }
+                        } catch (IOException ignore) {}
+                    }
+                } finally {
+                    decoder.destroy();
+                }
+            }
+            
+            this.formData = data;
+        }
+    }
+    
+    private static Cookie cookie(final io.netty.handler.codec.http.cookie.Cookie cookie) {
+        Cookie.Builder bob = new Cookie.Builder(cookie.name(), cookie.value());
+        //Optional.ofNullable(cookie.comment()).ifPresent(bob::comment);
+        Optional.ofNullable(cookie.domain()).ifPresent(bob::domain);
+        Optional.ofNullable(cookie.path()).ifPresent(bob::path);
+        //Optional.ofNullable(cookie.version()).ifPresent(bob::version);
+        Optional.ofNullable(cookie.maxAge()).map(Long::intValue).ifPresent(bob::maxAge);
+        //Optional.ofNullable(cookie.getExpires()).ifPresent(bob::expires);
+        bob.httpOnly(cookie.isHttpOnly());
+        bob.secure(cookie.isSecure());
+        return bob.build();
     }
 
 }

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-class ParserConfiguration {
+final class ParserConfiguration {
 
     public static void config(ObjectMapper mapper) {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, false);

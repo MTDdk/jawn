@@ -82,7 +82,7 @@ public class NettyResponse implements ServerResponse {
 
     @Override
     public void removeHeader(final String name) {
-        //TODO
+        headers.remove(name);
     }
 
     @Override

@@ -1,13 +1,14 @@
 package net.javapla.jawn.core.util;
 
 import java.io.CharArrayWriter;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 /**
  * Non-synchronised version of {@link CharArrayWriter} 
  *
  */
-public class CharArrayList {
+public final class CharArrayList {
     /**
      * The buffer where data is stored.
      */
@@ -85,5 +86,33 @@ public class CharArrayList {
     public String toString() {
         return new String(buf, 0, count);
     }
+    
+    public byte[] getBytes(final Charset cs) {
+        // in part the same as new String(buf, 0, count)
+        /*byte[] ret = new byte[count];
+        if (compress(buf, 0, ret, 0, count) == count) {
+            return ret; // missing the Charset conversion so we cannot do any non-String-initialisation
+        }*/
+        
+        // the most accurate according to Computer Science
+        return new String(buf, 0, count).getBytes(cs);
+    }
+    
+    /**
+     * @see {@link StringUTF16#compress(char[], int, byte[], int, int)}
+     */
+    /*public static int compress(char[] src, int srcOff, byte[] dst, int dstOff, int len) {
+        for (int i = 0; i < len; i++) {
+            char c = src[srcOff];
+            if (c > 0xFF) {
+                len = 0;
+                break;
+            }
+            dst[dstOff] = (byte)c;
+            srcOff++;
+            dstOff++;
+        }
+        return len;
+    }*/
     
 }

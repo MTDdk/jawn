@@ -62,7 +62,7 @@ public final class UndertowResponse implements ServerResponse {
 
     @Override
     public void header(String name, String value) {
-        exchange.getResponseHeaders().put(new HttpString(name), value);
+        exchange.getResponseHeaders().put(HttpString.tryFromString(name), value);
     }
 
     @Override

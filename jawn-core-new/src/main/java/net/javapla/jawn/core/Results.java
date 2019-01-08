@@ -48,6 +48,10 @@ public final class Results {
     }
     
     public static Result text(final Object entity) {
+        if (entity instanceof String) {
+            // TODO weeee might want to use getBytes(Charset)..
+            return ok().renderable(((String) entity).getBytes()).contentType(MediaType.PLAIN);
+        }
         return ok().renderable(entity).contentType(MediaType.PLAIN);
     }
     

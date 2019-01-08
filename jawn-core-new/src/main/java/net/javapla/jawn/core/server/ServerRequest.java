@@ -70,12 +70,6 @@ public interface ServerRequest {
     String ip();
     String protocol();
     
-    /**
-     * Host port
-     * @return The port part of the destination request
-     */
-    int port();
-    String scheme();
     //boolean secure();
     
 //    /**
