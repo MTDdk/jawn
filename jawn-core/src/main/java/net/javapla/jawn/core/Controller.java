@@ -1639,7 +1639,7 @@ public abstract class Controller implements ResultHolder {
             
             
     //        Configuration.getTemplateManager().merge(values, template, stringWriter);
-            return stream.toString();
+            return stream.getWriter().toString();
         } catch (IOException notPossible) { }
         return "";
     }
