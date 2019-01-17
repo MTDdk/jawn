@@ -1,6 +1,6 @@
 language: java
 jdk:
-  - oraclejdk11
+  - openjdk11
 #deploy:
 #  provider: script
 #  script: gradle clean test
