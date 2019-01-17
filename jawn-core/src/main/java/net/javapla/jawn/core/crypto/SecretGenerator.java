@@ -15,8 +15,16 @@ public abstract class SecretGenerator {
             return generate(new SecureRandom(), AES_SECRET_LENGTH);
         }
     }
+    
+    public static String generate(final int lengthOfSecret) {
+        try {
+            return generate(SecureRandom.getInstance("SHA1PRNG"), lengthOfSecret);
+        } catch (NoSuchAlgorithmException e) {
+            return generate(new SecureRandom(), lengthOfSecret);
+        }
+    }
 
-    protected static String generate(Random random, final int length) {
+    protected static String generate(final Random random, final int length) {
         char[] chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
 
         char[] result = new char[length];

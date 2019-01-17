@@ -56,6 +56,10 @@ public class RouteBuilder {
         return new RouteBuilder(HttpMethod.HEAD);
     }
     
+    public static RouteBuilder options() {
+        return new RouteBuilder(HttpMethod.OPTIONS);
+    }
+    
     public static RouteBuilder method(HttpMethod method) {
         return new RouteBuilder(method);
     }
@@ -82,7 +86,7 @@ public class RouteBuilder {
     
     public RouteBuilder to(Class<? extends Controller> type) {
         this.controller = type;
-        setAction(Constants.DEFAULT_ACTION_NAME);
+        //setAction(Constants.DEFAULT_ACTION_NAME);
         return this;
     }
     

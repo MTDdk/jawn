@@ -81,31 +81,14 @@ public interface Context {
     public String contextPath();
     
     /**
-     * Request servlet path
-     * @return
-     */
-    public String path();
-    
-    /**
-     * Returns a full URL of the request, all except a query string.
-     * 
-     * HttpServletRequest#getRequestURL()
-     * Reconstructs the URL the client used to make the request
-     *
-     * @return a full URL of the request, all except a query string.
-     */
-    public String requestUrl();
-    
-    /**
      * Returns URI, or a full path of request. This does not include protocol, host or port. Just context and path.
      * Examlpe: <code>/mywebapp/controller/action/id</code>
      * 
      * HttpServletRequest#getRequestURI()
      * Returns the part of this request's URL from the protocol name up to the query string in the first line of the HTTP request
-     * 
-     * @return  URI, or a full path of request.
+     * @return
      */
-    public String requestUri();
+    public String path();
     
     /**
      * Returns query string of the request.
@@ -267,9 +250,12 @@ public interface Context {
     
     void addCookie(Cookie cookie);
     
-    void addHeader(String name, String value);
+    void setHeader(String name, String value);
     
+    void setHeaders(String name, List<String> values);
     
+    void removeHeader(String name);
+
     Writer responseWriter(Result result) throws IOException;
     /**
      * Use to send raw data to HTTP client.
@@ -281,6 +267,8 @@ public interface Context {
      * @throws IOException 
      */
     OutputStream responseOutputStream(Result result) throws IOException;
+
+
     
     
 /* ****** */

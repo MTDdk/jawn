@@ -3,7 +3,9 @@ package net.javapla.jawn.core.templates.config;
 import java.util.Iterator;
 import java.util.Set;
 
+import net.javapla.jawn.core.exceptions.ClassLoadException;
 import net.javapla.jawn.core.reflection.ClassLocator;
+import net.javapla.jawn.core.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.util.PropertiesConstants;
 
 import org.slf4j.Logger;
@@ -35,8 +37,8 @@ public class TemplateConfigProvider<T> implements Provider<TemplateConfig<T>> {
             while (iterator.hasNext()) {
                 Class<? extends TemplateConfig> template = iterator.next();
                 try {
-                    return (TemplateConfig<T>) template.newInstance();
-                } catch (InstantiationException | IllegalAccessException ignore) {}
+                    return DynamicClassFactory.createInstance(template);
+                } catch (ClassLoadException ignore) {}
             }
         } catch (IllegalArgumentException ignoreAndContinue) {}
         

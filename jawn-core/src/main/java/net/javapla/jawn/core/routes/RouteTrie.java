@@ -1,7 +1,5 @@
 package net.javapla.jawn.core.routes;
 
-import java.io.PrintStream;
-
 import net.javapla.jawn.core.http.HttpMethod;
 
 /**

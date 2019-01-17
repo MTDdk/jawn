@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.templates.config;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
+import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.http.Context;
 
 /**
@@ -26,13 +28,15 @@ import net.javapla.jawn.core.http.Context;
  */
 public class SiteConfigurationReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
-
+    
     public static final String SITE_FILE = "site.json";
-    public static final String SCRIPT_STANDARD_FOLDER = "/js/";
-    public static final String STYLE_STANDARD_FOLDER = "/css/";
-
+    /** needs to NOT start with a '/' as we are using this string to read from the filesystem */
+    public static final String SCRIPT_STANDARD_FOLDER = "js/";
+    /** needs to NOT start with a '/' as we are using this string to read from the filesystem */
+    public static final String STYLE_STANDARD_FOLDER = "css/";
+    
     private final ObjectMapper mapper;
-    //private final DeploymentInfo deploymentInfo;
+    private final DeploymentInfo deploymentInfo;
     private final HashMap<String, SiteConfiguration> configurationCache = new HashMap<>();
     // README: ConcurrentHashMap might deadlock with the same hash - so do we really need the concurrency?
     // https://stackoverflow.com/questions/43861945/deadlock-in-concurrenthashmap
@@ -40,9 +44,9 @@ public class SiteConfigurationReader {
     private final HashMap<String, Site> cachedSiteObjs = new HashMap<>();
     
     @Inject
-    public SiteConfigurationReader(ObjectMapper mapper/*, DeploymentInfo deploymentInfo*/) {
+    public SiteConfigurationReader(ObjectMapper mapper, DeploymentInfo deploymentInfo) {
         this.mapper = mapper;
-        //this.deploymentInfo = deploymentInfo;
+        this.deploymentInfo = deploymentInfo;
     }
     
     /**
@@ -118,10 +122,9 @@ public class SiteConfigurationReader {
     
     private Site createCachableSite(Context ctx, SiteConfiguration conf) {
         // does not contain 'content'
-        return Site.builder()
-                    .url(ctx.requestUrl()) // add the URL
+        return Site.builder(ctx.mode()) // state the current mode
+                    .url(ctx.path()) // add the URL
                     .title(conf.title) // add title
-                    .mode(ctx.mode()) // state the current mode
                     
                     //add scripts
                     .scripts(conf.scripts)
@@ -169,8 +172,11 @@ public class SiteConfigurationReader {
 
         try (Reader r = new FileReader(rootFile.toFile())) {
             SiteConfiguration configuration = mapper.readValue(r, SiteConfiguration.class);
-            prefixResourceLinks(configuration.scripts, SCRIPT_STANDARD_FOLDER);
-            prefixResourceLinks(configuration.styles, STYLE_STANDARD_FOLDER);
+            
+            Path parent = folder.getParent(); // we always assume that "js/" and "css/" is at the same level as "folder" (which is most likely "webapp/views"
+            decorateLocalResourceLinks(configuration.scripts, SCRIPT_STANDARD_FOLDER, parent);
+            decorateLocalResourceLinks(configuration.styles, STYLE_STANDARD_FOLDER, parent);
+            
             return configuration;
         } catch (IOException e) {
             log.error("Reading site_file {} \n{}", rootFile, e.getMessage());
@@ -226,13 +232,49 @@ public class SiteConfigurationReader {
     /**
      * Prefixes local resources with css/ or js/.
      * "Local" is defined by not starting with 'http.*' or 'ftp.*'
+     * 
+     * Adds a version query param to local resources.
+     * The <code>version</code> is currently just an epoch
      */
-    private final void prefixResourceLinks(final SiteConfiguration.Tag[] links, final String prefix) {
-        if(links != null) {
-            for(SiteConfiguration.Tag link : links) {
-                if (!(link.url.matches("^(ht|f)tp.*") || link.url.startsWith("//")))
-                    link.url = /*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/;
+    private final void decorateLocalResourceLinks(final SiteConfiguration.Tag[] links, final String prefix, final Path root) {
+        if (links == null) return;
+        
+        for(SiteConfiguration.Tag link : links) {
+            if (isLocal(link.url)) {
+                link.url = deploymentInfo.translateIntoContextPath( toAddOrNotToAddModified(link.url, prefix, root) );
             }
+        }
+    }
+    
+    final static boolean isLocal(String url) {
+        //return !(url.matches("^(ht|f)tp.*") || url.startsWith("//"));
+        
+        //assert (url.length() < 5);
+        return ! (
+            url.startsWith("http", 0) ||
+            url.startsWith("ftp", 0) ||
+            url.startsWith("//", 0)
+            ); 
+    }
+    
+    final String toAddOrNotToAddModified(final String url, final String prefix, final Path root) {
+        StringBuilder result = new StringBuilder(1 + 4 + url.length() + 3 + 13);// '/'=1, 'http|ftp|//'=4,..,'?v='=3,lastModified=13
+        result.append(prefix); // length 3 or 4
+        result.append(url);
+        
+        File resolved = root.resolve(result.toString()).toFile();
+        
+        // prepending with '/' makes the resource not depending on the URL it is called from
+        result.insert(0, '/'); // length 1
+        
+        if (resolved.exists() /*&& resolved.canRead()*/) { // TODO at this point we actually could do some minification as well
+            result.append("?v="); // length 3
+            result.append(resolved.lastModified()); // length 13
+            return result.toString();
+        } else {
+            // README: this is frankly mostly for testing purposes - probably should be omitted all together
+            log.error("File not found:: " + result + " - Perhaps a spelling error?");
+            return result.toString();
         }
     }
 }

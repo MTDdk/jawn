@@ -25,10 +25,10 @@ public class RoutesDeducer {
         this.invoker = invoker;
     }
     
-    public RoutesDeducer deduceRoutesFromControllers() {
+    public final RoutesDeducer deduceRoutesFromControllers(final String controllerPackage) {
         
         try {
-            ControllerLocator locator = new ControllerLocator(PropertiesConstants.CONTROLLER_PACKAGE);
+            ControllerLocator locator = new ControllerLocator(controllerPackage);//PropertiesConstants.CONTROLLER_PACKAGE);
         
             locator.controllerActions
                 .forEach((controllername,actions) -> {
@@ -56,7 +56,7 @@ public class RoutesDeducer {
         } catch (IllegalArgumentException e) {
             LoggerFactory
                 .getLogger(getClass().getName())
-                .error(getClass().getSimpleName() + " did not find any controllers in " + PropertiesConstants.CONTROLLER_PACKAGE + " - not doing that, then..");
+                .error(getClass().getSimpleName() + " did not find any controllers in " + controllerPackage/*PropertiesConstants.CONTROLLER_PACKAGE */+ " - not doing that, then..");
         }
         
         return this;

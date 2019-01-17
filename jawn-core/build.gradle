@@ -47,7 +47,7 @@ dependencies {
     compile 'ch.qos.logback:logback-classic:1.2.3'
     
     //Test
-    testCompile 'org.mockito:mockito-core:2.19.1'
+    testCompile 'org.mockito:mockito-core:2.22.0'
     testCompile ('com.google.truth:truth:0.42')  {
         exclude module: 'guava' // We import it elsewhere to be concise in the versioning
         exclude module: 'junit'

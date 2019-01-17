@@ -67,7 +67,7 @@ public class ServerContext implements Context.Internal2 {
         this.request = request;
         this.response = response;
         
-        addHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
+        setHeader(X_POWERED_BY, Constants.FRAMEWORK_NAME);
     }
     
     @Override
@@ -156,18 +156,6 @@ public class ServerContext implements Context.Internal2 {
     @Override
     public String path() {
         return request.path();
-    }
-
-    @Override
-    @Deprecated
-    public String requestUrl() {
-        return null;
-    }
-
-    @Override
-    @Deprecated
-    public String requestUri() {
-        return null;
     }
 
     @Override
@@ -367,8 +355,18 @@ public class ServerContext implements Context.Internal2 {
     }
 
     @Override
-    public void addHeader(String name, String value) {
+    public void setHeader(String name, String value) {
         response.header(name, value);
+    }
+    
+    @Override
+    public void setHeaders(String name, List<String> values) {
+        response.header(name, values);
+    }
+    
+    @Override
+    public void removeHeader(String name) {
+        response.removeHeader(name);
     }
 
     @Override

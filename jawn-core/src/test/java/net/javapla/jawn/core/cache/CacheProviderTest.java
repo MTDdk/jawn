@@ -18,6 +18,7 @@ import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.database.DatabaseConnections;
 import net.javapla.jawn.core.reflection.ActionInvoker;
 import net.javapla.jawn.core.routes.RouterImpl;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.TimeUtil;
@@ -100,7 +101,7 @@ public class CacheProviderTest {
     private Cache bootBootstrap(FrameworkBootstrap bootstrap) {
         RouterImpl router = mock(RouterImpl.class);
         router.compileRoutes(mock(ActionInvoker.class));
-        bootstrap.boot(configurations, mock(Filters.class), router, mock(DatabaseConnections.class));
+        bootstrap.boot(configurations, mock(Filters.class), router, mock(ServerConfig.class), mock(DatabaseConnections.class));
         
         return bootstrap.getInjector().getInstance(Cache.class);
     }

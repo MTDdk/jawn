@@ -57,33 +57,6 @@ public class RouterImpl implements Router {
         this.properties = properties;
     }
     
-    /*public RouteBuilder GET() {
-        RouteBuilder bob = RouteBuilder.get();
-        builders.add(bob);
-        return bob;
-    }
-    public RouteBuilder POST() {
-        RouteBuilder bob = RouteBuilder.post();
-        builders.add(bob);
-        return bob;
-    }
-    public RouteBuilder PUT() {
-        RouteBuilder bob = RouteBuilder.put();
-        builders.add(bob);
-        return bob;
-    }
-    public RouteBuilder DELETE() {
-        RouteBuilder bob = RouteBuilder.delete();
-        builders.add(bob);
-        return bob;
-    }
-    public RouteBuilder HEAD() {
-        RouteBuilder bob = RouteBuilder.head();
-        builders.add(bob);
-        return bob;
-    }*/
-
-    
     @Override
     public final Route retrieveRoute(HttpMethod httpMethod, String requestUri) throws RouteException {
         // Try with the deduced routes first
@@ -91,12 +64,8 @@ public class RouterImpl implements Router {
         //if (!isDev) {
             final Route route = deducedRoutes.findExact(requestUri, httpMethod); //exact matches
             if (route != null) { 
-                if (isDev /*&& !route.isDirectlyExecutable()*/) {
-                    try {
-                        reloadController(route, false);
-                    } catch (CompilationException | ClassLoadException e) {
-                        e.printStackTrace();
-                    }
+                if (isDev && !route.isDirectlyExecutable()) {
+                    reloadController(route, false);
                 }
                 return route;
             }
@@ -134,7 +103,7 @@ public class RouterImpl implements Router {
         
         // Build the built in routes
         if (!isDev)
-            deducedRoutes = new RoutesDeducer(filters, invoker).deduceRoutesFromControllers().getRoutes();
+            deducedRoutes = new RoutesDeducer(filters, invoker).deduceRoutesFromControllers(PropertiesConstants.CONTROLLER_PACKAGE).getRoutes();
         else
             deducedRoutes = new RouteTrie();
         this.invoker = invoker;
@@ -145,7 +114,7 @@ public class RouterImpl implements Router {
             
             // Routes not containing wildcards or keywords should be incorporated into the deduced routes
             Route route = builder.build(filters, invoker);
-            if (/*!isDev && */route.isFullyQualified()) {
+            if (/*!isDev && */route.isUrlFullyQualified()) {
                 deducedRoutes.insert(route.uri, route);
                 System.out.println("deduced : " + route);
             } else {
@@ -177,6 +146,10 @@ public class RouterImpl implements Router {
                 // reload the controller, if we are not in production mode
                 if (isDev) {
                     try {
+                        if (route.hasActionSet()) {
+                            return reloadController(route, false);
+                        }
+                        
                         // a route might not have the actionName or controller set by the user, so 
                         // we try to infer it from the URI
                         String actionName = deduceActionName(route, requestUri);
@@ -191,12 +164,15 @@ public class RouterImpl implements Router {
                 }
                 
                 // if the route only has an URI defined, then we process the route as if it was an InternalRoute
-                if (route.getActionName() == null || !route.isFullyQualified()) {
+                if (route.getActionName() == null || !route.isUrlFullyQualified()) {
                     if (route.getController() == null) {
                         Route deferred = deduceRoute(route, httpMethod, requestUri, invoker);
                         if (deferred != null) return deferred;
                         return route;
                     } else {
+                        if (route.isUrlFullyQualified())
+                            return route;
+                        
                         String actionName = deduceActionName(route, requestUri);
                         return RouteBuilder.build(route, actionName);
                     }
@@ -250,7 +226,7 @@ public class RouterImpl implements Router {
     
     private String deduceActionName(Route route, String requestUri) {
         String actionName = route.getActionName();
-        if (actionName == null || !route.isFullyQualified()) {
+        if (actionName == null && !route.isUrlFullyQualified()) {
             // try to infer the action
             Map<String, String> params = route.getPathParametersEncoded(requestUri);
             ControllerMeta c = new ControllerMeta(params);
@@ -288,8 +264,13 @@ public class RouterImpl implements Router {
                 .to(controller, RouteBuilder.constructAction(actionName, httpMethod));
     }
     
-    private void reloadController(Route route, boolean useCache) throws CompilationException, ClassLoadException {
-        route.replaceController(DynamicClassFactory.getCompiledClass(route.getController().getName(), Controller.class, useCache));
+    private Route reloadController(Route route, boolean useCache) {
+        try {
+            route.replaceController(DynamicClassFactory.getCompiledClass(route.getController().getName(), Controller.class, useCache));
+        } catch (CompilationException | ClassLoadException e) {
+            throw new RouteException("Failed to reload Controller " + route.getController());
+        }
+        return route;
     }
     
     private final class ControllerMeta {

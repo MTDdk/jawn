@@ -14,6 +14,7 @@ import org.junit.Test;
 import app.controllers.UnitTestController;
 import app.controllers.testing.more.CakeController;
 import net.javapla.jawn.core.FiltersHandler;
+import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.exceptions.RouteException;
 import net.javapla.jawn.core.http.HttpMethod;
@@ -43,7 +44,7 @@ public class RouterImplTest {
     }
 
     @Test
-    public void test() {
+    public void runStandardTests() {
         standardTests();
     }
     
@@ -91,6 +92,17 @@ public class RouterImplTest {
     }
     
     @Test
+    public void customRoute_should_mapToStatedAction() {
+        builders.add(RouteBuilder.get().route("/{someid}").to(UnitTestController.class, "getLongerAction"));
+        RouterImpl router = setupRouter();
+        
+        try {
+            Route route = router.retrieveRoute(HttpMethod.GET, "/7777");
+            assertEquals("getLongerAction", route.getAction());
+        } catch (RouteException expected) {}
+    }
+    
+    @Test
     public void customRouteController() {
         builders.add(RouteBuilder.get().route("/start/{controller}"));
         builders.add(RouteBuilder.get().route("/start/{package: .*?}/{controller}"));
@@ -128,6 +140,16 @@ public class RouterImplTest {
         assertEquals("postSimple", route.getAction());
         assertEquals("simple", route.getActionName());
         assertEquals(UnitTestController.class.getName(), route.getController().getName());
+    }
+    
+    @Test
+    public void extremelySimpleJsonResponseAsDEV() {
+        builders.add(RouteBuilder.get().route("/test").with(Results.json("test")));
+        configurations = new JawnConfigurations(Modes.DEV);
+        RouterImpl router = setupRouter();
+        
+        router.retrieveRoute(HttpMethod.GET, "/test");
+        //not throwing
     }
 
     private void standardTests() {

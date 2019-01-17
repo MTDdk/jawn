@@ -34,6 +34,7 @@ import net.javapla.jawn.core.reflection.ClassLocator;
 import net.javapla.jawn.core.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.routes.RouterImpl;
 import net.javapla.jawn.core.server.HttpHandler;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.server.ServerContext;
 import net.javapla.jawn.core.util.Constants;
 
@@ -66,10 +67,10 @@ public class FrameworkBootstrap {
         combinedModules = new ArrayList<>();
     }
     
-    public synchronized void boot(final JawnConfigurations conf, final Filters filters, final Router router, DatabaseConnections databaseConnections) {
+    public synchronized void boot(final JawnConfigurations conf, final Filters filters, final Router router, final ServerConfig serverConfig, final DatabaseConnections databaseConnections) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
-        configure(conf, router, databaseConnections);
+        configure(conf, router, serverConfig, databaseConnections);
         
         // read plugins
         ApplicationConfig pluginConfig = new ApplicationConfig();
@@ -144,7 +145,7 @@ public class FrameworkBootstrap {
         this.combinedModules.add(module);
     }
     
-    protected void configure(JawnConfigurations properties, Router router, DatabaseConnections connections) {
+    protected void configure(JawnConfigurations properties, Router router, ServerConfig serverConfig, DatabaseConnections connections) {
         // Read all the configuration from the user
         /*FiltersHandler filters = new FiltersHandler();
         RouterImpl router = new RouterImpl(filters, properties);*/
@@ -155,7 +156,7 @@ public class FrameworkBootstrap {
         properties.setSupportedLanguages(appConfig.getSupportedLanguages());
         properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
         
-        addModule(new CoreModule(properties, new DeploymentInfo(properties), router));
+        addModule(new CoreModule(properties, new DeploymentInfo(properties, serverConfig.contextPath()), router));
         addModule(new DatabaseModule(connections, properties));
         addModule(new AbstractModule() {
             //ServerModule

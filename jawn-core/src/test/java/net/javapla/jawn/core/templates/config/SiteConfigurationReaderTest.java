@@ -1,18 +1,18 @@
 package net.javapla.jawn.core.templates.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import net.javapla.jawn.core.configuration.DeploymentInfo;
+import net.javapla.jawn.core.configuration.JawnConfigurations;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 
 
@@ -25,20 +25,8 @@ public class SiteConfigurationReaderTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		objectMapper = new JsonMapperProvider().get();
-		//DeploymentInfo info = new DeploymentInfo(mock(JawnConfigurations.class));
-		confReader = new SiteConfigurationReader(objectMapper/*, info*/);
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() throws Exception {
-	}
-
-	@After
-	public void tearDown() throws Exception {
+		DeploymentInfo info = new DeploymentInfo(mock(JawnConfigurations.class), "");
+		confReader = new SiteConfigurationReader(objectMapper, info);
 	}
 
 	@Test
@@ -47,15 +35,15 @@ public class SiteConfigurationReaderTest {
 		Assert.assertEquals("jawn test", conf.title);
 		
 		Assert.assertEquals(2, conf.scripts.length);
-		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
-		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
 		
 		Assert.assertEquals(2, conf.styles.length);
-		Assert.assertEquals(SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style1.css", conf.styles[0].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style1.css", conf.styles[0].url);
 		Assert.assertNull(conf.styles[0].attr.get("integrity"));
 		Assert.assertNull(conf.styles[0].attr.get("crossorigin"));
 		
-		Assert.assertEquals(SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style2.css", conf.styles[1].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style2.css", conf.styles[1].url);
 		Assert.assertEquals("#2", conf.styles[1].attr.get("integrity"));
 		Assert.assertEquals("none", conf.styles[1].attr.get("crossorigin"));
 		
@@ -88,7 +76,7 @@ public class SiteConfigurationReaderTest {
 		Assert.assertEquals(true, conf.overrideDefault);
 		
 		Assert.assertEquals(1, conf.scripts.length);
-		Assert.assertEquals(SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script3.js", conf.scripts[0].url);
+		Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script3.js", conf.scripts[0].url);
 	}
 	
 	@Test
@@ -157,18 +145,31 @@ public class SiteConfigurationReaderTest {
         Assert.assertEquals(2, conf.styles.length);
     }
 	
-	/*@Test
+	@Test
+	public void isLocal() {
+	    Assert.assertTrue(SiteConfigurationReader.isLocal(""));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("http://something.com"));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("https://something.com"));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("ftp://something.com"));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("ftps://something.com"));
+	    Assert.assertFalse(SiteConfigurationReader.isLocal("//something.com"));
+	    Assert.assertTrue(SiteConfigurationReader.isLocal("file://something"));
+	    Assert.assertTrue(SiteConfigurationReader.isLocal("something.css"));
+	    Assert.assertTrue(SiteConfigurationReader.isLocal("something.js"));
+	}
+	
+	@Test
 	public void readSiteConfiguration_with_contextPath() {
 	    JawnConfigurations configurations = mock(JawnConfigurations.class);
-	    when(configurations.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_CONTEXT_PATH)).thenReturn(Optional.of("/certaincontext"));
-        DeploymentInfo info = new DeploymentInfo(configurations);
+        DeploymentInfo info = new DeploymentInfo(configurations,"/certaincontext");
 	    SiteConfigurationReader confReader = new SiteConfigurationReader(objectMapper, info);
         
 	    SiteConfiguration conf = confReader.read("src/test/resources", "index", "index", false);
 	    
-        Assert.assertEquals("/certaincontext"+SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
-        Assert.assertEquals("/certaincontext"+SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
+        Assert.assertEquals("/certaincontext/"+SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
+        Assert.assertEquals("/certaincontext/"+SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
         
-        Assert.assertEquals("/certaincontext"+SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style.css", conf.styles[0]);
-	}*/
+        Assert.assertEquals("/certaincontext/"+SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style1.css", conf.styles[0].url);
+        Assert.assertEquals("/certaincontext/"+SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style2.css", conf.styles[1].url);
+	}
 }

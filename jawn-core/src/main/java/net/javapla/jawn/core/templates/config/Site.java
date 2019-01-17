@@ -31,8 +31,8 @@ public class Site {
         return this;
     }
     
-    public static Site.Builder builder() {
-        return new Site.Builder();
+    public static Site.Builder builder(final Modes mode) {
+        return new Site.Builder(mode);
     }
     
     public static class Builder {
@@ -44,8 +44,8 @@ public class Site {
 
         public String content;
 
-        public Modes mode;
-        private Builder() {}
+        public final Modes mode;
+        private Builder(final Modes mode) { this.mode = mode; }
         
         public Site.Builder url(String url) {
             this.url = url;
@@ -77,21 +77,17 @@ public class Site {
             this.content = content;
             return this;
         }
-        public Site.Builder mode(Modes mode) {
-            this.mode = mode;
-            return this;
-        }
         
         public Site build() {
             return new Site(url, title, scripts, styles, content, mode);
         }
         
         protected final String createScripts(SiteConfiguration.Tag[] links) {
-            return createLinks(links, "<script src=\"", "></script>\n");
+            return createLinks(links, "<script src=\"", "></script>");
         }
         
         protected final String createStyles(SiteConfiguration.Tag[] links) {
-            return createLinks(links, "<link rel=\"stylesheet\" type=\"text/css\" href=\"", ">\n");
+            return createLinks(links, "<link rel=\"stylesheet\" type=\"text/css\" href=\"", ">");
         }
         
         protected final String createLinks(SiteConfiguration.Tag[] links, String prefix, String postfix) {
@@ -110,7 +106,12 @@ public class Site {
                     sb.append(entry.getValue());
                     sb.append("\"");
                 });
+                
                 sb.append(postfix);
+                
+                if (mode == Modes.DEV) {
+                    sb.append('\n');
+                }
             };
             return sb.toString();
         }

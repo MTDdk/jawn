@@ -23,10 +23,9 @@ public class ControllerLocator extends ClassLocator {
         httpMethods[listHttpMethods.length] = Constants.DEFAULT_ACTION_NAME;
     }
 
-    //         controllerPath, actions
-    public final Map<String, Set<String>> controllerActions;
-    public final Map<String, Class<? extends Controller>> controllers; // name -> controllers
-    //TODO: having these public is of course not viable
+    //        controllerPath, actions
+    final Map<String, Set<String>> controllerActions;
+    final Map<String, Class<? extends Controller>> controllers; // name -> controllers
     
     public ControllerLocator(String packageToScan) throws IllegalArgumentException {
         super(packageToScan);

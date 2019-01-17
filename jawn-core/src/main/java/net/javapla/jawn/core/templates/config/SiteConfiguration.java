@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.templates.config;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,12 +35,10 @@ public class SiteConfiguration implements Cloneable {
     }
     
     public static class Tag {
-        private static final HashMap<String, String> EMPTY = new HashMap<>(0);
-        
         public String url;
-        public Map<String, String> attr = EMPTY;
+        public Map<String, String> attr = Collections.emptyMap();
         
-        public Tag() {}
+        public Tag() {} // needed by Jackson serialisation
         public Tag(String url) {
             this.url = url;
         }

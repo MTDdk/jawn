@@ -98,11 +98,16 @@ public class ExpiringMapCache implements Cache {
     public void setExpiration(String key, int seconds) {
         cache.setExpiration(key, seconds, TimeUnit.SECONDS);
     }
-
+    
+    @Override
+    public long getExpectedExpiration(String key) {
+        return cache.getExpectedExpiration(key);
+    }
+    
     @Override
     public boolean isSet(String key) {
         if (StringUtil.blank(key)) throw new IllegalArgumentException("Key must not be null or empty");
-        return cache.containsKey(key);
+        return cache.containsKey(key);// && cache.getExpectedExpiration(key) > 0;
     }
     
     @Override
