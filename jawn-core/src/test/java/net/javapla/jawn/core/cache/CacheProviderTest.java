@@ -101,7 +101,7 @@ public class CacheProviderTest {
     private Cache bootBootstrap(FrameworkBootstrap bootstrap) {
         RouterImpl router = mock(RouterImpl.class);
         router.compileRoutes(mock(ActionInvoker.class));
-        bootstrap.boot(configurations, mock(Filters.class), router, mock(ServerConfig.class), mock(DatabaseConnections.class));
+        bootstrap.boot(configurations, mock(Filters.class), router, new ServerConfig(), mock(DatabaseConnections.class));
         
         return bootstrap.getInjector().getInstance(Cache.class);
     }
