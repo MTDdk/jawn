@@ -4,6 +4,7 @@ install: true
 jdk:
   - openjdk11
 script:
+  - gradle --version
   - gradle test
   
 branches:
