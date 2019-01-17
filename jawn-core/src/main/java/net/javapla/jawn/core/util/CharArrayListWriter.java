@@ -7,7 +7,7 @@ import java.util.Arrays;
  * Non-synchronised version of {@link CharArrayWriter} 
  *
  */
-public class CharArrayList {
+public class CharArrayListWriter {
     /**
      * The buffer where data is stored.
      */
@@ -21,7 +21,7 @@ public class CharArrayList {
     /**
      * Creates a new CharArrayWriter.
      */
-    public CharArrayList() {
+    public CharArrayListWriter() {
         this(32);
     }
 
@@ -31,7 +31,7 @@ public class CharArrayList {
      * @param initialSize  an int specifying the initial buffer size.
      * @exception IllegalArgumentException if initialSize is negative
      */
-    public CharArrayList(int initialSize) {
+    public CharArrayListWriter(int initialSize) {
         if (initialSize < 0) {
             throw new IllegalArgumentException("Negative initial size: "
                                                + initialSize);

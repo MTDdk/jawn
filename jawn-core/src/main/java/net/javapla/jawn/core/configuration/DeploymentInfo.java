@@ -8,13 +8,15 @@ public class DeploymentInfo {
     private final String WEBAPP_FOLDER_NAME = "webapp/";
 
 	private final String webappPath;
-//	private final String CONTEXT_PATH;
-//	private final boolean CONTEXT_PATH_SET;
+	private final String contextPath;
+	private final boolean isContextPathSet;
+	private final int contextPathLength;
 	
-	public DeploymentInfo(JawnConfigurations properties) {
+	public DeploymentInfo(final JawnConfigurations properties, final String contextPath) {
 		webappPath = assertPath(properties.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse("")) + WEBAPP_FOLDER_NAME;
-//		CONTEXT_PATH = properties.getSecure(Constants.PROPERTY_DEPLOYMENT_INFO_CONTEXT_PATH).orElse("");
-//		CONTEXT_PATH_SET = !CONTEXT_PATH.isEmpty();
+		this.contextPath = contextPath;
+		isContextPathSet = !contextPath.isEmpty();
+		contextPathLength = contextPath.length();
 	}
 	
 	private static String assertPath(String path) {
@@ -41,34 +43,48 @@ public class DeploymentInfo {
      * @param path a String specifying a virtual path
      * @return a String specifying the real path, or null if the translation cannot be performed
      */
-    public String getRealPath(String path) {
+    public String getRealPath(final String path) {
     	if (path == null) return null;
-//    	if (CONTEXT_PATH_SET && path.startsWith(CONTEXT_PATH)) return WEBAPP + path.substring(CONTEXT_PATH.length());
+    	if (isContextPathSet && path.startsWith(contextPath)) return webappPath + path.substring(contextPath.length());
         return webappPath + path;
     }
     
-    /*public String getContextPath() {
-        return CONTEXT_PATH;
+    public String getContextPath() {
+        return contextPath;
     }
     
     public String translateIntoContextPath(String path) {
-        if (!CONTEXT_PATH_SET) 
+        if (!isContextPathSet) 
             return path;
         if (path.charAt(0) == '/')
-            return CONTEXT_PATH + path;
-        return CONTEXT_PATH + '/' + path;
+            return contextPath + path;
+        return contextPath + '/' + path;
     }
     
     public void translateIntoContextPath(String[] paths) {
-        if (CONTEXT_PATH_SET) {
+        if (isContextPathSet) {
             for (int i = 0; i < paths.length; i++) {
                 paths[i] = translateIntoContextPath(paths[i]);
             }
         }
     }
     
-    public String stripContextPath(String path) {
-        if (!CONTEXT_PATH_SET) return path;
-        return path.substring(CONTEXT_PATH.length());
-    }*/
+    public String stripContextPath(final String path) {
+        return stripContextPath(contextPath, contextPathLength, path);
+    }
+    
+    public static final String stripContextPath(final String contextPath, final String requestPath) {
+        return stripContextPath(contextPath, contextPath.length(), requestPath);
+    }
+    
+    public static final String stripContextPath(final String contextPath, final int contextPathLength, final String requestPath) {
+        if (contextPath.isEmpty() || requestPath.length() <= contextPathLength) return requestPath;
+        
+        // remove from beginning
+        for (int c = 0; c < contextPathLength; c++) {
+            if (contextPath.charAt(c) != requestPath.charAt(c)) return requestPath;
+        }
+        
+        return requestPath.substring(contextPathLength);
+    }
 }

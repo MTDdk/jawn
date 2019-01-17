@@ -27,6 +27,7 @@ import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.HttpString;
+import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.http.Cookie;
 import net.javapla.jawn.core.http.Cookie.Builder;
 import net.javapla.jawn.core.http.FormItem;
@@ -59,7 +60,7 @@ public class UndertowRequest implements Request {
         //this.form = parseForm(exchange, StandardCharsets.UTF_8.name());//conf.getString("application.tmpdir"), conf.getString("application.charset"));
         
         this.contextPath = contextPath;
-        this.path = URLCodec.decode(stripContextPath(contextPath, exchange.getRequestPath()), StandardCharsets.UTF_8);
+        this.path = URLCodec.decode(DeploymentInfo.stripContextPath(contextPath, exchange.getRequestPath()), StandardCharsets.UTF_8);
     }
     
     @Override
@@ -217,19 +218,6 @@ public class UndertowRequest implements Request {
     @Override
     public void startAsync() {
         exchange.dispatch(); //TODO https://github.com/jooby-project/jooby/blob/master/modules/jooby-undertow/src/main/java/org/jooby/internal/undertow/UndertowRequest.java
-    }
-
-    
-    private static final String stripContextPath(final String contextPath, final String requestPath) {
-        if (contextPath.isEmpty()) return requestPath;
-        
-        // remove from beginning
-        final int length = contextPath.length();
-        for (int c = 0; c < length; c++) {
-            if (contextPath.charAt(c) != requestPath.charAt(c)) return requestPath;
-        }
-        
-        return requestPath.substring(length);
     }
 
     private FormData parseForm() {

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
+import net.javapla.jawn.core.configuration.DeploymentInfo;
 import net.javapla.jawn.core.http.Context;
 
 /**
@@ -29,11 +30,13 @@ public class SiteConfigurationReader {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     public static final String SITE_FILE = "site.json";
+    /** needs to NOT start with a '/' as we are using this string to read from the filesystem */
     public static final String SCRIPT_STANDARD_FOLDER = "js/";
+    /** needs to NOT start with a '/' as we are using this string to read from the filesystem */
     public static final String STYLE_STANDARD_FOLDER = "css/";
     
     private final ObjectMapper mapper;
-    //private final DeploymentInfo deploymentInfo;
+    private final DeploymentInfo deploymentInfo;
     private final HashMap<String, SiteConfiguration> configurationCache = new HashMap<>();
     // README: ConcurrentHashMap might deadlock with the same hash - so do we really need the concurrency?
     // https://stackoverflow.com/questions/43861945/deadlock-in-concurrenthashmap
@@ -41,9 +44,9 @@ public class SiteConfigurationReader {
     private final HashMap<String, Site> cachedSiteObjs = new HashMap<>();
     
     @Inject
-    public SiteConfigurationReader(ObjectMapper mapper/*, DeploymentInfo deploymentInfo*/) {
+    public SiteConfigurationReader(ObjectMapper mapper, DeploymentInfo deploymentInfo) {
         this.mapper = mapper;
-        //this.deploymentInfo = deploymentInfo;
+        this.deploymentInfo = deploymentInfo;
     }
     
     /**
@@ -238,8 +241,7 @@ public class SiteConfigurationReader {
         
         for(SiteConfiguration.Tag link : links) {
             if (isLocal(link.url)) {
-                //link.url = /*deploymentInfo.translateIntoContextPath(*/prefix + link.url/*)*/
-                link.url = toAddOrNotToAddModified(link.url, prefix, root);
+                link.url = deploymentInfo.translateIntoContextPath( toAddOrNotToAddModified(link.url, prefix, root) );
             }
         }
     }
@@ -256,7 +258,7 @@ public class SiteConfigurationReader {
     }
     
     final String toAddOrNotToAddModified(final String url, final String prefix, final Path root) {
-        StringBuilder result = new StringBuilder(1 + 4 + url.length() + 3 + 13);
+        StringBuilder result = new StringBuilder(1 + 4 + url.length() + 3 + 13);// '/'=1, 'http|ftp|//'=4,..,'?v='=3,lastModified=13
         result.append(prefix); // length 3 or 4
         result.append(url);
         
@@ -270,9 +272,8 @@ public class SiteConfigurationReader {
             result.append(resolved.lastModified()); // length 13
             return result.toString();
         } else {
-            log.error("File not found:: " + result + " - Perhaps a spelling error?");
             // README: this is frankly mostly for testing purposes - probably should be omitted all together
-            result.insert(0, '/');
+            log.error("File not found:: " + result + " - Perhaps a spelling error?");
             return result.toString();
         }
     }

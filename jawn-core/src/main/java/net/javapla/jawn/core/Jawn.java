@@ -369,7 +369,7 @@ public class Jawn {
         long startupTime = System.currentTimeMillis();
         
         JawnConfigurations properties = new JawnConfigurations(mode);
-        bootstrapper.boot(properties, filters, new RouterImpl(builders, filters, properties), databaseConnections);
+        bootstrapper.boot(properties, filters, new RouterImpl(builders, filters, properties), serverConfig, databaseConnections);
         Injector injector = bootstrapper.getInjector();
         try {
             injector.getInstance(Server.class).start(serverConfig);

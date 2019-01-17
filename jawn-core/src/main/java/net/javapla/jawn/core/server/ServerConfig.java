@@ -41,7 +41,10 @@ public class ServerConfig {
     private int backlog = 0;
     private boolean backlogSet = false;
     
-    
+    /**
+     * @return empty string, if no context path is specified;
+     *         otherwise the input context path, guaranteed to start with '/'
+     */
     public String contextPath() {
         return contextPath;
     }

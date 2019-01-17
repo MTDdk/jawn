@@ -27,7 +27,7 @@ public class ControllerTest {
         new JawnConfigurations(Modes.DEV);
         
         Injector injector = mock(Injector.class);
-        DeploymentInfo info = new DeploymentInfo(mock(JawnConfigurations.class));
+        DeploymentInfo info = new DeploymentInfo(mock(JawnConfigurations.class), "");
         when(injector.getInstance(DeploymentInfo.class)).thenReturn(info);
         
         
