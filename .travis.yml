@@ -1,13 +1,11 @@
 language: java
+install: true
+
 jdk:
   - openjdk11
-#deploy:
-#  provider: script
-#  script: gradle clean test
-#  on:
-#    jdk: oraclejdk8
-git:
-  depth: 1
+script:
+  - gradle test
+  
 branches:
   only:
   - master
