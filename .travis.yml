@@ -1,11 +1,9 @@
 language: java
-install: true
 
 jdk:
   - openjdk11
 script:
-  - gradle --version
-  - gradle test
+  - ./gradlew test
   
 branches:
   only:
