@@ -18,7 +18,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'eclipse'
-    apply plugin: 'jacoco'
+//    apply plugin: 'jacoco'
 //    apply plugin: 'net.ltgt.errorprone'
 
 
@@ -49,9 +49,9 @@ subprojects {
         ignoreFailures false
         
     }
-    jacocoTestReport {
+    /*jacocoTestReport {
         dependsOn test
-    }
+    }*/
 
     /*tasks.withType(JavaCompile) {
      options.compilerArgs += [ '-Xep:DeadException:WARN', '-Xep:GuardedByValidator:OFF' ]
