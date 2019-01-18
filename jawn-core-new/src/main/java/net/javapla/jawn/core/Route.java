@@ -82,6 +82,9 @@ public interface Route {
         }
         
         public Builder path(final String path) {
+            if (path == null) throw new NullPointerException("Path is null");
+            if (path.isEmpty()) throw new IllegalArgumentException("Path is empty");
+            
             this.uri = (path.charAt(0) != '/') ? "/" + path : path;
             return this;
         }
@@ -99,7 +102,7 @@ public interface Route {
         @Override
         public Builder filter(final Filter filter) {
             this.before.add(filter);
-            this.after.add(filter);
+            this.after.addFirst(filter);
             return this;
         }
         
@@ -142,8 +145,30 @@ public interface Route {
                 }
                 
                 @Override
-                public Result handle(final Context context) {
-                    return routehandler.handle(context);
+                public Result handle(final Context context) /*throws Exception*/ {
+                    Result result = null;
+                    
+                    // Before filters
+                    if (befores != null) {
+                        int i = 0;
+                        do {
+                            befores[i].before(context);
+                        } while (result == null && ++i < befores.length);
+                    }
+                    
+                    // execute
+                    if (result == null) {
+                        result = routehandler.handle(context);
+                    }
+                    
+                    // After filters
+                    if (afters != null) {
+                        for (int i = 0; i < afters.length; i++) {
+                            afters[i].after(context, result);
+                        }
+                    }
+                    
+                    return result;
                 }
                 
                 @Override

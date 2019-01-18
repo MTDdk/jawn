@@ -27,18 +27,14 @@ public class Jawn {
     
     private final FrameworkBootstrap bootstrap;
     private final LinkedList<Route.Builder> routes;
-    private final LinkedList<Route.Filter> filters;
-    private final LinkedList<Route.Before> beforeFilters;
-    private final LinkedList<Route.After> afterFilters;
+    private final RouteFilterPopulator filters;
     
     private Modes mode = Modes.DEV;
 
     public Jawn() {
         bootstrap = new FrameworkBootstrap();
         routes = new LinkedList<>();
-        filters = new LinkedList<>();
-        beforeFilters = new LinkedList<>();
-        afterFilters = new LinkedList<>();
+        filters = new RouteFilterPopulator();
     }
     
     // ****************
@@ -108,7 +104,7 @@ public class Jawn {
     // ****************
     /** add a global filter */
     protected Jawn filter(final Route.Filter filter) {
-        filters.add(filter);
+        filters.filter(filter);
         return this;
     }
     /*protected Jawn filter(final Class<? extends Route.Filter> filter) {
@@ -118,13 +114,13 @@ public class Jawn {
     
     /** add a global filter */
     protected Jawn before(final Route.Before filter) {
-        beforeFilters.add(filter);
+        filters.filter(filter);
         return this;
     }
     
     /** add a global filter */
     protected Jawn after(final Route.After filter) {
-        afterFilters.add(filter);
+        filters.filter(filter);
         return this;
     }
     
@@ -154,7 +150,7 @@ public class Jawn {
         // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
-        bootstrap.boot(mode, routePopulator());
+        bootstrap.boot(mode, buildRoutes());
         
         Injector injector = bootstrap.getInjector();
         try {
@@ -190,10 +186,10 @@ public class Jawn {
      * @param jawn
      *          A subclass of Jawn
      * @param args
-     *          <ol>
-     *          <li>Server port - Overwrites the default port and the port if it is assigned by {@link ServerConfig#port(int)}</li>
-     *          <li>Mode of operation - DEV,TEST,PROD or their fully qualified names: development, test, production. See {@linkplain Modes}. Default is DEV</li>
-     *          </ol>
+     //*          <ol>
+     //*          <li>Server port - Overwrites the default port and the port if it is assigned by {@link ServerConfig#port(int)}</li>
+     //*          <li>Mode of operation - DEV,TEST,PROD or their fully qualified names: development, test, production. See {@linkplain Modes}. Default is DEV</li>
+     //*          </ol>
      */
     private static final void run(final Jawn jawn, final String ... args) {
         //jawn.getClass().getPackageName()
@@ -229,7 +225,7 @@ public class Jawn {
                 );
             
             // look for changes to reload
-            final Consumer<Jawn> reloader = (newJawnInstance) -> dynamicInstance.bootstrap.reboot___strap(newJawnInstance.routePopulator());
+            final Consumer<Jawn> reloader = (newJawnInstance) -> dynamicInstance.bootstrap.reboot___strap(newJawnInstance.buildRoutes());
             PackageWatcher watcher = new PackageWatcher(jawn, reloader);
             
             // start the watcher
@@ -270,14 +266,56 @@ public class Jawn {
         }
     }*/
     
-    private List<RouteHandler> routePopulator() {
-        // add global filters to all routes
-        // currently, they are added AFTER already added filters
-        // README create populator class for this behaviour
-        filters.forEach(f -> routes.forEach(r -> r.filter(f)));
-        beforeFilters.forEach(f -> routes.forEach(r -> r.before(f)));
-        afterFilters.forEach(f -> routes.forEach(r -> r.after(f)));
-        
+    List<RouteHandler> buildRoutes() {
+        filters.populate(routes);
         return routes.stream().map(Route.Builder::build).collect(Collectors.toList());
+    }
+    
+    static final class RouteFilterPopulator {
+        private final LinkedList<Object> bagOFilters;
+        
+        RouteFilterPopulator() {
+            bagOFilters = new LinkedList<>();
+        }
+        
+        void filter(final Route.Filter f) {
+            bagOFilters.add(f);
+        }
+        
+        void filter(final Route.Before f) {
+            bagOFilters.add(f);
+        }
+        
+        void filter(final Route.After f) {
+            bagOFilters.add(f);
+        }
+        
+        /**
+         * Add global filters to all routes
+         * currently, they are added AFTER already added filters
+         * 
+         * Should add the filters in a layered manner, and in the order
+         * they are written in the code
+         * 
+         * Example:
+         * jawn.filter(filter1);
+         * jawn.filter(filter2);
+         * 
+         * Results in following execution order:
+         * filter1.before -> filter2.before -> execute handler -> filter2.after -> filter1.after
+         * 
+         * @param routes
+         */
+        void populate(final List<Route.Builder> routes) {
+            bagOFilters.forEach(item -> {
+                if (item instanceof Route.Filter) { //filter is instanceof Before and After, so this has to be first
+                    routes.forEach(r -> r.filter((Route.Filter) item));
+                } else if (item instanceof Route.After) {
+                    routes.forEach(r -> r.after((Route.After) item));
+                } else if (item instanceof Route.Before) {
+                    routes.forEach(r -> r.before((Route.Before) item));
+                }
+            });
+        }
     }
 }

@@ -9,10 +9,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Err;
-import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
-import net.javapla.jawn.core.Route.After;
-import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Route.RouteHandler;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.server.HttpHandler;
@@ -46,11 +43,11 @@ final class HttpHandlerImpl implements HttpHandler {
             RouteHandler route = router.retrieve(req.method(), uri);
             context.route(route);
             
-            Result result = null;
+            /*Result result = null;
             
             // Before filters
             Before[] before = route.before();
-            if (before != null/*before.length > 0*/) {
+            if (before != null) {
                 int i = 0;
                 do {
                     before[i].before(context);
@@ -64,14 +61,14 @@ final class HttpHandlerImpl implements HttpHandler {
             
             // After filters
             After[] after = route.after();
-            if (after != null/*after.length > 0*/) {
+            if (after != null) {
                 for (int i = 0; i < after.length; i++) {
                     after[i].after(context, result);
                 }
-            }
+            }*/
             
             // Execute handler
-            runner.execute(result, context);
+            runner.execute(/*result*/route.handle(context), context);
         
         } catch (Err.RouteMissing e) {
             // 404
@@ -103,7 +100,7 @@ final class HttpHandlerImpl implements HttpHandler {
         runner.execute(Results.status(Status.valueOf(status)), context);
         
         if (status == 404) {
-            logger.error("Status: " + status);
+            logger.info("404 [{}]", context.req().path());
         } else {
             logger.error("Status: " + status, e);
         }

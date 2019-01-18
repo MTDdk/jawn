@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class RouteTest {
+public class RouteBuilderTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {}
@@ -22,9 +22,15 @@ public class RouteTest {
     @After
     public void tearDown() throws Exception {}
 
-    @Test
-    public void test() {
-        
+    @Test(expected = IllegalArgumentException.class)
+    public void emptyPath() {
+        new Route.Builder(HttpMethod.GET).path("");
+    }
+    
+    @Test(expected = NullPointerException.class)
+    public void nullPath() {
+        String s = null;
+        new Route.Builder(HttpMethod.GET).path(s);
     }
 
 }
