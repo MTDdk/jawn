@@ -11,7 +11,7 @@ allprojects {
 
     // maven metadata
     group = "net.javapla.jawn"
-    version = "2.0.0-SNAPSHOT"
+    version = "2.0.0-SNAPSHOT"//'0.9.15-SNAPSHOT'
 
     tasks.withType(Javadoc).all { enabled = true }
 }
