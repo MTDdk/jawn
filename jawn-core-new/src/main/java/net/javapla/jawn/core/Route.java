@@ -4,14 +4,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import net.javapla.jawn.core.util.URLCodec;
 
 public interface Route {
+    
+    interface Chain {
+        void next();
+    }
 
-    interface Filter extends Before, After {}
+    interface Filter extends Before, After { }
     
     interface Before extends Handler {
         @Override
@@ -26,7 +32,10 @@ public interface Route {
          * @param context
          *          The context for the request
          */
-        void before(final Context context);
+        void before(Context context);
+    }
+    interface Before2 {
+        Result before(Context context);
     }
     
     interface After {
@@ -54,17 +63,31 @@ public interface Route {
     /**
      * Public part of the Route.Builder
      */
-    interface Filtering {//Perhaps called RouteBuilder ?
+    interface Filtering<T> {//Perhaps called RouteBuilder ?
 
-        Builder filter(final Filter filter);
+        T filter(final Filter filter);
 
-        Builder before(final Before handler);
+        T before(final Handler handler);
+        default T before(final Before handler) {
+            return before((Handler) handler);
+        }
+        default T before(final Runnable handler) {
+            return before(c -> handler.run());
+        }
+        default T before(final Supplier<Result> handler) {
+            return before(c -> {return handler.get();});
+        }
+        default T before(final Result result) {
+            return before(c -> result);
+        }
 
-        Builder after(final After handler);
-        
+        T after(final After handler);
+        default T after(final Runnable handler) {
+            return after((c,r) -> handler.run());
+        }
     }
     
-    final class Builder implements Filtering {
+    final class Builder implements Filtering<Builder> {
         private final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
         /**
          * This regex matches everything in between path slashes.
@@ -74,8 +97,10 @@ public interface Route {
         private final HttpMethod method;
         private String uri;
         private Route.Handler handler;
-        private LinkedList<Route.Before> before = new LinkedList<>();
+        private LinkedList<Route.Handler> before = new LinkedList<>();
+        private LinkedList<Route.Handler> globalBefore = new LinkedList<>();
         private LinkedList<Route.After> after = new LinkedList<>();
+        private LinkedList<Route.After> globalAfter = new LinkedList<>();
         
         public Builder(final HttpMethod method) {
             this.method = method;
@@ -113,7 +138,7 @@ public interface Route {
         }*/
         
         @Override
-        public Builder before(final Route.Before handler) {
+        public Builder before(final Route.Handler handler) {
             this.before.add(handler);
             return this;
         }
@@ -124,6 +149,17 @@ public interface Route {
             return this;
         }
         
+        void globalFilter(final Route.Filter handler) {
+            this.globalBefore.add(handler);
+            this.globalAfter.addFirst(handler);
+        }
+        void globalBefore(final Route.Handler handler) {
+            this.globalBefore.add(handler);
+        }
+        void globalAfter(final Route.After handler) {
+            this.globalAfter.add(handler);
+        }
+
         public RouteHandler build() {
             return new RouteHandler() {
                 
@@ -131,8 +167,8 @@ public interface Route {
                 private final ArrayList<String> parameters = parseParameters(uri);
                 private final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
                 
-                private final Before[] befores = before.isEmpty() ? null : before.stream().toArray(Before[]::new);
-                private final After[] afters = after.isEmpty() ? null : after.stream().toArray(After[]::new);
+                private final Before[] befores = before.isEmpty() && globalBefore.isEmpty() ? null : Stream.concat(globalBefore.stream(), before.stream()).toArray(Before[]::new);
+                private final After[] afters = after.isEmpty() && globalAfter.isEmpty() ? null : Stream.concat(after.stream(), globalAfter.stream()).toArray(After[]::new);
                 
                 @Override
                 public HttpMethod method() {
@@ -147,12 +183,12 @@ public interface Route {
                 @Override
                 public Result handle(final Context context) /*throws Exception*/ {
                     Result result = null;
+                    int i = 0;
                     
                     // Before filters
                     if (befores != null) {
-                        int i = 0;
                         do {
-                            befores[i].before(context);
+                            result = befores[i].handle(context);
                         } while (result == null && ++i < befores.length);
                     }
                     
@@ -163,7 +199,7 @@ public interface Route {
                     
                     // After filters
                     if (afters != null) {
-                        for (int i = 0; i < afters.length; i++) {
+                        for (i = 0; i < afters.length; i++) {
                             afters[i].after(context, result);
                         }
                     }
@@ -212,7 +248,7 @@ public interface Route {
                 public boolean equals(Object obj) {
                     return toString().equals(obj.toString());
                 }
-                
+
             };
         }
         

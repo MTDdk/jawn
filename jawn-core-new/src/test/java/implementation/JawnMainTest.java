@@ -23,11 +23,10 @@ public class JawnMainTest extends Jawn {
                 public MediaType[] getContentType() {
                     return new MediaType[] { MediaType.valueOf("kage/henning") };
                 }
-                
             });
         });
         
-        get("/", Results.text("holaaaa55888"));
+        get("/", Results.text("holaaaa55888")).before(Results.json(null));
         get("/test", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(Status.ALREADY_REPORTED));
         get("/xml", Results.xml("<xml>teeeest</xml>"));
         get("/json", Results.json("{\"key\":\"teeeest\"}"));

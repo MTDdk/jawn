@@ -24,45 +24,41 @@ public class RouteFilterPopulatorTest {
     @Test
     public void orderingOfFilters() {
         // filters should be executed in correct order
-        // filter1.before -> filter2.before -> filter3.before -> filter3.after -> filter2.after -> filter1.after
+        // filter1.before -> filter2.before -> filter3.before -> routeSpecificBefore
+        // -> execute handler
+        // -> routeSpecificAfter -> filter3.after -> filter2.after -> filter1.after
         
         Jawn j = new Jawn();
         Context context = mock(Context.class);
         Result result = Results.noContent();
-        long[] executionOrder = new long[7];
+        long[] executionOrder = new long[8];
         
-        j.get("/", result).before(c -> {executionOrder[0] = System.nanoTime();});
+        j.get("/", result)
+            .before(() -> {executionOrder[3] = System.nanoTime();})
+            .after(() -> {executionOrder[4] = System.nanoTime();});
+        
         j.filter(new Route.Filter() {
-            @Override
+            public void before(Context context) {
+                executionOrder[0] = System.nanoTime();
+            }
+            public void after(Context context, Result result) {
+                executionOrder[7] = System.nanoTime();
+            }
+        });
+        j.filter(new Route.Filter() {
             public void before(Context context) {
                 executionOrder[1] = System.nanoTime();
             }
-            
-            @Override
             public void after(Context context, Result result) {
                 executionOrder[6] = System.nanoTime();
             }
         });
         j.filter(new Route.Filter() {
-            @Override
             public void before(Context context) {
                 executionOrder[2] = System.nanoTime();
             }
-            
-            @Override
             public void after(Context context, Result result) {
                 executionOrder[5] = System.nanoTime();
-            }
-        });
-        j.filter(new Route.Filter() {
-            @Override
-            public void before(Context context) {
-                executionOrder[3] = System.nanoTime();
-            }
-            
-            @Override
-            public void after(Context context, Result result) {
-                executionOrder[4] = System.nanoTime();
             }
         });
         
