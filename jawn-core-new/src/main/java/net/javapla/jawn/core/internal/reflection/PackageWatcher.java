@@ -11,8 +11,8 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.function.Consumer;
 
-import net.javapla.jawn.core.Err.Compilation;
-import net.javapla.jawn.core.Err.UnloadableClass;
+import net.javapla.jawn.core.Up.Compilation;
+import net.javapla.jawn.core.Up.UnloadableClass;
 import net.javapla.jawn.core.Jawn;
 
 public class PackageWatcher implements Closeable {

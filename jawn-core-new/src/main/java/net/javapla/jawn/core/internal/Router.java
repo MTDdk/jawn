@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route.RouteHandler;
 
@@ -36,7 +36,7 @@ final class Router {
         // routes and TrieNodes
     }
     
-    RouteHandler retrieve(final HttpMethod httpMethod, final String requestUri) throws Err.RouteMissing {
+    RouteHandler retrieve(final HttpMethod httpMethod, final String requestUri) throws Up.RouteMissing {
         
         // first, take a look in the trie
         RouteHandler route = trie.findExact(requestUri, httpMethod);
@@ -51,7 +51,7 @@ final class Router {
             }
         }
         
-        if (route == null) throw new Err.RouteMissing(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);
+        if (route == null) throw new Up.RouteMissing(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);
         return route;
     }
     

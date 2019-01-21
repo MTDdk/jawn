@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 
 /**
  * @author MTD
@@ -22,38 +22,38 @@ public abstract class DynamicClassFactory {
      * @throws CompilationException If the class could not be successfully compiled
      * @throws ClassLoadException 
      */
-    public final static <T> T createInstance(String className, Class<T> expectedType, boolean useCache) throws Err.Compilation, Err.UnloadableClass {
+    public final static <T> T createInstance(String className, Class<T> expectedType, boolean useCache) throws Up.Compilation, Up.UnloadableClass {
         try {
             Object o = createInstance(getCompiledClass(className, useCache)); // a check to see if the class exists
             T instance = expectedType.cast(o); // a check to see if the class is actually a correct subclass
             return instance ;
-        } catch (Err.Compilation | Err.UnloadableClass e) {
+        } catch (Up.Compilation | Up.UnloadableClass e) {
             throw e;
         } catch (ClassCastException e) {
             //from cast()
-            throw new Err.UnloadableClass("Class: " + className + " is not the expected type, are you sure it extends " + expectedType.getName() + "?");
+            throw new Up.UnloadableClass("Class: " + className + " is not the expected type, are you sure it extends " + expectedType.getName() + "?");
         } catch (Exception e) {
-            throw new Err.UnloadableClass(e);
+            throw new Up.UnloadableClass(e);
         }
     }
     
-    public final static <T> T createInstance(Class<?> clazz, Class<T> expectedType) throws Err.UnloadableClass {
+    public final static <T> T createInstance(Class<?> clazz, Class<T> expectedType) throws Up.UnloadableClass {
         try {
             Object o = createInstance(clazz);
             return expectedType.cast(o);
         } catch (ClassCastException e) {
             //from cast()
-            throw new Err.UnloadableClass("Class: " + clazz + " is not the expected type, are you sure it extends " + expectedType.getName() + "?");
+            throw new Up.UnloadableClass("Class: " + clazz + " is not the expected type, are you sure it extends " + expectedType.getName() + "?");
         }
     }
     
-    public final static <T> T createInstance(Class<? extends T> clazz) throws Err.UnloadableClass {
+    public final static <T> T createInstance(Class<? extends T> clazz) throws Up.UnloadableClass {
         try {
             return clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new Err.UnloadableClass(e);
+            throw new Up.UnloadableClass(e);
         } catch (Exception e) {
-            throw new Err.UnloadableClass(e);
+            throw new Up.UnloadableClass(e);
         }
     }
 
@@ -65,7 +65,7 @@ public abstract class DynamicClassFactory {
      * @throws CompilationException
      * @throws ClassLoadException
      */
-    public final static Class<?> getCompiledClass(String fullClassName, boolean useCache) throws Err.Compilation, Err.UnloadableClass {
+    public final static Class<?> getCompiledClass(String fullClassName, boolean useCache) throws Up.Compilation, Up.UnloadableClass {
         try {
             if (! useCache) {
                 DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(fullClassName.substring(0, fullClassName.lastIndexOf('.')));
@@ -76,11 +76,11 @@ public abstract class DynamicClassFactory {
                 return CACHED_CONTROLLERS.computeIfAbsent(fullClassName, WRAP_FORNAME);
             }
         } catch (Exception e) {
-            throw new Err.UnloadableClass(e);
+            throw new Up.UnloadableClass(e);
         }
     }
     
-    public final static <T> Class<? extends T> getCompiledClass(String className, Class<T> expected, boolean useCache) throws Err.Compilation, Err.UnloadableClass {
+    public final static <T> Class<? extends T> getCompiledClass(String className, Class<T> expected, boolean useCache) throws Up.Compilation, Up.UnloadableClass {
         Class<?> compiledClass = getCompiledClass(className, useCache);
         return compiledClass.asSubclass(expected);
     }

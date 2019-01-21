@@ -37,27 +37,27 @@ public class RouteFilterPopulatorTest {
             .before(() -> {executionOrder[3] = System.nanoTime();})
             .after(() -> {executionOrder[4] = System.nanoTime();});
         
-        j.filter(new Route.Filter() {
-            public void before(Context context) {
+        j.filter(new Route.VoidFilter() {
+            public void before() {
                 executionOrder[0] = System.nanoTime();
             }
-            public void after(Context context, Result result) {
+            public void after() {
                 executionOrder[7] = System.nanoTime();
             }
         });
-        j.filter(new Route.Filter() {
-            public void before(Context context) {
+        j.filter(new Route.VoidFilter() {
+            public void before() {
                 executionOrder[1] = System.nanoTime();
             }
-            public void after(Context context, Result result) {
+            public void after() {
                 executionOrder[6] = System.nanoTime();
             }
         });
-        j.filter(new Route.Filter() {
-            public void before(Context context) {
+        j.filter(new Route.VoidFilter() {
+            public void before() {
                 executionOrder[2] = System.nanoTime();
             }
-            public void after(Context context, Result result) {
+            public void after() {
                 executionOrder[5] = System.nanoTime();
             }
         });

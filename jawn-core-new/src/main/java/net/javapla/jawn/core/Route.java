@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,18 +14,46 @@ import net.javapla.jawn.core.util.URLCodec;
 
 public interface Route {
     
-    interface Chain {
-        void next();
+    
+    public static class Chain {
+        
+        
+        Result next(Context context) {
+            
+            return null;
+        }
     }
 
-    interface Filter extends Before, After { }
-    
-    interface Before extends Handler {
+    interface Filter extends Before, After {
+//        void handle(Context context, Route.Chain chain);
+    }
+    /*interface VoidFilter extends Filter {
         @Override
+        default Optional<Result> before(Context context) {
+            before();
+            return Optional.empty();
+        }
+        
+        @Override
+        default Result after(Context context, Result result) {
+            return result;
+        }
+        
+        void before();
+        void after();
+    }*/
+    
+    interface Before /*extends Filter*/ /*extends Handler*/ {
+        /*@Override
         default Result handle(final Context context) {
             before(context);
             return null;
-        }
+        }*/
+        /*@Override
+        default void handle(Context context, Chain chain) {
+            before(context);
+            chain.next(context);
+        }*/
         
         /**
          * Execute the filter
@@ -32,15 +61,21 @@ public interface Route {
          * @param context
          *          The context for the request
          */
-        void before(Context context);
-    }
-    interface Before2 {
-        Result before(Context context);
+        void before(Context context, Chain chain);
     }
     
+    
     interface After {
-        void after(final Context context, final Result result);
+        Result after(final Context context, final Result result);
     }
+    /*interface VoidAfter extends After {
+        @Override
+        default Result after(Context context, Result result) {
+            after(context);
+            return result;
+        }
+        void after(Context context);
+    }*/
     
     @FunctionalInterface
     interface Handler {
@@ -67,23 +102,23 @@ public interface Route {
 
         T filter(final Filter filter);
 
-        T before(final Handler handler);
-        default T before(final Before handler) {
+        //T before(final Handler handler);
+        /*default */T before(final Before handler)/* {
             return before((Handler) handler);
-        }
-        default T before(final Runnable handler) {
-            return before(c -> handler.run());
-        }
-        default T before(final Supplier<Result> handler) {
+        }*/;
+        /*default T before(final Runnable handler) {
+            return before(c -> {handler.run();return null;});
+        }*/
+        /*default T before(final Supplier<Result> handler) {
             return before(c -> {return handler.get();});
-        }
-        default T before(final Result result) {
-            return before(c -> result);
-        }
+        }*/
+        /*default T before(final Result result) {
+            return before(c -> Optional.of(result));
+        }*/
 
         T after(final After handler);
         default T after(final Runnable handler) {
-            return after((c,r) -> handler.run());
+            return after((c,r) -> {handler.run();return r;});
         }
     }
     
@@ -97,8 +132,8 @@ public interface Route {
         private final HttpMethod method;
         private String uri;
         private Route.Handler handler;
-        private LinkedList<Route.Handler> before = new LinkedList<>();
-        private LinkedList<Route.Handler> globalBefore = new LinkedList<>();
+        private LinkedList<Route.Before> before = new LinkedList<>();
+        private LinkedList<Route.Before> globalBefore = new LinkedList<>();
         private LinkedList<Route.After> after = new LinkedList<>();
         private LinkedList<Route.After> globalAfter = new LinkedList<>();
         
@@ -138,7 +173,7 @@ public interface Route {
         }*/
         
         @Override
-        public Builder before(final Route.Handler handler) {
+        public Builder before(final Route.Before handler) {
             this.before.add(handler);
             return this;
         }
@@ -153,9 +188,12 @@ public interface Route {
             this.globalBefore.add(handler);
             this.globalAfter.addFirst(handler);
         }
-        void globalBefore(final Route.Handler handler) {
+        void globalBefore(final Route.Before handler) {
             this.globalBefore.add(handler);
         }
+        /*void globalBefore(final Route.Handler handler) {
+            this.globalBefore.add(handler::handle);
+        }*/
         void globalAfter(final Route.After handler) {
             this.globalAfter.add(handler);
         }
@@ -167,7 +205,7 @@ public interface Route {
                 private final ArrayList<String> parameters = parseParameters(uri);
                 private final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
                 
-                private final Before[] befores = before.isEmpty() && globalBefore.isEmpty() ? null : Stream.concat(globalBefore.stream(), before.stream()).toArray(Before[]::new);
+                private final Handler[] befores = before.isEmpty() && globalBefore.isEmpty() ? null : Stream.concat(globalBefore.stream(), before.stream()).toArray(Handler[]::new);
                 private final After[] afters = after.isEmpty() && globalAfter.isEmpty() ? null : Stream.concat(after.stream(), globalAfter.stream()).toArray(After[]::new);
                 
                 @Override
@@ -188,8 +226,8 @@ public interface Route {
                     // Before filters
                     if (befores != null) {
                         do {
-                            result = befores[i].handle(context);
-                        } while (result == null && ++i < befores.length);
+                            /*result = */befores[i].handle(context);
+                        } while (/*result == null &&*/ ++i < befores.length);
                     }
                     
                     // execute
@@ -200,7 +238,7 @@ public interface Route {
                     // After filters
                     if (afters != null) {
                         for (i = 0; i < afters.length; i++) {
-                            afters[i].after(context, result);
+                            result = afters[i].after(context, result);
                         }
                     }
                     
@@ -214,7 +252,7 @@ public interface Route {
                 
                 @Override
                 public Before[] before() {
-                    return befores;
+                    return (Before[]) befores;
                 }
                 
                 @Override

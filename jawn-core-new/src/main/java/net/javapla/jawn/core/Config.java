@@ -116,7 +116,7 @@ public interface Config {
                 resource = options.classLoader().getResource(file + ".properties");
             }
             
-            if (resource == null) throw new Err.IO("Resource '"+file+"' was not found");
+            if (resource == null) throw new Up.IO("Resource '"+file+"' was not found");
             
             return _read(resource);
         }
@@ -127,7 +127,7 @@ public interface Config {
                 p.load(stream);
                 return p;
             } catch (IOException e) {
-                throw new Err.IO(e);
+                throw new Up.IO(e);
             }
         }
     }

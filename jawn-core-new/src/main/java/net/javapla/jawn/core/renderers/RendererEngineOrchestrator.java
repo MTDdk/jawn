@@ -3,7 +3,7 @@ package net.javapla.jawn.core.renderers;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.MediaType;
 
 /**
@@ -27,6 +27,6 @@ public interface RendererEngineOrchestrator {
      *            The content type
      * @return The template engine, if found
      */
-    void getRendererEngineForContentType(MediaType contentType, Consumer<RendererEngine> callback) throws Err.BadMediaType;
+    void getRendererEngineForContentType(MediaType contentType, Consumer<RendererEngine> callback) throws Up.BadMediaType;
 
 }

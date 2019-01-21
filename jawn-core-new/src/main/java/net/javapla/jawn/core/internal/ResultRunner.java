@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
@@ -33,7 +33,7 @@ final class ResultRunner {
         }
         
         result.renderable().ifPresent(renderable -> {
-            final MediaType type = result.contentType().orElseThrow(() -> new Err(Status.NOT_ACCEPTABLE, "Could not find any suitable way to serve you your content"));
+            final MediaType type = result.contentType().orElseThrow(() -> new Up(Status.NOT_ACCEPTABLE, "Could not find any suitable way to serve you your content"));
             
             engines.getRendererEngineForContentType(type, engine -> invoke(engine, context, renderable));
         });
@@ -45,7 +45,7 @@ final class ResultRunner {
         try {
             engine.invoke(context, renderable);
         } catch (Exception e) {
-            throw new Err.RenderableError(e);
+            throw new Up.RenderableError(e);
         }
     }
 }

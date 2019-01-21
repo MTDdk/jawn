@@ -18,7 +18,7 @@ import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -82,7 +82,7 @@ public final class RendererEngineOrchestratorImpl implements RendererEngineOrche
     }
 
     @Override
-    public final void getRendererEngineForContentType(final MediaType contentType, final Consumer<RendererEngine> callback) throws Err.BadMediaType {
+    public final void getRendererEngineForContentType(final MediaType contentType, final Consumer<RendererEngine> callback) throws Up.BadMediaType {
         final Provider<? extends RendererEngine> provider = contentTypeToRendererEngineMap.get(contentType);
         
         if (provider != null) {
@@ -91,7 +91,7 @@ public final class RendererEngineOrchestratorImpl implements RendererEngineOrche
             if (contentType.matches(MediaType.HTML)) {
                 log.warn("You might want to include jawn-templates-stringtemplate or another template engine in your classpath");
             }
-            throw new Err.BadMediaType(
+            throw new Up.BadMediaType(
                 MessageFormat.format("Could not find a template engine supporting the content type of the response : {0}", contentType));
         }
     }

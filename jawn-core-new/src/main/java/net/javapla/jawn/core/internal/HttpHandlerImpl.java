@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route.RouteHandler;
 import net.javapla.jawn.core.Status;
@@ -70,7 +70,7 @@ final class HttpHandlerImpl implements HttpHandler {
             // Execute handler
             runner.execute(/*result*/route.handle(context), context);
         
-        } catch (Err.RouteMissing e) {
+        } catch (Up.RouteMissing e) {
             // 404
             if (e.path.equals("/favicon.ico")) {
                 runner.execute(Results.status(Status.NOT_FOUND), context);

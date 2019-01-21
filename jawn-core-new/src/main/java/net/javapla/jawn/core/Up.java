@@ -3,39 +3,39 @@ package net.javapla.jawn.core;
 import javax.annotation.Nullable;
 
 @SuppressWarnings("serial")
-public class Err extends RuntimeException {
+public class Up extends RuntimeException {
     
-    public static class BadMediaType extends Err {
+    public static class BadMediaType extends Up {
         public BadMediaType(final String message) {
             super(Status.BAD_REQUEST, message);
         }
     }
 
-    public static class Missing extends Err {
+    public static class Missing extends Up {
         public Missing(final String message) {
             super(Status.BAD_REQUEST, message);
         }
     }
     
-    public static class ParsableError extends Err {
+    public static class ParsableError extends Up {
         public ParsableError(final Throwable err) {
             super(Status.UNPROCESSABLE_ENTITY, err);
         }
     }
     
-    public static class RenderableError extends Err {
+    public static class RenderableError extends Up {
         public RenderableError(final Throwable err) {
             super(Status.SERVER_ERROR, err);
         }
     }
     
-    public static class Compilation extends Err {
+    public static class Compilation extends Up {
         public Compilation(final Throwable err) {
             super(Status.SERVER_ERROR, err);
         }
     }
     
-    public static class UnloadableClass extends Err {
+    public static class UnloadableClass extends Up {
         public UnloadableClass(final Throwable err) {
             super(Status.SERVER_ERROR, err);
         }
@@ -45,7 +45,7 @@ public class Err extends RuntimeException {
         }
     }
     
-    public static class IO extends Err {
+    public static class IO extends Up {
         public IO(final Throwable err) {
             super(Status.SERVER_ERROR, err);
         }
@@ -55,7 +55,7 @@ public class Err extends RuntimeException {
         }
     }
     
-    public static class RouteMissing extends Err {
+    public static class RouteMissing extends Up {
         public final String path;
         public RouteMissing(final String path, final String msg) {
             super(Status.NOT_FOUND, msg);
@@ -65,40 +65,40 @@ public class Err extends RuntimeException {
     
     private final int statusCode;
     
-    public Err(final Status status, final String message, final Throwable cause) {
+    public Up(final Status status, final String message, final Throwable cause) {
         super(message(status, message), cause);
         this.statusCode = status.value();
     }
     
-    public Err(final int status, final String message, final Throwable cause) {
+    public Up(final int status, final String message, final Throwable cause) {
         super(message("", status, message), cause);
         this.statusCode = status;
     }
     
-    public Err(final Status status, final String message) {
+    public Up(final Status status, final String message) {
         super(message(status, message));
         this.statusCode = status.value();
     }
     
-    public Err(final int status, final String message) {
+    public Up(final int status, final String message) {
         this(Status.valueOf(status), message);
     }
     
-    public Err(final Status status, final Throwable cause) {
+    public Up(final Status status, final Throwable cause) {
         super(message(status, null), cause);
         this.statusCode = status.value();
     }
     
-    public Err(final int status, final Throwable cause) {
+    public Up(final int status, final Throwable cause) {
         this(Status.valueOf(status), cause);
     }
     
-    public Err(final Status status) {
+    public Up(final Status status) {
         super(message(status, null));
         this.statusCode = status.value();
     }
 
-    public Err(final int status) {
+    public Up(final int status) {
         this(Status.valueOf(status));
     }
     

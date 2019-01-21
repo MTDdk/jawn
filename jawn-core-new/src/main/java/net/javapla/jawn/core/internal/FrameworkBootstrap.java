@@ -21,7 +21,7 @@ import com.google.inject.Singleton;
 import com.google.inject.Stage;
 
 import net.javapla.jawn.core.Config;
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
@@ -192,7 +192,7 @@ public final class FrameworkBootstrap {
         try {
             Config userConfig = ConfigImpl.user(mode);
             ((ConfigImpl) frameworkConfig).merge(userConfig);
-        } catch (Err.IO ignore) {} //Resource 'jawn.properties' was not found
+        } catch (Up.IO ignore) {} //Resource 'jawn.properties' was not found
         
         return frameworkConfig;
     }

@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.MediaType;
 
 @Singleton
@@ -22,29 +22,29 @@ class JsonParserEngine implements ParserEngine {
     }
     
     @Override
-    public <T> T invoke(Reader reader, Class<T> clazz) throws Err.ParsableError {
+    public <T> T invoke(Reader reader, Class<T> clazz) throws Up.ParsableError {
         try (Reader r = reader) {
             return mapper.readValue(r, clazz);
         } catch (IOException e) {
-            throw new Err.ParsableError(e);
+            throw new Up.ParsableError(e);
         }
     }
 
     @Override
-    public <T> T invoke(InputStream stream, Class<T> clazz) throws Err.ParsableError {
+    public <T> T invoke(InputStream stream, Class<T> clazz) throws Up.ParsableError {
         try (InputStream s = stream ) {
             return mapper.readValue(s, clazz);
         } catch (IOException e) {
-            throw new Err.ParsableError(e);
+            throw new Up.ParsableError(e);
         }
     }
     
     @Override
-    public <T> T invoke(byte[] arr, Class<T> clazz) throws Err.ParsableError {
+    public <T> T invoke(byte[] arr, Class<T> clazz) throws Up.ParsableError {
         try {
             return mapper.readValue(arr, clazz);
         } catch (IOException e) {
-            throw new Err.ParsableError(e);
+            throw new Up.ParsableError(e);
         }
     }
 

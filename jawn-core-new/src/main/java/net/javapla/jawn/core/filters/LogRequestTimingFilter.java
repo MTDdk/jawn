@@ -14,18 +14,22 @@ public class LogRequestTimingFilter implements Filter {
     private final static Logger logger = LoggerFactory.getLogger(LogRequestTimingFilter.class.getSimpleName());
 
     @Override
-    public void before(final Context context) {
+    public Result before(final Context context) {
         // filters are NOT thread safe!
         context.attribute(getClass().getName(), time());
+        
+        return null;
     }
 
     @Override
-    public void after(final Context context, final Result result) {
+    public Result after(final Context context, final Result result) {
         context.attribute(getClass().getName(), Long.class).ifPresent(time -> {
             String processingTime = String.valueOf(time() - time);
             context.resp().header("X-Request-Processing-Time", processingTime);
             logger.info("Processed request in: " + processingTime + " milliseconds, path: " + context.req().path() + ", method: " + context.req().httpMethod());
         });
+        
+        return result;
     }
     
     private final long time() {

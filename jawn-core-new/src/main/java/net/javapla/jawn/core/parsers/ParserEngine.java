@@ -3,7 +3,7 @@ package net.javapla.jawn.core.parsers;
 import java.io.InputStream;
 import java.io.Reader;
 
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.MediaType;
 
 /**
@@ -23,11 +23,11 @@ public interface ParserEngine {
      * @param clazz The class we expect
      * @return The object instance populated with all values from raw request
      */
-    <T> T invoke(Reader reader, Class<T> clazz) throws Err.ParsableError;
+    <T> T invoke(Reader reader, Class<T> clazz) throws Up.ParsableError;
     
-    <T> T invoke(InputStream stream, Class<T> clazz) throws Err.ParsableError;
+    <T> T invoke(InputStream stream, Class<T> clazz) throws Up.ParsableError;
     
-    <T> T invoke(byte[] arr, Class<T> clazz) throws Err.ParsableError;
+    <T> T invoke(byte[] arr, Class<T> clazz) throws Up.ParsableError;
     
     /**
      * The content type this BodyParserEngine can handle

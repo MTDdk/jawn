@@ -13,7 +13,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import net.javapla.jawn.core.Err;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Route.RouteHandler;
@@ -51,17 +51,17 @@ public class RouterTest {
         try {
             router.retrieve(HttpMethod.POST, "/first");
             fail();
-        } catch (Err.RouteMissing e) {}
+        } catch (Up.RouteMissing e) {}
         
         try {
             router.retrieve(HttpMethod.PUT, "/first");
             fail();
-        } catch (Err.RouteMissing e) {}
+        } catch (Up.RouteMissing e) {}
         
         try {
             router.retrieve(HttpMethod.DELETE, "/first");
             fail();
-        } catch (Err.RouteMissing e) {}
+        } catch (Up.RouteMissing e) {}
     }
     
      @Test

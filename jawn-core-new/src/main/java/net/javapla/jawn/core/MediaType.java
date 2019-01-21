@@ -146,11 +146,11 @@ public class MediaType implements Comparable<MediaType> {
         return wildcardSubtype;
     }
     
-    public static MediaType valueOf(final String type) throws Err.BadMediaType {
+    public static MediaType valueOf(final String type) throws Up.BadMediaType {
         return parse(type).get(0);
     }
     
-    public static List<MediaType> parse(final String type) throws Err.BadMediaType {
+    public static List<MediaType> parse(final String type) throws Up.BadMediaType {
         return cache.computeIfAbsent(type, MediaType::_parse);
     }
     
@@ -253,12 +253,12 @@ public class MediaType implements Comparable<MediaType> {
             } else {
                 String[] typeAndSubtype = parts[0].split("/");
                 if (typeAndSubtype.length != 2) {
-                    throw new Err.BadMediaType(value);
+                    throw new Up.BadMediaType(value);
                 }
                 String stype = typeAndSubtype[0].trim();
                 String subtype = typeAndSubtype[1].trim();
                 if (WILDCARD_TYPE.equals(stype) && !WILDCARD_TYPE.equals(subtype)) {
-                    throw new Err.BadMediaType(value);
+                    throw new Up.BadMediaType(value);
                 }
                 Map<String, String> parameters = createParametersMap(null);
                 if (parts.length > 1) {
