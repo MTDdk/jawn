@@ -68,7 +68,7 @@ public abstract class DynamicClassFactory {
     public final static Class<?> getCompiledClass(String fullClassName, boolean useCache) throws Up.Compilation, Up.UnloadableClass {
         try {
             if (! useCache) {
-                DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(fullClassName.substring(0, fullClassName.lastIndexOf('.')));
+                DynamicClassLoader dynamicClassLoader = new DynamicClassLoader(packageName(fullClassName));
                 Class<?> cl = dynamicClassLoader.loadClass(fullClassName);
                 dynamicClassLoader = null;
                 return cl;
@@ -99,4 +99,15 @@ public abstract class DynamicClassFactory {
             throw new RuntimeException(e);
         }
     };
+    
+    static String packageName(final String fullClassName) {
+        int end;
+        if (fullClassName.endsWith(".class")) { // 6 chars
+            end = fullClassName.substring(0, fullClassName.length() - 6).lastIndexOf('.');
+        } else {
+            end = fullClassName.lastIndexOf('.');
+        }
+        
+        return fullClassName.substring(0, end);
+    }
 }

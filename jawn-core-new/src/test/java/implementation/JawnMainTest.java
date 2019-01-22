@@ -25,7 +25,7 @@ public class JawnMainTest extends Jawn {
             });
         });
         
-        get("/", Results.text("holaaaa55888"));
+        get("/", Results.text("holaaaa5588")).before(SomeRandomClass::before);
         get("/test", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(Status.ALREADY_REPORTED));
         get("/xml", Results.xml("<xml>teeeest</xml>"));
         get("/json", Results.json("{\"key\":\"teeeest\"}"));
