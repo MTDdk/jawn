@@ -1,14 +1,14 @@
 apply plugin: 'java'
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-	// Framework
-	compile project(':jawn-core')
-
-	// Server
-    compile 'io.undertow:undertow-core:2.0.11.Final'
+  // Framework
+  compile project(':jawn-core')
+  
+  // Server
+  compile 'io.undertow:undertow-core:2.0.11.Final'
 }
 
