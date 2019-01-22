@@ -5,21 +5,9 @@ import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
-public class RouteFilterPopulatorTest {
+import net.javapla.jawn.core.Route.Chain;
 
-    @Test
-    public void emptyBefores() {
-        Jawn j = new Jawn();
-        j.get("/", Results.noContent());
-        j.buildRoutes().forEach(r -> assertThat(r.before()).isNull());
-    }
-    
-    @Test
-    public void emptyAfters() {
-        Jawn j = new Jawn();
-        j.get("/", Results.noContent());
-        j.buildRoutes().forEach(r -> assertThat(r.after()).isNull());
-    }
+public class RouteFilterPopulatorTest {
 
     @Test
     public void orderingOfFilters() {
@@ -29,46 +17,59 @@ public class RouteFilterPopulatorTest {
         // -> routeSpecificAfter -> filter3.after -> filter2.after -> filter1.after
         
         Jawn j = new Jawn();
-        Context context = mock(Context.class);
         Result result = Results.noContent();
         long[] executionOrder = new long[8];
         
         j.get("/", result)
             .before(() -> {executionOrder[3] = System.nanoTime();})
-            .after(() -> {executionOrder[4] = System.nanoTime();});
+            .after(() -> {executionOrder[4] = System.nanoTime();})
+            ;
         
-        j.filter(new Route.VoidFilter() {
-            public void before() {
+        j.filter(new Route.Filter() { //filter1
+            @Override
+            public Result before(Context context, Chain chain) {
                 executionOrder[0] = System.nanoTime();
+                return chain.next();
             }
-            public void after() {
+            @Override
+            public Result after(Context context, Result result) {
                 executionOrder[7] = System.nanoTime();
+                return result;
             }
         });
-        j.filter(new Route.VoidFilter() {
-            public void before() {
+        j.filter(new Route.Filter() { //filter2
+            @Override
+            public Result before(Context context, Chain chain) {
                 executionOrder[1] = System.nanoTime();
+                return chain.next();
             }
-            public void after() {
+            @Override
+            public Result after(Context context, Result result) {
                 executionOrder[6] = System.nanoTime();
+                return result;
             }
         });
-        j.filter(new Route.VoidFilter() {
-            public void before() {
+        j.filter(new Route.Filter() { //filter3
+            @Override
+            public Result before(Context context, Chain chain) {
                 executionOrder[2] = System.nanoTime();
+                return chain.next();
             }
-            public void after() {
+            @Override
+            public Result after(Context context, Result result) {
                 executionOrder[5] = System.nanoTime();
+                return result;
             }
         });
         
         // execute
+        Context context = mock(Context.class);
         j.buildRoutes().forEach(r -> {
             r.handle(context);
         });
         
-        // by asking if the executionOrder is ordered
-        // the before/after relation should be established according to
+        // by asking if the executionOrder is ordered,
+        // then the before/after-relation will be established according to
         // how the ordering of the filters *should* be 
         assertThat(executionOrder).asList().isOrdered();
     }

@@ -31,7 +31,7 @@ public class JarLoader implements AutoCloseable {
         
             String jarFile = resource.getFile();
             jarFile = URLCodec.decode(jarFile, StandardCharsets.UTF_8); // Perhaps this is only necessary on windows systems, 
-                                                                    // but it seems to be crucial to decode spaces
+                                                                        // but it seems to be crucial to decode spaces
         
         
             String jarFileName = extractJarFileFromClassPathFilename(jarFile);
@@ -71,15 +71,15 @@ public class JarLoader implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        IOException ex = null;
+        IOException up = null;
         for (JarFileTuple jarFile : jarfiles) {
             try {
                 jarFile.file.close();
             } catch (IOException e) {
-                if (ex != null) ex = e;
+                if (up != null) up = e;
             }
         }
-        if (ex != null) throw ex;
+        if (up != null) throw up;
     }
 
     private static String extractJarFileFromClassPathFilename(String file) {

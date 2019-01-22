@@ -43,30 +43,6 @@ final class HttpHandlerImpl implements HttpHandler {
             RouteHandler route = router.retrieve(req.method(), uri);
             context.route(route);
             
-            /*Result result = null;
-            
-            // Before filters
-            Before[] before = route.before();
-            if (before != null) {
-                int i = 0;
-                do {
-                    before[i].before(context);
-                } while (result == null && ++i < before.length);
-            }
-            
-            // execute
-            if (result == null) {
-                result = route.handle(context);
-            }
-            
-            // After filters
-            After[] after = route.after();
-            if (after != null) {
-                for (int i = 0; i < after.length; i++) {
-                    after[i].after(context, result);
-                }
-            }*/
-            
             // Execute handler
             runner.execute(/*result*/route.handle(context), context);
         
@@ -80,10 +56,10 @@ final class HttpHandlerImpl implements HttpHandler {
         } /*catch (ViewException e) {
             // 501
             renderSystemError(context, "/system/500", "index", 501, e);
-        } catch (BadRequestException | MediaTypeException e) {
+        }*/ catch (Up.BadResult | Up.BadMediaType e) {
             // 400
-            renderSystemError(context, "/system/400", "index", 400, e);
-        } catch (WebException e){
+            renderSystemError(context, /*"/system/400", "index",*/ 400, e);
+        } /*catch (WebException e){
             renderSystemError(context, "/system/"+e.getHttpCode(), "index", e.getHttpCode(), e);
         }*/ catch (Exception e) {
             // 500
@@ -102,8 +78,7 @@ final class HttpHandlerImpl implements HttpHandler {
         if (status == 404) {
             logger.info("404 [{}]", context.req().path());
         } else {
-            logger.error("Status: " + status, e);
+            logger.error("{} [{}] ", status, context.req().path(), e);
         }
     }
-
 }

@@ -29,6 +29,16 @@ public class Up extends RuntimeException {
         }
     }
     
+    public static class BadResult extends Up {
+        public BadResult() {
+            super(Status.SERVER_ERROR);
+        }
+        
+        public BadResult(String msg) {
+            super(Status.SERVER_ERROR, msg);
+        }
+    }
+    
     public static class Compilation extends Up {
         public Compilation(final Throwable err) {
             super(Status.SERVER_ERROR, err);

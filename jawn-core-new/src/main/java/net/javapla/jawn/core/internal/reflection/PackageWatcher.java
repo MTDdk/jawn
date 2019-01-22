@@ -55,8 +55,12 @@ public class PackageWatcher implements Closeable {
                                 if (p.endsWith(jawnInstanceClassName)) {
                                     // do something special when it is the Jawn instance
                                     
-                                    Jawn instance = DynamicClassFactory.createInstance(DynamicClassFactory.getCompiledClass(implementorsPackageName + '.' + p.getFileName(), false), Jawn.class);
-                                    reloader.accept(instance);
+                                    try {
+                                        Jawn instance = DynamicClassFactory.createInstance(DynamicClassFactory.getCompiledClass(implementorsPackageName + '.' + p.getFileName(), false), Jawn.class);
+                                        reloader.accept(instance);
+                                    } catch (UnloadableClass e) {
+                                        e.printStackTrace();                                        
+                                    }
                                 } else {
                                     // perhaps something different.. ?
                                 }
@@ -66,7 +70,7 @@ public class PackageWatcher implements Closeable {
                         }
                         key.reset();
                     }
-                } catch (UnloadableClass | Compilation | InterruptedException e) {
+                } catch (Compilation | InterruptedException e) {
                     e.printStackTrace();
                 }
             }

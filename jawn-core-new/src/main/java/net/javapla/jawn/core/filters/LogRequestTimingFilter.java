@@ -7,6 +7,7 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Result;
+import net.javapla.jawn.core.Route.Chain;
 import net.javapla.jawn.core.Route.Filter;
 
 @Singleton
@@ -14,11 +15,11 @@ public class LogRequestTimingFilter implements Filter {
     private final static Logger logger = LoggerFactory.getLogger(LogRequestTimingFilter.class.getSimpleName());
 
     @Override
-    public Result before(final Context context) {
+    public Result before(final Context context, final Chain chain) {
         // filters are NOT thread safe!
         context.attribute(getClass().getName(), time());
         
-        return null;
+        return chain.next();
     }
 
     @Override

@@ -8,6 +8,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import net.javapla.jawn.core.Route.Chain;
+import net.javapla.jawn.core.Route.RouteHandler;
+
 public class RouteBuilderTest {
 
     @BeforeClass
@@ -33,4 +36,30 @@ public class RouteBuilderTest {
         new Route.Builder(HttpMethod.GET).path(s);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void nullPathBuild() {
+        new Route.Builder(HttpMethod.GET).build(); 
+    }
+    
+    @Test
+    public void filterGivesBeforeAndAfter() {
+        RouteHandler route = new Route
+            .Builder(HttpMethod.POST)
+            .path("/")
+            .filter(new Route.Filter() {
+                @Override
+                public Result before(Context context, Chain chain) {
+                    return chain.next();
+                }
+                
+                @Override
+                public Result after(Context context, Result result) {
+                    return null;
+                }
+            }).build();
+        
+        assertThat(route.before()).isNotNull();
+        assertThat(route.after()).isNotNull();
+    }
+    
 }

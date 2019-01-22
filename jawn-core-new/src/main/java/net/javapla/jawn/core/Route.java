@@ -15,67 +15,40 @@ import net.javapla.jawn.core.util.URLCodec;
 public interface Route {
     
     
-    public static class Chain {
-        
-        
-        Result next(Context context) {
-            
-            return null;
-        }
+    interface Chain {
+        Result next(/*Context context*/);
     }
 
-    interface Filter extends Before, After {
-//        void handle(Context context, Route.Chain chain);
-    }
-    /*interface VoidFilter extends Filter {
-        @Override
-        default Optional<Result> before(Context context) {
-            before();
-            return Optional.empty();
-        }
-        
-        @Override
-        default Result after(Context context, Result result) {
-            return result;
-        }
-        
-        void before();
-        void after();
-    }*/
+    interface Filter extends Before, After { }
     
-    interface Before /*extends Filter*/ /*extends Handler*/ {
-        /*@Override
-        default Result handle(final Context context) {
-            before(context);
-            return null;
-        }*/
-        /*@Override
-        default void handle(Context context, Chain chain) {
-            before(context);
-            chain.next(context);
-        }*/
-        
+    interface Before {
         /**
          * Execute the filter
          * 
          * @param context
          *          The context for the request
          */
-        void before(Context context, Chain chain);
+        Result before(Context context, Chain chain);
     }
     
     
     interface After {
         Result after(final Context context, final Result result);
     }
-    /*interface VoidAfter extends After {
-        @Override
-        default Result after(Context context, Result result) {
-            after(context);
-            return result;
-        }
-        void after(Context context);
-    }*/
+    
+    /**
+     * Allows for log and cleanup a request. It will be invoked after we send a response.
+     * 
+     * You are NOT allowed to modify the request and response objects. The <code>cause</code> is an
+     * {@link Optional} with a {@link Throwable} useful to identify problems.
+     *
+     * The goal of the <code>complete</code> handler is to probably cleanup request object and log
+     * responses.
+     */
+    interface PostResponse {
+        //TODO not implemented, yet
+        void handle(Context context, Optional<Throwable> cause);
+    }
     
     @FunctionalInterface
     interface Handler {
@@ -102,23 +75,26 @@ public interface Route {
 
         T filter(final Filter filter);
 
-        //T before(final Handler handler);
-        /*default */T before(final Before handler)/* {
-            return before((Handler) handler);
-        }*/;
-        /*default T before(final Runnable handler) {
-            return before(c -> {handler.run();return null;});
-        }*/
-        /*default T before(final Supplier<Result> handler) {
-            return before(c -> {return handler.get();});
-        }*/
-        /*default T before(final Result result) {
-            return before(c -> Optional.of(result));
-        }*/
+        T before(final Before handler);
+        default T before(final Handler handler) {
+            return before((c,ch) -> handler.handle(c));
+        }
+        default T before(final Runnable handler) {
+            return before((c,ch) -> {handler.run(); return ch.next();});
+        }
+        default T before(final Supplier<Result> handler) {
+            return before((c,ch) -> handler.get());
+        }
+        default T before(final Result result) {
+            return before((c,ch) -> result);
+        }
 
         T after(final After handler);
         default T after(final Runnable handler) {
             return after((c,r) -> {handler.run();return r;});
+        }
+        default T after(final Result result) {
+            return after((c,r) -> result);
         }
     }
     
@@ -199,13 +175,14 @@ public interface Route {
         }
 
         public RouteHandler build() {
+            if (uri == null) throw new NullPointerException("Path is null");
+            
             return new RouteHandler() {
-                
                 private final Route.Handler routehandler = handler;
                 private final ArrayList<String> parameters = parseParameters(uri);
                 private final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
                 
-                private final Handler[] befores = before.isEmpty() && globalBefore.isEmpty() ? null : Stream.concat(globalBefore.stream(), before.stream()).toArray(Handler[]::new);
+                private final Before[] befores = before.isEmpty() && globalBefore.isEmpty() ? null : Stream.concat(globalBefore.stream(), before.stream()).toArray(Before[]::new);
                 private final After[] afters = after.isEmpty() && globalAfter.isEmpty() ? null : Stream.concat(after.stream(), globalAfter.stream()).toArray(After[]::new);
                 
                 @Override
@@ -226,20 +203,25 @@ public interface Route {
                     // Before filters
                     if (befores != null) {
                         do {
-                            /*result = */befores[i].handle(context);
-                        } while (/*result == null &&*/ ++i < befores.length);
+                            result = befores[i].before(context, () -> null);
+                        } while (result == null && ++i < befores.length);
                     }
                     
-                    // execute
+                    // Execute
                     if (result == null) {
                         result = routehandler.handle(context);
+                        if (result == null) throw new Up.BadResult("The execution of the route itself rendered no result");
                     }
                     
                     // After filters
                     if (afters != null) {
+                        Result r = result;
                         for (i = 0; i < afters.length; i++) {
-                            result = afters[i].after(context, result);
+                            r = afters[i].after(context, r);
                         }
+                        
+                        if (r == null) throw new Up.BadResult("A (After) filter rendered a 'null' result");
+                        /*if (r != null) */result = r;
                     }
                     
                     return result;
@@ -252,7 +234,7 @@ public interface Route {
                 
                 @Override
                 public Before[] before() {
-                    return (Before[]) befores;
+                    return befores;
                 }
                 
                 @Override

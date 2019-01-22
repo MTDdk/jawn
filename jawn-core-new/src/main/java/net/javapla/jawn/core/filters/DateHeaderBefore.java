@@ -5,6 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.util.DateUtil;
 
@@ -23,8 +24,9 @@ public class DateHeaderBefore implements Route.Before {
     }
 
     @Override
-    public void before(Context context) {
+    public Result before(Context context, Route.Chain chain) {
         context.resp().header("Date", DATE);
+        return chain.next();
     }
     
     public void stop() {

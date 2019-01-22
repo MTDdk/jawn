@@ -155,10 +155,12 @@ public class Jawn implements Route.Filtering<Jawn> {
         // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
+        // bootstrap
         bootstrap.boot(mode, buildRoutes());
         
-        Injector injector = bootstrap.getInjector();
+        // start server
         try {
+            Injector injector = bootstrap.getInjector();
             injector.getInstance(Server.class).start(/*serverConfig*/);
         } catch (Exception e) {
             e.printStackTrace();
@@ -330,8 +332,10 @@ public class Jawn implements Route.Filtering<Jawn> {
                     routes.forEach(r -> r.globalFilter((Route.Filter) item));
                 } else if (item instanceof Route.After) {
                     routes.forEach(r -> r.globalAfter((Route.After) item));
-                } else if (item instanceof Route.Handler) {
-                    routes.forEach(r -> r.globalBefore((Route.Handler) item));
+                } else if (item instanceof Route.Before) {
+                    routes.forEach(r -> r.globalBefore((Route.Before) item));
+                } else if (item instanceof Class<?>) {
+                    
                 }
             });
         }

@@ -1,6 +1,9 @@
 package net.javapla.jawn.core.internal.reflection;
 
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.util.StreamUtil;
+
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +38,7 @@ class DynamicClassLoader extends ClassLoader {
     }
 
     @Override
-    public Class<?> loadClass(String name) throws ClassNotFoundException {
+    public Class<?> loadClass(String name) throws ClassNotFoundException, Up.Compilation {
 
         if (!name.startsWith(allowedPackage, 0)) return loadByParent(name);
         int endIndex = name.indexOf(".class");
@@ -66,7 +69,13 @@ class DynamicClassLoader extends ClassLoader {
             
             
 
-            byte[] classBytes = StreamUtil.bytes(getResourceAsStream(pathToClassFile));
+            byte[] classBytes;
+            try {
+                classBytes = StreamUtil.bytes(getResourceAsStream(pathToClassFile));
+            } catch (IOException e) {
+                throw new Up.Compilation(e);
+            }
+            
             Class<?> daClass = defineClass(name, classBytes, 0, classBytes.length, null);
 
             logger.debug("Loaded class: " + pathToClassFile);

@@ -13,7 +13,6 @@ public class JawnMainTest extends Jawn {
     {
         use((app) -> {
             app.binder().bind(RendererEngine.class).toInstance(new RendererEngine() {
-
                 @Override
                 public void invoke(Context context, Object renderable) throws Exception {
                     
@@ -26,7 +25,7 @@ public class JawnMainTest extends Jawn {
             });
         });
         
-        get("/", Results.text("holaaaa55888")).before(Results.json("test")).before(c -> Results.ok()).before(c -> {return Results.ok();});
+        get("/", Results.text("holaaaa55888"));
         get("/test", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(Status.ALREADY_REPORTED));
         get("/xml", Results.xml("<xml>teeeest</xml>"));
         get("/json", Results.json("{\"key\":\"teeeest\"}"));
