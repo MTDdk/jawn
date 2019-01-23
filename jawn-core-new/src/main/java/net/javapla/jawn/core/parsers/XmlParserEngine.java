@@ -6,16 +6,18 @@ import java.io.Reader;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.MediaType;
 
-class XmlParserEngine implements ParserEngine {
+@Singleton
+final class XmlParserEngine implements ParserEngine {
     
     private final XmlMapper mapper;
     
     @Inject
-    public XmlParserEngine(XmlMapper mapper) {
+    XmlParserEngine(XmlMapper mapper) {
         this.mapper = mapper;
     }
     

@@ -12,7 +12,7 @@ import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.MediaType;
 
 @Singleton
-class JsonParserEngine implements ParserEngine {
+final class JsonParserEngine implements ParserEngine {
     
     private final ObjectMapper mapper;
     

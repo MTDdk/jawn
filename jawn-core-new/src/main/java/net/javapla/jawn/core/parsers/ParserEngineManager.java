@@ -2,8 +2,11 @@ package net.javapla.jawn.core.parsers;
 
 import java.util.Set;
 
+import com.google.inject.ImplementedBy;
+
 import net.javapla.jawn.core.MediaType;
 
+@ImplementedBy(ParserEngineManagerImpl.class)
 public interface ParserEngineManager {
 
     /**
