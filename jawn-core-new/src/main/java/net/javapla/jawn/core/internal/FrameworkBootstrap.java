@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,11 +51,11 @@ public final class FrameworkBootstrap {
         userPlugins = new ArrayList<>();
     }
     
-    public synchronized void boot(final Modes mode, final List<Route.RouteHandler> routes) {
+    public synchronized void boot(final Modes mode, final Function<Injector,List<Route.RouteHandler>> routes) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
         final Config frameworkConfig = readConfigurations(mode);
-        final Router router = new Router(routes);
+        final Router router = new Router(/*routes*/);
         
         final com.google.inject.Module jawnModule = binder -> {
             registerCoreModules(binder, mode, frameworkConfig, router);
@@ -81,7 +82,7 @@ public final class FrameworkBootstrap {
                 }
             };
             // Makes it possible for plugins to override framework-specific implementations
-            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, conf.get(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE));
+            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, frameworkConfig.getOptionally(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE).orElse("net.javapla.jawn.plugins.modules"));
             
             // Makes it possible for users to override single framework-specific implementations
             userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
@@ -90,11 +91,11 @@ public final class FrameworkBootstrap {
         final Injector localInjector = Guice.createInjector(stage, jawnModule);
         
         
-        
-        
         // If any initialisation of filters needs to be done, like injecting ServletContext,
         // it can be done here.
         //initiateFilters(filters, localInjector);
+        
+        router.compileRoutes(routes.apply(localInjector));
         
         
         // compiling of routes needs element from the injector, so this is done after the creation
@@ -106,9 +107,9 @@ public final class FrameworkBootstrap {
         startup();
     }
     
-    public void reboot___strap(final List<Route.RouteHandler> routes) {
+    public void reboot___strap(final Function<Injector,List<Route.RouteHandler>> routes) {
         Router router = injector.getInstance(Router.class);
-        router.recompileRoutes(routes);
+        router.recompileRoutes(routes.apply(injector));
     }
     
     public Injector getInjector() {

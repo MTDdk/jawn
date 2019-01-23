@@ -17,11 +17,11 @@ final class Router {
     /** Used for wildcard routes */
     private final List<RouteHandler> routes = new ArrayList<>();
     
-    Router(List<RouteHandler> routes) {
+    Router() {
         
         trie = new RouteTrie();
         
-        compileRoutes(routes);
+        //compileRoutes(routes);
         
         // Right now, we use the _routes_ list for all wildcard routes, 
         // and we cache the route for each URL that matches the wildcard routes.
@@ -34,6 +34,11 @@ final class Router {
         // and theoretically we might want to store the wildcard routes AS wildcards
         // in the trie to minimise stored routes, if the trie ends up storing too many
         // routes and TrieNodes
+    }
+    
+    Router(List<RouteHandler> routes) {
+        this();
+        compileRoutes(routes);
     }
     
     RouteHandler retrieve(final HttpMethod httpMethod, final String requestUri) throws Up.RouteMissing {
@@ -55,7 +60,7 @@ final class Router {
         return route;
     }
     
-    private void compileRoutes(List<RouteHandler> routes) {
+    Router compileRoutes(List<RouteHandler> routes) {
         
         for (RouteHandler route : routes) {
             if (route.isUrlFullyQualified()) {
@@ -64,6 +69,7 @@ final class Router {
                 this.routes.add(route);
             }
         }
+        return this;
     }
     
     public void recompileRoutes(final List<RouteHandler> newOrAlteredRoutes) {

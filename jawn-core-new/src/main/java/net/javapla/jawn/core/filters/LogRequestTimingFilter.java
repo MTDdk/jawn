@@ -27,7 +27,8 @@ public class LogRequestTimingFilter implements Filter {
         context.attribute(getClass().getName(), Long.class).ifPresent(time -> {
             String processingTime = String.valueOf(time() - time);
             context.resp().header("X-Request-Processing-Time", processingTime);
-            logger.info("Processed request in: " + processingTime + " milliseconds, path: " + context.req().path() + ", method: " + context.req().httpMethod());
+            
+            logger.info("Processed request in: {} milliseconds, path: {}{} , method: {}", processingTime, context.req().path(), context.req().queryString().map(q -> "?"+q).orElse(""), context.req().httpMethod());
         });
         
         return result;

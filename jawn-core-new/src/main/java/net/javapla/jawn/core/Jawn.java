@@ -129,17 +129,15 @@ public class Jawn implements Route.Filtering<Jawn> {
         filters.filter(filter);
         return this;
     }
-    /*protected Jawn filter(final Class<? extends Route.Filter> filter) {
-        filters.add(filter);
-        return this;
-    }*/
     
-    /** add a global filter */
-    public Jawn before(final Route.Before filter) {
+    /** add a global filter - can implement {@link Route.After} or {@link Route.Before} or {@link Route.Filter} */
+    protected Jawn filter(final Class<?> filter) {
         filters.filter(filter);
         return this;
     }
-    public Jawn before(final Route.Handler filter) {
+    
+    /** add a global filter */
+    public Jawn before(final Route.Before filter) {
         filters.filter(filter);
         return this;
     }
@@ -177,7 +175,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
         // bootstrap
-        bootstrap.boot(mode, buildRoutes());
+        bootstrap.boot(mode, this::buildRoutes);
         
         // start server
         try {
@@ -253,7 +251,7 @@ public class Jawn implements Route.Filtering<Jawn> {
                 );
             
             // look for changes to reload
-            final Consumer<Jawn> reloader = (newJawnInstance) -> dynamicInstance.bootstrap.reboot___strap(newJawnInstance.buildRoutes());
+            final Consumer<Jawn> reloader = (newJawnInstance) -> dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes);
             PackageWatcher watcher = new PackageWatcher(jawn, reloader);
             
             // start the watcher
@@ -294,8 +292,8 @@ public class Jawn implements Route.Filtering<Jawn> {
         }
     }*/
     
-    List<RouteHandler> buildRoutes() {
-        filters.populate(routes);
+    List<RouteHandler> buildRoutes(Injector injector) {
+        filters.populate(routes, injector);
         return routes.stream().map(Route.Builder::build).collect(Collectors.toList());
     }
     
@@ -314,11 +312,11 @@ public class Jawn implements Route.Filtering<Jawn> {
             bagOFilters.add(f);
         }
         
-        void filter(final Route.Handler f) {
+        void filter(final Route.After f) {
             bagOFilters.add(f);
         }
         
-        void filter(final Route.After f) {
+        void filter(final Class<?> f) {
             bagOFilters.add(f);
         }
         
@@ -347,7 +345,7 @@ public class Jawn implements Route.Filtering<Jawn> {
          * 
          * @param routes
          */
-        void populate(final List<Route.Builder> routes) {
+        void populate(final List<Route.Builder> routes, final Injector injector) {
             bagOFilters.forEach(item -> {
                 if (item instanceof Route.Filter) { //filter is instanceof Before and After, so this has to be first
                     routes.forEach(r -> r.globalFilter((Route.Filter) item));
@@ -356,7 +354,19 @@ public class Jawn implements Route.Filtering<Jawn> {
                 } else if (item instanceof Route.Before) {
                     routes.forEach(r -> r.globalBefore((Route.Before) item));
                 } else if (item instanceof Class<?>) {
+                    Class<?> d = (Class<?>)item;
                     
+                    // for this to work, this method needs an Injector at some point
+                    // - perhaps we do not want this, but if we do, then this method should be
+                    // completely isolated to Jawn/Bootstrap
+                    
+                    if (Route.Filter.class.isAssignableFrom(d)) {
+                        routes.forEach(r -> r.globalFilter((Route.Filter) injector.getInstance(d)));
+                    } else if (Route.After.class.isAssignableFrom(d)) {
+                        routes.forEach(r -> r.globalAfter((Route.After) injector.getInstance(d)));
+                    } else if (Route.Before.class.isAssignableFrom(d)) {
+                        routes.forEach(r -> r.globalBefore((Route.Before) injector.getInstance(d)));
+                    }
                 }
             });
         }

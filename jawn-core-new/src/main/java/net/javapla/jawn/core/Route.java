@@ -167,9 +167,6 @@ public interface Route {
         void globalBefore(final Route.Before handler) {
             this.globalBefore.add(handler);
         }
-        /*void globalBefore(final Route.Handler handler) {
-            this.globalBefore.add(handler::handle);
-        }*/
         void globalAfter(final Route.After handler) {
             this.globalAfter.add(handler);
         }

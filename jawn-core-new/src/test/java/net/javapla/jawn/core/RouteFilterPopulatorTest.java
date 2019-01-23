@@ -5,6 +5,8 @@ import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
+import com.google.inject.Injector;
+
 import net.javapla.jawn.core.Route.Chain;
 
 public class RouteFilterPopulatorTest {
@@ -64,7 +66,7 @@ public class RouteFilterPopulatorTest {
         
         // execute
         Context context = mock(Context.class);
-        j.buildRoutes().forEach(r -> {
+        j.buildRoutes(mock(Injector.class)).forEach(r -> {
             r.handle(context);
         });
         

@@ -12,7 +12,7 @@ import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
 
-class ConfigImpl implements Config {
+final class ConfigImpl implements Config {
     
     private final Properties props;
     
