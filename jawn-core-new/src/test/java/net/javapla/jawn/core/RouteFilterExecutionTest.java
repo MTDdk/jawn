@@ -6,8 +6,6 @@ import static org.mockito.Mockito.mock;
 import org.junit.Assert;
 import org.junit.Test;
 
-import net.javapla.jawn.core.Route.RouteHandler;
-
 public class RouteFilterExecutionTest {
 
     @Test
@@ -23,7 +21,7 @@ public class RouteFilterExecutionTest {
     @Test
     public void beforeSimpleResultOverride() {
         Context context = mock(Context.class);
-        RouteHandler handler = new Route.Builder(HttpMethod.GET).
+        Route handler = new Route.Builder(HttpMethod.GET).
             path("/")
             .handler(() -> Results.noContent())
             .before(Results.ok())
@@ -38,7 +36,7 @@ public class RouteFilterExecutionTest {
     @Test
     public void afterSimpleResultOverride() {
         Context context = mock(Context.class);
-        RouteHandler handler = new Route.Builder(HttpMethod.GET).
+        Route handler = new Route.Builder(HttpMethod.GET).
             path("/")
             .handler(() -> Results.noContent())
             .after(Results.ok())
@@ -55,7 +53,7 @@ public class RouteFilterExecutionTest {
     @Test
     public void after_should_alwayBeExecuted() {
         boolean[] executed = new boolean[3];
-        RouteHandler handler = new Route.Builder(HttpMethod.GET).
+        Route handler = new Route.Builder(HttpMethod.GET).
             path("/")
             .handler(() -> { executed[0]=true; return Results.noContent(); })
             .before(Results.ok())
@@ -75,7 +73,7 @@ public class RouteFilterExecutionTest {
     
     @Test(expected = Up.BadResult.class)
     public void throw_when_afterReturnsNull() {
-        RouteHandler handler = new Route.Builder(HttpMethod.GET)
+        Route handler = new Route.Builder(HttpMethod.GET)
             .path("/")
             .handler(() -> Results.ok())
             .after((Result) null)
@@ -89,7 +87,7 @@ public class RouteFilterExecutionTest {
     
     @Test(expected = Up.BadResult.class)
     public void throw_when_handlerReturnsNull() {
-        RouteHandler handler = new Route.Builder(HttpMethod.GET)
+        Route handler = new Route.Builder(HttpMethod.GET)
             .path("/")
             .handler(c -> (Result) null)
             .build();

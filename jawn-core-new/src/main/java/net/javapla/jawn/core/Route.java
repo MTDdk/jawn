@@ -12,8 +12,7 @@ import java.util.stream.Stream;
 
 import net.javapla.jawn.core.util.URLCodec;
 
-public interface Route {
-    
+public interface Route extends Handler {
     
     interface Chain {
         Result next(/*Context context*/);
@@ -51,11 +50,6 @@ public interface Route {
     }
     
     @FunctionalInterface
-    interface Handler {
-        Result handle(Context context);
-    }
-    
-    @FunctionalInterface
     interface  ZeroArgHandler extends Handler {
         @Override
         default Result handle(Context context) {
@@ -65,8 +59,6 @@ public interface Route {
         // could also be just returning Object, and always assume status 200 type HTML
         Result handle();
     }
-    
-    interface RouteHandler extends Route, Route.Handler {}
     
     /**
      * Public part of the Route.Builder
@@ -107,7 +99,7 @@ public interface Route {
         
         private final HttpMethod method;
         private String uri;
-        private Route.Handler handler;
+        private Handler handler;
         private LinkedList<Route.Before> before = new LinkedList<>();
         private LinkedList<Route.Before> globalBefore = new LinkedList<>();
         private LinkedList<Route.After> after = new LinkedList<>();
@@ -125,7 +117,7 @@ public interface Route {
             return this;
         }
         
-        public Builder handler(final Route.Handler handler) {
+        public Builder handler(final Handler handler) {
             this.handler = handler;
             return this;
         }
@@ -165,11 +157,11 @@ public interface Route {
             this.globalAfter.add(handler);
         }
 
-        public RouteHandler build() {
+        public Route build() {
             if (uri == null) throw new NullPointerException("Path is null");
             
-            return new RouteHandler() {
-                private final Route.Handler routehandler = handler;
+            return new Route() {
+                private final Handler routehandler = handler;
                 private final ArrayList<String> parameters = parseParameters(uri);
                 private final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
                 

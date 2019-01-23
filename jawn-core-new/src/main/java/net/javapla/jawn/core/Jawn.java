@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 
 import net.javapla.jawn.core.Route.Builder;
-import net.javapla.jawn.core.Route.RouteHandler;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
@@ -84,37 +83,37 @@ public class Jawn implements Route.Filtering<Jawn> {
         routes.add(builder);
         return builder;
     }
-    protected Route.Filtering<Route.Builder> get(final String path, final Route.Handler handler) {
+    protected Route.Filtering<Route.Builder> get(final String path, final Handler handler) {
         Builder builder = new Route.Builder(HttpMethod.GET).path(path).handler(handler);
         routes.add(builder);
         return builder;
     }
     
-    protected Route.Filtering<Route.Builder> post(final String path, final Route.Handler handler) {
+    protected Route.Filtering<Route.Builder> post(final String path, final Handler handler) {
         Builder builder = new Route.Builder(HttpMethod.POST).path(path).handler(handler);
         routes.add(builder);
         return builder;
     }
     
-    protected Route.Filtering<Route.Builder> put(final String path, final Route.Handler handler) {
+    protected Route.Filtering<Route.Builder> put(final String path, final Handler handler) {
         Builder builder = new Route.Builder(HttpMethod.PUT).path(path).handler(handler);
         routes.add(builder);
         return builder;
     }
     
-    protected Route.Filtering<Route.Builder> delete(final String path, final Route.Handler handler) {
+    protected Route.Filtering<Route.Builder> delete(final String path, final Handler handler) {
         Builder builder = new Route.Builder(HttpMethod.DELETE).path(path).handler(handler);
         routes.add(builder);
         return builder;
     }
     
-    protected Route.Filtering<Route.Builder> head(final String path, final Route.Handler handler) {
+    protected Route.Filtering<Route.Builder> head(final String path, final Handler handler) {
         Builder builder = new Route.Builder(HttpMethod.HEAD).path(path).handler(handler);
         routes.add(builder);
         return builder;
     }
     
-    protected Route.Filtering<Route.Builder> options(final String path, final Route.Handler handler) {
+    protected Route.Filtering<Route.Builder> options(final String path, final Handler handler) {
         Builder builder = new Route.Builder(HttpMethod.OPTIONS).path(path).handler(handler);
         routes.add(builder);
         return builder;
@@ -292,7 +291,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         }
     }*/
     
-    List<RouteHandler> buildRoutes(Injector injector) {
+    List<Route> buildRoutes(Injector injector) {
         filters.populate(routes, injector);
         return routes.stream().map(Route.Builder::build).collect(Collectors.toList());
     }

@@ -11,7 +11,6 @@ import com.google.inject.Injector;
 
 import net.javapla.jawn.core.Jawn.RouteFilterPopulator;
 import net.javapla.jawn.core.Route.Chain;
-import net.javapla.jawn.core.Route.RouteHandler;
 
 public class RouteFilterPopulatorTest {
 
@@ -93,7 +92,7 @@ public class RouteFilterPopulatorTest {
             .handler(() -> Results.ok());
         
         populator.populate(Collections.singletonList(builder), mock(Injector.class));
-        RouteHandler route = builder.build();
+        Route route = builder.build();
         
         assertThat(route.before()).hasLength(2);
         assertThat(route.after()).hasLength(2);

@@ -9,7 +9,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.javapla.jawn.core.Route.Chain;
-import net.javapla.jawn.core.Route.RouteHandler;
 
 public class RouteBuilderTest {
 
@@ -43,7 +42,7 @@ public class RouteBuilderTest {
     
     @Test
     public void filterGivesBeforeAndAfter() {
-        RouteHandler route = new Route
+        Route route = new Route
             .Builder(HttpMethod.POST)
             .path("/")
             .filter(new Route.Filter() {

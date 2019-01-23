@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.Route.RouteHandler;
 import net.javapla.jawn.core.internal.Router.RouteTrie;
 
 public class RouteTrieTest {
@@ -17,7 +16,7 @@ public class RouteTrieTest {
         RouteTrie trie = new RouteTrie();
         
         String path = "/route/to/redemption";
-        RouteHandler route = new Route.Builder(HttpMethod.GET).path(path).build();
+        Route route = new Route.Builder(HttpMethod.GET).path(path).build();
         
         trie.insert(path, route);
         
@@ -31,7 +30,7 @@ public class RouteTrieTest {
         RouteTrie trie = new RouteTrie();
         
         String path = "/route/*/redemption";
-        RouteHandler route = new Route.Builder(HttpMethod.GET).path(path).build();
+        Route route = new Route.Builder(HttpMethod.GET).path(path).build();
         
         trie.insert(path, route);
         
@@ -53,7 +52,7 @@ public class RouteTrieTest {
         RouteTrie trie = new RouteTrie();
         
         String path = "/route/redemption/of/*";
-        RouteHandler route = new Route.Builder(HttpMethod.GET).path(path).build();
+        Route route = new Route.Builder(HttpMethod.GET).path(path).build();
         
         trie.insert(path, route);
         

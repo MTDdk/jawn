@@ -1,11 +1,10 @@
 package net.javapla.jawn.core.internal;
 
-import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -13,10 +12,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.Route.RouteHandler;
+import net.javapla.jawn.core.Up;
 
 public class RouterTest {
 
@@ -34,7 +32,7 @@ public class RouterTest {
 
     @Test
     public void simple() {
-        List<RouteHandler> routes = Arrays.asList(new Route.Builder(HttpMethod.GET).path("/first").build());
+        List<Route> routes = Arrays.asList(new Route.Builder(HttpMethod.GET).path("/first").build());
         
         Router router = new Router(routes);
         
@@ -44,7 +42,7 @@ public class RouterTest {
     
     @Test
     public void samePathNotSameMethod() {
-        List<RouteHandler> routes = Arrays.asList(new Route.Builder(HttpMethod.GET).path("/first").build());
+        List<Route> routes = Arrays.asList(new Route.Builder(HttpMethod.GET).path("/first").build());
         
         Router router = new Router(routes);
         
@@ -66,7 +64,7 @@ public class RouterTest {
     
      @Test
      public void headShouldAlwaysWork() {
-         List<RouteHandler> routes = Arrays.asList(
+         List<Route> routes = Arrays.asList(
              new Route.Builder(HttpMethod.GET).path("/first").build(),
              new Route.Builder(HttpMethod.DELETE).path("/delete").build()
          );
@@ -85,7 +83,7 @@ public class RouterTest {
      
      @Test
      public void wildcards() {
-         List<RouteHandler> routes = Arrays.asList(
+         List<Route> routes = Arrays.asList(
              new Route.Builder(HttpMethod.GET).path("/first/{something}").build(),
              new Route.Builder(HttpMethod.GET).path("/second/{something}/more").build()
          );

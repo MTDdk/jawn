@@ -5,9 +5,9 @@ import java.util.List;
 
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.HttpMethod;
-import net.javapla.jawn.core.Route.RouteHandler;
+import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Up;
 
 @Singleton
 final class Router {
@@ -15,7 +15,7 @@ final class Router {
     private final RouteTrie trie;
     
     /** Used for wildcard routes */
-    private final List<RouteHandler> routes = new ArrayList<>();
+    private final List<Route> routes = new ArrayList<>();
     
     Router() {
         
@@ -36,15 +36,15 @@ final class Router {
         // routes and TrieNodes
     }
     
-    Router(List<RouteHandler> routes) {
+    Router(List<Route> routes) {
         this();
         compileRoutes(routes);
     }
     
-    RouteHandler retrieve(final HttpMethod httpMethod, final String requestUri) throws Up.RouteMissing {
+    Route retrieve(final HttpMethod httpMethod, final String requestUri) throws Up.RouteMissing {
         
         // first, take a look in the trie
-        RouteHandler route = trie.findExact(requestUri, httpMethod);
+        Route route = trie.findExact(requestUri, httpMethod);
         
         // the trie did not have any for us
         if (route == null) {
@@ -60,9 +60,9 @@ final class Router {
         return route;
     }
     
-    Router compileRoutes(List<RouteHandler> routes) {
+    Router compileRoutes(List<Route> routes) {
         
-        for (RouteHandler route : routes) {
+        for (Route route : routes) {
             if (route.isUrlFullyQualified()) {
                 trie.insert(route.path(), route);
             } else {
@@ -72,7 +72,7 @@ final class Router {
         return this;
     }
     
-    public void recompileRoutes(final List<RouteHandler> newOrAlteredRoutes) {
+    public void recompileRoutes(final List<Route> newOrAlteredRoutes) {
         this.routes.clear();
         this.trie.clear();
         
@@ -97,11 +97,11 @@ final class Router {
             root.clear();
         }
         
-        public void insert(String uri, RouteHandler route) {
+        public void insert(String uri, Route route) {
             insert(uri.toCharArray(), route);
         }
         
-        public synchronized void insert(final char[] input, RouteHandler route) {
+        public synchronized void insert(final char[] input, Route route) {
             TrieNode current = root, child;
             for (char c : input) {
                 child = current.nodes[c];
@@ -136,7 +136,7 @@ final class Router {
          * @param arr
          * @return
          */
-        public RouteHandler findExact(final char[] arr, final HttpMethod method) {
+        public Route findExact(final char[] arr, final HttpMethod method) {
             TrieNode current = root;
             for (int i = 0; i < arr.length; i++) {
                 char c = arr[i];
@@ -148,7 +148,7 @@ final class Router {
             return current.routes[method.ordinal()];
         }
         
-        public RouteHandler findExact(final CharSequence str, final HttpMethod method) {
+        public Route findExact(final CharSequence str, final HttpMethod method) {
             TrieNode current = root;
             for (int i = 0; i < str.length(); i++) {
                 char c = str.charAt(i);
@@ -165,7 +165,7 @@ final class Router {
          * @param arr
          * @return
          */
-        public final RouteHandler findRoute(final char[] arr, final HttpMethod method) {
+        public final Route findRoute(final char[] arr, final HttpMethod method) {
             TrieNode current = root;
             char c;
             for (int i = 0; i < arr.length; i++) {
@@ -232,14 +232,14 @@ final class Router {
         final class TrieNode {
             final TrieNode[] nodes;
             final char content;
-            final RouteHandler[] routes; // a route can exist for GET,POST,PUT,etc
+            final Route[] routes; // a route can exist for GET,POST,PUT,etc
             boolean end = true;
             
             TrieNode(char c) {
                 //nodes = new SearchTrie[255];//extended ascii
                 nodes = new TrieNode[128];//ascii
                 content = c;
-                routes = new RouteHandler[HttpMethod.values().length];
+                routes = new Route[HttpMethod.values().length];
             }
             
             public void clear() {

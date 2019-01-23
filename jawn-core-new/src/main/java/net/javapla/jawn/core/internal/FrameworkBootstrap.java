@@ -51,7 +51,7 @@ public final class FrameworkBootstrap {
         userPlugins = new ArrayList<>();
     }
     
-    public synchronized void boot(final Modes mode, final Function<Injector,List<Route.RouteHandler>> routes) {
+    public synchronized void boot(final Modes mode, final Function<Injector,List<Route>> routes) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
         final Config frameworkConfig = readConfigurations(mode);
@@ -107,7 +107,7 @@ public final class FrameworkBootstrap {
         startup();
     }
     
-    public void reboot___strap(final Function<Injector,List<Route.RouteHandler>> routes) {
+    public void reboot___strap(final Function<Injector,List<Route>> routes) {
         Router router = injector.getInstance(Router.class);
         router.recompileRoutes(routes.apply(injector));
     }

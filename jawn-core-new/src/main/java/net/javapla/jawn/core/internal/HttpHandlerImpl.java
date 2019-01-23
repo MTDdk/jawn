@@ -8,10 +8,10 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Results;
-import net.javapla.jawn.core.Route.RouteHandler;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
@@ -40,7 +40,7 @@ final class HttpHandlerImpl implements HttpHandler {
         
         final ContextImpl context = new ContextImpl(req, resp, charset);
         try {
-            RouteHandler route = router.retrieve(req.method(), uri);
+            Route route = router.retrieve(req.method(), uri);
             context.route(route);
             
             // Execute handler
