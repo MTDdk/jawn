@@ -348,27 +348,35 @@ public class Jawn implements Route.Filtering<Jawn> {
         void populate(final List<Route.Builder> routes, final Injector injector) {
             bagOFilters.forEach(item -> {
                 if (item instanceof Route.Filter) { //filter is instanceof Before and After, so this has to be first
-                    routes.forEach(r -> r.globalFilter((Route.Filter) item));
+                    filter(routes, item);
                 } else if (item instanceof Route.After) {
-                    routes.forEach(r -> r.globalAfter((Route.After) item));
+                    after(routes, item);
                 } else if (item instanceof Route.Before) {
-                    routes.forEach(r -> r.globalBefore((Route.Before) item));
+                    before(routes, item);
                 } else if (item instanceof Class<?>) {
                     Class<?> d = (Class<?>)item;
                     
-                    // for this to work, this method needs an Injector at some point
-                    // - perhaps we do not want this, but if we do, then this method should be
-                    // completely isolated to Jawn/Bootstrap
-                    
                     if (Route.Filter.class.isAssignableFrom(d)) {
-                        routes.forEach(r -> r.globalFilter((Route.Filter) injector.getInstance(d)));
+                        filter(routes, injector.getInstance(d));
                     } else if (Route.After.class.isAssignableFrom(d)) {
-                        routes.forEach(r -> r.globalAfter((Route.After) injector.getInstance(d)));
+                        after(routes, injector.getInstance(d));
                     } else if (Route.Before.class.isAssignableFrom(d)) {
-                        routes.forEach(r -> r.globalBefore((Route.Before) injector.getInstance(d)));
+                        before(routes, injector.getInstance(d));
                     }
                 }
             });
+        }
+        
+        private void before(final List<Route.Builder> routes, Object item) {
+            routes.forEach(r -> r.globalBefore((Route.Before) item));
+        }
+        
+        private void after(final List<Route.Builder> routes, Object item) {
+            routes.forEach(r -> r.globalAfter((Route.After) item));
+        }
+        
+        private void filter(final List<Route.Builder> routes, Object item) {
+            routes.forEach(r -> r.globalFilter((Route.Filter) item));
         }
     }
 }

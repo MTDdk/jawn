@@ -142,12 +142,6 @@ public interface Route {
             return this;
         }
         
-        /*public Builder filter(final Class<? extends Filter> filter) {
-            // for this to work, the Route.Builder needs an Injector at some point
-            // - perhaps we do not want this, but if we do, then this method should be
-            // completely isolated to Jawn/Bootstrap
-        }*/
-        
         @Override
         public Builder before(final Route.Before handler) {
             this.before.add(handler);

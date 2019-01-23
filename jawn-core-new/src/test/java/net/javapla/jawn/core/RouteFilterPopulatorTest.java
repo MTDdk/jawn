@@ -3,11 +3,15 @@ package net.javapla.jawn.core;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.Jawn.RouteFilterPopulator;
 import net.javapla.jawn.core.Route.Chain;
+import net.javapla.jawn.core.Route.RouteHandler;
 
 public class RouteFilterPopulatorTest {
 
@@ -76,4 +80,48 @@ public class RouteFilterPopulatorTest {
         assertThat(executionOrder).asList().isOrdered();
     }
 
+    @Test
+    public void uninstantiatedFilters() {
+        RouteFilterPopulator populator = new Jawn.RouteFilterPopulator();
+        
+        populator.filter(F.class);
+        populator.filter(B.class);
+        populator.filter(A.class);
+        
+        Route.Builder builder = new Route.Builder(HttpMethod.GET)
+            .path("/")
+            .handler(() -> Results.ok());
+        
+        populator.populate(Collections.singletonList(builder), mock(Injector.class));
+        RouteHandler route = builder.build();
+        
+        assertThat(route.before()).hasLength(2);
+        assertThat(route.after()).hasLength(2);
+    }
+    
+    class F implements Route.Filter {
+        @Override
+        public Result before(Context context, Chain chain) {
+            return null;
+        }
+
+        @Override
+        public Result after(Context context, Result result) {
+            return null;
+        }
+    }
+    
+    class B implements Route.Before {
+        @Override
+        public Result before(Context context, Chain chain) {
+            return null;
+        }
+    }
+    
+    class A implements Route.After {
+        @Override
+        public Result after(Context context, Result result) {
+            return null;
+        }
+    }
 }
