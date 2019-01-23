@@ -24,5 +24,4 @@ final class StreamRendererEngine implements RendererEngine {
     public MediaType[] getContentType() {
         return new MediaType[]{ MediaType.OCTET_STREAM, MediaType.valueOf("image/svg+xml") };
     }
-
 }

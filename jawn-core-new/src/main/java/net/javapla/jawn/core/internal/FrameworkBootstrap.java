@@ -21,8 +21,8 @@ import com.google.inject.Singleton;
 import com.google.inject.Stage;
 
 import net.javapla.jawn.core.Config;
-import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
@@ -30,7 +30,6 @@ import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.ParserEngineManagerImpl;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
-import net.javapla.jawn.core.renderers.RendererEngineOrchestratorImpl;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
@@ -57,12 +56,10 @@ public final class FrameworkBootstrap {
         final Config frameworkConfig = readConfigurations(mode);
         final Router router = new Router(routes);
         
-        
         final com.google.inject.Module jawnModule = binder -> {
             registerCoreModules(binder, mode, frameworkConfig, router);
             
             final ApplicationConfig pluginConfig = new ApplicationConfig() {
-
                 @Override
                 public Binder binder() {
                     return binder;
@@ -177,7 +174,7 @@ public final class FrameworkBootstrap {
         binder.bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
         binder.bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
         binder.bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
-        binder.bind(RendererEngineOrchestrator.class).to(RendererEngineOrchestratorImpl.class).in(Singleton.class);
+        binder.bind(RendererEngineOrchestrator.class).in(Singleton.class);
         
         // Framework
         binder.bind(Router.class).toInstance(router);

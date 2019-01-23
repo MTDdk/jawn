@@ -13,8 +13,8 @@ public interface RendererEngine {
      * @param response
      */
     void invoke(final Context context, final Object renderable) throws Exception;
-
-
+    
+    
     /**
      * Get the content type this template engine renders
      * 
@@ -22,5 +22,4 @@ public interface RendererEngine {
      *      The content type this template engine renders
      */
     MediaType[] getContentType();
-    
 }

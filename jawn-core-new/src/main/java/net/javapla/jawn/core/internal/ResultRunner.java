@@ -5,12 +5,12 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.renderers.RendererEngine;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Status;
-import net.javapla.jawn.core.renderers.RendererEngine;
-import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
 @Singleton
 final class ResultRunner {

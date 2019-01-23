@@ -17,7 +17,6 @@ final class XmlRendererEngine implements RendererEngine {
         this.mapper = mapper;
     }
     
-    
     @Override
     public void invoke(final Context context, final Object obj) throws Exception {
         
@@ -30,10 +29,8 @@ final class XmlRendererEngine implements RendererEngine {
         }
     }
 
-
     @Override
     public MediaType[] getContentType() {
         return new MediaType[]{ MediaType.XML };
     }
-    
 }

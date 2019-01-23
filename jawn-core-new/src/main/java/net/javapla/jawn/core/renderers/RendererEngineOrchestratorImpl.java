@@ -18,12 +18,12 @@ import com.google.inject.Key;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.util.StringUtil;
 
 @Singleton
-public final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator {
+final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     
@@ -39,10 +39,10 @@ public final class RendererEngineOrchestratorImpl implements RendererEngineOrche
     
     @Inject
     RendererEngineOrchestratorImpl(
-             final Provider<JsonRendererEngine>           json,
-             final Provider<XmlRendererEngine>            xml,
-             final Provider<TextRendererEngine>           text,
-             final Provider<StreamRendererEngine>         stream,
+             final Provider<JsonRendererEngine>       json,
+             final Provider<XmlRendererEngine>        xml,
+             final Provider<TextRendererEngine>       text,
+             final Provider<StreamRendererEngine>     stream,
              //Provider<ImageRendererEngine>          image,
              //Provider<StringTemplateTemplateEngine> html,
              final Injector injector) {
@@ -79,6 +79,12 @@ public final class RendererEngineOrchestratorImpl implements RendererEngineOrche
     @Override
     public Set<MediaType> getContentTypes() {
         return contentTypeToRendererEngineMap.keySet();
+    }
+    
+    @Override
+    public boolean hasRendererEngineForContentType(final MediaType contentType) {
+        final Provider<? extends RendererEngine> provider = contentTypeToRendererEngineMap.get(contentType);
+        return provider != null;
     }
 
     @Override

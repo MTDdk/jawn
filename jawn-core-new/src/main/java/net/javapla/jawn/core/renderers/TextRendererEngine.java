@@ -23,5 +23,4 @@ final class TextRendererEngine implements RendererEngine {
     public MediaType[] getContentType() {
         return new MediaType[]{ MediaType.PLAIN, MediaType.TEXT };
     }
-
 }

@@ -46,6 +46,27 @@ public class Jawn implements Route.Filtering<Jawn> {
         return this;
     }
     
+    /**
+     * <pre>
+     * use((app) -> {
+     *   app.binder().bind(RendererEngine.class).toInstance(new RendererEngine() {
+     *     public void invoke(Context context, Object renderable) throws Exception {
+     *       // code goes here
+     *       // Ex.:
+     *       if (renderable instanceof String) {
+     *         context.resp().send(((String) renderable).getBytes(context.req().charset()));
+     *       }
+     *     }
+     * 
+     *     public MediaType[] getContentType() {
+     *       return new MediaType[] { MediaType.valueOf("text/plain") };
+     *     }
+     *   });
+     * });
+     * </pre>
+     * @param module
+     * @return
+     */
     protected Jawn use(final ModuleBootstrap module) {
         bootstrap.register(module);
         return this;

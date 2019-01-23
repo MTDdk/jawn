@@ -19,7 +19,6 @@ final class JsonRendererEngine implements RendererEngine {
     
     @Override
     public void invoke(final Context context, final Object obj) throws Exception {
-        
         if (obj instanceof byte[]) {
             context.resp().send((byte[])obj);
         } else if (obj instanceof String) {
@@ -28,7 +27,7 @@ final class JsonRendererEngine implements RendererEngine {
             context.resp().send(mapper.writeValueAsBytes(obj));
         }
     }
-
+    
     @Override
     public MediaType[] getContentType() {
         return new MediaType[]{ MediaType.JSON };

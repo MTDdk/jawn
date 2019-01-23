@@ -3,6 +3,8 @@ package net.javapla.jawn.core.renderers;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import com.google.inject.ImplementedBy;
+
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.MediaType;
 
@@ -11,6 +13,7 @@ import net.javapla.jawn.core.MediaType;
  * allows registering custom template engines by registering explicit bindings
  * of things that implement TemplateEngine.
  */
+@ImplementedBy(RendererEngineOrchestratorImpl.class)
 public interface RendererEngineOrchestrator {
 
     /**
@@ -28,5 +31,8 @@ public interface RendererEngineOrchestrator {
      * @return The template engine, if found
      */
     void getRendererEngineForContentType(MediaType contentType, Consumer<RendererEngine> callback) throws Up.BadMediaType;
+    
+    
+    boolean hasRendererEngineForContentType(MediaType contentType);
 
 }
