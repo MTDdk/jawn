@@ -34,13 +34,13 @@ final class HttpHandlerImpl implements HttpHandler {
 
     @Override
     public void handle(final ServerRequest req, final ServerResponse resp) throws Exception {
-        String uri = normaliseURI(req.path());
+        //String uri = normaliseURI(req.path()); README is this even necessary?
         resp.header("Server", "jawn");
         
         final ContextImpl context = new ContextImpl(req, resp, charset);
         
         try {
-            final Route route = router.retrieve(req.method(), uri);
+            final Route route = router.retrieve(req.method(), req.path()/*uri*/);
             context.route(route);
             
             // Execute handler
@@ -63,15 +63,16 @@ final class HttpHandlerImpl implements HttpHandler {
             // catch-all for known exceptions
             renderSystemError(context, /*"/system/"+e.getHttpCode(), "index",*/ e.statusCode(), e);
         } catch (Exception e) {
+            // catch-all for UN-known exceptions
             // 500
             renderSystemError(context, /*"/system/500", "index",*/ 500, e);
         }
         
     }
     
-    private static String normaliseURI(final String uri) {
+    /*private static String normaliseURI(final String uri) {
         return uri.length() == 0 ? "/" : uri;
-    }
+    }*/
     
     void renderSystemError(final ContextImpl context, final int status, Throwable e) {
         runner.execute(Results.status(Status.valueOf(status)), context);
