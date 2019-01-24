@@ -49,7 +49,7 @@ final class Router {
         // the trie did not have any for us
         if (route == null) {
             for (var r : routes) {
-                if (r.matches(requestUri)) {
+                if (r.method() == httpMethod && r.matches(requestUri)) {
                     trie.insert(requestUri, r); // cache it
                     return r;
                 }

@@ -20,7 +20,6 @@ import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
-import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
@@ -47,7 +46,7 @@ public final class UndertowRequest implements ServerRequest {
     private MultiList<String> params;
     private MultiList<String> headers;
 
-    public UndertowRequest(final HttpServerExchange exchange, final Config config) {
+    public UndertowRequest(final HttpServerExchange exchange) {
         this.exchange = exchange;
         this.path = URLCodec.decode(exchange.getRequestPath(), StandardCharsets.UTF_8);
         

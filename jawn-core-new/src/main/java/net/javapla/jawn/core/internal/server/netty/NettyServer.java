@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -14,6 +13,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -26,6 +26,7 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.Server;
+import net.javapla.jawn.core.server.ServerConfig;
 
 @Singleton
 class NettyServer implements Server {
@@ -49,20 +50,9 @@ class NettyServer implements Server {
     }
 
     @Override
-    public void start() throws Exception {
-        int bossThreads = 1;//conf.getInt("netty.threads.Boss");
-        bossLoop = eventLoop(bossThreads, "boss");
-        int workerThreads = Runtime.getRuntime().availableProcessors() * 2;//conf.getInt("netty.threads.Worker");
-        if (workerThreads > 0) {
-            workerLoop = eventLoop(Math.max(4, workerThreads), "worker");
-        } else {
-            workerLoop = bossLoop;
-        }
+    public void start(final ServerConfig serverConfig) throws Exception {
 
-        ThreadFactory threadFactory = new DefaultThreadFactory("jawn server netty task"/*conf.getString("netty.threads.Name")*/);
-        this.executor = new DefaultEventExecutorGroup(workerThreads*4/*conf.getInt("netty.threads.Max")*/, threadFactory);
-
-        this.ch = bootstrap(executor,/* null,*/ 8080/*conf.getInt("application.port")*/);
+        this.ch = bootstrap(executor, serverConfig/* null*/);
 
         /*boolean securePort = false;//conf.hasPath("application.securePort");
 
@@ -86,15 +76,16 @@ class NettyServer implements Server {
         return Optional.ofNullable(executor);
     }
     
-    private Channel bootstrap(final EventExecutorGroup executor, /*final SslContext sslCtx,*/
-                              final int port) throws InterruptedException {
-        ServerBootstrap bootstrap = new ServerBootstrap();
+    private Channel bootstrap(final EventExecutorGroup executor, ServerConfig serverConfig /*final SslContext sslCtx*/) throws InterruptedException {
+        ServerBootstrap builder = new ServerBootstrap();
+        
+        configureServerPerformance(builder, serverConfig);
 
         boolean epoll = bossLoop instanceof EpollEventLoopGroup;
-        bootstrap.group(bossLoop, workerLoop)
-        .channel(epoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
-        .handler(new LoggingHandler(Server.class, LogLevel.DEBUG))
-        .childHandler(new NettyPipeline(executor, dispatcher, conf/*, sslCtx*/));
+        builder.group(bossLoop, workerLoop)
+            .channel(epoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
+            .handler(new LoggingHandler(Server.class, LogLevel.DEBUG))
+            .childHandler(new NettyPipeline(executor, dispatcher, conf/*, sslCtx*/));
 
         /*configure(conf.getConfig("netty.options"), "netty.options",
             (option, value) -> bootstrap.option(option, value));
@@ -102,18 +93,17 @@ class NettyServer implements Server {
         configure(conf.getConfig("netty.worker.options"), "netty.worker.options",
             (option, value) -> bootstrap.childOption(option, value));*/
         
-        bootstrap.option(ChannelOption.SO_REUSEADDR, true);
-        bootstrap.childOption(ChannelOption.SO_REUSEADDR, true);
 
-        return bootstrap
-            .bind("0.0.0.0"/*host(conf.getString("application.host"))*/, port)
+        return builder
+            .bind(serverConfig.host(), serverConfig.port())
             .sync()
             .channel();
     }
     
-    private EventLoopGroup eventLoop(final int threads, final String name) {
+    private EventLoopGroup eventLoop(ServerBootstrap bootstrap, final int threads, final String name) {
         //log.debug("netty.threads.{}({})", name, threads);
         if (Epoll.isAvailable()) {
+            bootstrap.option(EpollChannelOption.SO_REUSEPORT, true);
             return new EpollEventLoopGroup(threads, new DefaultThreadFactory("epoll-" + name, false));
         }
         return new NioEventLoopGroup(threads, new DefaultThreadFactory("nio-" + name, false));
@@ -132,11 +122,45 @@ class NettyServer implements Server {
                 group.shutdownGracefully().addListener(future -> {
                     if (!future.isSuccess()) {
                         //log.debug("shutdown of {} resulted in exception", group, future.cause());
+                        System.err.println("shutdown of " + group + " resulted in exception");
+                        future.cause().printStackTrace();
                     }
                     shutdownGracefully(iterator);
                 });
             }
         }
+    }
+    
+    private void configureServerPerformance(ServerBootstrap builder, ServerConfig serverConfig) {
+        
+        int minimum = 1;//at least one thread for the bossLoop
+        int ioThreads, workerThreads,executorThreads;
+        switch (serverConfig.serverPerformance()) {
+            case HIGHEST:
+                ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, minimum);
+                workerThreads = ioThreads * 4;
+                executorThreads = Math.max(32, workerThreads * 4);
+                break;
+            default:
+            case MINIMUM:
+                ioThreads = minimum;
+                workerThreads = ioThreads;
+                executorThreads = workerThreads * 4;
+                break;
+            case CUSTOM:
+                ioThreads = Math.max(serverConfig.ioThreads(), minimum);
+                workerThreads = ioThreads * 4;
+                executorThreads = workerThreads * 4;
+                break;
+        }
+        
+        this.bossLoop = eventLoop(builder, ioThreads, "boss");
+        this.workerLoop = eventLoop(builder, Math.max(4, workerThreads), "worker");
+        this.executor = new DefaultEventExecutorGroup(executorThreads, new DefaultThreadFactory("jawn-server-netty-task"));
+        
+        builder.option(ChannelOption.SO_BACKLOG, serverConfig.backlog());
+        builder.option(ChannelOption.SO_REUSEADDR, true);
+        builder.childOption(ChannelOption.SO_REUSEADDR, true);
     }
 
 }

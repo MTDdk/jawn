@@ -59,7 +59,7 @@ public class NettyRequest implements ServerRequest {
     
     private final ChannelHandlerContext ctx;
     private final HttpRequest req;
-    private final String tmpdir;
+    //private final String tmpdir;
     private final QueryStringDecoder query;
     private final String path;
     
@@ -71,7 +71,7 @@ public class NettyRequest implements ServerRequest {
     NettyRequest(final ChannelHandlerContext ctx, final HttpRequest req, final String tmpdir) {
         this.ctx = ctx;
         this.req = req;
-        this.tmpdir = tmpdir;
+        //this.tmpdir = tmpdir;
         this.query = new QueryStringDecoder(req.uri());
         this.path = query.path(); //any decoding needed?
         

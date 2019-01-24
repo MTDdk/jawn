@@ -97,4 +97,30 @@ public class RouterTest {
          assertThat(route).isNotNull();
      }
 
+     @Test
+     public void routeWithCorrectMethod() {
+         List<Route> routes = Arrays.asList(
+             new Route.Builder(HttpMethod.GET).path("/first/{some}").build(),
+             new Route.Builder(HttpMethod.DELETE).path("/delete").build(),
+             new Route.Builder(HttpMethod.POST).path("/post/{test}").build()
+         );
+         
+         Router router = new Router(routes);
+         
+         try {
+             router.retrieve(HttpMethod.POST, "/first/some");
+             fail();
+         } catch (Up.RouteMissing e) {}
+         
+         try {
+             router.retrieve(HttpMethod.DELETE, "/first");
+             fail();
+         } catch (Up.RouteMissing e) {}
+         
+         Route route = router.retrieve(HttpMethod.POST, "/post/concrete");
+         assertThat(route.method()).isEqualTo(HttpMethod.POST);
+         
+         route = router.retrieve(HttpMethod.DELETE, "/delete");
+         assertThat(route.method()).isEqualTo(HttpMethod.DELETE);
+     }
 }

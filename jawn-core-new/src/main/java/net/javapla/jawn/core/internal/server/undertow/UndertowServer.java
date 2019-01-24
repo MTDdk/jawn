@@ -14,6 +14,7 @@ import io.undertow.server.handlers.GracefulShutdownHandler;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.Server;
+import net.javapla.jawn.core.server.ServerConfig;
 
 public final class UndertowServer implements Server {
     
@@ -29,13 +30,13 @@ public final class UndertowServer implements Server {
     }
 
     @Override
-    public void start(/*, ServerConfig serverConfig*/) throws Exception {
-        shutdownHandler = new GracefulShutdownHandler(createHandler(dispatcher, conf));
+    public void start(final ServerConfig serverConfig) throws Exception {
+        shutdownHandler = new GracefulShutdownHandler(createHandler(dispatcher));
         
         
         final Builder builder = Undertow.builder()
             .setHandler(shutdownHandler)
-            .addHttpListener(8080, "0.0.0.0")//serverConfig.port(), serverConfig.host())
+            .addHttpListener(/*8080, "0.0.0.0")/*/serverConfig.port(), serverConfig.host())
             
             // from undertow-edge benchmark
             .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false) //don't send a keep-alive header for HTTP/1.1 requests, as it is not required
@@ -50,7 +51,7 @@ public final class UndertowServer implements Server {
         conf.getBooleanOptionally("server.http2.enabled")
             .ifPresent(b -> builder.setServerOption(UndertowOptions.ENABLE_HTTP2, b));
         
-        configureServerPerformance(builder/*, serverConfig*/);
+        configureServerPerformance(builder, serverConfig);
         
         server = builder.build();
         server.start();
@@ -73,11 +74,11 @@ public final class UndertowServer implements Server {
         return Optional.ofNullable(server.getWorker());
     }
     
-    private static final io.undertow.server.HttpHandler createHandler(final HttpHandler dispatcher, final Config config ) {
-        return new UndertowHandler(dispatcher, config);
+    private static final io.undertow.server.HttpHandler createHandler(final HttpHandler dispatcher) {
+        return new UndertowHandler(dispatcher);
     }
     
-    private static void configureServerPerformance(Builder serverBuilder/*, ServerConfig config*/) {
+    private static void configureServerPerformance(Builder serverBuilder, ServerConfig config) {
         // TODO investigate serverBuilder.setWorkerThreads
         // Per default Builder#setWorkerThreads gets set to ioThreads * 8, but it does not get updated, when setting ioThreads,
         // so we need to set worker threads explicitly
@@ -85,22 +86,14 @@ public final class UndertowServer implements Server {
         
         int undertow_minimum = 2;//may not be less than 2 because of the inner workings of Undertow
         int ioThreads, workerThreads;
-        /*switch (config.serverPerformance()) {
+        switch (config.serverPerformance()) {
             case HIGHEST:
-                ioThreads = Math.max(Runtime.getRuntime().availableProcessors() << 1, undertow_minimum);
+                ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum);
                 workerThreads = ioThreads * 8;
                 serverBuilder.setBufferSize(1024 * 16);
                 break;
-            case HIGH:
-                ioThreads = Math.max(Runtime.getRuntime().availableProcessors(), undertow_minimum);
-                workerThreads = ioThreads * 8;
-                break;
             default:
-            case MEDIUM:*/
-                ioThreads = Math.max(Runtime.getRuntime().availableProcessors() , undertow_minimum);
-                workerThreads = ioThreads * 4;
-                /*break;
-            case LOW:
+            case MINIMUM:
                 ioThreads = undertow_minimum;
                 workerThreads = ioThreads;
                 break;
@@ -108,12 +101,12 @@ public final class UndertowServer implements Server {
                 ioThreads = Math.max(config.ioThreads(), undertow_minimum);
                 workerThreads = ioThreads * 8;
                 break;
-        }*/
+        }
         
         serverBuilder.setIoThreads(ioThreads);
         serverBuilder.setWorkerThreads(workerThreads);
         
-        //serverBuilder.setSocketOption(Options.BACKLOG, config.backlog());
+        serverBuilder.setSocketOption(Options.BACKLOG, config.backlog());
         serverBuilder.setSocketOption(Options.WORKER_IO_THREADS, ioThreads);
     }
 

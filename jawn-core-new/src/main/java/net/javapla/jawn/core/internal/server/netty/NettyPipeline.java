@@ -22,44 +22,45 @@ final class NettyPipeline extends ChannelInitializer<SocketChannel> {
         if (!TMP_DIR.toFile().exists()) TMP_DIR.toFile().mkdirs();
     }
     
-    private EventExecutorGroup executor;
+    private final EventExecutorGroup executor;
 
-    private HttpHandler handler;
+    private final HttpHandler handler;
 
-    private Config config;
+    //private Config config;
 
-    private int maxInitialLineLength;
+    private final int maxInitialLineLength;
 
-    private int maxHeaderSize;
+    private final int maxHeaderSize;
 
-    private int maxChunkSize;
+    private final int maxChunkSize;
 
-    int maxContentLength;
+    private final int maxContentLength;
 
-    private long idleTimeOut;
+    private final long idleTimeOut;
 
     //private SslContext sslCtx;
 
-    private boolean supportH2;
+    //private boolean supportH2;
 
-    //private String tmpdir;
+    private final String tmpdir = TMP_DIR.toString();
 
-    private int bufferSize;
+    private final int bufferSize;
 
-    private int wsMaxMessageSize;
+    //private int wsMaxMessageSize;
     
     NettyPipeline(final EventExecutorGroup executor, final HttpHandler dispatcher, final Config conf) {
         this.executor = executor;
         this.handler = dispatcher;
-        this.config = conf;
+        //this.config = conf;
         
         maxInitialLineLength = 4_000;
         maxHeaderSize = 8_000;
         maxChunkSize = 16_000;
         maxContentLength = 200_000;
         idleTimeOut = 0;
-        supportH2 = false;
-        this.wsMaxMessageSize = 16_000; /*Math
+        bufferSize = 16_000;
+        //supportH2 = false;
+        /*this.wsMaxMessageSize = 16_000;*/ /*Math
             .max(
                 config.getBytes("server.ws.MaxTextMessageSize").intValue(),
                 config.getBytes("server.ws.MaxBinaryMessageSize").intValue());*/
@@ -113,7 +114,7 @@ final class NettyPipeline extends ChannelInitializer<SocketChannel> {
     }
 
     private void framework(final ChannelPipeline p) {
-        p.addLast(executor, "framework", new NettyHandler(handler, TMP_DIR.toString(), bufferSize/*, wsMaxMessageSize*/));
+        p.addLast(executor, "framework", new NettyHandler(handler, tmpdir, bufferSize/*, wsMaxMessageSize*/));
     }
 
 }

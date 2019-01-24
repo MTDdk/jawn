@@ -17,6 +17,7 @@ import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.server.Server;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.Modes;
 
@@ -27,6 +28,7 @@ public class Jawn implements Route.Filtering<Jawn> {
     private final FrameworkBootstrap bootstrap;
     private final LinkedList<Route.Builder> routes;
     private final RouteFilterPopulator filters;
+    private final ServerConfig serverConfig;
     
     private Modes mode = Modes.DEV;
 
@@ -34,6 +36,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         bootstrap = new FrameworkBootstrap();
         routes = new LinkedList<>();
         filters = new RouteFilterPopulator();
+        serverConfig = new ServerConfig();
     }
     
     // ****************
@@ -69,6 +72,10 @@ public class Jawn implements Route.Filtering<Jawn> {
     protected Jawn use(final ModuleBootstrap module) {
         bootstrap.register(module);
         return this;
+    }
+    
+    protected ServerConfig server() {
+        return serverConfig;
     }
     
     
@@ -179,7 +186,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         // start server
         try {
             Injector injector = bootstrap.getInjector();
-            injector.getInstance(Server.class).start(/*serverConfig*/);
+            injector.getInstance(Server.class).start(serverConfig);
         } catch (Exception e) {
             e.printStackTrace();
             stop();

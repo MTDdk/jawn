@@ -37,10 +37,10 @@ final class HttpHandlerImpl implements HttpHandler {
         String uri = normaliseURI(req.path());
         resp.header("Server", "jawn");
         
-        
         final ContextImpl context = new ContextImpl(req, resp, charset);
+        
         try {
-            Route route = router.retrieve(req.method(), uri);
+            final Route route = router.retrieve(req.method(), uri);
             context.route(route);
             
             // Execute handler
@@ -59,9 +59,10 @@ final class HttpHandlerImpl implements HttpHandler {
         }*/ catch (Up.BadResult | Up.BadMediaType e) {
             // 400
             renderSystemError(context, /*"/system/400", "index",*/ 400, e);
-        } /*catch (WebException e){
-            renderSystemError(context, "/system/"+e.getHttpCode(), "index", e.getHttpCode(), e);
-        }*/ catch (Exception e) {
+        } catch (Up e) {
+            // catch-all for known exceptions
+            renderSystemError(context, /*"/system/"+e.getHttpCode(), "index",*/ e.statusCode(), e);
+        } catch (Exception e) {
             // 500
             renderSystemError(context, /*"/system/500", "index",*/ 500, e);
         }
