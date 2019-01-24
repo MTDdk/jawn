@@ -1,7 +1,5 @@
 package net.javapla.jawn.core.util;
 
-import java.nio.charset.StandardCharsets;
-
 public interface Constants {
 
     /**
@@ -29,16 +27,6 @@ public interface Constants {
      * The defined languages available in the app
      */
     public static final String SUPPORTED_LANGUAGES = "languages";
-    
-    /**
-     * The defined encoding used for all responses
-     */
-    public static final String DEFINED_ENCODING = "encoding";
-    
-    /**
-     * Default framework encoding = UTF-8
-     */
-    public static final String DEFAULT_ENCODING = StandardCharsets.UTF_8.displayName();
     
     /**
      * Name of the framework (used in response headers)

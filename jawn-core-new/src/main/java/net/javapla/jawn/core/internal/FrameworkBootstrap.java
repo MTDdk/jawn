@@ -36,7 +36,7 @@ import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.Modes;
 
-public final class FrameworkBootstrap {
+public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
     private final ArrayList<ModuleBootstrap> userPlugins;
@@ -82,7 +82,7 @@ public final class FrameworkBootstrap {
                 }
             };
             // Makes it possible for plugins to override framework-specific implementations
-            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.netty");//readRegisteredPlugins(pluginConfig, frameworkConfig.getOptionally(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE).orElse("net.javapla.jawn.plugins.modules"));
+            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, frameworkConfig.getOptionally(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE).orElse("net.javapla.jawn.plugins.modules"));
             
             // Makes it possible for users to override single framework-specific implementations
             userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
@@ -91,15 +91,8 @@ public final class FrameworkBootstrap {
         final Injector localInjector = Guice.createInjector(stage, jawnModule);
         
         
-        // If any initialisation of filters needs to be done, like injecting ServletContext,
-        // it can be done here.
-        //initiateFilters(filters, localInjector);
-        
-        router.compileRoutes(routes.apply(localInjector));
-        
-        
         // compiling of routes needs element from the injector, so this is done after the creation
-        //initRouter(router, localInjector);
+        router.compileRoutes(routes.apply(localInjector));
         
         injector = localInjector;
         
@@ -132,38 +125,36 @@ public final class FrameworkBootstrap {
         onStartup.forEach(Runnable::run);
     }
     
+    /**
+     * signal the framework that we are closing down
+     */
     public synchronized void shutdown() {
 
         logger.info("Shutting down ..");
         
         onShutdown.forEach(Runnable::run);
         
-        /*if (injector != null) {
+        if (injector != null) {
             
             // shutdown the database connection pool
-            try {
+            /*try {
                 DatabaseConnection connection = injector.getInstance(DatabaseConnection.class);
                 if (connection != null)
                     connection.close();
             } catch (ConfigurationException ignore) {
             } catch (Exception e) { e.printStackTrace(); }
-            
-            // signal the framework that we are closing down
-            FrameworkEngine engine = injector.getInstance(FrameworkEngine.class);
-            engine.onFrameworkShutdown();
+            engine = null;
+            */
             
             injector = null;
-            engine = null;
-        }*/
+        }
     }
     
     protected void registerCoreModules(final Binder binder, final Modes mode, final Config config, final Router router) {
         
         // supported languages are needed in the creation of the injector
         //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
-        //properties.set(Constants.DEFINED_ENCODING, appConfig.getCharacterEncoding());
         
-        //addModule(new CoreModule(properties, new DeploymentInfo(properties), router));
         //addModule(new DatabaseModule(connections, properties));
                 
         // CoreModule
@@ -194,17 +185,6 @@ public final class FrameworkBootstrap {
         
         return frameworkConfig;
     }
-    
-    /*private void initiateFilters(Filters filters, Injector injector) {
-        filters.initialiseFilters(injector);
-    }*/
-    
-    /*private void initRouter(Router router, Injector localInjector) {
-        //router.compileRoutes(localInjector.getInstance(ActionInvoker.class));
-        //RouterImpl router = (RouterImpl)localInjector.getInstance(Router.class);
-        ActionInvoker invoker = localInjector.getInstance(ActionInvoker.class);
-        ((RouterImpl)router).compileRoutes(invoker);
-    }*/
     
     private ModuleBootstrap[] readRegisteredPlugins(ApplicationConfig config, String pluginsPackage) {
         try {

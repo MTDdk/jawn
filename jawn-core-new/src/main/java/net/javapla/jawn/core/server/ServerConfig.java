@@ -37,7 +37,6 @@ public class ServerConfig {
     
     private PERFORMANCE performance = PERFORMANCE.MINIMUM;
     private int backlog = -1;
-    private boolean backlogSet = false;
     
     /**
      * @return empty string, if no context path is specified;
@@ -104,11 +103,10 @@ public class ServerConfig {
         this.performance = PERFORMANCE.CUSTOM;
         
         this.backlog = backlog;
-        backlogSet = true;
         return this;
     }
     public int backlog() {
-        return backlogSet ? backlog : performance.getBacklogValue();
+        return backlog;
     }
     
     public PERFORMANCE serverPerformance() {
@@ -116,6 +114,7 @@ public class ServerConfig {
     }
     public ServerConfig serverPerformance(PERFORMANCE mode) {
         this.performance = mode;
+        this.backlog = performance.getBacklogValue();
         return this;
     }
 }
