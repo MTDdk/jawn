@@ -7,7 +7,7 @@
     </appender>
 
     <!-- Disables all logging -->
-    <root level="off">
+    <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>
     

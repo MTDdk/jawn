@@ -43,10 +43,6 @@ public class JarLoader implements AutoCloseable {
         final List<URL> retval = new ArrayList<>();
         
         for (JarFileTuple jarFile : jarfiles) {
-            
-
-//        for (int i = 0; i < JAR_FILE.size(); i++) {
-            
             final Enumeration<JarEntry> e = jarFile.file.entries();
             
             while(e.hasMoreElements()){
@@ -64,7 +60,6 @@ public class JarLoader implements AutoCloseable {
                 }
             }
         }
-        
 
         return Collections.enumeration(retval);
     }

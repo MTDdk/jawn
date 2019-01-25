@@ -29,6 +29,16 @@ public class Up extends RuntimeException {
         }
     }
     
+    public static class ViewError extends Up {
+        public ViewError(final Throwable err) {
+            super(Status.SERVER_ERROR, err);
+        }
+        
+        public ViewError(final String message) {
+            super(Status.SERVER_ERROR, message);
+        } 
+    }
+    
     public static class BadResult extends Up {
         public BadResult() {
             super(Status.SERVER_ERROR);

@@ -35,6 +35,7 @@ public class ReflectionMetadata {
         Optional<Class<?>> superclass = getSuperclass(cls);
         while (superclass.isPresent()) {
             if (superClsName.equals(superclass.get().getName())) return true;
+            superclass = ReflectionMetadata.getSuperclass(superclass.get());
         }
         
         // does it have it as an interface?
@@ -43,6 +44,7 @@ public class ReflectionMetadata {
                 return true;
             }
         }
-        return false;
+        
+        return superCls.isAssignableFrom(cls);
     }
 }

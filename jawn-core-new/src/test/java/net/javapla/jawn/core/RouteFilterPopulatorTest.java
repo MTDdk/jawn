@@ -94,6 +94,7 @@ public class RouteFilterPopulatorTest {
         populator.populate(Collections.singletonList(builder), mock(Injector.class));
         Route route = builder.build();
         
+        assertThat(route.before()).isNotNull();
         assertThat(route.before()).hasLength(2);
         assertThat(route.after()).hasLength(2);
     }

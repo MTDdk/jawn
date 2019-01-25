@@ -150,6 +150,7 @@ public interface Route extends Handler {
             this.globalBefore.add(handler);
             this.globalAfter.addFirst(handler);
         }
+        
         void globalBefore(final Route.Before handler) {
             this.globalBefore.add(handler);
         }

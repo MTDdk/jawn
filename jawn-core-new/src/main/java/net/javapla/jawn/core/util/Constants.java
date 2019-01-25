@@ -51,7 +51,7 @@ public interface Constants {
     String PROPERTIES_FILE_FRAMEWORK = "jawn_defaults.properties"; // Standard in the resources
     String PROPERTIES_FILE_USER = "jawn.properties"; // Overrides standard 
     
-    String PROPERTY_APPLICATION_BASE_PACKAGE = "application.base.package"; // TODO should be configurable in Jawn#basePackage
+    //String PROPERTY_APPLICATION_BASE_PACKAGE = "application.base.package"; // TODO should be configurable in Jawn#basePackage
     String PROPERTY_APPLICATION_PLUGINS_PACKAGE = "application.plugins.package";
     
     String PROPERTY_CACHE_IMPLEMENTATION = "cache.implementation";
@@ -72,5 +72,5 @@ public interface Constants {
      * This might need to be this way, as the System properties *can* have some of the same keys.
      * So always prepend with something application specific.
      */
-    static final String SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE = "jawn." + PROPERTY_APPLICATION_BASE_PACKAGE;
+    //static final String SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE = "jawn." + PROPERTY_APPLICATION_BASE_PACKAGE;
 }

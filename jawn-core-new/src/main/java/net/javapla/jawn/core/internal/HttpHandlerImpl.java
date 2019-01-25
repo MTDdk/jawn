@@ -53,10 +53,10 @@ final class HttpHandlerImpl implements HttpHandler {
             } else {
                 renderSystemError(context, /*"/system/404", "index",*/ 404, e);
             }
-        } /*catch (ViewException e) {
+        } catch (Up.ViewError e) {
             // 501
-            renderSystemError(context, "/system/500", "index", 501, e);
-        }*/ catch (Up.BadResult | Up.BadMediaType e) {
+            renderSystemError(context, /*"/system/500", "index",*/ 501, e);
+        } catch (Up.BadResult | Up.BadMediaType e) {
             // 400
             renderSystemError(context, /*"/system/400", "index",*/ 400, e);
         } catch (Up e) {

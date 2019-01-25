@@ -16,6 +16,10 @@ dependencies {
   
   // Server
   compile 'io.netty:netty-all:4.1.33.Final'
+  
+  //Template Engine
+  //StringTemplate
+  compile('org.antlr:ST4:4.0.8')
 
 
   compile ('com.google.inject:guice:4.2.2') {

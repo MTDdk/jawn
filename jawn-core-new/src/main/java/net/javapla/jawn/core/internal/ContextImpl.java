@@ -1,6 +1,8 @@
 package net.javapla.jawn.core.internal;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
@@ -30,37 +32,37 @@ final class ContextImpl implements Context {
     private final HashMap<String, Cookie> cookies = new HashMap<>();
     private HashMap<String, Object> attributes;
     
-    ContextImpl(final ServerRequest req, final ServerResponse resp, final Charset charset) {
+    ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset) {
         this.sresp = resp;
         
         this.req = new Context.Request() {
-            final MediaType contentType = req.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
+            final MediaType contentType = sreq.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
             final Charset cs = contentType.params().get(MediaType.CHARSET_PARAMETER) == null ? charset : Charset.forName(contentType.params().get(MediaType.CHARSET_PARAMETER));
             
             @Override
             public HttpMethod httpMethod() {
-                return req.method();
+                return sreq.method();
             }
             
             @Override
             public Optional<String> queryString() {
-                String s = req.queryString();
+                String s = sreq.queryString();
                 return s.length() == 0 ? Optional.empty() : Optional.of(s);
             }
             
             @Override
             public String ip() {
-                return req.ip();
+                return sreq.ip();
             }
             
             @Override
             public String path() {
-                return req.path();
+                return sreq.path();
             }
             
             @Override
             public Map<String, Cookie> cookies() {
-                return req.cookies().stream().collect(Collectors.toMap(Cookie::name, cookie -> cookie));
+                return sreq.cookies().stream().collect(Collectors.toMap(Cookie::name, cookie -> cookie));
             }
             
             @Override
@@ -75,28 +77,28 @@ final class ContextImpl implements Context {
             
             @Override
             public Optional<String> queryParam(final String name) {
-                return req.queryParam(name);
+                return sreq.queryParam(name);
             }
             
             @Override
             public MultiList<String> queryParams() {
-                return req.queryParams();
+                return sreq.queryParams();
             }
             
             @Override
             public List<String> queryParams(final String name) {
-                return req.queryParams(name);
+                return sreq.queryParams(name);
             }
             
             @Override
             public MultiList<FormItem> formData() {
-                return req.formData();
+                return sreq.formData();
             }
         };
         
         this.resp = new Context.Response() {
             private MediaType contentType;
-            private Charset charset;
+            private Charset cs;
             
             @Override
             public Status status() {
@@ -127,20 +129,20 @@ final class ContextImpl implements Context {
             }
             
             @Override
-            public Response characterEncoding(final Charset encoding) {
-                charset = encoding;
+            public Response charset(final Charset encoding) {
+                cs = encoding;
                 setContentType();
                 return this;
             }
 
             @Override
-            public Optional<Charset> characterEncoding() {
-                return Optional.ofNullable(charset);
+            public Charset charset() {
+                return cs != null ? cs : req.charset();
             }
             
             private void setContentType() {
                 if (contentType != null) {
-                    resp.header("Content-Type", contentType + (charset != null ? ("; charset=" + charset) : "") );
+                    resp.header("Content-Type", contentType + (cs != null ? ("; charset=" + cs) : "") );
                 }
             }
             
@@ -177,6 +179,16 @@ final class ContextImpl implements Context {
                 // req.header("Range")
                 // .. do something where we only read 'end'-'start' amount of bytes of 'stream'
                 resp.send(stream);
+            }
+            
+            @Override
+            public void send(final ByteBuffer buf) throws Exception {
+                resp.send(buf);
+            }
+            
+            @Override
+            public void send(final CharBuffer buf) throws Exception {
+                resp.send(charset().encode(buf));
             }
             
             @Override

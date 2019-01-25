@@ -16,9 +16,11 @@ import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
+import net.javapla.jawn.core.internal.reflection.ReflectionMetadata;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
+import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.Modes;
 
 public class Jawn implements Route.Filtering<Jawn> {
@@ -143,23 +145,18 @@ public class Jawn implements Route.Filtering<Jawn> {
     }
     
     /** add a global filter */
+    @Override
     public Jawn before(final Route.Before filter) {
         filters.filter(filter);
         return this;
     }
     
     /** add a global filter */
+    @Override
     public Jawn after(final Route.After filter) {
         filters.filter(filter);
         return this;
     }
-    
-    /*protected Jawn filter(final String path, final Class<? extends Route.Chain> filter) {
-     * this does not quite make sense.. use a proper handler instead
-        filters.add(filter);
-        return this;
-    }*/
-    
     
     // ****************
     // Life Cycle
@@ -181,7 +178,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
         // bootstrap
-        bootstrap.boot(mode, this::buildRoutes);
+        bootstrap.boot(mode, serverConfig, this::buildRoutes);
         
         // start server
         try {
@@ -196,7 +193,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         logger.info(FrameworkBootstrap.FRAMEWORK_SPLASH);
         logger.info("Bootstrap of framework started in: " + (System.currentTimeMillis() - startupTime) + " ms");
         logger.info("Jawn: Environment:                 " + mode);
-        logger.info("Jawn: Running on port:             " + 8080);
+        logger.info("Jawn: Running on port:             " + serverConfig.port());
     }
     
     /**
@@ -214,37 +211,14 @@ public class Jawn implements Route.Filtering<Jawn> {
     }
     
     /**
-     * 
      * @param jawn
      *          A subclass of Jawn
      * @param args
-     //*          <ol>
-     //*          <li>Server port - Overwrites the default port and the port if it is assigned by {@link ServerConfig#port(int)}</li>
-     //*          <li>Mode of operation - DEV,TEST,PROD or their fully qualified names: development, test, production. See {@linkplain Modes}. Default is DEV</li>
-     //*          </ol>
+     *          <ol>
+     *          <li>Server port - Overwrites the default port and the port if it is assigned by {@link ServerConfig#port(int)}</li>
+     *          <li>Mode of operation - DEV,TEST,PROD or their fully qualified names: development, test, production. See {@linkplain Modes}. Default is DEV</li>
+     *          </ol>
      */
-    private static final void run(final Jawn jawn, final String ... args) {
-        //jawn.getClass().getPackageName()
-        // TODO use this information as application.base_package if not specified
-        // if jawn.properties has application.base_package then that takes precendence
-        
-        //TODO when in DEV: start a WatchService for all classes within application.base_package.
-        // Whenever a .java file changes, recompile it and put into play (if possible),
-        // or just always recompile the Jawn-instance (which hopefully will trigger the
-        // usage of the newly recompiled class)
-        // ...
-        // this might need to be done by creating the entire Jawn-instance in a new ClassLoader
-        // that we control, which should delegate to this main ClassLoader whenever the wanted class
-        // is not within application.base_package
-        
-        
-        jawn
-            .parseArguments(args) // Read program arguments and overwrite server specifics
-            .start();
-    }
-    /*private static final void run(final Supplier<Jawn> jawn, final String ... args) {
-        run(jawn.get(), args);
-    }*/
     public static final void run(final Class<? extends Jawn> jawn, final String ... args) {
         Jawn instance = DynamicClassFactory.createInstance(jawn);
         
@@ -281,13 +255,18 @@ public class Jawn implements Route.Filtering<Jawn> {
         
         run(instance, args);
     }
+    
+    private static final void run(final Jawn jawn, final String ... args) {
+        jawn
+        .parseArguments(args) // Read program arguments and overwrite server specifics
+        .start();
+    }
 
-    //TODO
     private Jawn parseArguments(final String ... args) {
-//        if (args.length >= 1)
-//            server().port(ConvertUtil.toInteger(args[0], server().port()));
-//        if (args.length >= 2)
-//            env(Modes.determineModeFromString(args[1]));
+        if (args.length >= 1)
+            server().port(ConvertUtil.toInteger(args[0], server().port()));
+        if (args.length >= 2)
+            mode(Modes.determineModeFromString(args[1]));
             
         return this;
     }
@@ -362,11 +341,11 @@ public class Jawn implements Route.Filtering<Jawn> {
                 } else if (item instanceof Class<?>) {
                     Class<?> d = (Class<?>)item;
                     
-                    if (Route.Filter.class.isAssignableFrom(d)) {
+                    if (ReflectionMetadata.isAssignableFrom(d, Route.Filter.class)) {
                         filter(routes, injector.getInstance(d));
-                    } else if (Route.After.class.isAssignableFrom(d)) {
+                    } else if (ReflectionMetadata.isAssignableFrom(d, Route.After.class)) {
                         after(routes, injector.getInstance(d));
-                    } else if (Route.Before.class.isAssignableFrom(d)) {
+                    } else if (ReflectionMetadata.isAssignableFrom(d, Route.Before.class)) {
                         before(routes, injector.getInstance(d));
                     }
                 }

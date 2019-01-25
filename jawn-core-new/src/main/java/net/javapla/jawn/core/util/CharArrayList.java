@@ -1,6 +1,10 @@
 package net.javapla.jawn.core.util;
 
 import java.io.CharArrayWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -8,7 +12,7 @@ import java.util.Arrays;
  * Non-synchronised version of {@link CharArrayWriter} 
  *
  */
-public final class CharArrayList {
+public final class CharArrayList extends Writer {
     /**
      * The buffer where data is stored.
      */
@@ -52,6 +56,22 @@ public final class CharArrayList {
         count = newcount;
     }
     
+    @Override
+    public void write(char[] c, int off, int len) throws IOException {
+        if ((off < 0) || (off > c.length) || (len < 0) ||
+            ((off + len) > c.length) || ((off + len) < 0)) {
+            throw new IndexOutOfBoundsException();
+        } else if (len == 0) {
+            return;
+        }
+        int newcount = count + len;
+        if (newcount > buf.length) {
+            buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
+        }
+        System.arraycopy(c, off, buf, count, len);
+        count = newcount;
+    }
+
     /**
      * Resets the buffer so that you can use it again without
      * throwing away the already allocated buffer.
@@ -79,6 +99,16 @@ public final class CharArrayList {
     }
     
     /**
+     * Writes the contents of the buffer to another character stream.
+     *
+     * @param out       the output stream to write to
+     * @throws IOException If an I/O error occurs.
+     */
+    public void writeTo(Writer out) throws IOException {
+        out.write(buf, 0, count);
+    }
+    
+    /**
      * Converts input data to a string.
      * @return the string.
      */
@@ -87,6 +117,20 @@ public final class CharArrayList {
         return new String(buf, 0, count);
     }
     
+    @Override
+    public void flush() {}
+
+    @Override
+    public void close() {}
+    
+    public CharBuffer toCharBuffer() {
+        return CharBuffer.wrap(buf, 0, count);
+    }
+    
+    public ByteBuffer toByteBuffer(final Charset cs) {
+        return cs.encode(toCharBuffer());
+    }
+
     public byte[] getBytes(final Charset cs) {
         // in part the same as new String(buf, 0, count)
         /*byte[] ret = new byte[count];

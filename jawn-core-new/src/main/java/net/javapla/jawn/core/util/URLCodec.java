@@ -142,6 +142,7 @@ public final class URLCodec {
                 needToChange = true;
             }
         }
+        charArrayWriter.close();
 
         return (needToChange? out.toString() : s);
     }

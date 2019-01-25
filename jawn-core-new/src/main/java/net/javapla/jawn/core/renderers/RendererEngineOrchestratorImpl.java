@@ -39,12 +39,11 @@ final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator
     
     @Inject
     RendererEngineOrchestratorImpl(
-             final Provider<JsonRendererEngine>       json,
-             final Provider<XmlRendererEngine>        xml,
-             final Provider<TextRendererEngine>       text,
-             final Provider<StreamRendererEngine>     stream,
-             //Provider<ImageRendererEngine>          image,
-             //Provider<StringTemplateTemplateEngine> html,
+             final Provider<JsonRendererEngine>   json,
+             final Provider<XmlRendererEngine>    xml,
+             final Provider<TextRendererEngine>   text,
+             final Provider<StreamRendererEngine> stream,
+             //Provider<ImageRendererEngine>      image,
              final Injector injector) {
         
         final Map<MediaType, Provider<? extends RendererEngine>> map = new HashMap<>();
@@ -83,8 +82,7 @@ final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator
     
     @Override
     public boolean hasRendererEngineForContentType(final MediaType contentType) {
-        final Provider<? extends RendererEngine> provider = contentTypeToRendererEngineMap.get(contentType);
-        return provider != null;
+        return null != contentTypeToRendererEngineMap.get(contentType);
     }
 
     @Override

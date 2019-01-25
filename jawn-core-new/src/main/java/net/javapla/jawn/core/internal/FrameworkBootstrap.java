@@ -22,6 +22,7 @@ import com.google.inject.Singleton;
 import com.google.inject.Stage;
 
 import net.javapla.jawn.core.Config;
+import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
@@ -32,6 +33,7 @@ import net.javapla.jawn.core.parsers.ParserEngineManagerImpl;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 import net.javapla.jawn.core.server.HttpHandler;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.Modes;
@@ -51,14 +53,14 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
         userPlugins = new ArrayList<>();
     }
     
-    public synchronized void boot(final Modes mode, final Function<Injector,List<Route>> routes) {
+    public synchronized void boot(final Modes mode, final ServerConfig serverConfig, final Function<Injector,List<Route>> routes) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
         final Config frameworkConfig = readConfigurations(mode);
         final Router router = new Router(/*routes*/);
         
         final com.google.inject.Module jawnModule = binder -> {
-            registerCoreModules(binder, mode, frameworkConfig, router);
+            registerCoreModules(binder, mode, frameworkConfig, router, serverConfig);
             
             final ApplicationConfig pluginConfig = new ApplicationConfig() {
                 @Override
@@ -83,6 +85,7 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
             };
             // Makes it possible for plugins to override framework-specific implementations
             readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, frameworkConfig.getOptionally(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE).orElse("net.javapla.jawn.plugins.modules"));
+            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.template.stringtemplate");
             
             // Makes it possible for users to override single framework-specific implementations
             userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
@@ -150,7 +153,7 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
         }
     }
     
-    protected void registerCoreModules(final Binder binder, final Modes mode, final Config config, final Router router) {
+    protected void registerCoreModules(final Binder binder, final Modes mode, final Config config, final Router router, final ServerConfig serverConfig) {
         
         // supported languages are needed in the creation of the injector
         //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -161,6 +164,7 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
         binder.bind(Charset.class).toInstance(Charset.forName(config.getOrDie("application.charset")));
         binder.bind(Modes.class).toInstance(mode);
         binder.bind(Config.class).toInstance(config);
+        binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, serverConfig.contextPath()));
         
         // Marshallers
         binder.bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);

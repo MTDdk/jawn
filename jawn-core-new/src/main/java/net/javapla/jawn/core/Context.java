@@ -1,6 +1,8 @@
 package net.javapla.jawn.core;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -27,13 +29,13 @@ public interface Context {
             return contentType(MediaType.valueOf(contentType));
         }
         
-        Response characterEncoding(Charset encoding);
+        Response charset(Charset encoding);
         
-        Optional<Charset> characterEncoding();
+        /*Optional<*/Charset/*>*/ charset();
         
-        default Response characterEncoding(String encoding) {
+        default Response charset(String encoding) {
             try {
-                return characterEncoding(Charset.forName(encoding));
+                return charset(Charset.forName(encoding));
             } catch (Throwable e) {}
             return this;
         }
@@ -45,6 +47,10 @@ public interface Context {
         void send(byte[] bytes) throws Exception;
         
         void send(InputStream stream) throws Exception;
+
+        void send(ByteBuffer buf) throws Exception;
+
+        void send(CharBuffer buf) throws Exception;
 
         boolean committed();
 

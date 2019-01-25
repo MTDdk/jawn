@@ -12,11 +12,13 @@ public class View extends Result {
     //Keep state of the renderable at all times - never overwrite, just add
     protected final HashMap<String, Object> viewModel = new HashMap<>();
     
-    /*private String template = "index";
+    private String template = "index";
     
     //README perhaps this ought to be a boolean, as it is solely used as a flag whether to use the 
     //defacto layout or not
-    private String layout = "index.html";//Configuration.getDefaultLayout();*/
+    private String layout = null;//"index.html";//Configuration.getDefaultLayout();
+    
+    private String templatePath = "";
     
     protected View() {
         contentType(MediaType.HTML);
@@ -35,6 +37,41 @@ public class View extends Result {
     
     public Map<String, Object> model() {
         return Collections.unmodifiableMap(viewModel);
+    }
+    
+    /**
+     * It is up to the caller to handle template suffixes such as .html, .st, or .ftl.html
+     * @return
+     */
+    public String template() {
+        return template;
+    }
+    
+    public View template(String template) {
+        this.template = template;
+        return this;
+    }
+    
+    /**
+     * It is up to the caller to handle template suffixes such as .html, .st, or ftl.html.
+     * @return Layout is allowed to be null, if it is not desired to look for a layout for the template
+     */
+    public String layout() {
+        return layout;
+    }
+    
+    public View layout(String layout) {
+        this.layout = layout;
+        return this;
+    }
+    
+    public String templatePath() {
+        return templatePath;
+    }
+    
+    public View templatePath(String path) {
+        this.templatePath = path;
+        return this;
     }
     
     @Override
