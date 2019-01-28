@@ -1,15 +1,18 @@
 package implementation;
 
+import implementation.controllers.TestController;
 import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.filters.LogRequestTimingFilter;
 import net.javapla.jawn.core.server.ServerConfig.PERFORMANCE;
+import net.javapla.jawn.core.util.Modes;
 
 public class JawnMainTest extends Jawn {
     
     {
         server().serverPerformance(PERFORMANCE.MINIMUM);
+        mode(Modes.PROD);
         
         get("/t", Results.text("holaaaa5588")).before(SomeRandomClass::before);
         get("/xml", Results.xml("<xml>teeeest</xml>"));
@@ -19,6 +22,8 @@ public class JawnMainTest extends Jawn {
         post("/test/{dd}", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(Status.ALREADY_REPORTED));
         
         get("/", Results.html()/*.path("system")*//*.template("404").layout(null)*/);
+        
+        use(TestController.class);
         
         filter(LogRequestTimingFilter.class);
     }

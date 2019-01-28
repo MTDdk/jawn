@@ -1,5 +1,6 @@
 package net.javapla.jawn.core;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -47,6 +48,15 @@ public interface Route extends Handler {
     interface PostResponse {
         //TODO not implemented, yet
         void handle(Context context, Optional<Throwable> cause);
+    }
+    
+    interface MethodHandler extends Handler {
+        
+        // Action
+        Method method();
+        
+        // Controller
+        Class<?> routeClass();
     }
     
     @FunctionalInterface

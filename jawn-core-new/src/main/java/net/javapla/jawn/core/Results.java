@@ -34,6 +34,10 @@ public final class Results {
         return status(Status.NOT_FOUND);
     }
     
+    public static Result error() {
+        return status(Status.SERVER_ERROR);
+    }
+    
     
     public static View html() {
         return new View();

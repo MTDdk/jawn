@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.inject.Key;
+
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.util.MultiList;
 
@@ -52,8 +54,9 @@ public interface Context {
 
         void send(CharBuffer buf) throws Exception;
 
-        boolean committed();
+        void send(CharSequence seq) throws Exception;
 
+        boolean committed();
 
         
         /*interface Builder {
@@ -102,4 +105,10 @@ public interface Context {
     void attribute(String name, Object value);
     Optional<Object> attribute(String name);
     <T> Optional<T> attribute(String name, Class<T> type);
+    
+    // registry
+    <T> T require(Key<T> key);
+    default <T> T require(final Class<T> type) {
+        return require(Key.get(type));
+    }
 }

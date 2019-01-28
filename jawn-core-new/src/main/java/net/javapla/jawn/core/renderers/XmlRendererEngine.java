@@ -23,7 +23,7 @@ final class XmlRendererEngine implements RendererEngine {
         if (obj instanceof byte[]) {
             context.resp().send((byte[])obj);
         } else if (obj instanceof String) {
-            context.resp().send(((String) obj).getBytes(context.resp().charset()));//context.req().charset()));
+            context.resp().send( (String)obj );//((String) obj).getBytes(context.resp().charset()));//context.req().charset()));
         } else {
             context.resp().send(mapper.writeValueAsBytes(obj));
         }

@@ -98,9 +98,6 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         if (! useCache)
             reloadGroup();
 
-        // TODO bundle the templateLoader calls into a single call for all template-implementations to use
-        // - probably needs a tuple of some kind
-        
         //generate name of the template
         /*final String templateName = templateLoader.getTemplateNameForResult(response);
         String layoutName = templateLoader.getLayoutNameForResult(response);

@@ -57,7 +57,6 @@ public class ContentTemplateLoader<T> {
         }
         
         return new ViewTemplates<T>() {
-
             @Override
             public String templateName() {
                 return templateName;
@@ -77,7 +76,6 @@ public class ContentTemplateLoader<T> {
             public T layout() {
                 return layout;
             }
-            
         };
     }
     

@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.google.inject.Injector;
+import com.google.inject.Key;
+
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
@@ -27,12 +30,14 @@ final class ContextImpl implements Context {
     private final Request req;
     private final Response resp;
     private final ServerResponse sresp;
+    private final Injector injector;
     private Route route;
     
     private final HashMap<String, Cookie> cookies = new HashMap<>();
     private HashMap<String, Object> attributes;
     
-    ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset) {
+    ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset, final Injector injector) {
+        this.injector = injector;
         this.sresp = resp;
         
         this.req = new Context.Request() {
@@ -192,6 +197,11 @@ final class ContextImpl implements Context {
             }
             
             @Override
+            public void send(final CharSequence seq) throws Exception {
+                resp.send(charset().encode(CharBuffer.wrap(seq)));
+            }
+            
+            @Override
             public boolean committed() {
                 return resp.committed();
             }
@@ -235,6 +245,11 @@ final class ContextImpl implements Context {
     @Override
     public <T> Optional<T> attribute(final String name, final Class<T> type) {
         return attribute(name).map(type::cast);
+    }
+    
+    @Override
+    public <T> T require(final Key<T> key) {
+        return injector.getInstance(key);
     }
     
     void route(final Route route) {

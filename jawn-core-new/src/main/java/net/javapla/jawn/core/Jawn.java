@@ -14,6 +14,7 @@ import com.google.inject.Injector;
 
 import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
+import net.javapla.jawn.core.internal.mvc.MvcRouter;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.internal.reflection.ReflectionMetadata;
@@ -78,6 +79,12 @@ public class Jawn implements Route.Filtering<Jawn> {
     
     protected ServerConfig server() {
         return serverConfig;
+    }
+    
+    //MVC route classes
+    protected Jawn use(final Class<?> routeClass) {
+        routes.addAll(MvcRouter.extract(routeClass));
+        return this;
     }
     
     
@@ -221,6 +228,7 @@ public class Jawn implements Route.Filtering<Jawn> {
      */
     public static final void run(final Class<? extends Jawn> jawn, final String ... args) {
         Jawn instance = DynamicClassFactory.createInstance(jawn);
+        System.out.println(jawn.getPackageName());
         
         if (instance.mode == Modes.DEV) {
             // load the instance with a non-caching classloader

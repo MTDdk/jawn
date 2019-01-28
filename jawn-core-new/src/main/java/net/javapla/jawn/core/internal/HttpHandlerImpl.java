@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Results;
@@ -24,12 +25,14 @@ final class HttpHandlerImpl implements HttpHandler {
     private final Charset charset;
     private final Router router;
     private final ResultRunner runner;
+    private final Injector injector;
     
     @Inject
-    HttpHandlerImpl(final Charset charset, final Router router, final ResultRunner runner) {
+    HttpHandlerImpl(final Charset charset, final Router router, final ResultRunner runner, final Injector injector) {
         this.charset = charset;
         this.router = router;
         this.runner = runner;
+        this.injector = injector;
     }
 
     @Override
@@ -37,7 +40,7 @@ final class HttpHandlerImpl implements HttpHandler {
         //String uri = normaliseURI(req.path()); README is this even necessary?
         resp.header("Server", "jawn");
         
-        final ContextImpl context = new ContextImpl(req, resp, charset);
+        final ContextImpl context = new ContextImpl(req, resp, charset, injector);
         
         try {
             final Route route = router.retrieve(req.method(), req.path()/*uri*/);

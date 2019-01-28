@@ -11,11 +11,11 @@ final class TextRendererEngine implements RendererEngine {
     @Override
     public final void invoke(final Context context, final Object obj) throws Exception {
         if (obj instanceof String) {
-            context.resp().send(((String) obj).getBytes(context.req().charset()));
+            context.resp().send( (String)obj );
         } else if (obj instanceof byte[]) {
             context.resp().send((byte[]) obj);
         } else {
-            context.resp().send(obj.toString().getBytes(context.req().charset()));
+            context.resp().send( obj.toString() );
         }
     }
 
