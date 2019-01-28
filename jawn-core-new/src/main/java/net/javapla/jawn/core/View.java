@@ -16,9 +16,9 @@ public class View extends Result {
     
     //README perhaps this ought to be a boolean, as it is solely used as a flag whether to use the 
     //defacto layout or not
-    private String layout = null;//"index.html";//Configuration.getDefaultLayout();
+    private String layout = "index.html";//Configuration.getDefaultLayout();
     
-    private String templatePath = "";
+    private String path = "";
     
     protected View() {
         contentType(MediaType.HTML);
@@ -65,12 +65,12 @@ public class View extends Result {
         return this;
     }
     
-    public String templatePath() {
-        return templatePath;
+    public String path() {
+        return path;
     }
     
-    public View templatePath(String path) {
-        this.templatePath = path;
+    public View path(String path) {
+        this.path = path;
         return this;
     }
     

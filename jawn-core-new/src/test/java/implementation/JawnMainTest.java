@@ -18,7 +18,7 @@ public class JawnMainTest extends Jawn {
         get("/test", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(201));
         post("/test/{dd}", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(Status.ALREADY_REPORTED));
         
-        get("/", Results.html().template("400").templatePath("system"));
+        get("/", Results.html()/*.path("system")*//*.template("404").layout(null)*/);
         
         filter(LogRequestTimingFilter.class);
     }

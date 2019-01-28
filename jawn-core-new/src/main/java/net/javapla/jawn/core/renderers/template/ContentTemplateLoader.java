@@ -1,12 +1,18 @@
 package net.javapla.jawn.core.renderers.template;
 
-import java.io.File;
+import java.io.Writer;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
-import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
+import net.javapla.jawn.core.util.CharArrayList;
 
 public class ContentTemplateLoader<T> {
     
@@ -31,9 +37,67 @@ public class ContentTemplateLoader<T> {
     public final String getTemplateRootFolder() {
         return realPath;
     }
+    
+    //TODO rename whole class to ViewTemplateLoader
+    public ViewTemplates<T> load(final View view, final boolean useCache) throws Up.ViewError {
+        final String templateName = getTemplateNameForResult(view);
+        final String layoutName = getLayoutNameForResult(view);
+        final T template = templateName != null ? locateContentTemplate(templateName, useCache) : null;
+        
+        final T layout;
+        if (layoutName == null) { // no layout
+            // both layout and template should not be null
+            if (template == null) {
+                throw new Up.ViewError("Could not find the template " + templateName + ". Is it spelled correctly?");
+            }
+            
+            layout = null;
+        } else {
+            layout = locateLayoutTemplate(view.path(), layoutName, useCache);
+        }
+        
+        return new ViewTemplates<T>() {
 
-    public final String getLayoutNameForResult(View response) {
-        String layout = response.layout();
+            @Override
+            public String templateName() {
+                return templateName;
+            }
+
+            @Override
+            public String layoutName() {
+                return layoutName;
+            }
+
+            @Override
+            public T template() {
+                return template;
+            }
+
+            @Override
+            public T layout() {
+                return layout;
+            }
+            
+        };
+    }
+    
+    public void render(final Context context, Consumer<Writer> render, Consumer<Exception> errorOccurred) throws Up.ViewError {
+        try (final CharArrayList writer = new CharArrayList(8192)/*stream.getWriter()*/) {
+            render.accept(writer);
+            
+            context.resp().send(writer.toCharBuffer());
+        } catch (Exception e) {
+            errorOccurred.accept(e);
+            throw new Up.ViewError(e);
+        }
+    }
+    
+    public void render(final Context context, Consumer<Writer> render) throws Up.ViewError {
+        render(context, render, e -> {});
+    }
+
+    public final String getLayoutNameForResult(View view) {
+        String layout = view.layout();
         if (layout != null) {
             // handle layout endings
             layout = layoutMap.computeIfAbsent(layout, (l -> {
@@ -52,24 +116,25 @@ public class ContentTemplateLoader<T> {
      * removed before returning the template.
      * Suffixes such as .st or .ftl.html
      * @param route
-     * @param response
+     * @param view
      * @return
      */
-    public String getTemplateNameForResult(/*Route route,*/ View response) {
-        String template = response.template();
+    public String getTemplateNameForResult(/*Route route,*/ View view) {
+        
+        final String path = view.path();
+        
+        /*
+        // Look for a controller named template first
+        if (new File(realPath + path + templateSuffix).exists()) {
+            return path;
+        }*/
+        
+        String template = view.template();
         if (template.endsWith(templateSuffix)) {
             template = template.substring(0, template.length() - templateSuffixLengthToRemove);
         }
         
-        // rename to templatePath
-        final String controllerPath = response.templatePath();
-        
-        // Look for a controller named template first
-        if (new File(realPath + controllerPath + templateSuffix).exists()) {
-            return controllerPath;
-        }
-        
-        return controllerPath + "/" + template;
+        return path + "/" + template;
         
         
         

@@ -29,12 +29,12 @@ import net.javapla.jawn.core.View;
 import net.javapla.jawn.core.internal.template.stringtemplate.rewrite.STFastGroupDir;
 import net.javapla.jawn.core.renderers.template.ContentTemplateLoader;
 import net.javapla.jawn.core.renderers.template.TemplateRendererEngine;
+import net.javapla.jawn.core.renderers.template.ViewTemplates;
 import net.javapla.jawn.core.renderers.template.config.Site;
 import net.javapla.jawn.core.renderers.template.config.SiteConfiguration;
 import net.javapla.jawn.core.renderers.template.config.SiteConfigurationReader;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfig;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfigProvider;
-import net.javapla.jawn.core.util.CharArrayList;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 
@@ -88,7 +88,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     }
 
     @Override
-    public final void invoke(final Context context, final View response/*, final Route route*/) throws Up.ViewError {
+    public final void invoke(final Context context, final View response) throws Up.ViewError {
         long time = 0;
         if (log.isInfoEnabled())
             time = System.currentTimeMillis();
@@ -98,54 +98,47 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         if (! useCache)
             reloadGroup();
 
+        // TODO bundle the templateLoader calls into a single call for all template-implementations to use
+        // - probably needs a tuple of some kind
+        
         //generate name of the template
-        final String templateName = templateLoader.getTemplateNameForResult(/*route,*/ response);
+        /*final String templateName = templateLoader.getTemplateNameForResult(response);
         String layoutName = templateLoader.getLayoutNameForResult(response);
 
+        final ST contentTemplate = templateName != null ? templateLoader.locateContentTemplate(templateName, useCache) : null;*/
+        
         final ErrorBuffer error = new ErrorBuffer();
-        final ST contentTemplate = templateName != null ? templateLoader.locateContentTemplate(templateName, useCache) : null;
-
-        try (final CharArrayList writer = new CharArrayList(8096)/*stream.getWriter()*/) {
-
-            if (layoutName == null) { // no layout
-                // both layout and template should not be null
-                if (contentTemplate == null) {
-                    if (response.renderable() != null) {
-                        writer.append(response.renderable().toString());
-                        return;
-                    }
-                    throw new Up.ViewError("Could not find the template " + contentTemplate + ". Is it spelled correctly?");
-                }
-                renderContentTemplate(contentTemplate, writer, values, error);
+        final ViewTemplates<ST> viewTemplates = templateLoader.load(response, useCache);
+        
+        templateLoader.render(context, writer -> {
+            if (viewTemplates.layoutName() == null) { // no layout
+                
+                writeContentTemplate(viewTemplates.template(), writer, values, error);
 
             } else { // with layout
 
-                String content = renderContentTemplate(contentTemplate, values, error, false);
+                final String content = writeContentTemplate(viewTemplates.template(), values, error, false);
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
-                final String controller = response.templatePath();//TODO TemplateEngineHelper.getControllerForResult(route);
+                final String controller = response.path();//TODO TemplateEngineHelper.getControllerForResult(route);
                 
-                ST layoutTemplate = templateLoader.locateLayoutTemplate(controller, layoutName, useCache);
-                layoutName = layoutTemplate.getName(); // for later logging
-                injectValuesIntoLayoutTemplate(layoutTemplate, context, content, values, controller);
+                //final ST layoutTemplate = templateLoader.locateLayoutTemplate(controller, viewTemplates.layoutName, useCache);
+                //layoutName = layoutTemplate.getName(); // for later logging
+                injectValuesIntoLayoutTemplate(viewTemplates.layout(), context, content, values, controller);
 
-                renderTemplate(layoutTemplate, writer, error);
+                writeTemplate(viewTemplates.layout(), writer, error);
             }
-            
-            context.resp().send(writer.toCharBuffer());
-        } catch (Exception e) {
-            throw new Up.ViewError(e);
-        }
+        });
 
 
         if (log.isInfoEnabled())
-            log.info("Rendered template: '{}' with layout: '{}' in  {}ms", templateName, layoutName, (System.currentTimeMillis() - time));
-
+            log.info("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templateName(), viewTemplates.layoutName(), (System.currentTimeMillis() - time));
+        
         if (!error.errors.isEmpty() && log.isWarnEnabled())
             log.warn(error.errors.toString());
     }
-
+    
     @Override
     public String getSuffixOfTemplatingEngine() {
         return TEMPLATE_ENDING;
@@ -199,22 +192,20 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     }
     
     /** Renders template directly to writer */
-    private final void renderContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values/*, final String language*/, final ErrorBuffer error) {
+    private final void writeContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values, final ErrorBuffer error) {
         injectTemplateValues(contentTemplate, values);
-//        if (language == null)
-            contentTemplate.write(createSTWriter(writer), error);
-//        else
+        contentTemplate.write(createSTWriter(writer), error);
 //            contentTemplate.write(createSTWriter(writer), new Locale(language), error);
     }
 
     /** Renders template into string
      * @return The rendered template if exists, or empty string */
-    private final String renderContentTemplate(final ST contentTemplate, final Map<String, Object> values, final ErrorBuffer error, boolean inErrorState) {
+    private final String writeContentTemplate(final ST contentTemplate, final Map<String, Object> values, final ErrorBuffer error, boolean inErrorState) {
         if (contentTemplate != null) { // it has to be possible to use a layout without defining a template
-            try (Writer sw = new StringBuilderWriter()) {
+            try (Writer sw = new StringBuilderWriter(4096)) {
             
                 final ErrorBuffer templateErrors = new ErrorBuffer();
-                renderContentTemplate(contentTemplate, sw, values/*, language*/, templateErrors);
+                writeContentTemplate(contentTemplate, sw, values/*, language*/, templateErrors);
                 
                 // handle potential errors
                 if (!templateErrors.errors.isEmpty() && !inErrorState) {
@@ -225,7 +216,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
                             // this often rectifies the problem
                             reloadGroup();
                             ST reloadedContentTemplate = readTemplate(contentTemplate.getName());
-                            return renderContentTemplate(reloadedContentTemplate, values, error, true);
+                            return writeContentTemplate(reloadedContentTemplate, values, error, true);
                         }
                     }
                 }
@@ -233,6 +224,9 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
                 return sw.toString();
             } catch (IOException noMethodsThrowsIOE) { }
         }
+        
+        // We might just need to render the layout
+        // A template is not necessarily needed for that
         return "";
     }
     
@@ -267,7 +261,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         }
     }
     
-    private final void renderTemplate(final ST layoutTemplate, final Writer writer, final ErrorBuffer error) {
+    private final void writeTemplate(final ST layoutTemplate, final Writer writer, final ErrorBuffer error) {
         layoutTemplate.write(createSTWriter(writer), error);
     }
     
