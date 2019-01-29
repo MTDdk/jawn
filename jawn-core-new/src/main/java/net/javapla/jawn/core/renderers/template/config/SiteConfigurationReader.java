@@ -260,7 +260,7 @@ public class SiteConfigurationReader {
     }
     
     final String toAddOrNotToAddModified(final String url, final String prefix, final Path root) {
-        StringBuilder result = new StringBuilder(1 + 4 + url.length() + 3 + 13);// '/'=1, 'http|ftp|//'=4,..,'?v='=3,lastModified=13
+        StringBuilder result = new StringBuilder(1 + 4 + url.length() + 3 + 13);// "/"=1, "http|ftp|//"=4,..,"?v="=3,lastModified=13
         result.append(prefix); // length 3 or 4
         result.append(url);
         

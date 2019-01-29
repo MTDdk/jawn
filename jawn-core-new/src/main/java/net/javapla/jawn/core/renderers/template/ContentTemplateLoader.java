@@ -2,11 +2,7 @@ package net.javapla.jawn.core.renderers.template;
 
 import java.io.Writer;
 import java.util.HashMap;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;

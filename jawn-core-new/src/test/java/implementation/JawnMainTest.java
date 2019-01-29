@@ -5,14 +5,16 @@ import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.filters.LogRequestTimingFilter;
-import net.javapla.jawn.core.server.ServerConfig.PERFORMANCE;
+import net.javapla.jawn.core.server.ServerConfig.Performance;
 import net.javapla.jawn.core.util.Modes;
 
 public class JawnMainTest extends Jawn {
     
     {
-        server().serverPerformance(PERFORMANCE.MINIMUM);
-        mode(Modes.PROD);
+        mode(Modes.DEV);
+        server()
+            .performance(Performance.MINIMUM)
+            .port(8080);
         
         get("/t", Results.text("holaaaa5588")).before(SomeRandomClass::before);
         get("/xml", Results.xml("<xml>teeeest</xml>"));

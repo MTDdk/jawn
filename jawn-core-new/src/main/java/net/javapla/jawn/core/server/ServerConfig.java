@@ -18,9 +18,9 @@ public class ServerConfig {
      * <p><code>CUSTOM</code> Use the user-inputted configuration, like {@link ServerConfig#ioThreads(int)}
      *
      */
-    public enum PERFORMANCE { HIGHEST(8192), MINIMUM(50), CUSTOM(BACKLOG_DEFAULT);
+    public enum Performance { HIGHEST(8192), MINIMUM(50), CUSTOM(BACKLOG_DEFAULT);
         private final int backlog;
-        private PERFORMANCE(final int backlog) {
+        private Performance(final int backlog) {
             this.backlog = backlog;
         }
         public int getBacklogValue() { return backlog; }
@@ -35,7 +35,7 @@ public class ServerConfig {
     
     private int ioThreads = 1;
     
-    private PERFORMANCE performance = PERFORMANCE.MINIMUM;
+    private Performance performance = Performance.MINIMUM;
     private int backlog = -1;
     
     /**
@@ -84,7 +84,7 @@ public class ServerConfig {
      * @return this for chaining
      */
     public ServerConfig ioThreads(int number) {
-        this.performance = PERFORMANCE.CUSTOM;
+        this.performance = Performance.CUSTOM;
         
         if (number > 0)
             this.ioThreads = number;
@@ -100,7 +100,7 @@ public class ServerConfig {
      * @return this for chaining
      */
     public ServerConfig backlog(int backlog) {
-        this.performance = PERFORMANCE.CUSTOM;
+        this.performance = Performance.CUSTOM;
         
         this.backlog = backlog;
         return this;
@@ -109,10 +109,10 @@ public class ServerConfig {
         return backlog;
     }
     
-    public PERFORMANCE serverPerformance() {
+    public Performance serverPerformance() {
         return performance;
     }
-    public ServerConfig serverPerformance(PERFORMANCE mode) {
+    public ServerConfig serverPerformance(Performance mode) {
         this.performance = mode;
         this.backlog = performance.getBacklogValue();
         return this;

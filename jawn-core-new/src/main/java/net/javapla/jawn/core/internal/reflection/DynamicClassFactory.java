@@ -62,8 +62,8 @@ public abstract class DynamicClassFactory {
      * @param fullClassName including package name
      * @param useCache flag to specify whether to cache the controller or not
      * @return
-     * @throws CompilationException
-     * @throws ClassLoadException
+     * @throws Up.Compilation
+     * @throws Up.UnloadableClass
      */
     public final static Class<?> getCompiledClass(String fullClassName, boolean useCache) throws Up.Compilation, Up.UnloadableClass {
         try {

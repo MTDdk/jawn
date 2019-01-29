@@ -249,7 +249,7 @@ final class ContextImpl implements Context {
     
     @Override
     public <T> T require(final Key<T> key) {
-        return injector.getInstance(key);
+        return injector.getProvider(key).get();
     }
     
     void route(final Route route) {

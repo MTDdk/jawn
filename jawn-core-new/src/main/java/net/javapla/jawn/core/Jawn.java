@@ -18,6 +18,7 @@ import net.javapla.jawn.core.internal.mvc.MvcRouter;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.internal.reflection.ReflectionMetadata;
+import net.javapla.jawn.core.server.SC;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
@@ -31,7 +32,7 @@ public class Jawn implements Route.Filtering<Jawn> {
     private final FrameworkBootstrap bootstrap;
     private final LinkedList<Route.Builder> routes;
     private final RouteFilterPopulator filters;
-    private final ServerConfig serverConfig;
+    private final SC.Impl/*ServerConfig*/ serverConfig;
     
     private Modes mode = Modes.DEV;
 
@@ -39,7 +40,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         bootstrap = new FrameworkBootstrap();
         routes = new LinkedList<>();
         filters = new RouteFilterPopulator();
-        serverConfig = new ServerConfig();
+        serverConfig = new SC.Impl();//new ServerConfig();
     }
     
     // ****************
@@ -77,7 +78,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         return this;
     }
     
-    protected ServerConfig server() {
+    protected SC/*ServerConfig*/ server() {
         return serverConfig;
     }
     

@@ -6,6 +6,10 @@ public final class Results {
         return new Result().status(status);
     }
     
+    public static Result status(final int status) {
+        return status(Status.valueOf(status));
+    }
+    
     public static Result ok() {
         return status(Status.OK);
     }
