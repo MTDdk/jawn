@@ -41,16 +41,19 @@ final class Router {
         compileRoutes(routes);
     }
     
-    Route retrieve(final HttpMethod httpMethod, final String requestUri) throws Up.RouteMissing {
+    Route retrieve(final HttpMethod httpMethod, final String requestUri) throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod {
         
         // first, take a look in the trie
         Route route = trie.findExact(requestUri, httpMethod);
         
-        // the trie did not have any for us
         if (route == null) {
+            // The trie did not have any for us..
+            // Have a look in the custom routes then
             for (var r : routes) {
-                if (r.method() == httpMethod && r.matches(requestUri)) {
-                    trie.insert(requestUri, r); // cache it
+                if (r.matches(requestUri)) {
+                    if (r.method() != httpMethod) throw new Up.RouteFoundWithDifferentMethod();
+                    
+                    trie.insert(requestUri, r); // cache it for later fast look-up
                     return r;
                 }
             }
@@ -136,7 +139,7 @@ final class Router {
          * @param arr
          * @return
          */
-        public Route findExact(final char[] arr, final HttpMethod method) {
+        public Route findExact(final char[] arr, final HttpMethod method) throws Up.RouteFoundWithDifferentMethod {
             TrieNode current = root;
             for (int i = 0; i < arr.length; i++) {
                 char c = arr[i];
@@ -145,10 +148,11 @@ final class Router {
                 else
                     current = current.nodes[c];
             }
+            if (current.routes[method.ordinal()] == null) throw new Up.RouteFoundWithDifferentMethod();
             return current.routes[method.ordinal()];
         }
         
-        public Route findExact(final CharSequence str, final HttpMethod method) {
+        public Route findExact(final CharSequence str, final HttpMethod method) throws Up.RouteFoundWithDifferentMethod {
             TrieNode current = root;
             for (int i = 0; i < str.length(); i++) {
                 char c = str.charAt(i);
@@ -157,6 +161,7 @@ final class Router {
                 else
                     current = current.nodes[c];
             }
+            if (current.routes[method.ordinal()] == null) throw new Up.RouteFoundWithDifferentMethod();
             return current.routes[method.ordinal()];
         }
         

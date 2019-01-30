@@ -49,17 +49,17 @@ public class RouterTest {
         try {
             router.retrieve(HttpMethod.POST, "/first");
             fail();
-        } catch (Up.RouteMissing e) {}
+        } catch (Up.RouteFoundWithDifferentMethod e) {}
         
         try {
             router.retrieve(HttpMethod.PUT, "/first");
             fail();
-        } catch (Up.RouteMissing e) {}
+        } catch (Up.RouteFoundWithDifferentMethod e) {}
         
         try {
             router.retrieve(HttpMethod.DELETE, "/first");
             fail();
-        } catch (Up.RouteMissing e) {}
+        } catch (Up.RouteFoundWithDifferentMethod e) {}
     }
     
      @Test
@@ -110,7 +110,7 @@ public class RouterTest {
          try {
              router.retrieve(HttpMethod.POST, "/first/some");
              fail();
-         } catch (Up.RouteMissing e) {}
+         } catch (Up.RouteFoundWithDifferentMethod e) {}
          
          try {
              router.retrieve(HttpMethod.DELETE, "/first");

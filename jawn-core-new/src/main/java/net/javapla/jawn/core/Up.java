@@ -83,6 +83,12 @@ public class Up extends RuntimeException {
         }
     }
     
+    public static class RouteFoundWithDifferentMethod extends Up {
+        public RouteFoundWithDifferentMethod() {
+            super(Status.METHOD_NOT_ALLOWED);
+        }
+    }
+    
     private final int statusCode;
     
     public Up(final Status status, final String message, final Throwable cause) {
