@@ -53,7 +53,7 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
         userPlugins = new ArrayList<>();
     }
     
-    public synchronized void boot(final Modes mode, final ServerConfig serverConfig, final Function<Injector,List<Route>> routes) {
+    public synchronized void boot(final Modes mode, final ServerConfig.Impl serverConfig, final Function<Injector,List<Route>> routes) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
         final Config frameworkConfig = readConfigurations(mode);
@@ -153,7 +153,7 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
         }
     }
     
-    protected void registerCoreModules(final Binder binder, final Modes mode, final Config config, final Router router, final ServerConfig serverConfig) {
+    protected void registerCoreModules(final Binder binder, final Modes mode, final Config config, final Router router, final ServerConfig.Impl serverConfig) {
         
         // supported languages are needed in the creation of the injector
         //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -164,7 +164,7 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
         binder.bind(Charset.class).toInstance(Charset.forName(config.getOrDie("application.charset")));
         binder.bind(Modes.class).toInstance(mode);
         binder.bind(Config.class).toInstance(config);
-        binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, serverConfig.contextPath()));
+        binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, serverConfig.context()));
         
         // Marshallers
         binder.bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);

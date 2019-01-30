@@ -9,6 +9,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
+import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
@@ -25,25 +26,32 @@ final class HttpHandlerImpl implements HttpHandler {
     private final Charset charset;
     private final Router router;
     private final ResultRunner runner;
+    private final DeploymentInfo deploymentInfo;
     private final Injector injector;
+
     
     @Inject
-    HttpHandlerImpl(final Charset charset, final Router router, final ResultRunner runner, final Injector injector) {
+    HttpHandlerImpl(final Charset charset, final Router router, final ResultRunner runner, final DeploymentInfo deploymentInfo, final Injector injector) {
         this.charset = charset;
         this.router = router;
         this.runner = runner;
+        this.deploymentInfo = deploymentInfo;
         this.injector = injector;
     }
 
     @Override
     public void handle(final ServerRequest req, final ServerResponse resp) throws Exception {
-        //String uri = normaliseURI(req.path()); README is this even necessary?
+        //String uri = normaliseURI(context.req().path()); README is this even necessary?
         resp.header("Server", "jawn");
         
-        final ContextImpl context = new ContextImpl(req, resp, charset, injector);
+        final ContextImpl context = new ContextImpl(req, resp, charset, deploymentInfo, injector);
+        
+        // ServerRequest.path() holds the actual path received on the server,
+        // so from this point onward the Context.req().path() is preferred, as this
+        // takes contextPath into account
         
         try {
-            final Route route = router.retrieve(req.method(), req.path()/*uri*/);
+            final Route route = router.retrieve(req.method(), context.req().path()/*uri*/);
             context.route(route);
             
             // Execute handler

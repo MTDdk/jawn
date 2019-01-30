@@ -15,6 +15,7 @@ import com.google.inject.Key;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
+import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
@@ -36,7 +37,7 @@ final class ContextImpl implements Context {
     private final HashMap<String, Cookie> cookies = new HashMap<>();
     private HashMap<String, Object> attributes;
     
-    ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset, final Injector injector) {
+    ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset, final DeploymentInfo deploymentInfo, final Injector injector) {
         this.injector = injector;
         this.sresp = resp;
         
@@ -62,7 +63,7 @@ final class ContextImpl implements Context {
             
             @Override
             public String path() {
-                return sreq.path();
+                return deploymentInfo.stripContextPath(sreq.path());
             }
             
             @Override

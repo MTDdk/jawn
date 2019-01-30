@@ -75,9 +75,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         
         StringTemplateConfiguration config = new StringTemplateConfiguration();
         
-        // Add standard renderers
-        // TODO Do some HTML escaping by standard
-//        config.registerRenderer(String.class, new StringRenderer());
+        // Some standard renderers could be added here.. E.g.: HTML escaping
         
         TemplateConfig<StringTemplateConfiguration> stringTemplateConfig = templateConfig.get();
         if (stringTemplateConfig != null) {

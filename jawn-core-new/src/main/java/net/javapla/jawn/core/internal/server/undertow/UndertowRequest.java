@@ -64,7 +64,7 @@ public final class UndertowRequest implements ServerRequest {
     public String path() {
         return path;
     }
-
+    
     @Override
     public String queryString() {
         return exchange.getQueryString();

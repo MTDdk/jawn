@@ -62,11 +62,13 @@ public class NettyRequest implements ServerRequest {
     //private final String tmpdir;
     private final QueryStringDecoder query;
     private final String path;
+    //private final String contextPath;
     
     private final HttpMethod method;
     
     private MultiList<String> params;
     private MultiList<FormItem> formData;
+
 
     NettyRequest(final ChannelHandlerContext ctx, final HttpRequest req, final String tmpdir) {
         this.ctx = ctx;
@@ -74,6 +76,8 @@ public class NettyRequest implements ServerRequest {
         //this.tmpdir = tmpdir;
         this.query = new QueryStringDecoder(req.uri());
         this.path = query.path(); //any decoding needed?
+        //this.path = DeploymentInfo.stripContextPath(contextPath, contextPath.length(), query.path()); //any decoding needed?
+        //this.contextPath = contextPath;
         
         this.method = HttpMethod.getMethod(req.method().asciiName(), () -> queryParams());
         
@@ -90,6 +94,11 @@ public class NettyRequest implements ServerRequest {
     public String path() {
         return path;
     }
+    
+    /*@Override
+    public String contextPath() {
+        return contextPath;
+    }*/
 
     @Override
     public String queryString() {

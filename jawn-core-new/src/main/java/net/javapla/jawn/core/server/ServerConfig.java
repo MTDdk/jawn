@@ -2,7 +2,7 @@ package net.javapla.jawn.core.server;
 
 import java.net.ServerSocket;
 
-public class ServerConfig {
+public interface ServerConfig {
     
     /**
      * Default value is the same as for {@link ServerSocket#bind(java.net.SocketAddress, int)}
@@ -26,95 +26,122 @@ public class ServerConfig {
         public int getBacklogValue() { return backlog; }
     }
     
-    private String contextPath = "";
-    private int port = 8080;
-    
-    /** The source folder to read templates from */
-    private String webapp = "src/main/webapp";
-    private String host = "0.0.0.0";
-    
-    private int ioThreads = 1;
-    
-    private Performance performance = Performance.MINIMUM;
-    private int backlog = -1;
-    
+    final class Impl implements ServerConfig {
+        
+        
+        private String contextPath = "";
+        private int port = 8080;
+        
+        /** The source folder to read templates from */
+        private String webapp = "src/main/webapp";//TODO read from configuration
+        private String host = "0.0.0.0";
+        
+        private int ioThreads = 1;
+        
+        private Performance performance = Performance.MINIMUM;
+        private int backlog = -1;
+        
+        
+        public int port() {
+            return port;
+        }
+        
+        @Override
+        public ServerConfig port(int port) {
+            this.port = port;
+            return this;
+        }
+
+        /**
+         * @return empty string, if no context path is specified;
+         *         otherwise the input context path, guaranteed to start with '/'
+         */
+        public String context() {
+            return contextPath;
+        }
+
+        @Override
+        public ServerConfig context(String path) {
+            if (path == null || path.isEmpty()) return this;
+            
+            if (path.charAt(0) != '/') this.contextPath = '/' + path;
+            else this.contextPath = path;
+            return this;
+        }
+
+        public String host() {
+            return host;
+        }
+
+        @Override
+        public ServerConfig host(String host) {
+            this.host = host;
+            return this;
+        }
+
+        public String webapp() {
+            return webapp;
+        }
+
+        @Override
+        public ServerConfig webapp(String path) {
+            this.webapp = path;
+            return this;
+        }
+
+        public int ioThreads() {
+            return ioThreads;
+        }
+
+        @Override
+        public ServerConfig ioThreads(int number) {
+            if (number > 0) {
+                this.performance = Performance.CUSTOM;
+                this.ioThreads = number;
+            }
+            return this;
+        }
+
+        public int backlog() {
+            return backlog;
+        }
+
+        @Override
+        public ServerConfig backlog(int number) {
+            this.performance = Performance.CUSTOM;
+            this.backlog = number;
+            return this;
+        }
+
+        public Performance performance() {
+            return performance;
+        }
+
+        @Override
+        public ServerConfig performance(Performance mode) {
+            this.performance = mode;
+            this.backlog = mode.getBacklogValue();
+            return this;
+        }
+    }
+
+    ServerConfig port(int port);
+    ServerConfig context/*Path*/(String path);
+    ServerConfig host(String host);
+    ServerConfig webapp/*Path*/(String path);
     /**
-     * @return empty string, if no context path is specified;
-     *         otherwise the input context path, guaranteed to start with '/'
-     */
-    public String contextPath() {
-        return contextPath;
-    }
-    public ServerConfig contextPath(String contextPath) {
-        if (contextPath.charAt(0) != '/') this.contextPath = '/' + contextPath;
-        else this.contextPath = contextPath;
-        return this;
-    }
-    
-    public int port() {
-        return port;
-    }
-    public ServerConfig port(int port) {
-        this.port = port;
-        return this;
-    }
-    
-    public String host() {
-        return host;
-    }
-    public ServerConfig host(String host) {
-        this.host = host;
-        return this;
-    }
-    
-    public String webappPath() {
-        return webapp;
-    }
-    public ServerConfig webappPath(String webapp) {
-        this.webapp = webapp;
-        return this;
-    }
-    
-    public int ioThreads() {
-        return ioThreads;
-    }
-    /**
-     * Automatically set server performance to PERFORMANCE_MODE#CUSTOM
+     * Automatically set server performance to {@link Performance#CUSTOM}
      * @param number
-     * @return this for chaining
+     * @return
      */
-    public ServerConfig ioThreads(int number) {
-        this.performance = Performance.CUSTOM;
-        
-        if (number > 0)
-            this.ioThreads = number;
-        
-        return this;
-    }
-    
+    ServerConfig ioThreads(int number);
     /**
-     * Sets the backlog value for the ServerSocket.
-     * 
-     * @see ServerSocket#bind(java.net.SocketAddress, int)
-     * @param backlog
-     * @return this for chaining
+     * Sets the backlog value for the underlying ServerSocket.
+     * Automatically set server performance to {@link Performance#CUSTOM}
+     * @see ServerSocket#bind(java.net.SocketAddress,int)
+     * @param number
+     * @return
      */
-    public ServerConfig backlog(int backlog) {
-        this.performance = Performance.CUSTOM;
-        
-        this.backlog = backlog;
-        return this;
-    }
-    public int backlog() {
-        return backlog;
-    }
-    
-    public Performance serverPerformance() {
-        return performance;
-    }
-    public ServerConfig serverPerformance(Performance mode) {
-        this.performance = mode;
-        this.backlog = performance.getBacklogValue();
-        return this;
-    }
+    ServerConfig backlog(int number);
+    ServerConfig performance(Performance mode);
 }

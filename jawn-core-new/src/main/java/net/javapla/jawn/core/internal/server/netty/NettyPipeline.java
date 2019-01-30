@@ -11,7 +11,6 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.EventExecutorGroup;
-import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.server.HttpHandler;
 
 final class NettyPipeline extends ChannelInitializer<SocketChannel> {
@@ -22,20 +21,14 @@ final class NettyPipeline extends ChannelInitializer<SocketChannel> {
         if (!TMP_DIR.toFile().exists()) TMP_DIR.toFile().mkdirs();
     }
     
-    private final EventExecutorGroup executor;
 
+    private final EventExecutorGroup executor;
     private final HttpHandler handler;
 
-    //private Config config;
-
     private final int maxInitialLineLength;
-
     private final int maxHeaderSize;
-
     private final int maxChunkSize;
-
     private final int maxContentLength;
-
     private final long idleTimeOut;
 
     //private SslContext sslCtx;
@@ -46,12 +39,12 @@ final class NettyPipeline extends ChannelInitializer<SocketChannel> {
 
     private final int bufferSize;
 
+
     //private int wsMaxMessageSize;
     
-    NettyPipeline(final EventExecutorGroup executor, final HttpHandler dispatcher, final Config conf) {
+    NettyPipeline(final EventExecutorGroup executor, final HttpHandler dispatcher) {
         this.executor = executor;
         this.handler = dispatcher;
-        //this.config = conf;
         
         maxInitialLineLength = 4_000;
         maxHeaderSize = 8_000;

@@ -23,7 +23,6 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.EventExecutorGroup;
-import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
@@ -32,25 +31,21 @@ import net.javapla.jawn.core.server.ServerConfig;
 class NettyServer implements Server {
     
     private final HttpHandler dispatcher;
-    private final Config conf;
     
     private EventLoopGroup bossLoop;
-
     private EventLoopGroup workerLoop;
-    
     private Channel ch;
-    
     private DefaultEventExecutorGroup executor;
+
 
     
     @Inject
-    NettyServer(final HttpHandler dispatcher, final Config conf) {
+    NettyServer(final HttpHandler dispatcher) {
         this.dispatcher = dispatcher;
-        this.conf = conf;
     }
 
     @Override
-    public void start(final ServerConfig serverConfig) throws Exception {
+    public void start(final ServerConfig.Impl serverConfig) throws Exception {
 
         this.ch = bootstrap(executor, serverConfig/* null*/);
 
@@ -76,7 +71,7 @@ class NettyServer implements Server {
         return Optional.ofNullable(executor);
     }
     
-    private Channel bootstrap(final EventExecutorGroup executor, ServerConfig serverConfig /*final SslContext sslCtx*/) throws InterruptedException {
+    private Channel bootstrap(final EventExecutorGroup executor, ServerConfig.Impl serverConfig /*final SslContext sslCtx*/) throws InterruptedException {
         ServerBootstrap builder = new ServerBootstrap();
         
         configureServerPerformance(builder, serverConfig);
@@ -85,7 +80,7 @@ class NettyServer implements Server {
         builder.group(bossLoop, workerLoop)
             .channel(epoll ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
             .handler(new LoggingHandler(Server.class, LogLevel.DEBUG))
-            .childHandler(new NettyPipeline(executor, dispatcher, conf/*, sslCtx*/));
+            .childHandler(new NettyPipeline(executor, dispatcher/*, sslCtx*/));
 
         /*configure(conf.getConfig("netty.options"), "netty.options",
             (option, value) -> bootstrap.option(option, value));
@@ -131,11 +126,11 @@ class NettyServer implements Server {
         }
     }
     
-    private void configureServerPerformance(ServerBootstrap builder, ServerConfig serverConfig) {
+    private void configureServerPerformance(ServerBootstrap builder, ServerConfig.Impl serverConfig) {
         
         int minimum = 1;//at least one thread for the bossLoop
         int ioThreads, workerThreads,executorThreads;
-        switch (serverConfig.serverPerformance()) {
+        switch (serverConfig.performance()) {
             case HIGHEST:
                 ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, minimum);
                 workerThreads = ioThreads * 4;

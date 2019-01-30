@@ -70,6 +70,9 @@ public class DeploymentInfo {
     }
     
     public String stripContextPath(final String path) {
+        if (!isContextPathSet) return path;
+        
+        // Cache the result when in PROD?
         return stripContextPath(contextPath, contextPathLength, path);
     }
     

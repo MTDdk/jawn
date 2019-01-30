@@ -18,7 +18,6 @@ import net.javapla.jawn.core.internal.mvc.MvcRouter;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.internal.reflection.ReflectionMetadata;
-import net.javapla.jawn.core.server.SC;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
@@ -32,7 +31,7 @@ public class Jawn implements Route.Filtering<Jawn> {
     private final FrameworkBootstrap bootstrap;
     private final LinkedList<Route.Builder> routes;
     private final RouteFilterPopulator filters;
-    private final SC.Impl/*ServerConfig*/ serverConfig;
+    private final ServerConfig.Impl/*ServerConfig*/ serverConfig;
     
     private Modes mode = Modes.DEV;
 
@@ -40,7 +39,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         bootstrap = new FrameworkBootstrap();
         routes = new LinkedList<>();
         filters = new RouteFilterPopulator();
-        serverConfig = new SC.Impl();//new ServerConfig();
+        serverConfig = new ServerConfig.Impl();//new ServerConfig();
     }
     
     // ****************
@@ -78,7 +77,7 @@ public class Jawn implements Route.Filtering<Jawn> {
         return this;
     }
     
-    protected SC/*ServerConfig*/ server() {
+    protected ServerConfig/*ServerConfig*/ server() {
         return serverConfig;
     }
     
@@ -273,7 +272,7 @@ public class Jawn implements Route.Filtering<Jawn> {
 
     private Jawn parseArguments(final String ... args) {
         if (args.length >= 1)
-            server().port(ConvertUtil.toInteger(args[0], server().port()));
+            server().port(ConvertUtil.toInteger(args[0], serverConfig.port()));
         if (args.length >= 2)
             mode(Modes.determineModeFromString(args[1]));
             

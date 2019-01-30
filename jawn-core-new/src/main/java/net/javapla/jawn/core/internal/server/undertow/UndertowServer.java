@@ -20,6 +20,7 @@ public final class UndertowServer implements Server {
     
     private final HttpHandler dispatcher;
     private final Config conf;
+    
     private Undertow server;
     private GracefulShutdownHandler shutdownHandler;
     
@@ -30,13 +31,13 @@ public final class UndertowServer implements Server {
     }
 
     @Override
-    public void start(final ServerConfig serverConfig) throws Exception {
+    public void start(final ServerConfig.Impl serverConfig) throws Exception {
         shutdownHandler = new GracefulShutdownHandler(createHandler(dispatcher));
         
         
         final Builder builder = Undertow.builder()
             .setHandler(shutdownHandler)
-            .addHttpListener(/*8080, "0.0.0.0")/*/serverConfig.port(), serverConfig.host())
+            .addHttpListener(serverConfig.port(), serverConfig.host())
             
             // from undertow-edge benchmark
             .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false) //don't send a keep-alive header for HTTP/1.1 requests, as it is not required
@@ -78,7 +79,7 @@ public final class UndertowServer implements Server {
         return new UndertowHandler(dispatcher);
     }
     
-    private static void configureServerPerformance(Builder serverBuilder, ServerConfig config) {
+    private static void configureServerPerformance(Builder serverBuilder, ServerConfig.Impl config) {
         // TODO investigate serverBuilder.setWorkerThreads
         // Per default Builder#setWorkerThreads gets set to ioThreads * 8, but it does not get updated, when setting ioThreads,
         // so we need to set worker threads explicitly
@@ -86,7 +87,7 @@ public final class UndertowServer implements Server {
         
         int undertow_minimum = 2;//may not be less than 2 because of the inner workings of Undertow
         int ioThreads, workerThreads;
-        switch (config.serverPerformance()) {
+        switch (config.performance()) {
             case HIGHEST:
                 ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum);
                 workerThreads = ioThreads * 8;
