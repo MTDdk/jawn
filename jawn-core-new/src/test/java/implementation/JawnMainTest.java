@@ -25,7 +25,8 @@ public class JawnMainTest extends Jawn {
         
         get("/", Results.html()/*.path("system")*//*.template("404").layout(null)*/);
         
-        use(TestController.class);
+        mvc(TestController.class);
+        //interest();
         
         filter(LogRequestTimingFilter.class);
     }

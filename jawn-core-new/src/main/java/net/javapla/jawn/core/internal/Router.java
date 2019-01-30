@@ -117,6 +117,7 @@ final class Router {
             }
             current.routes[route.method().ordinal()] = route;
             current.routes[HttpMethod.HEAD.ordinal()] = route;
+            current.hasRoute = true;
         }
         
         public boolean startsWith(final String input) {
@@ -148,8 +149,7 @@ final class Router {
                 else
                     current = current.nodes[c];
             }
-            if (current.routes[method.ordinal()] == null) throw new Up.RouteFoundWithDifferentMethod();
-            return current.routes[method.ordinal()];
+            return current.get(method);
         }
         
         public Route findExact(final CharSequence str, final HttpMethod method) throws Up.RouteFoundWithDifferentMethod {
@@ -161,8 +161,7 @@ final class Router {
                 else
                     current = current.nodes[c];
             }
-            if (current.routes[method.ordinal()] == null) throw new Up.RouteFoundWithDifferentMethod();
-            return current.routes[method.ordinal()];
+            return current.get(method);
         }
         
         /**
@@ -239,6 +238,7 @@ final class Router {
             final char content;
             final Route[] routes; // a route can exist for GET,POST,PUT,etc
             boolean end = true;
+            boolean hasRoute = false;
             
             TrieNode(char c) {
                 //nodes = new SearchTrie[255];//extended ascii
@@ -254,6 +254,13 @@ final class Router {
                 for (int i = 0; i < routes.length; i++) {
                     routes[i] = null;
                 }
+            }
+            
+            public Route get(HttpMethod method) throws Up.RouteFoundWithDifferentMethod {
+                if (routes[method.ordinal()] == null) {
+                    if (hasRoute) throw new Up.RouteFoundWithDifferentMethod();
+                }
+                return routes[method.ordinal()];
             }
             
             @Override

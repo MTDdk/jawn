@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
 
 import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
@@ -24,7 +25,7 @@ import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.Modes;
 
-public class Jawn implements Route.Filtering<Jawn> {
+public class Jawn implements Route.Filtering<Jawn>, Injection {
     
     protected static final Logger logger = LoggerFactory.getLogger(Jawn.class);
     
@@ -82,7 +83,7 @@ public class Jawn implements Route.Filtering<Jawn> {
     }
     
     //MVC route classes
-    protected Jawn use(final Class<?> routeClass) {
+    protected Jawn mvc(final Class<?> routeClass) {
         routes.addAll(MvcRouter.extract(routeClass));
         return this;
     }
@@ -163,6 +164,15 @@ public class Jawn implements Route.Filtering<Jawn> {
     public Jawn after(final Route.After filter) {
         filters.filter(filter);
         return this;
+    }
+    
+    // ****************
+    // Injection
+    // ****************
+    @Override
+    public <T> T require(Key<T> key) {
+        checkState(bootstrap.getInjector() != null, "App has not started yet");
+        return bootstrap.getInjector().getInstance(key);
     }
     
     // ****************
@@ -279,11 +289,11 @@ public class Jawn implements Route.Filtering<Jawn> {
         return this;
     }
     
-    /*private void checkState(boolean expression, String errorMessage) throws IllegalStateException {
+    private void checkState(boolean expression, String errorMessage) throws IllegalStateException {
         if (!expression) {
             throw new IllegalStateException(errorMessage);
         }
-    }*/
+    }
     
     List<Route> buildRoutes(Injector injector) {
         filters.populate(routes, injector);

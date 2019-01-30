@@ -9,7 +9,7 @@ import net.javapla.jawn.core.mvc.Path;
 import net.javapla.jawn.core.mvc.ViewController;
 import net.javapla.jawn.core.util.Modes;
 
-@Path("/test")
+@Path(value = {"/test", "/kage"})
 @ViewController
 public class TestController {
     

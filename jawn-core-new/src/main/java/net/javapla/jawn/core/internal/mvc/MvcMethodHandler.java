@@ -11,6 +11,7 @@ import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
+import net.javapla.jawn.core.mvc.ViewController;
 
 public class MvcMethodHandler implements Route.MethodHandler {
     
@@ -61,6 +62,10 @@ public class MvcMethodHandler implements Route.MethodHandler {
     }
     
     private Result _handle(Object result) {
+        ViewController view = routeClass.getAnnotation(ViewController.class);
+        System.out.println();
+        
+        
         if (method.getReturnType() == void.class) {
             return Results.noContent();
         } else {

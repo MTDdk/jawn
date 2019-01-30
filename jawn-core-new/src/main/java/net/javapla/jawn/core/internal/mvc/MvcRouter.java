@@ -16,16 +16,22 @@ import java.util.function.Consumer;
 
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.mvc.DELETE;
 import net.javapla.jawn.core.mvc.GET;
+import net.javapla.jawn.core.mvc.HEAD;
+import net.javapla.jawn.core.mvc.OPTIONS;
+import net.javapla.jawn.core.mvc.POST;
+import net.javapla.jawn.core.mvc.PUT;
 import net.javapla.jawn.core.mvc.Path;
 
 public class MvcRouter {
     
-    private static final Set<Class<? extends Annotation>> VERBS = new HashSet<>(Arrays.asList(GET.class));
+    private static final Set<Class<? extends Annotation>> VERBS = new HashSet<>(Arrays.asList(
+        GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class));
 
     public static List<Route.Builder> extract(final Class<?> routeClass) {
         
-        final String rootPath = path(routeClass);
+        final String[] rootPaths = paths(routeClass);
         
         //TODO what if a controller has two actions with the same VERB, but no Paths, or the same Path for both actions?
         
@@ -38,14 +44,16 @@ public class MvcRouter {
         actions.keySet().forEach(action -> {
             List<Class<? extends Annotation>> verbs = actions.get(action);
             
-            String path = mergePaths(rootPath, action);
+            String[] paths = mergePaths(rootPaths, action);
             
             for (Class<? extends Annotation> verb : verbs) {
                 HttpMethod http = HttpMethod.valueOf(verb.getSimpleName());
                 
-                defs.add(new Route.Builder(http)
-                    .path(path)
-                    .handler(new MvcMethodHandler(action, routeClass)));
+                for (var path : paths) {
+                    defs.add(new Route.Builder(http)
+                        .path(path)
+                        .handler(new MvcMethodHandler(action, routeClass)));
+                }
             }
         });
         
@@ -78,17 +86,21 @@ public class MvcRouter {
         }
     }
     
-    static String path(final AnnotatedElement elm) {
+    static String[] paths(final AnnotatedElement elm) {
         Path path = elm.getAnnotation(Path.class);
         if (path == null) return null;
         
-        if (path.value().charAt(0) != '/') return '/' + path.value();
+        for (var p : path.value()) {
+            if (p.charAt(0) != '/') return addLeadingSlash(path.value());
+        }
+        
+        //if (path.value().charAt(0) != '/') return '/' + path.value();
         return path.value();
     }
     
-    static String mergePaths(final String rootPath, final Method method) {
-        String action = path(method);
-        if (rootPath == null) {
+    static String[] mergePaths(final String[] rootPaths, final Method method) {
+        String[] action = paths(method);
+        if (rootPaths == null) {
             if (action == null) {
                 throw new IllegalArgumentException("No path found for: " + method);
             }
@@ -96,9 +108,27 @@ public class MvcRouter {
         }
         
         if (action == null) {
-            return rootPath;
+            return rootPaths;
         }
         
-        return rootPath + action;
+        //return rootPaths + action;
+        String[] result = new String[rootPaths.length * action.length];
+        int k = 0;
+        for (String base : rootPaths) {
+            for (String element : action) {
+                result[k] = base + element;
+                k += 1;
+            }
+        }
+        return result;
+    }
+    
+    static String[] addLeadingSlash(final String[] paths) {
+        String[] result = new String[paths.length];
+        for (int i = 0; i < paths.length; i++) {
+            if (paths[i].charAt(0) != '/') result[i] = '/' + paths[i];
+            else result[i] = paths[i];
+        }
+        return result;
     }
 }

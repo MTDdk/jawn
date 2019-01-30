@@ -64,16 +64,16 @@ public class MvcRouterTest {
     
     @Test
     public void rootPath() {
-        assertThat(MvcRouter.path(SingleRoute.class)).isEqualTo("/single");
-        assertThat(MvcRouter.path(TwoRoutes.class)).isEqualTo("/two");
-        assertThat(MvcRouter.path(InheritRoutes.class)).isEqualTo("/more");
-        assertThat(MvcRouter.path(MvcRouterTest.class)).isNull();
+        assertThat(MvcRouter.paths(SingleRoute.class)).asList().containsExactly("/single");
+        assertThat(MvcRouter.paths(TwoRoutes.class)).asList().containsExactly("/two");
+        assertThat(MvcRouter.paths(InheritRoutes.class)).asList().containsExactly("/more");
+        assertThat(MvcRouter.paths(MvcRouterTest.class)).isNull();
     }
     
     @Test
     public void actionPath() {
         MvcRouter.methods(ActionController.class, methods -> {
-            assertThat(MvcRouter.mergePaths(MvcRouter.path(ActionController.class), methods[0])).isEqualTo("/controller/action");
+            assertThat(MvcRouter.mergePaths(MvcRouter.paths(ActionController.class), methods[0])).asList().containsExactly("/controller/action");
         });
         
     }
