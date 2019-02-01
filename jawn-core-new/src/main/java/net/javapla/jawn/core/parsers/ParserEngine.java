@@ -3,8 +3,8 @@ package net.javapla.jawn.core.parsers;
 import java.io.InputStream;
 import java.io.Reader;
 
-import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Up;
 
 /**
  * 

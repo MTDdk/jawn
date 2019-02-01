@@ -15,6 +15,7 @@ import com.google.inject.Key;
 
 import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
+import net.javapla.jawn.core.internal.mvc.AssetHandler;
 import net.javapla.jawn.core.internal.mvc.MvcRouter;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
@@ -85,6 +86,11 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
     //MVC route classes
     protected Jawn mvc(final Class<?> routeClass) {
         routes.addAll(MvcRouter.extract(routeClass));
+        return this;
+    }
+    
+    protected Jawn files() {
+        routes.addAll(null);
         return this;
     }
     
@@ -297,6 +303,7 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
     
     List<Route> buildRoutes(Injector injector) {
         filters.populate(routes, injector);
+        routes.addAll(AssetHandler.assets(injector.getInstance(DeploymentInfo.class))); // TODO assets could easily just be a plugin
         return routes.stream().map(Route.Builder::build).collect(Collectors.toList());
     }
     

@@ -51,7 +51,7 @@ final class Router {
             // Have a look in the custom routes then
             for (var r : routes) {
                 if (r.matches(requestUri)) {
-                    if (r.method() != httpMethod) throw new Up.RouteFoundWithDifferentMethod();
+                    if (r.method() != httpMethod && HttpMethod.HEAD != httpMethod) throw new Up.RouteFoundWithDifferentMethod();
                     
                     trie.insert(requestUri, r); // cache it for later fast look-up
                     return r;

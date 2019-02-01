@@ -1,6 +1,8 @@
 package net.javapla.jawn.core;
 
-public final class Results {
+import java.text.MessageFormat;
+
+public abstract class Results {
     
     public static Result status(final Status status) {
         return new Result().status(status);
@@ -61,6 +63,19 @@ public final class Results {
             return ok().renderable(((String) entity).getBytes()).contentType(MediaType.PLAIN);
         }
         return ok().renderable(entity).contentType(MediaType.PLAIN);
+    }
+    
+    /**
+     * This method will send the text to a client verbatim. It will not use any layouts. Use it to build app.services
+     * and to support AJAX.
+     * 
+     * @param text A string containing &quot;{index}&quot;, like so: &quot;Message: {0}, error: {1}&quot;
+     * @param objects A varargs of objects to be put into the <code>text</code>
+     * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
+     * @see MessageFormat#format
+     */
+    public static Result text(String text, Object...objects) {
+        return text(MessageFormat.format(text, objects));
     }
     
     public static Result ok(final Object entity) {

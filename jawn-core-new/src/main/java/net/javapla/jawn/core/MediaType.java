@@ -6,7 +6,11 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.TreeMap;
+
+import net.javapla.jawn.core.Config.ParseOptions;
 
 public class MediaType implements Comparable<MediaType> {
     
@@ -70,10 +74,8 @@ public class MediaType implements Comparable<MediaType> {
     private static final HashMap<String, List<MediaType>> cache = new HashMap<>();
 
     static {
-      cache.put("html", Collections.singletonList(HTML));//ImmutableList.of(html));
+      cache.put("html", Collections.singletonList(HTML));
       cache.put("json", Collections.singletonList(JSON));
-//      cache.put("css", Collections.singletonList(css));
-//      cache.put("js", Collections.singletonList(js));
       cache.put("octetstream", Collections.singletonList(OCTET_STREAM));
       cache.put("form", Collections.singletonList(FORM));
       cache.put("multipart", Collections.singletonList(MULTIPART));
@@ -81,6 +83,10 @@ public class MediaType implements Comparable<MediaType> {
       cache.put("plain", Collections.singletonList(PLAIN));
       cache.put("*", ALL);
     }
+    
+    static final Properties mimes = Config
+        .PropertiesLoader
+        .parseResourse("mime.properties", ParseOptions.defaults());
     
     public MediaType(final String type, final String subtype, final Map<String, String> parameters) {
         this(type, subtype, null, createParametersMap(parameters));
@@ -278,6 +284,20 @@ public class MediaType implements Comparable<MediaType> {
         return result;
     }
 
+    public static Optional<MediaType> byPath(final String path) {
+        int last = path.lastIndexOf('.');
+        if (last != -1) {
+            String ext = path.substring(last + 1);
+            return byExtension(ext);
+        }
+        return Optional.empty();
+    }
 
-
+    public static Optional<MediaType> byExtension(final String ext) {
+        String key = "mime." + ext;
+        if (mimes.containsKey(key)) {
+            return Optional.of(MediaType.valueOf(mimes.getProperty(key)));
+        }
+        return Optional.empty();
+    }
 }

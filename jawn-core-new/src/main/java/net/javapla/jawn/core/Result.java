@@ -1,5 +1,7 @@
 package net.javapla.jawn.core;
 
+import java.nio.charset.Charset;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +28,7 @@ public class Result {
      * Something like: "utf-8" => will be appended to the content-type. eg
      * "text/html; charset=utf-8"
      */
-    protected String charset = "UTF-8";
+    protected Charset charset; //= "UTF-8";
     
     /**
      * A list of content types this result will handle. If you got a general
@@ -75,6 +77,19 @@ public class Result {
         return this;
     }
     
+    public Optional<Charset> charset() {
+        return Optional.ofNullable(charset);
+    }
+    
+    public Result charset(Charset cs) {
+        this.charset = cs;
+        return this;
+    }
+    
+    public Result charset(final String cs) {
+        return charset(Charset.forName(cs));
+    }
+    
     public Map<String, String> headers() {
         return Collections.unmodifiableMap(headers);
     }
@@ -84,4 +99,8 @@ public class Result {
         return this;
     }
     
+    @Override
+    public String toString() {
+        return MessageFormat.format("status [{0}], type [{1}], char [{2}], obj [{3}]", status, contentType, charset, renderable);
+    }
 }

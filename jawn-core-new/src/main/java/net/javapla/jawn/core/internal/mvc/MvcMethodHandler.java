@@ -1,7 +1,9 @@
 package net.javapla.jawn.core.internal.mvc;
 
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 import com.google.inject.Key;
 
@@ -54,14 +56,27 @@ public class MvcMethodHandler implements Route.MethodHandler {
         
         // execute
         try {
-            return _handle(method.invoke(context.require(key)));
+            return _handleReturnType(method.invoke(context.require(key), _provideParameters(method, context)));
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             //return Results.error();
             throw new Up.RenderableError(e);
         }
     }
     
-    private Result _handle(Object result) {
+    //might be its own class
+    private Object[] _provideParameters(final Executable action, final Context context) {
+        Parameter[] parameters = action.getParameters();
+        
+        if (parameters.length == 1 && parameters[0].getType() == Context.class) return new Object[] {context};
+        
+        /*if (parameters.length == 0)*/ return new Object[0];
+        
+        
+//        Object[] arguments = new Object[parameters.length];
+//        return arguments;
+    }
+    
+    private Result _handleReturnType(Object result) {
         ViewController view = routeClass.getAnnotation(ViewController.class);
         System.out.println();
         

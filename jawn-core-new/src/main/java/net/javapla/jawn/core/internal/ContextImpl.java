@@ -260,6 +260,7 @@ final class ContextImpl implements Context {
         return Optional.ofNullable(route);
     }
     
+    // TODO could probably just as well be handled by ResultRunner
     void readyResponse(final Result result) {
         if (sresp.committed()) return;
         
@@ -268,6 +269,9 @@ final class ContextImpl implements Context {
         
         sresp.statusCode(result.status()
             .map(Status::value).orElse(200));
+        
+        result.charset()
+            .ifPresent(resp::charset);
         
         result.headers()
             .forEach(sresp::header);

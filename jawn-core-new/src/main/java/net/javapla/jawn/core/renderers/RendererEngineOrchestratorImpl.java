@@ -43,7 +43,7 @@ final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator
              final Provider<XmlRendererEngine>    xml,
              final Provider<TextRendererEngine>   text,
              final Provider<StreamRendererEngine> stream,
-             //Provider<ImageRendererEngine>      image,
+             final Provider<ImageRendererEngine>  image,
              final Injector injector) {
         
         final Map<MediaType, Provider<? extends RendererEngine>> map = new HashMap<>();
@@ -53,8 +53,7 @@ final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator
         mapEngine(map, xml);
         mapEngine(map, text);
         mapEngine(map, stream);
-        //mapEngine(map, image);
-        // mapEngine(map, html);
+        mapEngine(map, image);
         
         
         // Find any other defined bindings for TemplateEngine,

@@ -25,6 +25,13 @@ public class View extends Result {
         super.renderable(this);
     }
     
+    protected View(Result result) {
+        this();
+        this.charset = result.charset;
+        this.headers.putAll(result.headers());
+        this.status = result.status;
+    }
+    
     public View put(final String name, final Object value) {
         viewModel.put(name, value);
         return this;
@@ -72,6 +79,10 @@ public class View extends Result {
     public View path(String path) {
         this.path = path;
         return this;
+    }
+    
+    public static View from(Result result) {
+        return new View(result);
     }
     
     @Override

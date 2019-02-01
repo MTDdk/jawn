@@ -11,6 +11,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.common.truth.Correspondence;
+
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
@@ -87,15 +90,45 @@ public class MvcRouterTest {
         assertThat(route.path()).isEqualTo("/single");
     }
     
+    @Test
     public void multipleRoutes() {
         List<Route.Builder> builders = MvcRouter.extract(TwoRoutes.class);
         assertThat(builders).hasSize(2);
         
         List<Route> routes = builders.stream().map(Route.Builder::build).collect(Collectors.toList());
-        assertThat(routes.get(0).path()).isEqualTo("/two");
-        assertThat(routes.get(1).path()).isEqualTo("/two/second");
+        
+        assertThat(routes)
+            .comparingElementsUsing(new Correspondence<Route, String>() {
+                @Override
+                public boolean compare(Route actual, String expected) {
+                    return actual.path().equals(expected);
+                }
+                
+                public String toString() { return null; }
+            })
+            .containsExactly("/two","/two/second");
     }
-
+    
+    @Test
+    public void innerLambdas() {
+        // When having lambdas within a method, this lambda gets returned by 
+        // Method.getDeclaredMethods as "private static java.lang.String net.javapla.jawn.core.internal.mvc.MvcRouterTest$Lambdas.lambda$0(java.lang.Object)"
+        
+        MvcRouter.methods(Lambdas.class, methods -> {
+            assertThat(methods).hasLength(1);
+        });
+    }
+    
+    @Test
+    public void onlyNonStaticMethods() {
+        MvcRouter.methods(StaticMethods.class, methods -> {
+            assertThat(methods).hasLength(1);
+        });
+    }
+    
+    
+/**** TEST CLASSES ****/
+    
     @Path("/single")
     static class SingleRoute {
         @GET
@@ -124,5 +157,23 @@ public class MvcRouterTest {
         @GET
         @Path("action")
         public void action() {}
+    }
+    
+    static class Lambdas {
+        @GET
+        public Result action(Context context) {
+            return Results.text(context.attribute("").map(att -> att + "test").orElse("nothing"));
+        }
+    }
+    
+    static class StaticMethods {
+        public void action() {}
+        @SuppressWarnings("unused")
+        private void privateAction() {}
+        void packageAction() {}
+        public static void publicstaticAction() {}
+        @SuppressWarnings("unused")
+        private static void privateStaticAction() {}
+        static void packageStaticAction() {}
     }
 }

@@ -29,7 +29,6 @@ import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
-import net.javapla.jawn.core.parsers.ParserEngineManagerImpl;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 import net.javapla.jawn.core.server.HttpHandler;
@@ -135,7 +134,13 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
 
         logger.info("Shutting down ..");
         
-        onShutdown.forEach(Runnable::run);
+        onShutdown.forEach(run -> {
+            try {
+                run.run();
+            } catch (Exception e) {
+                logger.error("Failed a onShutdown task", e);
+            }
+        });
         
         if (injector != null) {
             
@@ -169,7 +174,7 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
         // Marshallers
         binder.bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
         binder.bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
-        binder.bind(ParserEngineManager.class).to(ParserEngineManagerImpl.class).in(Singleton.class);
+        binder.bind(ParserEngineManager.class).in(Singleton.class);
         binder.bind(RendererEngineOrchestrator.class).in(Singleton.class);
         
         // Framework

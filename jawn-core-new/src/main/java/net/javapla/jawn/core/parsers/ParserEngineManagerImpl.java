@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class ParserEngineManagerImpl implements ParserEngineManager {
+class ParserEngineManagerImpl implements ParserEngineManager {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     

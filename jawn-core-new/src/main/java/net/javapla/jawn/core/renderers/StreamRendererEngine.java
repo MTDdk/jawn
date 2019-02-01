@@ -2,10 +2,13 @@ package net.javapla.jawn.core.renderers;
 
 import java.io.InputStream;
 
+import com.google.inject.Singleton;
+
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 
-final class StreamRendererEngine implements RendererEngine {
+@Singleton
+class StreamRendererEngine implements RendererEngine {
 
     @Override
     public void invoke(final Context context, final Object obj) throws Exception {

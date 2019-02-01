@@ -54,4 +54,21 @@ public class ViewTest {
     public void settingRenderable_should_fail() {
         Results.html().renderable(new Object());
     }
+    
+    @Test
+    public void inheritFromResult() {
+        View view = View.from(Results.notFound());
+        
+        assertThat(view.status).isEqualTo(Status.NOT_FOUND);
+        assertThat(view.contentType().get()).isEqualTo(MediaType.HTML);
+    }
+    
+    @Test
+    public void overwriteTypes() {
+        View view = View.from(Results.json("").status(300).charset("UTF-16"));
+        
+        assertThat(view.status).isEqualTo(Status.valueOf(300));
+        assertThat(view.contentType).isEqualTo(MediaType.HTML);
+        assertThat(view.charset.name()).isEqualTo("UTF-16");
+    }
 }

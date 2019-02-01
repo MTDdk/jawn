@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal.mvc;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,9 +36,12 @@ public class MvcRouter {
         
         //TODO what if a controller has two actions with the same VERB, but no Paths, or the same Path for both actions?
         
-        // collect all methods
         Map<Method, List<Class<? extends Annotation>>> actions = new HashMap<>();
-        routes(routeClass.getMethods(), actions::put);
+        
+        // collect all methods
+        methods(routeClass, methods -> 
+            routes(methods, actions::put)
+        );
         
         ArrayList<Route.Builder> defs = new ArrayList<>();
         
@@ -60,9 +64,29 @@ public class MvcRouter {
         return defs;
     }
     
+    /**
+     * Locate methods with the following properties:
+     * - public
+     * - non-static
+     * 
+     * @param routeClass
+     * @param callback
+     */
     static void methods(final Class<?> routeClass, final Consumer<Method[]> callback) {
         if (routeClass != Object.class) {
-            callback.accept(routeClass.getDeclaredMethods());
+            Method[] methods = routeClass.getDeclaredMethods();
+            Method[] publics = new Method[methods.length];
+            int num = 0;
+            
+            for (Method method : methods) {
+                if (    Modifier.isPublic(method.getModifiers())
+                    && !Modifier.isStatic(method.getModifiers())) {
+                    
+                    publics[num++] = method;
+                }
+            }
+            
+            callback.accept(Arrays.copyOf(publics, num, Method[].class));
             methods(routeClass.getSuperclass(), callback);
         }
     }
