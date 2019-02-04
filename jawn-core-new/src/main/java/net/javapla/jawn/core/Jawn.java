@@ -13,7 +13,11 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 
+import net.javapla.jawn.core.Jawn.RouteFilterPopulator;
+import net.javapla.jawn.core.Route.After;
+import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Route.Builder;
+import net.javapla.jawn.core.Route.Filter;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.mvc.AssetHandler;
 import net.javapla.jawn.core.internal.mvc.MvcRouter;
@@ -84,14 +88,30 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
     }
     
     //MVC route classes
-    protected Jawn mvc(final Class<?> routeClass) {
-        routes.addAll(MvcRouter.extract(routeClass));
-        return this;
-    }
-    
-    protected Jawn files() {
-        routes.addAll(null);
-        return this;
+    protected Route.Filtering mvc(final Class<?> routeClass) {
+        List<Builder> classRoutes = MvcRouter.extract(routeClass);
+        routes.addAll(classRoutes);
+        
+        //TODO- needs to be tested 
+        return new Route.Filtering() {
+            @Override
+            public Route.Filtering filter(Filter filter) {
+                classRoutes.forEach(route -> route.filter(filter));
+                return this;
+            }
+
+            @Override
+            public Route.Filtering before(Before handler) {
+                classRoutes.forEach(route -> route.before(handler));
+                return this;
+            }
+
+            @Override
+            public Route.Filtering after(After handler) {
+                classRoutes.forEach(route -> route.after(handler));
+                return this;
+            }
+        };
     }
     
     
@@ -165,9 +185,19 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
         return this;
     }
     
+    protected Jawn before(final Class<?> filter) {
+        filters.filter(filter);
+        return this;
+    }
+    
     /** add a global filter */
     @Override
     public Jawn after(final Route.After filter) {
+        filters.filter(filter);
+        return this;
+    }
+    
+    protected Jawn after(final Class<?> filter) {
         filters.filter(filter);
         return this;
     }
@@ -217,6 +247,7 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
         logger.info("Bootstrap of framework started in: " + (System.currentTimeMillis() - startupTime) + " ms");
         logger.info("Jawn: Environment:                 " + mode);
         logger.info("Jawn: Running on port:             " + serverConfig.port());
+        logger.info("Jawn: With context path:           " + serverConfig.context());
     }
     
     /**

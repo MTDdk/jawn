@@ -76,6 +76,7 @@ public interface Route extends Handler {
     interface Filtering<T> {//Perhaps called RouteBuilder ?
 
         T filter(final Filter filter);
+        //Filtering filter(final Class<?> filter);
 
         T before(final Before handler);
         default T before(final Handler handler) {

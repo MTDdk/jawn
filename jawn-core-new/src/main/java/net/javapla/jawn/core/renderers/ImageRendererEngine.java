@@ -34,8 +34,6 @@ class ImageRendererEngine extends StreamRendererEngine {
             //ImageIO.write((BufferedImage) obj, extension, null);
             
         } else {
-            //context.resp().contentType(null)
-            System.out.println("IMAGE");
             super.invoke(context, obj);
         }
         

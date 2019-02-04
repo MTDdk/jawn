@@ -83,6 +83,8 @@ public interface Context extends Injection {
         
         String path();
 
+        String context();
+        
         Charset charset();
 
         MediaType contentType();

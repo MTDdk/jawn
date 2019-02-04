@@ -67,6 +67,11 @@ final class ContextImpl implements Context {
             }
             
             @Override
+            public String context() {
+                return deploymentInfo.getContextPath();
+            }
+            
+            @Override
             public Map<String, Cookie> cookies() {
                 return sreq.cookies().stream().collect(Collectors.toMap(Cookie::name, cookie -> cookie));
             }

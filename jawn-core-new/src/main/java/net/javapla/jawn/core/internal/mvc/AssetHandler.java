@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Singleton;
-
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Handler;
@@ -25,8 +23,7 @@ import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.renderers.template.TemplateRendererEngine;
 
-@Singleton
-public class AssetHandler implements Handler/* implements Route.Before*/ {
+public class AssetHandler implements Handler {
     private final static Logger logger = LoggerFactory.getLogger(AssetHandler.class.getSimpleName());
     
     /*
@@ -45,15 +42,15 @@ public class AssetHandler implements Handler/* implements Route.Before*/ {
     
     @Override
     public Result handle(Context context) {
-        String translated = context.req().path();
+        String path = context.req().path();
         
-        Result result = Results.ok().contentType(MediaType.byPath(translated).orElse(MediaType.OCTET_STREAM));
+        Result result = Results.ok().contentType(MediaType.byPath(path).orElse(MediaType.OCTET_STREAM));
         
         // Setting default headers for static files
         // One week - Google recommendation
         // https://developers.google.com/speed/docs/insights/LeverageBrowserCaching
         result.header("Cache-Control", "public, max-age=604800");
-        File file = new File(deploymentInfo.getRealPath(translated));
+        File file = new File(deploymentInfo.getRealPath(path));
         if (file.canRead()) {
             result.header("ETag", String.valueOf(file.lastModified()));
         }
