@@ -45,7 +45,7 @@ public abstract class Results {
     }
     
     
-    public static View html() {
+    public static View view() {
         return new View();
     }
     
@@ -71,7 +71,7 @@ public abstract class Results {
      * 
      * @param text A string containing &quot;{index}&quot;, like so: &quot;Message: {0}, error: {1}&quot;
      * @param objects A varargs of objects to be put into the <code>text</code>
-     * @return {@link HttpSupport.HttpBuilder}, to accept additional information.
+     * @return {@link Result}, to accept additional information.
      * @see MessageFormat#format
      */
     public static Result text(String text, Object...objects) {

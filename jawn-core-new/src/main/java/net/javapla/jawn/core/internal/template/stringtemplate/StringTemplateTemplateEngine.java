@@ -86,12 +86,12 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     }
 
     @Override
-    public final void invoke(final Context context, final View response) throws Up.ViewError {
+    public final void invoke(final Context context, final View result) throws Up.ViewError {
         long time = 0;
         if (log.isInfoEnabled())
             time = System.currentTimeMillis();
 
-        final Map<String, Object> values = response.model();
+        final Map<String, Object> values = result.model();
 
         if (! useCache)
             reloadGroup();
@@ -103,7 +103,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         final ST contentTemplate = templateName != null ? templateLoader.locateContentTemplate(templateName, useCache) : null;*/
         
         final ErrorBuffer error = new ErrorBuffer();
-        final ViewTemplates<ST> viewTemplates = templateLoader.load(response, useCache);
+        final ViewTemplates<ST> viewTemplates = templateLoader.load(result, useCache);
         
         templateLoader.render(context, writer -> {
             if (viewTemplates.layoutName() == null) { // no layout
@@ -116,7 +116,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
-                final String controller = response.path();//TODO TemplateEngineHelper.getControllerForResult(route);
+                final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
                 
                 //final ST layoutTemplate = templateLoader.locateLayoutTemplate(controller, viewTemplates.layoutName, useCache);
                 //layoutName = layoutTemplate.getName(); // for later logging

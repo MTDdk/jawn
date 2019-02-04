@@ -26,7 +26,7 @@ public class ViewTest {
 
     @Test
     public void simpleView() {
-        View view = Results.html();
+        View view = Results.view();
         assertThat(view.renderable().isPresent()).isTrue();
         assertThat(view.renderable().get()).isEqualTo(view);
         assertThat(view.model()).isEmpty();
@@ -36,7 +36,7 @@ public class ViewTest {
     public void withModel() {
         String key = "key";
         String value = "simple";
-        View view = Results.html().put(key, value);
+        View view = Results.view().put(key, value);
         assertThat(view.model()).hasSize(1);
         assertThat(view.model()).containsExactly(key, value);
     }
@@ -45,14 +45,14 @@ public class ViewTest {
     public void putMap() {
         String key = "key";
         String value = "simple";
-        View view = Results.html().put(Collections.singletonMap(key, value)).put("k", "v");
+        View view = Results.view().put(Collections.singletonMap(key, value)).put("k", "v");
         assertThat(view.model()).hasSize(2);
         assertThat(view.model()).containsExactly(key, value, "k", "v");
     }
     
     @Test(expected = UnsupportedOperationException.class)
     public void settingRenderable_should_fail() {
-        Results.html().renderable(new Object());
+        Results.view().renderable(new Object());
     }
     
     @Test

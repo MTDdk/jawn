@@ -69,7 +69,7 @@ public class MvcRouterTest {
     public void rootPath() {
         assertThat(MvcRouter.paths(SingleRoute.class)).asList().containsExactly("/single");
         assertThat(MvcRouter.paths(TwoRoutes.class)).asList().containsExactly("/two");
-        assertThat(MvcRouter.paths(InheritRoutes.class)).asList().containsExactly("/more");
+        assertThat(MvcRouter.paths(InheritRoutes.class)).asList().containsExactly("/more", "/extra");
         assertThat(MvcRouter.paths(MvcRouterTest.class)).isNull();
     }
     
@@ -147,6 +147,7 @@ public class MvcRouterTest {
     }
     
     @Path("/more")
+    @Path("/extra") //TODO create a standalone test for this (@Path-on-@Path)
     static class InheritRoutes extends TwoRoutes {
         @GET
         public void test3() {}

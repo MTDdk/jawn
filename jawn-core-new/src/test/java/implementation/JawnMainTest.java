@@ -23,7 +23,7 @@ public class JawnMainTest extends Jawn {
         get("/test", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(201));
         post("/test/{dd}", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(Status.ALREADY_REPORTED));
         
-        get("/", Results.html()/*.path("system")*//*.template("404").layout(null)*/);
+        get("/", Results.view()/*.path("system")*//*.template("404").layout(null)*/);
         
         mvc(TestController.class);
         //interest();

@@ -111,15 +111,23 @@ public class MvcRouter {
     }
     
     static String[] paths(final AnnotatedElement elm) {
-        Path path = elm.getAnnotation(Path.class);
-        if (path == null) return null;
+//        Path path = elm.getAnnotation(Path.class);
+//        System.out.println(Arrays.toString(elm.getAnnotationsByType(Path.class)));
+//        System.out.println(Arrays.toString(elm.getAnnotationsByType(Path.Paths.class)));
+//        System.out.println(elm.getAnnotation(Path.Paths.class));
+//        System.out.println(elm.getAnnotation(Path.class));
         
-        for (var p : path.value()) {
-            if (p.charAt(0) != '/') return addLeadingSlash(path.value());
-        }
+        Path[] paths = elm.getAnnotationsByType(Path.class);
+        
+        if (paths == null || paths.length == 0) return null;
+        
+        /*for (Path p : paths.value()) {
+            if (p.value().charAt(0) != '/') return addLeadingSlash(paths.value());
+        }*/
         
         //if (path.value().charAt(0) != '/') return '/' + path.value();
-        return path.value();
+        //return path.value();
+        return addLeadingSlash(paths);
     }
     
     static String[] mergePaths(final String[] rootPaths, final Method method) {
@@ -147,11 +155,11 @@ public class MvcRouter {
         return result;
     }
     
-    static String[] addLeadingSlash(final String[] paths) {
+    static String[] addLeadingSlash(final Path[] paths) {
         String[] result = new String[paths.length];
         for (int i = 0; i < paths.length; i++) {
-            if (paths[i].charAt(0) != '/') result[i] = '/' + paths[i];
-            else result[i] = paths[i];
+            if (paths[i].value().charAt(0) != '/') result[i] = '/' + paths[i].value();
+            else result[i] = paths[i].value();
         }
         return result;
     }

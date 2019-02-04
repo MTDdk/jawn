@@ -9,7 +9,8 @@ import net.javapla.jawn.core.mvc.Path;
 import net.javapla.jawn.core.mvc.ViewController;
 import net.javapla.jawn.core.util.Modes;
 
-@Path(value = {"/test", "/kage"})
+@Path("/test")
+@Path("/kage")
 @ViewController
 public class TestController {
     
@@ -21,6 +22,6 @@ public class TestController {
     @GET
     public View something() {
         System.out.println("something");
-        return Results.html();
+        return Results.view();
     }
 }

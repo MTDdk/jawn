@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
+@Singleton
 class ParserEngineManagerImpl implements ParserEngineManager {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -25,8 +27,9 @@ class ParserEngineManagerImpl implements ParserEngineManager {
     
     
     @Inject
-    public ParserEngineManagerImpl(Provider<JsonParserEngine> json,
-                                   Provider<XmlParserEngine>  xml) {
+    public ParserEngineManagerImpl(
+                   final Provider<JsonParserEngine> json,
+                   final Provider<XmlParserEngine>  xml) {
         
         
         Map<MediaType, Provider<? extends ParserEngine>> map = new HashMap<>();
