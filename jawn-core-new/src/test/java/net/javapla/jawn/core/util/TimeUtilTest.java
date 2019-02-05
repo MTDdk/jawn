@@ -58,4 +58,17 @@ public class TimeUtilTest {
         assertEquals(correct, seconds);
     }
 
+    @Test
+    public void mixtureOfInputs() {
+        int seconds = TimeUtil.parse("200m1s");
+        int correct = 200 * 60 + 1;
+        assertEquals(correct, seconds);
+    }
+    
+    @Test
+    public void reverse_should_fail() {
+        int seconds = TimeUtil.parse("m77s7");
+        int correct = 30 * 60;
+        assertEquals(correct, seconds);
+    }
 }

@@ -13,13 +13,12 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 
-import net.javapla.jawn.core.Jawn.RouteFilterPopulator;
 import net.javapla.jawn.core.Route.After;
 import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.Route.Filter;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
-import net.javapla.jawn.core.internal.mvc.AssetHandler;
+import net.javapla.jawn.core.internal.mvc.AssetRouter;
 import net.javapla.jawn.core.internal.mvc.MvcRouter;
 import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
@@ -36,6 +35,7 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
     
     private final FrameworkBootstrap bootstrap;
     private final LinkedList<Route.Builder> routes;
+    private final Assets.Impl assets;
     private final RouteFilterPopulator filters;
     private final ServerConfig.Impl/*ServerConfig*/ serverConfig;
     
@@ -44,6 +44,7 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
     public Jawn() {
         bootstrap = new FrameworkBootstrap();
         routes = new LinkedList<>();
+        assets = new Assets.Impl();
         filters = new RouteFilterPopulator();
         serverConfig = new ServerConfig.Impl();//new ServerConfig();
     }
@@ -83,35 +84,40 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
         return this;
     }
     
-    protected ServerConfig/*ServerConfig*/ server() {
+    protected ServerConfig server() {
         return serverConfig;
     }
     
     //MVC route classes
-    protected Route.Filtering mvc(final Class<?> routeClass) {
+    protected Route.Filtering<Route.Filtering<?>> mvc(final Class<?> routeClass) {
         List<Builder> classRoutes = MvcRouter.extract(routeClass);
         routes.addAll(classRoutes);
         
         //TODO- needs to be tested 
-        return new Route.Filtering() {
+        Route.Filtering<Route.Filtering<?>> filtering = new Route.Filtering<>() {
             @Override
-            public Route.Filtering filter(Filter filter) {
+            public Route.Filtering<Route.Filtering<?>> filter(Filter filter) {
                 classRoutes.forEach(route -> route.filter(filter));
                 return this;
             }
 
             @Override
-            public Route.Filtering before(Before handler) {
+            public Route.Filtering<Route.Filtering<?>> before(Before handler) {
                 classRoutes.forEach(route -> route.before(handler));
                 return this;
             }
 
             @Override
-            public Route.Filtering after(After handler) {
+            public Route.Filtering<Route.Filtering<?>> after(After handler) {
                 classRoutes.forEach(route -> route.after(handler));
                 return this;
             }
         };
+        return filtering;
+    }
+    
+    protected Assets assets() {
+        return assets;
     }
     
     
@@ -334,7 +340,7 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
     
     List<Route> buildRoutes(Injector injector) {
         filters.populate(routes, injector);
-        routes.addAll(AssetHandler.assets(injector.getInstance(DeploymentInfo.class))); // TODO assets could easily just be a plugin
+        routes.addAll(AssetRouter.assets(injector.getInstance(DeploymentInfo.class), assets));
         return routes.stream().map(Route.Builder::build).collect(Collectors.toList());
     }
     

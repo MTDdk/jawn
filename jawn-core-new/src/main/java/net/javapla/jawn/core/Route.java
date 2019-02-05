@@ -215,7 +215,7 @@ public interface Route extends Handler {
                             r = afters[i].after(context, r);
                         }
                         
-                        if (r == null) throw new Up.BadResult("A (After) filter rendered a 'null' result");
+                        if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result");
                         /*if (r != null) */result = r;
                     }
                     
