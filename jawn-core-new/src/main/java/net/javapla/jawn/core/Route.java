@@ -73,7 +73,7 @@ public interface Route extends Handler {
     /**
      * Public part of the Route.Builder
      */
-    interface Filtering<T> {//Perhaps called RouteBuilder ?
+    interface Filtering<T extends Filtering<T>> {//Perhaps called RouteBuilder ?
 
         T filter(final Filter filter);
         //Filtering filter(final Class<?> filter);

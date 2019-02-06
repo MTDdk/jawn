@@ -18,11 +18,11 @@ public class LogRequestPropertiesFilter implements Route.Before {
     @Override
     public Result before(Context context, Chain chain) {
         StringBuilder sb = new StringBuilder("\n------------------------------\n");
-        sb.append("Method: ").append(context.req().httpMethod());
+        sb.append("Method: ").append(context.req().httpMethod()).append("\n");
         sb.append("Request URL: ").append(context.req().path()).append("\n");
         sb.append("Query String: ").append(context.req().queryString().map(q -> "?"+q).orElse("")).append("\n");
         sb.append("ContextPath: ").append(context.req().context()).append("\n");
-        sb.append("\n------------------------------");
+        sb.append("------------------------------");
         logger.info(sb.toString());
         return chain.next();
     }

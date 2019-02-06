@@ -17,6 +17,7 @@ import net.javapla.jawn.core.Route.After;
 import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.Route.Filter;
+import net.javapla.jawn.core.Route.Filtering;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.mvc.AssetRouter;
 import net.javapla.jawn.core.internal.mvc.MvcRouter;
@@ -77,7 +78,7 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
      * });
      * </pre>
      * @param module
-     * @return
+     * @return this
      */
     protected Jawn use(final ModuleBootstrap module) {
         bootstrap.register(module);
@@ -92,28 +93,26 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
     protected Route.Filtering<Route.Filtering<?>> mvc(final Class<?> routeClass) {
         List<Builder> classRoutes = MvcRouter.extract(routeClass);
         routes.addAll(classRoutes);
+        //return new FilteringImpl(classRoutes);
         
-        //TODO- needs to be tested 
-        Route.Filtering<Route.Filtering<?>> filtering = new Route.Filtering<>() {
+        return new Route.Filtering<Filtering<?>>() {
+
             @Override
-            public Route.Filtering<Route.Filtering<?>> filter(Filter filter) {
-                classRoutes.forEach(route -> route.filter(filter));
-                return this;
+            public Filtering<?> filter(Filter filter) {
+                return null;
             }
 
             @Override
-            public Route.Filtering<Route.Filtering<?>> before(Before handler) {
-                classRoutes.forEach(route -> route.before(handler));
-                return this;
+            public Filtering<?> before(Before handler) {
+                return null;
             }
 
             @Override
-            public Route.Filtering<Route.Filtering<?>> after(After handler) {
-                classRoutes.forEach(route -> route.after(handler));
-                return this;
+            public Filtering<?> after(After handler) {
+                return null;
             }
+
         };
-        return filtering;
     }
     
     protected Assets assets() {
@@ -425,5 +424,33 @@ public class Jawn implements Route.Filtering<Jawn>, Injection {
         private void filter(final List<Route.Builder> routes, Object item) {
             routes.forEach(r -> r.globalFilter((Route.Filter) item));
         }
+    }
+    
+    public static final class FilteringImpl implements Route.Filtering<FilteringImpl> {
+        
+        private final List<Builder> classRoutes;
+
+        FilteringImpl(final List<Route.Builder> routes) {
+            classRoutes = routes;
+        }
+
+        @Override
+        public FilteringImpl filter(Filter filter) {
+            classRoutes.forEach(route -> route.filter(filter));
+            return this;
+        }
+
+        @Override
+        public FilteringImpl before(Before handler) {
+            classRoutes.forEach(route -> route.before(handler));
+            return this;
+        }
+
+        @Override
+        public FilteringImpl after(After handler) {
+            classRoutes.forEach(route -> route.after(handler));
+            return this;
+        }
+        
     }
 }
