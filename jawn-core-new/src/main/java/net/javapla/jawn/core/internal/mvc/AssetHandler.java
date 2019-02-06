@@ -76,6 +76,12 @@ public class AssetHandler implements Handler {
         }
     }
     
+    /**
+     * @param result
+     * @param file
+     * @param context
+     * @return true, if not modified
+     */
     private boolean _etag(final Result result, final File file, final Context context) {
         if (this.etag) {
             String etag = String.valueOf(file.lastModified());
@@ -89,6 +95,12 @@ public class AssetHandler implements Handler {
         return false;
     }
     
+    /**
+     * @param result
+     * @param file
+     * @param context
+     * @return true, if not modified
+     */
     private boolean _lastModified(final Result result, final File file, final Context context) {
         if (this.lastModified) {
             long lastModified = file.lastModified();
@@ -105,7 +117,7 @@ public class AssetHandler implements Handler {
     
     private void _cacheControl(final Result result) {
         if (maxAge > 0) {
-            result.header("Cache-Control", "max-age=" + maxAge);
+            result.header("Cache-Control", "public, max-age=" + maxAge);
         }
     }
 

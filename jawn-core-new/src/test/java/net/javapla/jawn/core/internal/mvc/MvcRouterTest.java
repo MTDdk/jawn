@@ -110,6 +110,16 @@ public class MvcRouterTest {
     }
     
     @Test
+    public void emptyControllerPath() {
+        List<Route.Builder> builders = MvcRouter.extract(EmptyControllerPath.class);
+        
+        Route route = builders.get(0).build();
+        
+        // the '/' of the controller should not be simply prepended to the action
+        assertThat(route.path()).isNotEqualTo("//image");
+    }
+    
+    @Test
     public void innerLambdas() {
         // When having lambdas within a method, this lambda gets returned by 
         // Method.getDeclaredMethods as "private static java.lang.String net.javapla.jawn.core.internal.mvc.MvcRouterTest$Lambdas.lambda$0(java.lang.Object)"
@@ -165,6 +175,12 @@ public class MvcRouterTest {
         public Result action(Context context) {
             return Results.text(context.attribute("").map(att -> att + "test").orElse("nothing"));
         }
+    }
+    
+    @Path("/")
+    static class EmptyControllerPath {
+        @Path("/image")
+        public void get() {}
     }
     
     static class StaticMethods {

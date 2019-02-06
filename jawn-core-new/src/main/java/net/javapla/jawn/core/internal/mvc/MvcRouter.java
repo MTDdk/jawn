@@ -51,10 +51,10 @@ public class MvcRouter {
             String[] paths = mergePaths(rootPaths, action);
             
             for (Class<? extends Annotation> verb : verbs) {
-                HttpMethod http = HttpMethod.valueOf(verb.getSimpleName());
+                HttpMethod method = HttpMethod.valueOf(verb.getSimpleName());
                 
                 for (var path : paths) {
-                    defs.add(new Route.Builder(http)
+                    defs.add(new Route.Builder(method)
                         .path(path)
                         .handler(new MvcMethodHandler(action, routeClass)));
                 }
@@ -96,7 +96,7 @@ public class MvcRouter {
             ArrayList<Class<? extends Annotation>> annotations = new ArrayList<>(VERBS.size()); // set to the number of possible annotations
             
             VERBS.forEach(type -> {
-                if (method.getAnnotation(type) != null) { // might be a bit faster than <code>method.isAnnotationPresent(type);</code> 
+                if (method.isAnnotationPresent(type)) {  
                     annotations.add(type);
                 }
             });
@@ -148,7 +148,12 @@ public class MvcRouter {
         int k = 0;
         for (String base : rootPaths) {
             for (String element : action) {
-                result[k] = base + element;
+                if (base.equals("/")) { // the 'index'/standard case
+                    result[k] = element;
+                } else {
+                    result[k] = base + element;
+                }
+                
                 k += 1;
             }
         }

@@ -2,6 +2,7 @@ package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
@@ -9,7 +10,6 @@ import org.junit.Test;
 
 import com.google.inject.Injector;
 
-import net.javapla.jawn.core.Jawn.RouteFilterPopulator;
 import net.javapla.jawn.core.Route.Chain;
 
 public class RouteFilterPopulatorTest {
@@ -69,7 +69,14 @@ public class RouteFilterPopulatorTest {
         
         // execute
         Context context = mock(Context.class);
-        j.buildRoutes(mock(Injector.class)).forEach(r -> {
+        
+        DeploymentInfo di = mock(DeploymentInfo.class);
+        when(di.getRealPath("")).thenReturn("");
+        
+        Injector injector = mock(Injector.class);
+        when(injector.getInstance(DeploymentInfo.class)).thenReturn(di);
+        
+        j.buildRoutes(injector).forEach(r -> {
             r.handle(context);
         });
         
@@ -81,7 +88,7 @@ public class RouteFilterPopulatorTest {
 
     @Test
     public void uninstantiatedFilters() {
-        RouteFilterPopulator populator = new Jawn.RouteFilterPopulator();
+        RouteFilterPopulator populator = new RouteFilterPopulator();
         
         populator.filter(F.class);
         populator.filter(B.class);

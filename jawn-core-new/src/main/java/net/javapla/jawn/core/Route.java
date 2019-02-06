@@ -73,35 +73,35 @@ public interface Route extends Handler {
     /**
      * Public part of the Route.Builder
      */
-    interface Filtering<T extends Filtering<T>> {//Perhaps called RouteBuilder ?
+    interface Filtering/*<T extends Filtering<T>>*/ {//Perhaps called RouteBuilder ?
 
-        T filter(final Filter filter);
+        Filtering filter(final Filter filter);
         //Filtering filter(final Class<?> filter);
 
-        T before(final Before handler);
-        default T before(final Handler handler) {
+        Filtering before(final Before handler);
+        default Filtering before(final Handler handler) {
             return before((c,ch) -> handler.handle(c));
         }
-        default T before(final Runnable handler) {
+        default Filtering before(final Runnable handler) {
             return before((c,ch) -> {handler.run(); return ch.next();});
         }
-        default T before(final Supplier<Result> handler) {
+        default Filtering before(final Supplier<Result> handler) {
             return before((c,ch) -> handler.get());
         }
-        default T before(final Result result) {
+        default Filtering before(final Result result) {
             return before((c,ch) -> result);
         }
 
-        T after(final After handler);
-        default T after(final Runnable handler) {
+        Filtering after(final After handler);
+        default Filtering after(final Runnable handler) {
             return after((c,r) -> {handler.run();return r;});
         }
-        default T after(final Result result) {
+        default Filtering after(final Result result) {
             return after((c,r) -> result);
         }
     }
     
-    final class Builder implements Filtering<Builder> {
+    final class Builder /*implements Filtering<Builder>*/ {
         private final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
         /**
          * This regex matches everything in between path slashes.
@@ -138,21 +138,21 @@ public interface Route extends Handler {
             return this;
         }
         
-        @Override
-        public Builder filter(final Filter filter) {
+//        @Override
+        /*public*/ Builder filter(final Filter filter) {
             this.before.add(filter);
             this.after.addFirst(filter);
             return this;
         }
         
-        @Override
-        public Builder before(final Route.Before handler) {
+//        @Override
+        /*public*/ Builder before(final Route.Before handler) {
             this.before.add(handler);
             return this;
         }
         
-        @Override
-        public Builder after(final Route.After handler) {
+//        @Override
+        /*public*/ Builder after(final Route.After handler) {
             this.after.add(handler);
             return this;
         }
@@ -343,6 +343,20 @@ public interface Route extends Handler {
             return map;
         }
         
+        @Override
+        public String toString() {
+            return method + uri;
+        }
+        
+        @Override
+        public int hashCode() {
+            return toString().hashCode();
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+            return toString().equals(obj.toString());
+        }
     }
     
     /**

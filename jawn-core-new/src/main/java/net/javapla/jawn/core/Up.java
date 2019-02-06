@@ -84,8 +84,8 @@ public class Up extends RuntimeException {
     }
     
     public static class RouteFoundWithDifferentMethod extends Up {
-        public RouteFoundWithDifferentMethod() {
-            super(Status.METHOD_NOT_ALLOWED);
+        public RouteFoundWithDifferentMethod(HttpMethod lookingFor) {
+            super(Status.METHOD_NOT_ALLOWED, "Was looking for ["+lookingFor+"]");
         }
     }
     

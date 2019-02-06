@@ -24,7 +24,7 @@ public class RouteFilterExecutionTest {
         Route handler = new Route.Builder(HttpMethod.GET).
             path("/")
             .handler(() -> Results.noContent())
-            .before(Results.ok())
+            .before((c,ch) -> Results.ok())
             .build();
         
         // execute
@@ -39,7 +39,7 @@ public class RouteFilterExecutionTest {
         Route handler = new Route.Builder(HttpMethod.GET).
             path("/")
             .handler(() -> Results.noContent())
-            .after(Results.ok())
+            .after((c,r) -> Results.ok())
             .build();
         
         // execute
@@ -56,9 +56,9 @@ public class RouteFilterExecutionTest {
         Route handler = new Route.Builder(HttpMethod.GET).
             path("/")
             .handler(() -> { executed[0]=true; return Results.noContent(); })
-            .before(Results.ok())
-            .before(() -> { executed[2]=true; return Results.notFound(); })
-            .after(() -> executed[1] = true)
+            .before((c,ch) -> Results.ok())
+            .before((c,ch) -> { executed[2]=true; return Results.notFound(); })
+            .after((c,r) -> {executed[1] = true; return r; })
             .build();
         
         
@@ -76,7 +76,7 @@ public class RouteFilterExecutionTest {
         Route handler = new Route.Builder(HttpMethod.GET)
             .path("/")
             .handler(() -> Results.ok())
-            .after((Result) null)
+            .after((c,r) -> (Result) null)
             .build();
         
         Context context = mock(Context.class);
