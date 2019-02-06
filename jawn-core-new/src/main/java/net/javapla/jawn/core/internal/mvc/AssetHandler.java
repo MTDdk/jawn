@@ -13,6 +13,7 @@ import net.javapla.jawn.core.Handler;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
+import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 
 public class AssetHandler implements Handler {
@@ -57,8 +58,8 @@ public class AssetHandler implements Handler {
         final Result result = Results.ok().contentType(MediaType.byPath(path).orElse(MediaType.OCTET_STREAM));
         
         
-        _etag(result, file);
-        _lastModified(result, file);
+        if (_etag(result, file, context)) return result.status(Status.NOT_MODIFIED);
+        if (_lastModified(result, file, context)) return result.status(Status.NOT_MODIFIED);
         _cacheControl(result);
         
         
@@ -75,16 +76,31 @@ public class AssetHandler implements Handler {
         }
     }
     
-    private void _etag(final Result result, final File file) {
-        if (etag) {
-            result.header("ETag", String.valueOf(file.lastModified()));
+    private boolean _etag(final Result result, final File file, final Context context) {
+        if (this.etag) {
+            String etag = String.valueOf(file.lastModified());
+            result.header("ETag", etag);
+            
+            return context.req()
+                .header("If-None-Match")
+                .map(etag::equals)
+                .orElse(false);
         }
+        return false;
     }
     
-    private void _lastModified(final Result result, final File file) {
-        if (lastModified) {
-            result.header("Last-Modified", String.valueOf(file.lastModified()));
+    private boolean _lastModified(final Result result, final File file, final Context context) {
+        if (this.lastModified) {
+            long lastModified = file.lastModified();
+            result.header("Last-Modified", String.valueOf(lastModified));
+            
+            return context.req()
+                .header("If-Modified-Since")
+                .map(Long::parseLong)
+                .map(modifiedSince -> lastModified <= modifiedSince)
+                .orElse(false);
         }
+        return false;
     }
     
     private void _cacheControl(final Result result) {

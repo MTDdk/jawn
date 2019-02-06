@@ -72,6 +72,21 @@ final class ContextImpl implements Context {
             }
             
             @Override
+            public Optional<String> header(final String name) {
+                return sreq.header(name);
+            }
+            
+            @Override
+            public MultiList<String> headers() {
+                return sreq.headers();
+            }
+            
+            @Override
+            public List<String> headers(final String name) {
+                return sreq.headers(name);
+            }
+            
+            @Override
             public Map<String, Cookie> cookies() {
                 return sreq.cookies().stream().collect(Collectors.toMap(Cookie::name, cookie -> cookie));
             }

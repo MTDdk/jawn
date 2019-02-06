@@ -75,8 +75,6 @@ public interface Context extends Injection {
 
         HttpMethod httpMethod();
 
-        Map<String, Cookie> cookies();
-
         Optional<String> queryString();
 
         String ip();
@@ -86,6 +84,14 @@ public interface Context extends Injection {
         String context();
         
         Charset charset();
+        
+        Optional<String> header(String name);
+        
+        MultiList<String> headers();
+        
+        List<String> headers(String name);
+        
+        Map<String, Cookie> cookies();
 
         MediaType contentType();
 
