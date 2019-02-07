@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 
-import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.mvc.AssetRouter;
 import net.javapla.jawn.core.internal.mvc.MvcRouter;
-import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
+import net.javapla.jawn.core.internal.reflection.ClassFactory;
+import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
@@ -26,26 +26,28 @@ import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.Modes;
 
-public class Jawn implements Route.Filtering/*<Jawn>*/, Injection {
+public class Jawn implements Route.Filtering, Injection {
     
     protected static final Logger logger = LoggerFactory.getLogger(Jawn.class);
     
     private final FrameworkBootstrap bootstrap;
-    //private final LinkedList<Route.Builder> routes;
-    private final HashMap<Route.Builder, RouteFilterPopulator> builders;
+    //private final HashMap<Route.Builder, RouteFilterPopulator> routesAndFilters;
+    private final LinkedList<SingleRouteFiltering> routesAndFilters;
+    private final RouteFilterPopulator globalFilters;
     private final Assets.Impl assets;
-    private final RouteFilterPopulator filters;
-    private final HashMap<Class<?>, RouteFilterPopulator> mvcFilters;
-    private final ServerConfig.Impl/*ServerConfig*/ serverConfig;
+    //private final HashMap<Class<?>, RouteFilterPopulator> mvcFilters;
+    //private final HashMap<String, Pair<Class<?>,RouteFilterPopulator>> mvcFilters;
+    private final HashMap<String, ControllerFiltering> mvcFilters;
+    private final ServerConfig.Impl serverConfig;
     
     private Modes mode = Modes.DEV;
 
     public Jawn() {
         bootstrap = new FrameworkBootstrap();
-        //routes = new LinkedList<>();
-        builders = new HashMap<>();
+        //routesAndFilters = new HashMap<>();
+        routesAndFilters = new LinkedList<>();
+        globalFilters = new RouteFilterPopulator();
         assets = new Assets.Impl();
-        filters = new RouteFilterPopulator();
         mvcFilters = new HashMap<>();
         serverConfig = new ServerConfig.Impl();
     }
@@ -90,12 +92,34 @@ public class Jawn implements Route.Filtering/*<Jawn>*/, Injection {
     }
     
     //MVC route classes
-    protected Route.Filtering/*<RouteFilterPopulator>*/ mvc(final Class<?> routeClass) {
-        //List<Builder> classRoutes = MvcRouter.extract(routeClass);
-        //routes.addAll(classRoutes);
-        //return new MvcFiltering(classRoutes);
-        
-        return mvcFilters.computeIfAbsent(routeClass, c -> new RouteFilterPopulator());
+    protected Route.Filtering mvc(final Class<?> routeClass) {
+        //return mvcFilters.computeIfAbsent(routeClass, c -> new RouteFilterPopulator());
+        //return mvcFilters.computeIfAbsent(routeClass.getName(), s -> new Pair<Class<?>, RouteFilterPopulator>(routeClass, new RouteFilterPopulator())).two;
+        return mvcFilters.computeIfAbsent(routeClass.getName(), s -> new ControllerFiltering(routeClass));
+    }
+    /*private class Pair<C,F> {
+        final C one;
+        final F two;
+        Pair(C one, F two) {
+            this.one = one;
+            this.two = two;
+        }
+        Pair<C,F> clone(C one) {
+            return new Pair<C,F>(one, this.two);
+        }
+    }*/
+    
+    /**
+     * Look for MVC controllers within this package.
+     * @param path
+     */
+    protected void controllers(final String packagePath) {
+        ClassLocator locator = new ClassLocator(packagePath);
+        locator.foundClasses().stream().forEach(this::mvc);
+    }
+    
+    protected void controllers(final Package path) {
+        controllers(path.getName());
     }
     
     protected Assets assets() {
@@ -106,56 +130,89 @@ public class Jawn implements Route.Filtering/*<Jawn>*/, Injection {
     // ****************
     // Router
     // ****************
-    protected Route.Filtering/*<Route.Builder>*/ get(final String path, final Result result) {
+    protected Route.Filtering get(final String path, final Handler handler) {
+        return _get(path, handler);
+    }
+    protected Route.Filtering get(final String path, final Route.ZeroArgHandler handler) {
+        return _get(path, handler);
+    }
+    protected Route.Filtering get(final String path, final Result result) {
         return get(path, () -> result);
     }
-    protected Route.Filtering/*<Route.Builder>*/ get(final String path, final Route.ZeroArgHandler handler) {
-        Builder builder = new Route.Builder(HttpMethod.GET).path(path).handler(handler);
-        
-        //routes.add(builder);
-        //return builder;
-        return builders.computeIfAbsent(builder, c -> new RouteFilterPopulator());
-    }
-    protected Route.Filtering/*<Route.Builder>*/ get(final String path, final Handler handler) {
-        Builder builder = new Route.Builder(HttpMethod.GET).path(path).handler(handler);
-//        routes.add(builder);
-//        return builder;
-        return builders.computeIfAbsent(builder, c -> new RouteFilterPopulator());
+    private Route.Filtering _get(final String path,  final Handler handler) {
+        return _addRoute(HttpMethod.GET, path, handler);
     }
     
-    protected Route.Filtering/*<Route.Builder>*/ post(final String path, final Handler handler) {
-        Builder builder = new Route.Builder(HttpMethod.POST).path(path).handler(handler);
-//        routes.add(builder);
-//        return builder;
-        return builders.computeIfAbsent(builder, c -> new RouteFilterPopulator());
+    protected Route.Filtering post(final String path, final Result result) {
+        return post(path, () -> result);
+    }
+    protected Route.Filtering post(final String path, final Route.ZeroArgHandler handler) {
+        return _post(path, handler);
+    }
+    protected Route.Filtering post(final String path, final Handler handler) {
+        return _post(path, handler);
+    }
+    private Route.Filtering _post(final String path,  final Handler handler) {
+        return _addRoute(HttpMethod.POST, path, handler);
     }
     
-    protected Route.Filtering/*<Route.Builder>*/ put(final String path, final Handler handler) {
-        Builder builder = new Route.Builder(HttpMethod.PUT).path(path).handler(handler);
-//        routes.add(builder);
-//        return builder;
-        return builders.computeIfAbsent(builder, c -> new RouteFilterPopulator());
+    protected Route.Filtering put(final String path, final Handler handler) {
+        return _put(path, handler);
+    }
+    protected Route.Filtering put(final String path, final Route.ZeroArgHandler handler) {
+        return _put(path, handler);
+    }
+    protected Route.Filtering put(final String path, final Result result) {
+        return put(path, () -> result);
+    }
+    private Route.Filtering _put(final String path, final Handler handler) {
+        return _addRoute(HttpMethod.PUT, path, handler);
     }
     
-    protected Route.Filtering/*<Route.Builder>*/ delete(final String path, final Handler handler) {
-        Builder builder = new Route.Builder(HttpMethod.DELETE).path(path).handler(handler);
-//        routes.add(builder);
-//        return builder;
-        return builders.computeIfAbsent(builder, c -> new RouteFilterPopulator());
+    protected Route.Filtering delete(final String path, final Handler handler) {
+        return _delete(path, handler);
+    }
+    protected Route.Filtering delete(final String path, final Route.ZeroArgHandler handler) {
+        return _delete(path, handler);
+    }
+    protected Route.Filtering delete(final String path, final Result result) {
+        return delete(path, () -> result);
+    }
+    private Route.Filtering _delete(final String path, final Handler handler) {
+        return _addRoute(HttpMethod.DELETE, path, handler);
     }
     
-    protected Route.Filtering/*<Route.Builder>*/ head(final String path, final Handler handler) {
-        Builder builder = new Route.Builder(HttpMethod.HEAD).path(path).handler(handler);
-//        routes.add(builder);
-//        return builder;
-        return builders.computeIfAbsent(builder, c -> new RouteFilterPopulator());
+    protected Route.Filtering head(final String path, final Handler handler) {
+        return _head(path, handler);
+    }
+    protected Route.Filtering head(final String path, final Route.ZeroArgHandler handler) {
+        return _head(path, handler);
+    }
+    protected Route.Filtering head(final String path, final Result result) {
+        return head(path, () -> result);
+    }
+    private Route.Filtering _head(final String path, final Handler handler) {
+        return _addRoute(HttpMethod.HEAD, path, handler);
     }
     
-    protected Route.Filtering/*<Route.Builder>*/ options(final String path, final Handler handler) {
-        Builder builder = new Route.Builder(HttpMethod.OPTIONS).path(path).handler(handler);
-//        routes.add(builder);
-//        return builder;
-        return builders.computeIfAbsent(builder, c -> new RouteFilterPopulator());
+    protected Route.Filtering options(final String path, final Handler handler) {
+        return _options(path, handler);
+    }
+    protected Route.Filtering options(final String path, final Route.ZeroArgHandler handler) {
+        return _options(path, handler);
+    }
+    protected Route.Filtering options(final String path, final Result result) {
+        return options(path, () -> result);
+    }
+    private Route.Filtering _options(final String path, final Handler handler) {
+        return _addRoute(HttpMethod.OPTIONS, path, handler);
+    }
+    
+    private Route.Filtering _addRoute(HttpMethod method, String path, Handler handler) {
+        //return routesAndFilters.computeIfAbsent(new Route.Builder(method).path(path).handler(handler), c -> new RouteFilterPopulator());
+        SingleRouteFiltering filtering = new SingleRouteFiltering(new Route.Builder(method).path(path).handler(handler));
+        routesAndFilters.add(filtering);
+        return filtering;
     }
     
     // ****************
@@ -164,37 +221,28 @@ public class Jawn implements Route.Filtering/*<Jawn>*/, Injection {
     /** add a global filter */
     @Override
     public Jawn filter(final Route.Filter filter) {
-        filters.filter(filter);
+        globalFilters.filter(filter);
         return this;
     }
     
     /** add a global filter - can implement {@link Route.After} or {@link Route.Before} or {@link Route.Filter} */
-    protected Jawn filter(final Class<?> filter) {
-        filters.filter(filter);
+    @Override
+    public Jawn filter(final Class<?> filter) {
+        globalFilters.filter(filter);
         return this;
     }
     
     /** add a global filter */
     @Override
     public Jawn before(final Route.Before filter) {
-        filters.filter(filter);
-        return this;
-    }
-    
-    protected Jawn before(final Class<?> filter) {
-        filters.filter(filter);
+        globalFilters.before(filter);
         return this;
     }
     
     /** add a global filter */
     @Override
     public Jawn after(final Route.After filter) {
-        filters.filter(filter);
-        return this;
-    }
-    
-    protected Jawn after(final Class<?> filter) {
-        filters.filter(filter);
+        globalFilters.after(filter);
         return this;
     }
     
@@ -243,7 +291,8 @@ public class Jawn implements Route.Filtering/*<Jawn>*/, Injection {
         logger.info("Bootstrap of framework started in: " + (System.currentTimeMillis() - startupTime) + " ms");
         logger.info("Jawn: Environment:                 " + mode);
         logger.info("Jawn: Running on port:             " + serverConfig.port());
-        logger.info("Jawn: With context path:           " + serverConfig.context());
+        if (!serverConfig.context().isEmpty())
+            logger.info("Jawn: With context path:           " + serverConfig.context());
     }
     
     /**
@@ -270,19 +319,31 @@ public class Jawn implements Route.Filtering/*<Jawn>*/, Injection {
      *          </ol>
      */
     public static final void run(final Class<? extends Jawn> jawn, final String ... args) {
-        Jawn instance = DynamicClassFactory.createInstance(jawn);
-        System.out.println(jawn.getPackageName());
+        Jawn instance = ClassFactory.createInstance(jawn);
         
         if (instance.mode == Modes.DEV) {
             // load the instance with a non-caching classloader
-            final Jawn dynamicInstance = DynamicClassFactory
+            final Jawn dynamicInstance = ClassFactory
                 .createInstance(
-                    DynamicClassFactory.getCompiledClass(jawn.getName(), false), 
+                    ClassFactory.getCompiledClass(jawn.getName(), false), 
                     Jawn.class
                 );
             
             // look for changes to reload
-            final Consumer<Jawn> reloader = (newJawnInstance) -> dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes);
+            final BiConsumer<Jawn, Class<?>> reloader = (newJawnInstance, reloadedClass) -> {
+                
+                // Reload the observed class.
+                // Only classes explicitly stated within the Jawn-instance
+                // get automatically reloaded by the same DynamicClassLoader as Jawn when in DEV.
+                // It is known that if a class is explicit stated in the Jawn-instance
+                // AND is a part of a controller package, the class will be reloaded multiple times..
+                // I guess we will have to live with this
+                if (reloadedClass != null && newJawnInstance.mvcFilters.containsKey(reloadedClass.getName())) {
+                    ControllerFiltering filtering = newJawnInstance.mvcFilters.get(reloadedClass.getName());
+                    filtering.replace(reloadedClass);
+                }
+                dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes);
+            };
             PackageWatcher watcher = new PackageWatcher(jawn, reloader);
             
             // start the watcher
@@ -332,53 +393,199 @@ public class Jawn implements Route.Filtering/*<Jawn>*/, Injection {
         LinkedList<Route.Builder> routes = new LinkedList<>();
         
         // populate ordinary routes
-        builders.entrySet().forEach(entry -> {
-            entry.getValue().populate(entry.getKey(), injector);
-            routes.add(entry.getKey());
-        });
+        /*routesAndFilters.entrySet().forEach(entry -> {
+            routes.add(entry.getValue().populate(entry.getKey(), injector));
+        });*/
+        routesAndFilters.forEach(popu -> routes.add(popu.populate(injector)));
         
         // populate routes from mvc
-        mvcFilters.entrySet().forEach(entry -> {
-            List<Builder> mvcRoutes = MvcRouter.extract(entry.getKey());
-            entry.getValue().populate(mvcRoutes, injector);
-            routes.addAll(mvcRoutes);
-            System.out.println(mvcRoutes);
+//        mvcFilters.entrySet().forEach(entry -> {
+//            Class<?> cl = entry.getKey();
+//            routes.addAll(entry.getValue().populateAsGlobals(MvcRouter.extract(cl), injector));
+//        });
+        mvcFilters.values().forEach(pair -> {
+            //routes.addAll(pair.two.populateAsGlobals(MvcRouter.extract(pair.one), injector));
+            routes.addAll(pair.populate(injector));
         });
         
         // add global filters to the routes
-        filters.populate(routes, injector);
+        globalFilters.globals(routes, injector);
         
-        // add assets
+        // add assets (without the filters)
         routes.addAll(AssetRouter.assets(injector.getInstance(DeploymentInfo.class), assets));
         
+        // build
         return routes.stream().map(Route.Builder::build).collect(Collectors.toList());
     }
     
-    /*public static final class MvcFiltering implements Route.Filtering<MvcFiltering> {
-        
-        private final List<Builder> classRoutes;
-
-        MvcFiltering(final List<Route.Builder> routes) {
-            classRoutes = routes;
-        }
-
-        @Override
-        public MvcFiltering filter(Filter filter) {
-            classRoutes.forEach(route -> route.filter(filter));
-            return this;
-        }
-
-        @Override
-        public MvcFiltering before(Before handler) {
-            classRoutes.forEach(route -> route.before(handler));
-            return this;
-        }
-
-        @Override
-        public MvcFiltering after(After handler) {
-            classRoutes.forEach(route -> route.after(handler));
-            return this;
+    static class SingleRouteFiltering extends RouteFilterPopulator {
+        final Route.Builder route;
+        SingleRouteFiltering(Route.Builder route) {
+            this.route = route;
         }
         
-    }*/
+        /**
+         * Populate for a single route
+         * 
+         * @param injector To instantiate filters that have been added as classes
+         */
+        Route.Builder populate(final Injector injector) {
+            return populate(route, injector);
+        }
+    }
+    
+    static class ControllerFiltering extends RouteFilterPopulator {
+        Class<?> controller;
+        
+        ControllerFiltering(final Class<?> controller) {
+            this.controller = controller;
+        }
+        
+        void replace(Class<?> c) {
+            controller = c;
+        }
+        
+        List<Route.Builder> populate(final Injector injector) {
+            List<Route.Builder> list = MvcRouter.extract(controller);
+            for (Route.Builder builder : list) {
+                populate(builder, injector);
+            }
+            return list;
+        }
+    }
+    
+    static class RouteFilterPopulator implements Route.Filtering {
+        protected final LinkedList<Object> bagOFilters;
+        
+        RouteFilterPopulator() {
+            bagOFilters = new LinkedList<>();
+        }
+        
+        @Override
+        public RouteFilterPopulator filter(final Class<?> f) {
+            bagOFilters.add(f);
+            return this;
+        }
+        
+        @Override
+        public RouteFilterPopulator filter(final Route.Filter filter) {
+            bagOFilters.add(filter);
+            return this;
+        }
+
+        @Override
+        public RouteFilterPopulator before(final Route.Before handler) {
+            bagOFilters.add(handler);
+            return this;
+        }
+
+        @Override
+        public RouteFilterPopulator after(final Route.After handler) {
+            bagOFilters.add(handler);
+            return this;
+        }
+        
+        /**
+         * Add global filters to all routes
+         * The notion of route specific filters, is, that they are the innermost, and
+         * global filters are wrapping around them
+         * 
+         * Should add the filters in a layered manner, and in the order
+         * they are written in the code
+         * 
+         * Example:
+         * jawn.filter(filter1);
+         * jawn.filter(filter2);
+         * 
+         * Results in following execution order:
+         * filter1.before -> filter2.before -> execute handler -> filter2.after -> filter1.after
+         * 
+         * Example2:
+         * jawn.get("/",work).before(beforeFilter).after(afterFilter);
+         * jawn.filter(filter1);
+         * jawn.filter(filter2);
+         * 
+         * Execution order:
+         * filter1.before -> filter2.before -> beforeFilter -> execute handler -> afterFilter -> filter2.after -> filter1.after
+         * 
+         * @param routes 
+         * @param injector To instantiate filters that have been added as classes
+         * @return the <code>routes</code>
+         */
+        List<Route.Builder> globals(final List<Route.Builder> routes, final Injector injector) {
+            bagOFilters.forEach(item -> {
+                /*if (item instanceof Route.Filter) { //filter is instanceof Before and After, so this has to be first
+                    filter(routes, item);
+                } else if (item instanceof Route.After) {
+                    after(routes, item);
+                } else if (item instanceof Route.Before) {
+                    before(routes, item);
+                } else */if (item instanceof Class<?>) {
+                    Class<?> d = (Class<?>)item;
+                    
+                    /*if (ReflectionMetadata.isAssignableFrom(d, Route.Filter.class)) {
+                        filter(routes, injector.getInstance(d));
+                    } else if (ReflectionMetadata.isAssignableFrom(d, Route.After.class)) {
+                        after(routes, injector.getInstance(d));
+                    } else if (ReflectionMetadata.isAssignableFrom(d, Route.Before.class)) {
+                        before(routes, injector.getInstance(d));
+                    }*/
+                    Object g = injector.getInstance(d);
+                    routes.forEach(r -> r.g(g));
+                    
+                } else {
+                    routes.forEach(r -> r.g(item));
+                }
+            });
+            
+            return routes;
+        }
+        
+        private void before(final List<Route.Builder> routes, Object item) {
+            routes.forEach(r -> r.globalBefore((Route.Before) item));
+        }
+        
+        private void after(final List<Route.Builder> routes, Object item) {
+            routes.forEach(r -> r.globalAfter((Route.After) item));
+        }
+        
+        private void filter(final List<Route.Builder> routes, Object item) {
+            routes.forEach(r -> r.globalFilter((Route.Filter) item));
+        }
+        
+        /**
+         * Populate for a single route
+         * 
+         * @param injector To instantiate filters that have been added as classes
+         */
+        Route.Builder populate(final Route.Builder route, final Injector injector) {
+            bagOFilters.forEach(item -> {
+                /*if (item instanceof Route.Filter) { //filter is instanceof Before and After, so this has to be first
+                    route.filter((Route.Filter) item);
+                } else if (item instanceof Route.After) {
+                    route.after((Route.After) item);
+                } else if (item instanceof Route.Before) {
+                    route.before((Route.Before) item);
+                } else*/ if (item instanceof Class<?>) {
+                    Class<?> d = (Class<?>)item;
+                    
+                    /*if (ReflectionMetadata.isAssignableFrom(d, Route.Filter.class)) {
+                        route.filter((Route.Filter) injector.getInstance(d));
+                    } else if (ReflectionMetadata.isAssignableFrom(d, Route.After.class)) {
+                        route.after((Route.After) injector.getInstance(d));
+                    } else if (ReflectionMetadata.isAssignableFrom(d, Route.Before.class)) {
+                        route.before((Route.Before) injector.getInstance(d));
+                    }*/
+                    route.f(injector.getInstance(d));
+                } else {
+                    route.f(item);
+                }
+                
+            });
+            
+            return route;
+        }
+        
+    }
+    
 }

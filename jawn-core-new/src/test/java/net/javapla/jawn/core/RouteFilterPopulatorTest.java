@@ -1,6 +1,7 @@
 package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -86,9 +87,10 @@ public class RouteFilterPopulatorTest {
         assertThat(executionOrder).asList().isOrdered();
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void uninstantiatedFilters() {
-        RouteFilterPopulator populator = new RouteFilterPopulator();
+        Jawn.RouteFilterPopulator populator = new Jawn.RouteFilterPopulator();
         
         populator.filter(F.class);
         populator.filter(B.class);
@@ -98,7 +100,13 @@ public class RouteFilterPopulatorTest {
             .path("/")
             .handler(() -> Results.ok());
         
-        populator.populate(Collections.singletonList(builder), mock(Injector.class));
+        Injector injector = mock(Injector.class);
+        when(injector.getInstance(any(Class.class))).then(c -> {
+            Class<?> argument = c.getArgument(0);
+            return argument.getDeclaredConstructor().newInstance();
+        });
+        
+        populator.globals(Collections.singletonList(builder), injector);
         Route route = builder.build();
         
         assertThat(route.before()).isNotNull();
@@ -106,7 +114,7 @@ public class RouteFilterPopulatorTest {
         assertThat(route.after()).hasLength(2);
     }
     
-    class F implements Route.Filter {
+    static class F implements Route.Filter {
         @Override
         public Result before(Context context, Chain chain) {
             return null;
@@ -118,14 +126,14 @@ public class RouteFilterPopulatorTest {
         }
     }
     
-    class B implements Route.Before {
+    static class B implements Route.Before {
         @Override
         public Result before(Context context, Chain chain) {
             return null;
         }
     }
     
-    class A implements Route.After {
+    static class A implements Route.After {
         @Override
         public Result after(Context context, Result result) {
             return null;

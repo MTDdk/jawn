@@ -2,6 +2,7 @@ package net.javapla.jawn.core.internal.reflection;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -127,6 +128,10 @@ public class ClassLocator {
                 .stream()
                 .map(cls -> (Class<? extends T>)cls.asSubclass(clazz))
                 .collect(Collectors.toSet());
+    }
+    
+    public Set<Class<?>> withAnnotation(Class<? extends Annotation> annotation) {
+        return foundClasses().stream().filter(cl -> cl.isAnnotationPresent(annotation)).collect(Collectors.toSet());
     }
     
     public Set<Class<?>> foundClasses() {

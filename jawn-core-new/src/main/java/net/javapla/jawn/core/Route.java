@@ -71,12 +71,12 @@ public interface Route extends Handler {
     }
     
     /**
-     * Public part of the Route.Builder
+     * Public part of adding filters to routes
      */
-    interface Filtering/*<T extends Filtering<T>>*/ {//Perhaps called RouteBuilder ?
+    interface Filtering {
 
         Filtering filter(final Filter filter);
-        //Filtering filter(final Class<?> filter);
+        Filtering filter(final Class<?> filter);
 
         Filtering before(final Before handler);
         default Filtering before(final Handler handler) {
@@ -91,6 +91,9 @@ public interface Route extends Handler {
         default Filtering before(final Result result) {
             return before((c,ch) -> result);
         }
+        default Filtering before(Class<?> filter) {
+            return filter(filter);
+        }
 
         Filtering after(final After handler);
         default Filtering after(final Runnable handler) {
@@ -99,9 +102,12 @@ public interface Route extends Handler {
         default Filtering after(final Result result) {
             return after((c,r) -> result);
         }
+        default Filtering after(Class<?> filter) {
+            return filter(filter);
+        }
     }
     
-    final class Builder /*implements Filtering<Builder>*/ {
+    final class Builder {
         private final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
         /**
          * This regex matches everything in between path slashes.
@@ -133,40 +139,62 @@ public interface Route extends Handler {
             return this;
         }
         
-        public Builder handler(final Route.ZeroArgHandler handler) {
+        public Builder handler(final ZeroArgHandler handler) {
             this.handler = handler;
             return this;
         }
         
-//        @Override
-        /*public*/ Builder filter(final Filter filter) {
+        public Builder filter(final Filter filter) {
             this.before.add(filter);
             this.after.addFirst(filter);
             return this;
         }
         
-//        @Override
-        /*public*/ Builder before(final Route.Before handler) {
+        public Builder before(final Before handler) {
             this.before.add(handler);
             return this;
         }
         
-//        @Override
-        /*public*/ Builder after(final Route.After handler) {
+        public Builder after(final After handler) {
             this.after.add(handler);
             return this;
         }
+
+        Builder f(final Object item) {
+            if (item instanceof Filter) { //filter is instanceof Before and After, so this has to be first
+                filter((Filter) item);
+            } else if (item instanceof After) {
+                after((After) item);
+            } else if (item instanceof Before) {
+                before((Before) item);
+            }
+            return this;
+        }
+        Builder g(final Object item) {
+            if (item instanceof Filter) { //filter is instanceof Before and After, so this has to be first
+                globalFilter((Filter) item);
+            } else if (item instanceof After) {
+                globalAfter((After) item);
+            } else if (item instanceof Before) {
+                globalBefore((Before) item);
+            }
+            return this;
+        }
         
-        void globalFilter(final Route.Filter handler) {
+        Builder globalFilter(final Filter handler) {
             this.globalBefore.add(handler);
             this.globalAfter.addFirst(handler);
+            return this;
         }
         
-        void globalBefore(final Route.Before handler) {
+        Builder globalBefore(final Before handler) {
             this.globalBefore.add(handler);
+            return this;
         }
-        void globalAfter(final Route.After handler) {
+        
+        Builder globalAfter(final After handler) {
             this.globalAfter.add(handler);
+            return this;
         }
 
         public Route build() {

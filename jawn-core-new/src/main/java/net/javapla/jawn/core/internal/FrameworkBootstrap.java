@@ -26,7 +26,7 @@ import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
-import net.javapla.jawn.core.internal.reflection.DynamicClassFactory;
+import net.javapla.jawn.core.internal.reflection.ClassFactory;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
@@ -227,7 +227,7 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
                 Class<? extends T> c = iterator.next();
                 
                 try {
-                    T locatedImplementation = DynamicClassFactory.createInstance(c, clazz);
+                    T locatedImplementation = ClassFactory.createInstance(c, clazz);
                     bootstrapper.accept(locatedImplementation);
                     logger.debug("Loaded configuration from: " + c);
                     all[index++] = locatedImplementation;

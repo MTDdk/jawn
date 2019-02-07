@@ -9,7 +9,7 @@ import net.javapla.jawn.core.Up;
 /**
  * @author MTD
  */
-public abstract class DynamicClassFactory {
+public abstract class ClassFactory {
     private final static Map<String, Class<?>> CACHED_CONTROLLERS = new ConcurrentHashMap<>();
 
     /**
@@ -31,7 +31,7 @@ public abstract class DynamicClassFactory {
             throw e;
         } catch (ClassCastException e) {
             //from cast()
-            throw new Up.UnloadableClass("Class: " + className + " is not the expected type, are you sure it extends " + expectedType.getName() + "?");
+            throw new Up.UnloadableClass("Class: " + className + " is not the expected type, are you sure it extends " + expectedType.getName() + "?", e);
         } catch (Exception e) {
             throw new Up.UnloadableClass(e);
         }
@@ -43,7 +43,7 @@ public abstract class DynamicClassFactory {
             return expectedType.cast(o);
         } catch (ClassCastException e) {
             //from cast()
-            throw new Up.UnloadableClass("Class: " + clazz + " is not the expected type, are you sure it extends " + expectedType.getName() + "?");
+            throw new Up.UnloadableClass("Class: " + clazz + " is not the expected type, are you sure it extends " + expectedType.getName() + "?", e);
         }
     }
     
@@ -76,7 +76,7 @@ public abstract class DynamicClassFactory {
                 return CACHED_CONTROLLERS.computeIfAbsent(fullClassName, WRAP_FORNAME);
             }
         } catch (Exception e) {
-            throw new Up.UnloadableClass(e);
+            throw new Up.UnloadableClass(fullClassName, e);
         }
     }
     

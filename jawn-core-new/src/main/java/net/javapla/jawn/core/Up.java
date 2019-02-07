@@ -60,7 +60,7 @@ public class Up extends RuntimeException {
             super(Status.SERVER_ERROR, err);
         }
         
-        public UnloadableClass(final String msg) {
+        public UnloadableClass(final String msg, final Throwable err) {
             super(Status.SERVER_ERROR, msg);
         }
     }
