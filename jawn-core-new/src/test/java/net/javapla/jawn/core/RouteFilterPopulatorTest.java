@@ -5,8 +5,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
+import java.util.List;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Injector;
@@ -14,6 +15,27 @@ import com.google.inject.Injector;
 import net.javapla.jawn.core.Route.Chain;
 
 public class RouteFilterPopulatorTest {
+    
+    private static Injector injector;
+
+    @SuppressWarnings("unchecked")
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        DeploymentInfo di = mock(DeploymentInfo.class);
+        when(di.getRealPath("")).thenReturn("");
+        
+        injector = mock(Injector.class);
+        //when(injector.getInstance(DeploymentInfo.class)).thenReturn(di);
+        
+        when(injector.getInstance(any(Class.class))).then(c -> {
+            Class<?> argument = c.getArgument(0);
+            
+            if (argument.isAssignableFrom(DeploymentInfo.class)) return di;
+            
+            // in case of F,B,A
+            return argument.getDeclaredConstructor().newInstance();
+        });
+    }
 
     @Test
     public void orderingOfFilters() {
@@ -70,13 +92,6 @@ public class RouteFilterPopulatorTest {
         
         // execute
         Context context = mock(Context.class);
-        
-        DeploymentInfo di = mock(DeploymentInfo.class);
-        when(di.getRealPath("")).thenReturn("");
-        
-        Injector injector = mock(Injector.class);
-        when(injector.getInstance(DeploymentInfo.class)).thenReturn(di);
-        
         j.buildRoutes(injector).forEach(r -> {
             r.handle(context);
         });
@@ -87,28 +102,20 @@ public class RouteFilterPopulatorTest {
         assertThat(executionOrder).asList().isOrdered();
     }
 
-    @SuppressWarnings("unchecked")
+    
     @Test
     public void uninstantiatedFilters() {
-        Jawn.RouteFilterPopulator populator = new Jawn.RouteFilterPopulator();
+        Jawn j = new Jawn();
+        j.filter(F.class);
+        j.filter(B.class);
+        j.filter(A.class);
         
-        populator.filter(F.class);
-        populator.filter(B.class);
-        populator.filter(A.class);
+        j.get("/", () -> Results.ok());
         
-        Route.Builder builder = new Route.Builder(HttpMethod.GET)
-            .path("/")
-            .handler(() -> Results.ok());
+        List<Route> routes = j.buildRoutes(injector);
+        assertThat(routes).hasSize(1);
         
-        Injector injector = mock(Injector.class);
-        when(injector.getInstance(any(Class.class))).then(c -> {
-            Class<?> argument = c.getArgument(0);
-            return argument.getDeclaredConstructor().newInstance();
-        });
-        
-        populator.globals(Collections.singletonList(builder), injector);
-        Route route = builder.build();
-        
+        Route route = routes.get(0);
         assertThat(route.before()).isNotNull();
         assertThat(route.before()).hasLength(2);
         assertThat(route.after()).hasLength(2);
