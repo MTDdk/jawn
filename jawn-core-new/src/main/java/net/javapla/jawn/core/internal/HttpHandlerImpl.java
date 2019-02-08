@@ -10,8 +10,11 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Route.After;
+import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.server.HttpHandler;
@@ -54,8 +57,44 @@ final class HttpHandlerImpl implements HttpHandler {
             final Route route = router.retrieve(req.method(), context.req().path()/*uri*/);
             context.route(route);
             
-            // Execute handler
-            runner.execute(/*result*/route.handle(context), context);
+            Result result = null;
+            int i = 0;
+            
+            //TODO after having moved the handling of befores and afters in here again
+            // some design choices needs to be reconsidered. 
+            
+            
+            // Before filters
+            Before[] befores = route.before();
+            if (befores != null) {
+                do {
+                    result = befores[i].before(context, () -> null);
+                } while (result == null && ++i < befores.length);
+            }
+            
+            // Execute
+            if (result == null) {
+                result = route.handle(context);
+                if (result == null) throw new Up.BadResult("The execution of the route itself rendered no result");
+                
+                // Execute handler
+                runner.execute(result, context);
+            }
+            
+            // After filters
+            After[] afters = route.after();
+            if (afters != null) {
+                Result r = result; // <-- TODO like this
+                for (i = 0; i < afters.length; i++) {
+                    r = afters[i].after(context, r);
+                }
+                
+                // TODO and this
+                if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result");
+                /*if (r != null) */result = r;
+            }
+            
+            
         
         } catch (Up.RouteMissing e) {
             // 404

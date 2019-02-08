@@ -160,27 +160,6 @@ public interface Route extends Handler {
             return this;
         }
 
-        Builder f(final Object item) {
-            if (item instanceof Filter) { //filter is instanceof Before and After, so this has to be first
-                filter((Filter) item);
-            } else if (item instanceof After) {
-                after((After) item);
-            } else if (item instanceof Before) {
-                before((Before) item);
-            }
-            return this;
-        }
-        Builder g(final Object item) {
-            if (item instanceof Filter) { //filter is instanceof Before and After, so this has to be first
-                globalFilter((Filter) item);
-            } else if (item instanceof After) {
-                globalAfter((After) item);
-            } else if (item instanceof Before) {
-                globalBefore((Before) item);
-            }
-            return this;
-        }
-        
         Builder globalFilter(final Filter handler) {
             this.globalBefore.add(handler);
             this.globalAfter.addFirst(handler);
@@ -197,6 +176,28 @@ public interface Route extends Handler {
             return this;
         }
 
+        Builder filter(final Object item) {
+            if (item instanceof Filter) { //filter is instanceof Before and After, so this has to be first
+                filter((Filter) item);
+            } else if (item instanceof After) {
+                after((After) item);
+            } else if (item instanceof Before) {
+                before((Before) item);
+            }
+            return this;
+        }
+        
+        Builder globalFilter(final Object item) {
+            if (item instanceof Filter) { //filter is instanceof Before and After, so this has to be first
+                globalFilter((Filter) item);
+            } else if (item instanceof After) {
+                globalAfter((After) item);
+            } else if (item instanceof Before) {
+                globalBefore((Before) item);
+            }
+            return this;
+        }
+        
         public Route build() {
             if (uri == null) throw new NullPointerException("Path is null");
             
@@ -219,35 +220,8 @@ public interface Route extends Handler {
                 }
                 
                 @Override
-                public Result handle(final Context context) /*throws Exception*/ {
-                    Result result = null;
-                    int i = 0;
-                    
-                    // Before filters
-                    if (befores != null) {
-                        do {
-                            result = befores[i].before(context, () -> null);
-                        } while (result == null && ++i < befores.length);
-                    }
-                    
-                    // Execute
-                    if (result == null) {
-                        result = routehandler.handle(context);
-                        if (result == null) throw new Up.BadResult("The execution of the route itself rendered no result");
-                    }
-                    
-                    // After filters
-                    if (afters != null) {
-                        Result r = result;
-                        for (i = 0; i < afters.length; i++) {
-                            r = afters[i].after(context, r);
-                        }
-                        
-                        if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result");
-                        /*if (r != null) */result = r;
-                    }
-                    
-                    return result;
+                public Result handle(final Context context) {
+                    return routehandler.handle(context);
                 }
                 
                 @Override
