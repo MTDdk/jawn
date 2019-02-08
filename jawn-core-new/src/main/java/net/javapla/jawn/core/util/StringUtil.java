@@ -6,6 +6,8 @@ import java.util.StringTokenizer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 public final class StringUtil {
 
     /**
@@ -211,6 +213,10 @@ public final class StringUtil {
      */
     public static boolean blank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+    
+    public static String stringOrNull(@Nullable String value) {
+        return blank(value) ? null : value;
     }
     
     public static boolean contains(final CharSequence s, final char c) {

@@ -85,6 +85,10 @@ public abstract class ClassFactory {
         return compiledClass.asSubclass(expected);
     }
     
+    public final static Class<?> recompileClass(Class<?> clzz) throws Up.Compilation, Up.UnloadableClass {
+        return getCompiledClass(clzz.getName(), false);
+    }
+    
     
     /**
      * Wraps {@link Class#forName(String)} and recast any potential exception into a {@link RuntimeException}.

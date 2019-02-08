@@ -14,17 +14,15 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import net.javapla.jawn.core.Jawn;
-import net.javapla.jawn.core.Up.Compilation;
-import net.javapla.jawn.core.Up.UnloadableClass;
+import net.javapla.jawn.core.Up;
 
 public class PackageWatcher implements Closeable {
     
     private final String jawnInstanceClassName;
     private final String jawnInstancePackageClass;
-    private final Path packagePath;
+    private final Path packageFileSystemPath;
     private final BiConsumer<Jawn, Class<?>> reloader;
     
     private WatchService service;
@@ -33,7 +31,7 @@ public class PackageWatcher implements Closeable {
     public PackageWatcher(final Class<? extends Jawn> jawn, final BiConsumer<Jawn, Class<?>> reloader) {
         this.jawnInstanceClassName = jawn.getSimpleName() + ".class";
         this.jawnInstancePackageClass = jawn.getName();
-        this.packagePath = Paths.get(jawn.getResource("").getFile());
+        this.packageFileSystemPath = Paths.get(jawn.getResource("").getFile());
         this.reloader = reloader;
     }
 
@@ -60,7 +58,7 @@ public class PackageWatcher implements Closeable {
     public void start() throws IOException, InterruptedException {
         service = FileSystems.getDefault().newWatchService();
         //packagePath.register(service, StandardWatchEventKinds.ENTRY_MODIFY); //currently, only when an existing file gets modified
-        registerDirAndSubDirectories(packagePath, service);
+        registerDirAndSubDirectories(packageFileSystemPath, service);
         
         new Thread(getClass().getSimpleName()) {
             @Override
@@ -93,20 +91,17 @@ public class PackageWatcher implements Closeable {
                 
                 
                 if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                    locateChangedDir(p, changedDir -> {
+                    Path changedDir = locateChangedDir(p);
+                    
+                    if (changedDir != null) {
                         // If an event is a StandardWatchEventKinds.ENTRY_CREATE
                         // and path is a directory, then create a watcher for that
                         // new dir as well
-                        try {
-                            registerDir(changedDir, service);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
+                        registerDir(changedDir, service);
+                    }
                     
                     break;
                 } else if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
-                    
                     
                     Path changedFile = locateChangedFile(p);
                     Class<?> c = null;
@@ -114,26 +109,31 @@ public class PackageWatcher implements Closeable {
                     // We always reload the Jawn-instance, so skip it here
                     if (!changedFile.endsWith(jawnInstanceClassName)) {
                         
-                        //convert to a class file
-                        System.out.println(changedFile);
-                        System.out.println(packagePath);
+                        // find the package path by removing the absolute path
+                        String packageClassPath = changedFile.toString().substring(packageFileSystemPath.toString().length()+1);
                         
-                        String substring = changedFile.toString().substring(packagePath.toString().length()+1);
-                        System.out.println(substring);
-                        System.out.println(packagePath.getFileName().resolve(substring).toString().replace('/', '.'));
+                        //convert to a class file and reload it from filesystem
+                        try {
+                            c = reloadClass(packageFileSystemPath.getFileName().resolve(packageClassPath).toString().replace('/', '.'));
+                        } catch (Up.Compilation | Up.UnloadableClass e) {
+                            e.printStackTrace();
+                        }
                         
-                        
-                        c = reloadClass(packagePath.getFileName().resolve(substring).toString().replace('/', '.'));
+                        /* 
+                         * Example:
+                         * 
+                         * packageFileSystemPath = /home/user/project/bin/main/app
+                         * changedFile           = /home/user/project/bin/main/app/controller/Class.class
+                         * packageClassPath      = controller/Class.class
+                         * packageFileSystemPath.getFileName() = app
+                         * class name            = app.controller.Class.class 
+                         */
                     }
                     
                     
-                    // Always reload MainJawn
+                    // Always reload Jawn-instance
                     reloadMainJawn(c);
                     
-                    
-                    // It turns out that reloading Jawn in turn will reload any
-                    // dependent classes, so we do not need to handle each of the
-                    // modified classes
                     break;
                 }
             }
@@ -145,7 +145,7 @@ public class PackageWatcher implements Closeable {
         Path[] k = new Path[1];
         
         // Try to locate the file in the directory structure
-        Files.walkFileTree(packagePath, new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(packageFileSystemPath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 boolean equals = file.getFileName().equals(p);
@@ -161,31 +161,35 @@ public class PackageWatcher implements Closeable {
         return k[0];
     }
     
-    private void locateChangedDir(final Path p, Consumer<Path> handle) throws IOException {
-        Files.walkFileTree(packagePath, new SimpleFileVisitor<Path>() {
+    private Path locateChangedDir(final Path p) throws IOException {
+        Path[] k = new Path[1];
+        
+        Files.walkFileTree(packageFileSystemPath, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                 boolean equals = dir.getFileName().equals(p);
                 if (equals) {
-                    handle.accept(dir);
+                    k[0] = dir;
                     return FileVisitResult.TERMINATE;
                 }
                 
                 return FileVisitResult.CONTINUE;
             }
         });
+        
+        return k[0];
     }
     
     private void reloadMainJawn(final Class<?> reloadedClass) /*throws Up.Compilation*/ {
         try {
             Jawn instance = ClassFactory.createInstance(reloadClass(jawnInstancePackageClass), Jawn.class);
             reloader.accept(instance, reloadedClass);
-        } catch (UnloadableClass | Compilation e) {
+        } catch (Up.UnloadableClass | Up.Compilation e) {
             e.printStackTrace();                                        
         }
     }
     
-    private Class<?> reloadClass(String className) {
+    private Class<?> reloadClass(String className) throws Up.Compilation, Up.UnloadableClass {
         boolean cacheTheClassFile = false;
         return ClassFactory.getCompiledClass(className, cacheTheClassFile);
     }
