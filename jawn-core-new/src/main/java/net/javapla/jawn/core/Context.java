@@ -102,6 +102,11 @@ public interface Context extends Injection {
         List<String> queryParams(String name);
 
         MultiList<FormItem> formData();
+
+        /**
+         * @return The length, in bytes, of the request body and made available by the input stream, or -1 if the length is not known
+         */
+        long length();
     }
     
 

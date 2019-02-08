@@ -120,6 +120,13 @@ final class ContextImpl implements Context {
             public MultiList<FormItem> formData() {
                 return sreq.formData();
             }
+            
+            // body()
+            
+            @Override
+            public long length() {
+                return sreq.header("Content-Length").map(Long::parseLong).orElse(-1l);
+            }
         };
         
         this.resp = new Context.Response() {
