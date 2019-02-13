@@ -18,11 +18,14 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.Module;
 import com.google.inject.Singleton;
 import com.google.inject.Stage;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.Injection;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
@@ -37,11 +40,12 @@ import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.Modes;
 
-public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
+public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to FrameworkEngine
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
     
     private final ArrayList<ModuleBootstrap> userPlugins;
     
+    protected com.google.inject.Module frameworkModule;
     protected Injector injector;
     
     private LinkedList<Runnable> onStartup = new LinkedList<>();
@@ -85,24 +89,88 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
             // Makes it possible for plugins to override framework-specific implementations
             readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, frameworkConfig.getOptionally(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE).orElse("net.javapla.jawn.plugins.modules"));
             readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.template.stringtemplate");
+            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.image");
             
             // Makes it possible for users to override single framework-specific implementations
-            userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
+            //userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
         };
+        
+        Module userModule = userModule(mode);
+        
         final Stage stage = mode == Modes.DEV ? Stage.DEVELOPMENT : Stage.PRODUCTION;
-        final Injector localInjector = Guice.createInjector(stage, jawnModule);
+        final Injector localInjector = Guice.createInjector(stage, jawnModule, userModule);
+        System.out.println("localInjector " + localInjector.hashCode());
         
         
         // compiling of routes needs element from the injector, so this is done after the creation
         router.compileRoutes(routes.apply(localInjector));
         
+        frameworkModule = jawnModule;
         injector = localInjector;
         
         // signal startup
         startup();
     }
     
-    public void reboot___strap(final Function<Injector,List<Route>> routes) {
+    public com.google.inject.Module userModule(final Modes mode) {
+        final com.google.inject.Module userModule = binder -> {
+            
+            final ApplicationConfig pluginConfig = new ApplicationConfig() {
+                @Override
+                public Binder binder() {
+                    return binder;
+                }
+
+                @Override
+                public Modes mode() {
+                    return mode;
+                }
+
+                @Override
+                public void onStartup(Runnable task) {
+                    onStartup.add(task);
+                }
+
+                @Override
+                public void onShutdown(Runnable task) {
+                    onShutdown.add(task);
+                }
+            };
+            
+            // Makes it possible for users to override single framework-specific implementations
+            userPlugins.stream().forEach(plugin -> {
+                System.out.println("userModule 1 " + plugin.hashCode());
+                if (mode == Modes.DEV) {
+                    Class<?> recompileClass = ClassFactory.recompileClass(plugin.getClass());
+                    plugin = ClassFactory.createInstance(recompileClass, ModuleBootstrap.class);
+                    System.out.println("userModule 2 " + plugin.hashCode());
+                }
+                
+                
+                plugin.bootstrap(pluginConfig);
+            });
+        };
+        
+        return userModule;
+    }
+    
+    public void reboot___strap(final Function<Injector,List<Route>> routes, com.google.inject.Module userModule) {
+        
+        /*final Modes mode = injector.getInstance(Modes.class);
+        
+        System.out.println("injector.hashCode() " +injector.hashCode());
+        
+        System.out.println("------------------");
+        
+        var childInjector = Guice.createInjector(frameworkModule, userModule(mode));
+        System.out.println("childInjector.hashCode() " + childInjector.hashCode());
+        
+*/        
+        
+        var childInjector = Guice.createInjector(frameworkModule, userModule);
+        injector = childInjector;
+        
+        
         Router router = injector.getInstance(Router.class);
         router.recompileRoutes(routes.apply(injector));
     }
@@ -110,7 +178,25 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
     public Injector getInjector() {
         return injector;
     }
+    /*public boolean started() {
+        return injector != null;
+    }*/
+    /*public void i(Injector i) {
+        injector = i;
+    }*/
     
+    /*@Override
+    public <T> T require(Key<T> key) {
+        System.out.println("injector.Key() " +injector.hashCode());
+        return injector.getInstance(key);
+    }
+    
+    @Override
+    public <T> T require(Class<T> type) {
+        System.out.println("injector.Class() " +injector.hashCode());
+        return injector.getInstance(type);
+    }*/
+
     public void register(final ModuleBootstrap plugin) {
         userPlugins.add(plugin);
     }
@@ -170,6 +256,7 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
         binder.bind(Modes.class).toInstance(mode);
         binder.bind(Config.class).toInstance(config);
         binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, serverConfig.context()));
+//        binder.bind(Injection.class).toInstance(this);
         
         // Marshallers
         binder.bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
@@ -182,7 +269,10 @@ public final class FrameworkBootstrap {//TODO rename to FrameworkEngine
         binder.bind(ResultRunner.class).in(Singleton.class);
         
         // ServerModule
-        binder.bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
+        if (mode == Modes.DEV)
+            binder.bind(HttpHandler.class).to(HttpHandlerImpl.class);
+        else 
+            binder.bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
     }
     
     private Config readConfigurations(final Modes mode) {

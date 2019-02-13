@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 import com.google.inject.Key;
+import com.google.inject.Module;
 
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.RouteFilterPopulator;
@@ -257,8 +258,9 @@ public class Jawn implements Route.Filtering, Injection {
     // ****************
     @Override
     public <T> T require(Key<T> key) {
-        checkState(bootstrap.getInjector() != null, "App has not started yet");
+        checkState(bootstrap./*started()*/getInjector() != null, "App has not started yet");
         return bootstrap.getInjector().getInstance(key);
+        //return bootstrap.require(key);
     }
     
     // ****************
@@ -285,8 +287,8 @@ public class Jawn implements Route.Filtering, Injection {
         
         // start server
         try {
-            Injector injector = bootstrap.getInjector();
-            injector.getInstance(Server.class).start(serverConfig);
+            //bootstrap.require(Server.class).start(serverConfig);
+            bootstrap.getInjector().getInstance(Server.class).start(serverConfig);
         } catch (Exception e) {
             e.printStackTrace();
             stop();
@@ -348,7 +350,12 @@ public class Jawn implements Route.Filtering, Injection {
                     MvcFilterPopulator filtering = newJawnInstance.mvcFilters.get(reloadedClass.getName());
                     filtering.replace(reloadedClass);
                 }
-                dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes);
+                
+                Module userModule = newJawnInstance.bootstrap.userModule(Modes.DEV);
+                
+                
+                
+                dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes, userModule);
             };
             PackageWatcher watcher = new PackageWatcher(jawn, reloader);
             
@@ -420,6 +427,9 @@ public class Jawn implements Route.Filtering, Injection {
      * filter1.before -> filter2.before -> beforeFilter -> execute handler -> afterFilter -> filter2.after -> filter1.after
      */
     List<Route> buildRoutes(Injector injector) {
+//        bootstrap.i(injector);
+        
+        System.out.println("buildRoutes " + injector.hashCode());
         LinkedList<Route.Builder> routes = new LinkedList<>();
         
         // populate ordinary routes

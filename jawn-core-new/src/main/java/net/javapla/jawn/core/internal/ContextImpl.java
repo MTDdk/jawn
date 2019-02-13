@@ -277,7 +277,12 @@ final class ContextImpl implements Context {
     
     @Override
     public <T> T require(final Key<T> key) {
-        return injector.getProvider(key).get();
+        return injector.getProvider(key).get();//injector.require(key);
+    }
+    
+    @Override
+    public String realPath(final String file) {
+        return injector.getInstance(DeploymentInfo.class).getRealPath(file);
     }
     
     void route(final Route route) {

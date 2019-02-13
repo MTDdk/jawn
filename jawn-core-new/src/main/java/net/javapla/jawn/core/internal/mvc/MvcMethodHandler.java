@@ -13,6 +13,8 @@ import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
+import net.javapla.jawn.core.internal.reflection.ClassFactory;
+import net.javapla.jawn.core.util.Modes;
 
 public class MvcMethodHandler implements Route.MethodHandler {
     
@@ -34,7 +36,7 @@ public class MvcMethodHandler implements Route.MethodHandler {
         Method action;
         if (context.require(Modes.class) == Modes.DEV) {
             try {
-                controller = DynamicClassFactory.getCompiledClass(routeClass.getName(), false);
+                controller = ClassFactory.getCompiledClass(routeClass.getName(), false);
                 action = controller.getMethod(method.getName(), method.getParameterTypes());
             } catch (Up.Compilation | Up.UnloadableClass | NoSuchMethodException | SecurityException e) {
                 controller = routeClass;
@@ -44,8 +46,13 @@ public class MvcMethodHandler implements Route.MethodHandler {
             controller = routeClass;
             action = method;
         }
-        return _handle(action.invoke(context.require(controller)));
-        */
+        try {
+            return _handleReturnType(action.invoke(context.require(controller), _provideParameters(method, context)));
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            //return Results.error();
+            throw new Up.RenderableError(e);
+        }*/
+        
         
         // Whenever the Controller is placed within a sub-package of the Jawn sub-class, 
         // all Controllers will be automatically reloaded by the PackageWatcher in DEV,
@@ -54,7 +61,14 @@ public class MvcMethodHandler implements Route.MethodHandler {
         
         
         // execute
+        /*System.out.println("oooooooooooooooooooooooooooooooooooooooooooooooooooooo " + this.getClass().getClassLoader());
+        System.out.println(context.require(routeClass));
+        System.out.println(context.require(Key.get(ClassFactory.getCompiledClass(routeClass.getName(), false))));
+        return null;*/
         try {
+            Class<?> compiledClass = ClassFactory.getCompiledClass("app.db.MoviesDB", false);
+            System.out.println(compiledClass);
+            System.out.println(context.require(compiledClass));
             return _handleReturnType(method.invoke(context.require(key), _provideParameters(method, context)));
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             //return Results.error();

@@ -35,6 +35,7 @@ final class HttpHandlerImpl implements HttpHandler {
     
     @Inject
     HttpHandlerImpl(final Charset charset, final Router router, final ResultRunner runner, final DeploymentInfo deploymentInfo, final Injector injector) {
+        System.out.println("  00  " + HttpHandlerImpl.class.getName());
         this.charset = charset;
         this.router = router;
         this.runner = runner;
@@ -47,6 +48,7 @@ final class HttpHandlerImpl implements HttpHandler {
         //String uri = normaliseURI(context.req().path()); README is this even necessary?
         resp.header("Server", "jawn");
         
+//        System.out.println("HttpHandlerImpl#handle " + injector.get().hashCode());
         final ContextImpl context = new ContextImpl(req, resp, charset, deploymentInfo, injector);
         
         // ServerRequest.path() holds the actual path received on the server,
