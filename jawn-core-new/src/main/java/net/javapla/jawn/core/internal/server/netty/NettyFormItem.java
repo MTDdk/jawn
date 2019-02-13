@@ -50,6 +50,11 @@ final class NettyFormItem implements FormItem {
     public Optional<File> file() throws IOException {
         return file;
     }
+    
+    @Override
+    public Optional<String> fileName() {
+        return Optional.ofNullable(data).map(FileUpload::getFilename);
+    }
 
     @Override
     public MultiList<String> headers() {

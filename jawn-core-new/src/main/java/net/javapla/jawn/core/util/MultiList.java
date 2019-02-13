@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * 
@@ -74,6 +74,10 @@ public class MultiList<T> {
         return items.get(0);
     }
     
+    public Optional<T> firstOptionally(final String param) {
+        return Optional.ofNullable(first(param));
+    }
+    
     public T last(String param) {
         List<T> items = parts.get(param);
         if (items == null) return null;
@@ -104,14 +108,6 @@ public class MultiList<T> {
     
     public boolean isEmpty() {
         return size() == 0;
-    }
-    
-    public MultiList<T> orElse(Supplier<MultiList<T>> sup) {
-        return sup.get();
-    }
-    
-    public MultiList<T> orElse(MultiList<T> multilist) {
-        return multilist;
     }
     
     @Override

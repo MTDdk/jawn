@@ -1,7 +1,9 @@
 package net.javapla.jawn.core;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
+import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -14,13 +16,30 @@ public enum HttpMethod {
     
     public static final String AJAX_METHOD_PARAMETER = "_method";
     
+    @FunctionalInterface
+    public interface MultiListFormItemSupplier {
+        MultiList<FormItem> get();
+    }
+    
     /** Detects an HTTP method from a request. */
     public static HttpMethod getMethod(final CharSequence requestMethod, Supplier<MultiList<? extends CharSequence>> params) {
         return _getMethod(requestMethod, () -> params.get().first(AJAX_METHOD_PARAMETER));
     }
     
+    /** Detects an HTTP method from a request. */
+    public static HttpMethod getMethod(final CharSequence requestMethod, MultiListFormItemSupplier params) {
+        return _getMethod(requestMethod, () -> 
+                                            params
+                                                .get()
+                                                .firstOptionally(AJAX_METHOD_PARAMETER)
+                                                .map(FormItem::value)
+                                                .map(Optional::get)
+                                                .orElse(null)
+                                            );
+    }
+    
     // Using a supplier in order to postpone calculation to later if necessary
-    private static HttpMethod _getMethod(final CharSequence requestMethod, Supplier<CharSequence> _method) {
+    public static HttpMethod _getMethod(final CharSequence requestMethod, Supplier<CharSequence> _method) {
         char first = requestMethod.charAt(0);
         switch (first) {
             case 'G':
@@ -51,4 +70,5 @@ public enum HttpMethod {
         
         throw new IllegalArgumentException();
     }
+
 }

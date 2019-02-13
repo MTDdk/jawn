@@ -79,7 +79,7 @@ public class NettyRequest implements ServerRequest {
         //this.path = DeploymentInfo.stripContextPath(contextPath, contextPath.length(), query.path()); //any decoding needed?
         //this.contextPath = contextPath;
         
-        this.method = HttpMethod.getMethod(req.method().asciiName(), () -> queryParams());
+        this.method = HttpMethod.getMethod(req.method().asciiName(), () -> formData());
         
         Channel channel = ctx.channel();
         channel.attr(ASYNC).set(false);

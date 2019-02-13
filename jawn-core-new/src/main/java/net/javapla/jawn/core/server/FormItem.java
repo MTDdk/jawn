@@ -39,6 +39,8 @@ public interface FormItem extends Closeable {
      */
     Optional<File> file() throws IOException;
     
+    Optional<String> fileName();
+    
     /**
      * @return The headers that were present in the multipart request, or empty if this was not a multipart request
      */

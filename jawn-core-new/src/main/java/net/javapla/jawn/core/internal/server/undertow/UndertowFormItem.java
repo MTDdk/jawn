@@ -35,6 +35,11 @@ final class UndertowFormItem implements FormItem {
     public Optional<File> file() throws IOException {
         return value.isFileItem() ? Optional.of(value.getFileItem().getFile().toFile()) : Optional.empty();
     }
+    
+    @Override
+    public Optional<String> fileName() {
+        return value.isFileItem() ? Optional.of(value.getFileName()) : Optional.empty();
+    }
 
     @Override
     public MultiList<String> headers() {

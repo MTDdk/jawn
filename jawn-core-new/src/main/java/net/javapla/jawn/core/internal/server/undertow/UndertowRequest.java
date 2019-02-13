@@ -52,7 +52,7 @@ public final class UndertowRequest implements ServerRequest {
         
         this.blocking = () -> {if(!this.exchange.isBlocking()) this.exchange.startBlocking();};
         
-        this.method = HttpMethod.getMethod(exchange.getRequestMethod().toString(), () -> queryParams());
+        this.method = HttpMethod.getMethod(exchange.getRequestMethod().toString(), () -> formData());
     }
 
     @Override
