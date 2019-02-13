@@ -1,5 +1,7 @@
 package net.javapla.jawn.core.renderers;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 import com.google.inject.Singleton;
@@ -17,7 +19,12 @@ class StreamRendererEngine implements RendererEngine {
             context.resp().send((InputStream) obj);
         } else if (obj instanceof byte[]) {
             context.resp().send((byte[]) obj);
+        } else if (obj instanceof File) {
+            try (FileInputStream stream = new FileInputStream((File) obj)) {
+                context.resp().send(stream);
+            }
         }
+        /*} else if (obj instanceof Serializable) {*/
         
         // 'instanceof' returns false if 'object' is null
         // so none of the clauses should be prone to errors
