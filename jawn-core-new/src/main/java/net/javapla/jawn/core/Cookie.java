@@ -202,6 +202,10 @@ public class Cookie {
         }
     };
     
+    public static Cookie.Builder builder(String name, String value) {
+        return new Builder(name, value);
+    }
+    
     public static class Builder {
         private final String name;
         private String value;
@@ -220,6 +224,8 @@ public class Cookie {
         /*private Date expires;*/
 
         public Builder(String name, String value) {
+            if (name == null) throw new IllegalArgumentException(Cookie.Builder.class.getSimpleName() + " name");
+            if (value == null) throw new IllegalArgumentException(Cookie.Builder.class.getSimpleName() + " value");
             this.name = name;
             this.value = value;
         }
