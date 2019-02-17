@@ -21,7 +21,7 @@ public class MvcFilterPopulator extends RouteFilterPopulator {
     }
     
     public List<Route.Builder> populate(final Injector injector, BiConsumer<Route.Builder, Object> work) {
-        List<Route.Builder> list = MvcRouter.extract(controller);
+        List<Route.Builder> list = MvcRouter.extract(controller, injector);
         
         list.forEach(builder -> populate(injector, (item) -> work.accept(builder, item)));
         

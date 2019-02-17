@@ -18,6 +18,7 @@ public class RouteFilterExecutionTest {
         assertThat(new Route.Builder(HttpMethod.GET).path("/").build().after()).isNull();
     }
     
+    // this is now a test of HttpHandlerImpl
     @Test
     public void beforeSimpleResultOverride() {
         Context context = mock(Context.class);

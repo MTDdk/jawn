@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import com.google.inject.Injector;
+
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.mvc.DELETE;
@@ -30,7 +32,7 @@ public class MvcRouter {
     private static final Set<Class<? extends Annotation>> VERBS = new HashSet<>(Arrays.asList(
         GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class));
 
-    public static List<Route.Builder> extract(final Class<?> routeClass) {
+    public static List<Route.Builder> extract(final Class<?> routeClass, final Injector injector) {
         
         final String[] rootPaths = paths(routeClass);
         
@@ -56,7 +58,7 @@ public class MvcRouter {
                 for (var path : paths) {
                     defs.add(new Route.Builder(method)
                         .path(path)
-                        .handler(new MvcMethodHandler(action, routeClass)));
+                        .handler(new MvcMethodHandler(action, routeClass, injector)));
                 }
             }
         });

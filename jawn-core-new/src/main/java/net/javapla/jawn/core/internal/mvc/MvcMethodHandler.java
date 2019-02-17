@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
+import com.google.inject.Injector;
 import com.google.inject.Key;
 
 import net.javapla.jawn.core.Context;
@@ -13,20 +14,20 @@ import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
-import net.javapla.jawn.core.internal.reflection.ClassFactory;
-import net.javapla.jawn.core.util.Modes;
 
 public class MvcMethodHandler implements Route.MethodHandler {
     
     private final Method method;
     private final Class<?> routeClass;
     private final Key<?> key;
+    private final Injector injector;
     
 
-    public MvcMethodHandler(final Method method, final Class<?> routeClass) {
+    public MvcMethodHandler(final Method method, final Class<?> routeClass, final Injector injector) {
         this.method = method;
         this.routeClass = routeClass;
         this.key = Key.get(routeClass);
+        this.injector = injector;
     }
     
     @Override
@@ -61,15 +62,8 @@ public class MvcMethodHandler implements Route.MethodHandler {
         
         
         // execute
-        /*System.out.println("oooooooooooooooooooooooooooooooooooooooooooooooooooooo " + this.getClass().getClassLoader());
-        System.out.println(context.require(routeClass));
-        System.out.println(context.require(Key.get(ClassFactory.getCompiledClass(routeClass.getName(), false))));
-        return null;*/
         try {
-            Class<?> compiledClass = ClassFactory.getCompiledClass("app.db.MoviesDB", false);
-            System.out.println(compiledClass);
-            System.out.println(context.require(compiledClass));
-            return _handleReturnType(method.invoke(context.require(key), _provideParameters(method, context)));
+            return _handleReturnType(method.invoke(injector.getProvider(key).get(), _provideParameters(method, context)));
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             //return Results.error();
             throw new Up.RenderableError(e);

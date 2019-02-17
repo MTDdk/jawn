@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.Module;
 
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.RouteFilterPopulator;
@@ -260,7 +259,6 @@ public class Jawn implements Route.Filtering, Injection {
     public <T> T require(Key<T> key) {
         checkState(bootstrap./*started()*/getInjector() != null, "App has not started yet");
         return bootstrap.getInjector().getInstance(key);
-        //return bootstrap.require(key);
     }
     
     // ****************
@@ -331,11 +329,12 @@ public class Jawn implements Route.Filtering, Injection {
         
         if (instance.mode == Modes.DEV) {
             // load the instance with a non-caching classloader
-            final Jawn dynamicInstance = ClassFactory
+            /*final Jawn dynamicInstance = ClassFactory
                 .createInstance(
                     ClassFactory.getCompiledClass(jawn.getName(), false), 
                     Jawn.class
-                );
+                );*/
+            Jawn dynamicInstance = instance;
             
             // look for changes to reload
             final BiConsumer<Jawn, Class<?>> reloader = (newJawnInstance, reloadedClass) -> {
@@ -351,11 +350,11 @@ public class Jawn implements Route.Filtering, Injection {
                     filtering.replace(reloadedClass);
                 }
                 
-                Module userModule = newJawnInstance.bootstrap.userModule(Modes.DEV);
+                // THOUGHTS: If the reloadedClass is a ModuleBootstrap or any classes referenced herein,
+                // then we might be able to reload the entire application in order to correctly set up
+                // the Guice dependencies
                 
-                
-                
-                dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes, userModule);
+                dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes);
             };
             PackageWatcher watcher = new PackageWatcher(jawn, reloader);
             
@@ -375,7 +374,7 @@ public class Jawn implements Route.Filtering, Injection {
                 }
             });
             
-            instance = dynamicInstance;
+            //instance = dynamicInstance;
         }
         
         run(instance, args);
@@ -427,9 +426,6 @@ public class Jawn implements Route.Filtering, Injection {
      * filter1.before -> filter2.before -> beforeFilter -> execute handler -> afterFilter -> filter2.after -> filter1.after
      */
     List<Route> buildRoutes(Injector injector) {
-//        bootstrap.i(injector);
-        
-        System.out.println("buildRoutes " + injector.hashCode());
         LinkedList<Route.Builder> routes = new LinkedList<>();
         
         // populate ordinary routes

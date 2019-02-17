@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.inject.Injector;
-import com.google.inject.Key;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
@@ -275,10 +274,11 @@ final class ContextImpl implements Context {
         return attribute(name).map(type::cast);
     }
     
-    @Override
+    /* Context should not be responsible of this
+     * @Override
     public <T> T require(final Key<T> key) {
         return injector.getProvider(key).get();//injector.require(key);
-    }
+    }*/
     
     @Override
     public String realPath(final String file) {

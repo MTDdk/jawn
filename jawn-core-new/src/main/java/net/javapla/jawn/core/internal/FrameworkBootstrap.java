@@ -18,18 +18,15 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.Module;
 import com.google.inject.Singleton;
 import com.google.inject.Stage;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
-import net.javapla.jawn.core.Injection;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
-import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.ClassFactory;
+import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
@@ -92,14 +89,13 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
             readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.image");
             
             // Makes it possible for users to override single framework-specific implementations
-            //userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
+            userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
         };
         
-        Module userModule = userModule(mode);
+        //Module userModule = userModule(mode, true);
         
         final Stage stage = mode == Modes.DEV ? Stage.DEVELOPMENT : Stage.PRODUCTION;
-        final Injector localInjector = Guice.createInjector(stage, jawnModule, userModule);
-        System.out.println("localInjector " + localInjector.hashCode());
+        final Injector localInjector = Guice.createInjector(stage, jawnModule/*, userModule*/);
         
         
         // compiling of routes needs element from the injector, so this is done after the creation
@@ -112,7 +108,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         startup();
     }
     
-    public com.google.inject.Module userModule(final Modes mode) {
+    /*private com.google.inject.Module userModule(final Modes mode, boolean first) {
         final com.google.inject.Module userModule = binder -> {
             
             final ApplicationConfig pluginConfig = new ApplicationConfig() {
@@ -141,8 +137,9 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
             userPlugins.stream().forEach(plugin -> {
                 System.out.println("userModule 1 " + plugin.hashCode());
                 if (mode == Modes.DEV) {
-                    Class<?> recompileClass = ClassFactory.recompileClass(plugin.getClass());
-                    plugin = ClassFactory.createInstance(recompileClass, ModuleBootstrap.class);
+                    //Class<?> recompileClass = ClassFactory.recompileClass(plugin.getClass());
+                    //plugin = ClassFactory.createInstance(recompileClass, ModuleBootstrap.class);
+                    plugin = ClassFactory.createInstance(plugin.getClass(), ModuleBootstrap.class);
                     System.out.println("userModule 2 " + plugin.hashCode());
                 }
                 
@@ -152,23 +149,11 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         };
         
         return userModule;
-    }
+    }*/
     
-    public void reboot___strap(final Function<Injector,List<Route>> routes, com.google.inject.Module userModule) {
-        
-        /*final Modes mode = injector.getInstance(Modes.class);
-        
-        System.out.println("injector.hashCode() " +injector.hashCode());
-        
-        System.out.println("------------------");
-        
-        var childInjector = Guice.createInjector(frameworkModule, userModule(mode));
-        System.out.println("childInjector.hashCode() " + childInjector.hashCode());
-        
-*/        
-        
-        var childInjector = Guice.createInjector(frameworkModule, userModule);
-        injector = childInjector;
+    public void reboot___strap(final Function<Injector,List<Route>> routes) {
+        //var childInjector = Guice.createInjector(frameworkModule, userModule(Modes.DEV, false));
+        //injector = childInjector;
         
         
         Router router = injector.getInstance(Router.class);
@@ -178,16 +163,11 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
     public Injector getInjector() {
         return injector;
     }
-    /*public boolean started() {
-        return injector != null;
-    }*/
-    /*public void i(Injector i) {
-        injector = i;
-    }*/
     
     /*@Override
     public <T> T require(Key<T> key) {
         System.out.println("injector.Key() " +injector.hashCode());
+        System.out.println("injector.Key() " +key.hashCode());
         return injector.getInstance(key);
     }
     
@@ -256,7 +236,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         binder.bind(Modes.class).toInstance(mode);
         binder.bind(Config.class).toInstance(config);
         binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, serverConfig.context()));
-//        binder.bind(Injection.class).toInstance(this);
+        //binder.bind(Injection.class).toInstance(this);
         
         // Marshallers
         binder.bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);

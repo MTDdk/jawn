@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.internal.mvc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.truth.Correspondence;
+import com.google.inject.Injector;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Result;
@@ -83,7 +85,7 @@ public class MvcRouterTest {
 
     @Test
     public void singleRoute() {
-        List<Route.Builder> routes = MvcRouter.extract(SingleRoute.class);
+        List<Route.Builder> routes = MvcRouter.extract(SingleRoute.class, mock(Injector.class));
         assertThat(routes).hasSize(1);
         
         Route route = routes.stream().map(Route.Builder::build).findFirst().get();
@@ -92,7 +94,7 @@ public class MvcRouterTest {
     
     @Test
     public void multipleRoutes() {
-        List<Route.Builder> builders = MvcRouter.extract(TwoRoutes.class);
+        List<Route.Builder> builders = MvcRouter.extract(TwoRoutes.class, mock(Injector.class));
         assertThat(builders).hasSize(2);
         
         List<Route> routes = builders.stream().map(Route.Builder::build).collect(Collectors.toList());
@@ -111,7 +113,7 @@ public class MvcRouterTest {
     
     @Test
     public void emptyControllerPath() {
-        List<Route.Builder> builders = MvcRouter.extract(EmptyControllerPath.class);
+        List<Route.Builder> builders = MvcRouter.extract(EmptyControllerPath.class, mock(Injector.class));
         
         Route route = builders.get(0).build();
         

@@ -16,7 +16,9 @@ import java.util.function.Consumer;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 
+import com.google.inject.Injector;
 import com.google.inject.Key;
+import com.google.inject.Provider;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Result;
@@ -26,14 +28,17 @@ import net.javapla.jawn.core.mvc.Path;
 
 public class MvcMethodHandlerTest {
 
+    
 
     @Test
     public void noParameters() {
+        Injector injector = mock(Injector.class);
+        when(injector.getProvider(Key.get(SingleRoute.class))).thenReturn((Provider<SingleRoute>) () -> new SingleRoute());
+        
         Context context = mock(Context.class);
-        when(context.require(Key.get(SingleRoute.class))).thenReturn(new SingleRoute());
         
         MvcRouter.methods(SingleRoute.class, methods -> {
-            MvcMethodHandler handler = new MvcMethodHandler( methods[0], SingleRoute.class);
+            MvcMethodHandler handler = new MvcMethodHandler( methods[0], SingleRoute.class, injector);
             Result result = handler.handle(context);
             assertThat(result.renderable().get()).isEqualTo("test".getBytes());//Strings get converted to byte[] in Results.text
         });
@@ -42,8 +47,10 @@ public class MvcMethodHandlerTest {
     @Test
     public void contextParameter() {
         // setup
+        Injector injector = mock(Injector.class);
+        when(injector.getProvider(Key.get(MethodParams.class))).thenReturn((Provider<MethodParams>) () -> new MethodParams());
+        
         Context context = mock(Context.class);
-        when(context.require(Key.get(MethodParams.class))).thenReturn(new MethodParams());
         when(context.attribute(anyString())).thenReturn(Optional.of("test"));
         
         @SuppressWarnings("unchecked")
@@ -51,7 +58,7 @@ public class MvcMethodHandlerTest {
         
         doAnswer(AdditionalAnswers.answerVoid((Method[] methods) -> {
             // the actual work
-            MvcMethodHandler handler = new MvcMethodHandler( methods[0], MethodParams.class);
+            MvcMethodHandler handler = new MvcMethodHandler( methods[0], MethodParams.class, injector);
             Result result = handler.handle(context);
             assertThat(result).isNotNull();
             assertThat(result.renderable().get()).isEqualTo("testtest".getBytes());

@@ -25,6 +25,7 @@ public class AssetRouterTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        System.out.println(resources);
         di = mock(DeploymentInfo.class);
         when(di.getRealPath("")).thenReturn(resources);
     }
