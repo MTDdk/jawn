@@ -175,7 +175,8 @@ public class SiteConfigurationReader {
         try (Reader r = new FileReader(rootFile.toFile())) {
             SiteConfiguration configuration = mapper.readValue(r, SiteConfiguration.class);
             
-            Path parent = folder.getParent(); // we always assume that "js/" and "css/" is at the same level as "folder" (which is most likely "webapp/views"
+            Path parent = folder.getParent(); // we always assume that "js/" and "css/" is at the same level as "folder" (which is most likely "webapp/views")
+            
             decorateLocalResourceLinks(configuration.scripts, SCRIPT_STANDARD_FOLDER, parent);
             decorateLocalResourceLinks(configuration.styles, STYLE_STANDARD_FOLDER, parent);
             
@@ -251,7 +252,7 @@ public class SiteConfigurationReader {
     final static boolean isLocal(String url) {
         //return !(url.matches("^(ht|f)tp.*") || url.startsWith("//"));
         
-        assert (url.length() < 5);
+        //assert (url.length() > 2);
         return ! (
             url.startsWith("http", 0) ||
             url.startsWith("ftp", 0) ||
@@ -275,7 +276,7 @@ public class SiteConfigurationReader {
             return result.toString();
         } else {
             // README: this is frankly mostly for testing purposes - probably should be omitted all together
-            log.error("File not found:: " + result + " - Perhaps a spelling error?");
+            // log.debug("File not found:: " + resolved + " - Perhaps a spelling error?");
             return result.toString();
         }
     }

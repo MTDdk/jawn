@@ -1,0 +1,11 @@
+{
+	"title": "jawn test non-translatable",
+	"overrideDefault": true,
+
+	"scripts": [
+		{"url": "http://someurl.com/script1.js"},
+		{"url": "https://someurl.com/script1.js"},
+		{"url": "ftp://script2.js"},
+		{"url": "//someurl.com/script2.js"}
+	]
+}
