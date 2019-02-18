@@ -23,7 +23,6 @@ import com.google.inject.Stage;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
-import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.reflection.ClassFactory;

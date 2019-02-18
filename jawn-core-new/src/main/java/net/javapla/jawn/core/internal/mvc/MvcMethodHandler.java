@@ -4,6 +4,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.List;
 
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -21,11 +22,13 @@ public class MvcMethodHandler implements Route.MethodHandler {
     private final Class<?> routeClass;
     private final Key<?> key;
     private final Injector injector;
+    private final ActionParameterProvider provider;
     
 
-    public MvcMethodHandler(final Method method, final Class<?> routeClass, final Injector injector) {
+    public MvcMethodHandler(final Method method, final Class<?> routeClass, final ActionParameterProvider provider, final Injector injector) {
         this.method = method;
         this.routeClass = routeClass;
+        this.provider = provider;
         this.key = Key.get(routeClass);
         this.injector = injector;
     }
@@ -71,7 +74,10 @@ public class MvcMethodHandler implements Route.MethodHandler {
     }
     
     //might be its own class
-    private Object[] _provideParameters(final Executable action, final Context context) {
+    private Object[] _provideParameters(final Method action, final Context context) {
+        List<ActionParameter> params = provider.parameters(action);
+        
+        
         Parameter[] parameters = action.getParameters();
         
         if (parameters.length == 1 && parameters[0].getType() == Context.class) return new Object[] {context};

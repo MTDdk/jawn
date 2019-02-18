@@ -6,10 +6,6 @@ import static org.mockito.Mockito.mock;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.truth.Correspondence;
@@ -24,18 +20,6 @@ import net.javapla.jawn.core.mvc.Path;
 
 public class MvcRouterTest {
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {}
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {}
-
-    @Before
-    public void setUp() throws Exception {}
-
-    @After
-    public void tearDown() throws Exception {}
-    
     @Test
     public void routeFromMethod() {
         boolean[] called = {false};
@@ -85,7 +69,7 @@ public class MvcRouterTest {
 
     @Test
     public void singleRoute() {
-        List<Route.Builder> routes = MvcRouter.extract(SingleRoute.class, mock(Injector.class));
+        List<Route.Builder> routes = MvcRouter.extract(SingleRoute.class, mock(ActionParameterProvider.class), mock(Injector.class));
         assertThat(routes).hasSize(1);
         
         Route route = routes.stream().map(Route.Builder::build).findFirst().get();
@@ -94,7 +78,7 @@ public class MvcRouterTest {
     
     @Test
     public void multipleRoutes() {
-        List<Route.Builder> builders = MvcRouter.extract(TwoRoutes.class, mock(Injector.class));
+        List<Route.Builder> builders = MvcRouter.extract(TwoRoutes.class, mock(ActionParameterProvider.class), mock(Injector.class));
         assertThat(builders).hasSize(2);
         
         List<Route> routes = builders.stream().map(Route.Builder::build).collect(Collectors.toList());
@@ -113,7 +97,7 @@ public class MvcRouterTest {
     
     @Test
     public void emptyControllerPath() {
-        List<Route.Builder> builders = MvcRouter.extract(EmptyControllerPath.class, mock(Injector.class));
+        List<Route.Builder> builders = MvcRouter.extract(EmptyControllerPath.class, mock(ActionParameterProvider.class), mock(Injector.class));
         
         Route route = builders.get(0).build();
         

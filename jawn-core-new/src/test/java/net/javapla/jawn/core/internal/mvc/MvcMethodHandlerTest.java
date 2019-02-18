@@ -28,7 +28,6 @@ import net.javapla.jawn.core.mvc.Path;
 
 public class MvcMethodHandlerTest {
 
-    
 
     @Test
     public void noParameters() {
@@ -38,7 +37,7 @@ public class MvcMethodHandlerTest {
         Context context = mock(Context.class);
         
         MvcRouter.methods(SingleRoute.class, methods -> {
-            MvcMethodHandler handler = new MvcMethodHandler( methods[0], SingleRoute.class, injector);
+            MvcMethodHandler handler = new MvcMethodHandler( methods[0], SingleRoute.class, mock(ActionParameterProvider.class), injector);
             Result result = handler.handle(context);
             assertThat(result.renderable().get()).isEqualTo("test".getBytes());//Strings get converted to byte[] in Results.text
         });
@@ -58,7 +57,7 @@ public class MvcMethodHandlerTest {
         
         doAnswer(AdditionalAnswers.answerVoid((Method[] methods) -> {
             // the actual work
-            MvcMethodHandler handler = new MvcMethodHandler( methods[0], MethodParams.class, injector);
+            MvcMethodHandler handler = new MvcMethodHandler( methods[0], MethodParams.class, mock(ActionParameterProvider.class), injector);
             Result result = handler.handle(context);
             assertThat(result).isNotNull();
             assertThat(result.renderable().get()).isEqualTo("testtest".getBytes());

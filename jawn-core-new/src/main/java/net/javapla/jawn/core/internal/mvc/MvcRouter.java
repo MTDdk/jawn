@@ -32,7 +32,7 @@ public class MvcRouter {
     private static final Set<Class<? extends Annotation>> VERBS = new HashSet<>(Arrays.asList(
         GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class));
 
-    public static List<Route.Builder> extract(final Class<?> routeClass, final Injector injector) {
+    public static List<Route.Builder> extract(final Class<?> routeClass, final ActionParameterProvider provider, final Injector injector) {
         
         final String[] rootPaths = paths(routeClass);
         
@@ -58,7 +58,7 @@ public class MvcRouter {
                 for (var path : paths) {
                     defs.add(new Route.Builder(method)
                         .path(path)
-                        .handler(new MvcMethodHandler(action, routeClass, injector)));
+                        .handler(new MvcMethodHandler(action, routeClass, provider, injector)));
                 }
             }
         });

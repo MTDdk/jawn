@@ -16,10 +16,12 @@ import com.google.inject.Key;
 
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.RouteFilterPopulator;
+import net.javapla.jawn.core.internal.mvc.ActionParameterProvider;
 import net.javapla.jawn.core.internal.mvc.AssetRouter;
 import net.javapla.jawn.core.internal.mvc.MvcFilterPopulator;
 import net.javapla.jawn.core.internal.reflection.ClassFactory;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
+import net.javapla.jawn.core.internal.reflection.ClassMeta;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
@@ -436,8 +438,9 @@ public class Jawn implements Route.Filtering, Injection {
         });
         
         // populate routes from mvc
+        ActionParameterProvider provider = new ActionParameterProvider(new ClassMeta());
         mvcFilters.values().forEach(popu -> {
-            routes.addAll(popu.populate(injector, (builder, item) -> builder.filter(item)));
+            routes.addAll(popu.populate(injector, provider, (builder, item) -> builder.filter(item)));
         });
         
         // add global filters to the routes
