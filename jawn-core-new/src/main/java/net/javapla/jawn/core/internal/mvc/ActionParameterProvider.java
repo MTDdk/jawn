@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.internal.mvc;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -8,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import net.javapla.jawn.core.internal.reflection.ClassMeta;
+import net.javapla.jawn.core.util.StringUtil;
 
 public class ActionParameterProvider {
 
@@ -33,7 +35,7 @@ public class ActionParameterProvider {
     }
     
     public String name(final Parameter parameter) {
-        String name = ActionParameterName.nameFor(parameter);
+        String name = nameFor(parameter);
         if (name != null) {
             return name;
         }
@@ -50,5 +52,26 @@ public class ActionParameterProvider {
         
         String[] names = classMeta.parameterNames(exe);
         return names[index];
+    }
+    
+    public static String nameFor(final Parameter param) {
+        String name = findAnnotatedName(param);
+        return name == null ? (param.isNamePresent() ? param.getName() : null) : name;
+    }
+
+    private static String findAnnotatedName(final AnnotatedElement elem) {
+        javax.inject.Named named = elem.getAnnotation(javax.inject.Named.class);
+        if (named == null) {
+            com.google.inject.name.Named gnamed = elem.getAnnotation(com.google.inject.name.Named.class);
+            if (gnamed == null) {
+//                Header header = elem.getAnnotation(Header.class);
+//                if (header == null) {
+                    return null;
+//                }
+//                return StringUtil.stringOrNull(header.value());
+            }
+            return gnamed.value();
+        }
+        return StringUtil.stringOrNull(named.value());
     }
 }

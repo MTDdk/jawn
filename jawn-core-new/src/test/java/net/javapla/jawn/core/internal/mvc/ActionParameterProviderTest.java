@@ -21,8 +21,19 @@ public class ActionParameterProviderTest {
     }
 
     @Test
+    public void named() throws NoSuchMethodException, SecurityException {
+        assertThat(ActionParameterProvider.nameFor( firstParam("testMethodFTW") )).isEqualTo("actionParameterOfAwesome");
+        assertThat(ActionParameterProvider.nameFor( firstParam("testMethodFTW_guice") )).isEqualTo("actionParameterOfAwesome");
+    }
+    
+    @Test
+    public void unnamed_shouldBe_unparsable() throws NoSuchMethodException, SecurityException {
+        assertThat(ActionParameterProvider.nameFor( firstParam("testMethod") )).isNull();
+    }
+    
+    @Test
     public void unnamed() throws NoSuchMethodException, SecurityException {
-        assertThat(provider.name( ActionParameterNameTest.firstParam("testMethod") )).isEqualTo("actionParameter");
+        assertThat(provider.name( firstParam("testMethod") )).isEqualTo("actionParameter");
     }
     
     @Test
@@ -34,10 +45,16 @@ public class ActionParameterProviderTest {
         assertThat(provider.name( parameters[1] )).isEqualTo("actionContext");
         assertThat(provider.name( parameters[2] )).isEqualTo("actionValue");
     }
-
     
+    // this is what we are looking for
+    public void testMethodFTW_guice(@com.google.inject.name.Named("actionParameterOfAwesome") final String actionParameterOfAwesome) { }
+    public void testMethodFTW(@javax.inject.Named("actionParameterOfAwesome") final String actionParameterOfAwesome) { }
+    public void testMethod(String actionParameter) {}
     public void testMethod(final String actionParameter, final Context actionContext, final Integer actionValue) {}
     
+    private static Parameter firstParam(String name) throws NoSuchMethodException, SecurityException {
+        return action(name, String.class).getParameters()[0];
+    }
     
     private static Method action(final String name, Class<?> ... parameters) throws NoSuchMethodException, SecurityException {
         return ActionParameterProviderTest.class.getDeclaredMethod(name, parameters);
