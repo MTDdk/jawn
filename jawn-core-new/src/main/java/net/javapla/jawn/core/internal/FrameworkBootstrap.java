@@ -23,6 +23,7 @@ import com.google.inject.Stage;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.reflection.ClassFactory;
@@ -92,7 +93,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
             userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
         };
         
-        //Module userModule = userModule(mode, true);
+        //Module userModule = userModule(mode);
         
         final Stage stage = mode == Modes.DEV ? Stage.DEVELOPMENT : Stage.PRODUCTION;
         final Injector localInjector = Guice.createInjector(stage, jawnModule/*, userModule*/);
@@ -108,7 +109,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         startup();
     }
     
-    /*private com.google.inject.Module userModule(final Modes mode, boolean first) {
+    /*public com.google.inject.Module userModule(final Modes mode) {
         final com.google.inject.Module userModule = binder -> {
             
             final ApplicationConfig pluginConfig = new ApplicationConfig() {
@@ -133,13 +134,20 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
                 }
             };
             
-            // Makes it possible for users to override single framework-specific implementations
+            // For this to work, we need to reload the interface AND the implementor for each plugin.
+            // Right now, if we reload the implementor it will affect the resulting injector, as the
+            // "key", which is the interface, still has the same hashCode (or some other identity).
+            // This might even not be enough, as each controller that uses the interface, most likely
+            // also needs to be recompiled in order to use the correct "key"/interface within.
             userPlugins.stream().forEach(plugin -> {
                 System.out.println("userModule 1 " + plugin.hashCode());
                 if (mode == Modes.DEV) {
-                    //Class<?> recompileClass = ClassFactory.recompileClass(plugin.getClass());
-                    //plugin = ClassFactory.createInstance(recompileClass, ModuleBootstrap.class);
-                    plugin = ClassFactory.createInstance(plugin.getClass(), ModuleBootstrap.class);
+                    plugin = ClassFactory.createInstance(
+                        ClassFactory.getCompiledClass(plugin.getClass().getName(), false), 
+                        ModuleBootstrap.class
+                    );
+                    
+                    //plugin = ClassFactory.createInstance(plugin.getClass(), ModuleBootstrap.class);
                     System.out.println("userModule 2 " + plugin.hashCode());
                 }
                 
@@ -151,10 +159,11 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         return userModule;
     }*/
     
-    public void reboot___strap(final Function<Injector,List<Route>> routes) {
-        //var childInjector = Guice.createInjector(frameworkModule, userModule(Modes.DEV, false));
-        //injector = childInjector;
-        
+    public void reboot___strap(final Function<Injector,List<Route>> routes/*, com.google.inject.Module userModule*/) {
+        /*
+        var childInjector = injector.createChildInjector(userModule(Modes.DEV));//Guice.createInjector(frameworkModule, userModule(Modes.DEV, false));
+        injector = childInjector;
+        */
         
         Router router = injector.getInstance(Router.class);
         router.recompileRoutes(routes.apply(injector));
@@ -249,10 +258,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         binder.bind(ResultRunner.class).in(Singleton.class);
         
         // ServerModule
-        if (mode == Modes.DEV)
-            binder.bind(HttpHandler.class).to(HttpHandlerImpl.class);
-        else 
-            binder.bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
+        binder.bind(HttpHandler.class).to(HttpHandlerImpl.class).in(Singleton.class);
     }
     
     private Config readConfigurations(final Modes mode) {
