@@ -45,4 +45,13 @@ public class RouteBuilderTest {
         assertThat(route.after()).isNotNull();
     }
     
+    @Test
+    public void emptyBefores() {
+        assertThat(new Route.Builder(HttpMethod.GET).path("/").build().before()).isNull();
+    }
+    
+    @Test
+    public void emptyAfters() {
+        assertThat(new Route.Builder(HttpMethod.GET).path("/").build().after()).isNull();
+    }
 }

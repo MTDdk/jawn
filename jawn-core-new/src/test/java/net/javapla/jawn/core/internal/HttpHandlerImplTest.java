@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -6,19 +6,16 @@ import static org.mockito.Mockito.mock;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class RouteFilterExecutionTest {
+import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.HttpMethod;
+import net.javapla.jawn.core.Result;
+import net.javapla.jawn.core.Results;
+import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Status;
+import net.javapla.jawn.core.Up;
 
-    @Test
-    public void emptyBefores() {
-        assertThat(new Route.Builder(HttpMethod.GET).path("/").build().before()).isNull();
-    }
-    
-    @Test
-    public void emptyAfters() {
-        assertThat(new Route.Builder(HttpMethod.GET).path("/").build().after()).isNull();
-    }
-    
-    // this is now a test of HttpHandlerImpl
+public class HttpHandlerImplTest {
+
     @Test
     public void beforeSimpleResultOverride() {
         Context context = mock(Context.class);
@@ -28,10 +25,38 @@ public class RouteFilterExecutionTest {
             .before((c,ch) -> Results.ok())
             .build();
         
+        
         // execute
-        Result result = handler.handle(context);
+        Result result = HttpHandlerImpl._handle(context, handler, r -> {});//handler.handle(context);
         assertThat(result.status().isPresent()).isTrue();
         result.status().ifPresentOrElse(status -> assertThat(status.value()).isEqualTo(200), Assert::fail);
+    }
+    
+    @Test(expected = Up.BadResult.class)
+    public void throw_when_afterReturnsNull() {
+        Route handler = new Route.Builder(HttpMethod.GET)
+            .path("/")
+            .handler(() -> Results.ok())
+            .after((c,r) -> (Result) null)
+            .build();
+        
+        Context context = mock(Context.class);
+        HttpHandlerImpl._handle(context, handler, r -> {}); //throws
+        
+        Assert.fail();
+    }
+    
+    @Test(expected = Up.BadResult.class)
+    public void throw_when_handlerReturnsNull() {
+        Route handler = new Route.Builder(HttpMethod.GET)
+            .path("/")
+            .handler(c -> (Result) null)
+            .build();
+        
+        Context context = mock(Context.class);
+        HttpHandlerImpl._handle(context, handler, r -> {}); //throws
+        
+        Assert.fail();
     }
     
     @Test
@@ -44,7 +69,7 @@ public class RouteFilterExecutionTest {
             .build();
         
         // execute
-        Result result = handler.handle(context);
+        Result result = HttpHandlerImpl._handle(context, handler, r -> {});//handler.handle(context);
         
         // assert
         assertThat(result.status().isPresent()).isTrue();
@@ -64,38 +89,12 @@ public class RouteFilterExecutionTest {
         
         
         Context context = mock(Context.class);
-        Result result = handler.handle(context);
+        Result result = HttpHandlerImpl._handle(context, handler, r -> {});//handler.handle(context);
         
         assertThat(executed[0]).isFalse();
         assertThat(executed[1]).isTrue();
         assertThat(executed[2]).isFalse();
-        assertThat(result.status).isEqualTo(Status.OK);
+        assertThat(result.status().get()).isEqualTo(Status.OK);
     }
-    
-    @Test(expected = Up.BadResult.class)
-    public void throw_when_afterReturnsNull() {
-        Route handler = new Route.Builder(HttpMethod.GET)
-            .path("/")
-            .handler(() -> Results.ok())
-            .after((c,r) -> (Result) null)
-            .build();
-        
-        Context context = mock(Context.class);
-        handler.handle(context); //throws
-        
-        Assert.fail();
-    }
-    
-    @Test(expected = Up.BadResult.class)
-    public void throw_when_handlerReturnsNull() {
-        Route handler = new Route.Builder(HttpMethod.GET)
-            .path("/")
-            .handler(c -> (Result) null)
-            .build();
-        
-        Context context = mock(Context.class);
-        handler.handle(context); //throws
-        
-        Assert.fail();
-    }
+
 }
