@@ -1,10 +1,13 @@
 package net.javapla.jawn.core.internal;
 
+import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +15,7 @@ import java.util.stream.Collectors;
 
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.DeploymentInfo;
@@ -20,6 +24,9 @@ import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
+import net.javapla.jawn.core.Value;
+import net.javapla.jawn.core.internal.parsers.BodyParsable;
+import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
@@ -35,6 +42,7 @@ final class ContextImpl implements Context {
     
     private final HashMap<String, Cookie> cookies = new HashMap<>();
     private HashMap<String, Object> attributes;
+    private LinkedList<File> files;
     
     ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset, final DeploymentInfo deploymentInfo, final Injector injector) {
         this.injector = injector;
@@ -120,12 +128,33 @@ final class ContextImpl implements Context {
                 return sreq.formData();
             }
             
-            // body()
+            @Override
+            public Value body() throws Exception {
+                long length = length();
+                if (length > 0) {
+                    MediaType type = contentType();
+                    Config config = injector.getInstance(Config.class);
+                    ParserEngineManager engine = injector.getInstance(ParserEngineManager.class);
+                    
+                    // TODO TMPdir is also used in server implementations and should be a part of Config instead
+                    String tmp = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/).toString();
+                    File body = new File(tmp, Integer.toHexString(System.identityHashCode(this)));
+                    addFile(body);
+                    
+                    int bufferSize = config.getInt("server.http.request.buffer_size");
+                    
+                    // body work
+                    return new ValueImpl(engine, type, new BodyParsable(length, cs, body, sreq.in(), bufferSize));
+                }
+                
+                return new ValueImpl.Empty();
+            }
             
             @Override
             public long length() {
                 return sreq.header("Content-Length").map(Long::parseLong).orElse(-1l);
             }
+            
         };
         
         this.resp = new Context.Response() {
@@ -232,7 +261,6 @@ final class ContextImpl implements Context {
             public boolean committed() {
                 return resp.committed();
             }
-            
         };
     }
     
@@ -324,6 +352,12 @@ final class ContextImpl implements Context {
         sresp.end();
     }
     
+    void done() {
+        if (files != null) {
+            files.forEach(File::delete);
+        }
+    }
+    
     private void writeCookies() {
         if (!cookies.isEmpty()) {
             List<String> setCookie = cookies.values().stream().map(Cookie::toString).collect(Collectors.toList());
@@ -334,5 +368,9 @@ final class ContextImpl implements Context {
     
     private void instantiateAttributes() {
         if (attributes == null) attributes = new HashMap<>(5);
+    }
+    private void addFile(final File file) {
+        if (files == null) files = new LinkedList<>();
+        files.add(file);
     }
 }

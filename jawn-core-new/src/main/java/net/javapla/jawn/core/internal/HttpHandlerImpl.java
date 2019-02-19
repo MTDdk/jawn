@@ -61,7 +61,6 @@ final class HttpHandlerImpl implements HttpHandler {
             
             
             _handle(context, route, (result) -> runner.execute(result, context));
-            
         
         } catch (Up.RouteMissing e) {
             // 404
@@ -83,6 +82,10 @@ final class HttpHandlerImpl implements HttpHandler {
             // catch-all for UN-known exceptions
             // 500
             renderSystemError(context, /*"/system/500", "index",*/ 500, e);
+        } finally {
+            
+            // cleanup
+            context.done();
         }
         
     }

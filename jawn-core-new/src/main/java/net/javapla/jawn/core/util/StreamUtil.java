@@ -2,6 +2,8 @@ package net.javapla.jawn.core.util;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -79,20 +81,35 @@ public class StreamUtil {
      * @throws IOException IO error
      * @throws IllegalArgumentException if stream is null or path is null
      */
-    public static void saveTo(String path, InputStream in) throws IOException {
+    public static void saveTo(String path, InputStream in) throws IOException, IllegalArgumentException {
         if (in == null)
             throw new IllegalArgumentException("input stream cannot be null");
         if (path == null)
             throw new IllegalArgumentException("path cannot be null");
-
-        try (OutputStream out = new BufferedOutputStream(
-                                        Files.newOutputStream(
-                                                Paths.get(path), 
-                                                StandardOpenOption.CREATE, 
-                                                StandardOpenOption.APPEND))) {
-            byte[] bytes = new byte[1024];
-            for (int x = in.read(bytes); x != -1; x = in.read(bytes))
-                out.write(bytes, 0, x);
+        
+        copy(in, new BufferedOutputStream(
+                        Files.newOutputStream(
+                            Paths.get(path), 
+                            StandardOpenOption.CREATE, 
+                            StandardOpenOption.APPEND)));
+    }
+    
+    public static void saveTo(final File file, final InputStream in) throws IllegalArgumentException, IOException {
+        if (file == null)
+            throw new IllegalArgumentException("file cannot be null"); 
+        if (in == null)
+            throw new IllegalArgumentException("input stream cannot be null");
+        
+        file.getParentFile().mkdirs();
+        copy(in, new FileOutputStream(file));
+    }
+    
+    public static void copy(final InputStream in, final OutputStream out) throws IOException {
+        try (out) {
+            byte[] buff = new byte[8192];
+            for (int x = in.read(buff); x != -1; x = in.read(buff)) {
+                out.write(buff, 0, x);
+            }
         }
     }
 }

@@ -21,6 +21,9 @@ public class Up extends RuntimeException {
         public ParsableError(final Throwable err) {
             super(Status.UNPROCESSABLE_ENTITY, err);
         }
+        public ParsableError(final String message) {
+            super(Status.UNSUPPORTED_MEDIA_TYPE, message);
+        }
     }
     
     public static class RenderableError extends Up {

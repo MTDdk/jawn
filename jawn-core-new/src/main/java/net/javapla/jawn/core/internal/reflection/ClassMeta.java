@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -22,11 +23,9 @@ public class ClassMeta {
 
     
     private final Map<Class<?>, Map<String, String[]>> metadataCache;
-    
 
     public ClassMeta() {
-        // TODO Not exactly thread safe..
-        this.metadataCache = new HashMap<>();
+        this.metadataCache = new ConcurrentHashMap<>();
     }
     
     public String[] parameterNames(final Executable action) {

@@ -106,6 +106,13 @@ public interface Context /*extends Injection*/ {
         List<String> queryParams(String name);
 
         MultiList<FormItem> formData();
+        
+        /**
+         * HTTP body. Please don't use this method for form submits. This method is used for getting raw data or a data like json, xml, etc...
+         * @return The HTTP body
+         * @throws Exception If body can't be converted or there is no HTTP body.
+         */
+        Value body() throws Exception;
 
         /**
          * @return The length, in bytes, of the request body and made available by the input stream, or -1 if the length is not known

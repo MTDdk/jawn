@@ -1,33 +1,36 @@
 package net.javapla.jawn.core.parsers;
 
-import java.io.InputStream;
-import java.io.Reader;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
 
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
 
 /**
+ * Invoke the parser and get back a Java object populated
+ * with the content of this request.
  * 
+ * MUST BE THREAD SAFE TO CALL!
+ * 
+ * @param reader The context
+ * @param clazz The class we expect
+ * @return The object instance populated with all values from raw request
  * @author MTD
- *
  */
 public interface ParserEngine {
 
-    /**
-     * Invoke the parser and get back a Java object populated
-     * with the content of this request.
-     * 
-     * MUST BE THREAD SAFE TO CALL!
-     * 
-     * @param reader The context
-     * @param clazz The class we expect
-     * @return The object instance populated with all values from raw request
-     */
-    <T> T invoke(Reader reader, Class<T> clazz) throws Up.ParsableError;
+    //<T> T invoke(Reader reader, Class<T> clazz) throws Up.ParsableError;
     
-    <T> T invoke(InputStream stream, Class<T> clazz) throws Up.ParsableError;
+    //<T> T invoke(InputStream stream, Class<T> clazz) throws Up.ParsableError;
     
-    <T> T invoke(byte[] arr, Class<T> clazz) throws Up.ParsableError;
+    //<T> T invoke(byte[] arr, Class<T> clazz) throws Up.ParsableError;
+    
+    <T> T invoke(Parsable parsable, Class<T> clazz) throws Up.ParsableError;
+    
+    @SuppressWarnings("unchecked")
+    default <T> T invoke(Parsable parsable, ParameterizedType type) throws Up.ParsableError {
+        return invoke(parsable, (Class<T>) type.getRawType());
+    }
     
     /**
      * The content type this BodyParserEngine can handle
@@ -36,5 +39,11 @@ public interface ParserEngine {
      * 
      * @return the content type. this parser can handle - eg. "application/json"
      */
-    MediaType getContentType();
+    MediaType[] getContentType();
+    
+    interface Parsable {
+        byte[] bytes() throws IOException;
+        String text() throws IOException;
+        long length();
+    }
 }

@@ -1,9 +1,11 @@
 package net.javapla.jawn.core.util;
 
 import java.util.Collection;
+import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 import java.util.StringTokenizer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -281,4 +283,8 @@ public final class StringUtil {
         return uri;
     }
 
+    public static final Function<String, String> NOT_BLANK = v -> {
+        if (blank(v)) throw new NoSuchElementException();
+        return v;
+    };
 }

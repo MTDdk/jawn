@@ -1,8 +1,11 @@
 package net.javapla.jawn.core.util;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.Temporal;
 import java.util.Locale;
 import java.util.concurrent.Executor;
@@ -47,6 +50,13 @@ public abstract class DateUtil {
         return RFC1123_PATTERN_FORMAT.format(time);
     }
     
+    public static Instant fromDateString(final String date) throws DateTimeParseException {
+        return LocalDateTime
+            .parse(date, RFC1123_PATTERN_FORMAT)
+            .atOffset(ZoneOffset.UTC)
+            .toInstant();
+    }
+    
     public static void addDateHeaderIfRequired(final Context.Response response) {
         addDateHeaderIfRequired(ForkJoinPool.commonPool(), response);
     }
@@ -84,4 +94,5 @@ public abstract class DateUtil {
         }
         return dateString;
     }
+    
 }

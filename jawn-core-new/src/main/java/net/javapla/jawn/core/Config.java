@@ -66,6 +66,22 @@ public interface Config {
         return getIntOptionally(name).orElseThrow(exception.apply(name));
     }
     
+    default long getLong(final String name) throws NumberFormatException {
+        return Long.parseLong(get(name));
+    }
+    
+    default Optional<Long> getLongOptionally(final String name) {
+        try {
+            return Optional.of(getLong(name));
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
+    }
+    
+    default long getLongOrDie(final String name) throws RuntimeException {
+        return getLongOptionally(name).orElseThrow(exception.apply(name));
+    }
+    
     default boolean getBoolean(final String name) /*throws IllegalArgumentException*/ {
         return Boolean.parseBoolean(get(name));
     }
