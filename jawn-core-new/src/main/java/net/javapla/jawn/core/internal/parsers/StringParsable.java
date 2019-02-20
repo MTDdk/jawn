@@ -7,32 +7,33 @@ import java.nio.charset.StandardCharsets;
 import net.javapla.jawn.core.parsers.ParserEngine;
 
 public class StringParsable implements ParserEngine.Parsable {
-    
-    private final String s;
+    private final long length;
     private final Charset cs;
-
-    public StringParsable(final String s) {
-        this(s, StandardCharsets.UTF_8);
+    private final String text;
+    
+    public StringParsable(final String text) {
+        this(StandardCharsets.UTF_8, text);
     }
     
-    public StringParsable(final String s, final Charset cs) {
-        this.s = s;
+    public StringParsable(final Charset cs, final String text) {
+        this.length = text ==  null ? 0 : text.length();
         this.cs = cs;
-    }
-
-    @Override
-    public byte[] bytes() throws IOException {
-        return text().getBytes(cs);
-    }
-
-    @Override
-    public String text() throws IOException {
-        return s;
+        this.text = text;
     }
 
     @Override
     public long length() {
-        return s == null ? 0 : s.length();
+        return length;
     }
+
+    @Override
+    public byte[] bytes() throws IOException {
+        return text.getBytes(cs);
+    }
+
+    /*@Override
+    public String text() throws IOException {
+        return text;
+    }*/
 
 }

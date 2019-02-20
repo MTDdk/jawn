@@ -35,9 +35,9 @@ final class XmlParserEngine implements ParserEngine {
         } catch (IOException e) {
             throw new Up.ParsableError(e);
         }
-    }
+    }*/
     
-    @Override
+    /*@Override
     public <T> T invoke(byte[] arr, Class<T> clazz) throws Up.ParsableError {
         try {
             return mapper.readValue(arr, clazz);
@@ -47,9 +47,9 @@ final class XmlParserEngine implements ParserEngine {
     }*/
     
     @Override
-    public <T> T invoke(Parsable parsable, Class<T> clazz) throws ParsableError {
+    public <T> T invoke(Parsable parsable, Class<T> type) throws ParsableError {
         try {
-            return mapper.readValue(parsable.bytes(), clazz);
+            return mapper.readValue(parsable.bytes(), type);
         } catch (IOException e) {
             throw new Up.ParsableError(e);
         }

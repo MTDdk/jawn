@@ -3,19 +3,13 @@ package net.javapla.jawn.core.parsers;
 import static net.javapla.jawn.core.util.StringUtil.NOT_BLANK;
 
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.time.format.DateTimeParseException;
-import java.util.List;
+import java.util.EnumSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import com.google.inject.Singleton;
-import com.google.inject.util.Types;
 
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
@@ -26,25 +20,31 @@ import net.javapla.jawn.core.util.DateUtil;
 public class BasicParserEngine implements ParserEngine {
     
     private interface BasicParser {
-        Object parse(ParserEngine.Parsable parsable, Type type) throws Up.ParsableError;
-        boolean matches(Type type);
+        <T> T parse(Parsable parsable, Class<T> type) throws Throwable;
+        <T> boolean matches(Class<T> type);
     }
+    
     
     private enum Parsers implements BasicParser {
         Simple {
-            private final Map<Class<?>, Function<String, Object>> parsers = Map.of(
-                String.class, v -> v,
-                int.class, NOT_BLANK.andThen(Integer::valueOf),
-                Integer.class, NOT_BLANK.andThen(Integer::valueOf),
-                long.class, NOT_BLANK.andThen(this::toLong),
-                Long.class, NOT_BLANK.andThen(this::toLong)
-            );
+            private final Map<Class<?>, Function<String, Object>> parsers = 
+                Map.of(
+                    String.class,  v -> v,
+                    int.class,     NOT_BLANK.andThen(Integer::valueOf),
+                    Integer.class, NOT_BLANK.andThen(Integer::valueOf),
+                    long.class,    NOT_BLANK.andThen(this::toLong),
+                    Long.class,    NOT_BLANK.andThen(this::toLong),
+                    double.class,  NOT_BLANK.andThen(Double::valueOf),
+                    Double.class,  NOT_BLANK.andThen(Double::valueOf)
+                );
             
+            @SuppressWarnings("unchecked")
             @Override
-            public Object parse(Parsable parsable, Type type) throws Up.ParsableError {
+            public <T> T parse(Parsable parsable, Class<T> type) throws ParsableError {
                 try {
                     Function<String, Object> function = parsers.get(type);
-                    return function.apply(parsable.text());
+                    //return (T) function.apply(parsable.text());
+                    return (T) function.apply(new String(parsable.bytes()));
                 } catch (IOException e) {
                     throw new Up.ParsableError(e);
                 }
@@ -64,95 +64,66 @@ public class BasicParserEngine implements ParserEngine {
             }
             
             @Override
-            public boolean matches(Type type) {
+            public <T> boolean matches(Class<T> type) {
                 return parsers.containsKey(type);
             }
         },
-        Optional {
-            
-            @Override
-            public Object parse(Parsable parsable, Type type) {
-                if (parsable.length() == 0) return java.util.Optional.empty();
-                try {
-                    return java.util.Optional.ofNullable(Simple.parse(parsable, type));
-                }catch (Up.ParsableError e) {
-                    return java.util.Optional.empty();
-                }
-            }
-            
-            @Override
-            public boolean matches(Type type) {
-                return type == Optional.class;
-            }
-        },
         Bytes {
-
+            @SuppressWarnings("unchecked")
             @Override
-            public Object parse(Parsable parsable, Type type) throws ParsableError {
+            public <T> T parse(Parsable parsable, Class<T> type) throws ParsableError {
                 try {
-                    return parsable.bytes();
+                    return (T) parsable.bytes();
                 } catch (IOException e) {
                     throw new Up.ParsableError(e);
                 }
             }
 
             @Override
-            public boolean matches(Type type) {
+            public <T> boolean matches(Class<T> type) {
                 return type == byte[].class;
             }
             
-        },
-        Collection {
+        }, Enum {
 
-            private Map<Type, Supplier<java.util.Collection<?>>> collectionOfCollections = 
-                Map.of(
-                    List.class, java.util.ArrayList::new,
-                    Set.class, java.util.HashSet::new,
-                    SortedSet.class, java.util.TreeSet::new
-                );
-            
+            @SuppressWarnings({ "unchecked", "rawtypes" })
             @Override
-            public Object parse(Parsable parsable, Type type) throws Up.ParsableError {
-                //ParameterizedType pt = (ParameterizedType) type;
-                
-                //java.util.Collection<?> collection = collectionOfCollections.get(pt.getRawType()).get();
-                
-                //return collection;
-                throw new Up(500, "not implemented");
+            public <T> T parse(Parsable parsable, Class<T> type) throws Throwable {
+                Set<Enum> set = EnumSet.allOf((Class<? extends Enum>) type);
+                String value = new String(parsable.bytes());
+                return (T) set.stream()
+                    .filter(e -> e.name().equalsIgnoreCase(value))
+                    .findFirst()
+                    .orElseGet(() -> java.lang.Enum.valueOf((Class<? extends Enum>) type, value));
             }
 
             @Override
-            public boolean matches(Type type) {
-                return collectionOfCollections.containsKey(type);
+            public <T> boolean matches(Class<T> type) {
+                return Enum.class.isAssignableFrom(type);
             }
             
         }
-        
-        
     }
     
-    @SuppressWarnings("unchecked")
     @Override
-    public <T> T invoke(final Parsable parsable, final Class<T> clazz) throws Up.ParsableError {
-        return (T) invoke(parsable, Types.newParameterizedType(clazz));
-    }
-    
-    @SuppressWarnings("unchecked")
-    @Override
-    public Object invoke(final Parsable parsable, final ParameterizedType type) throws Up.ParsableError {
+    public <T> T invoke(Parsable parsable, Class<T> type) throws ParsableError {
         
-        Type type1 = type.getRawType();
-        if (Parsers.Simple.matches(type1)) {
-            return Parsers.Simple.parse(parsable, type1);
-        } else if (Parsers.Collection.matches(type1)) {
-            return Parsers.Collection.parse(parsable, type);
-        } else if (Parsers.Optional.matches(type1)) {
-            return Parsers.Optional.parse(parsable, type.getActualTypeArguments()[0]);
-        } else if (Parsers.Bytes.matches(type1)) {
-            return Parsers.Bytes.parse(parsable, type1);
+        try {
+            if (Parsers.Simple.matches(type)) {
+                return Parsers.Simple.parse(parsable, type);
+                
+            } else if (Parsers.Bytes.matches(type)) {
+                return Parsers.Bytes.parse(parsable, type);
+                
+            } else if (Parsers.Enum.matches(type)) {
+                return Parsers.Enum.parse(parsable, type);
+            }
+        } catch (Throwable e) {
+            throw new Up.ParsableError(e);
         }
         
         throw new Up.ParsableError("No parser for type " + type);
+        
     }
     
     @Override

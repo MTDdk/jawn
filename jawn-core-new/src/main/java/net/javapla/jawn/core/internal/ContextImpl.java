@@ -25,7 +25,7 @@ import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Value;
-import net.javapla.jawn.core.internal.parsers.BodyParsable;
+import net.javapla.jawn.core.internal.parsers.StreamParsable;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
@@ -144,7 +144,7 @@ final class ContextImpl implements Context {
                     int bufferSize = config.getInt("server.http.request.buffer_size");
                     
                     // body work
-                    return new ValueImpl(engine, type, new BodyParsable(length, cs, body, sreq.in(), bufferSize));
+                    return new ValueImpl(engine, type, new StreamParsable(length, body, sreq.in(), bufferSize));
                 }
                 
                 return new ValueImpl.Empty();
