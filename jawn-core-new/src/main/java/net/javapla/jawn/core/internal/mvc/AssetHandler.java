@@ -108,8 +108,7 @@ public class AssetHandler implements Handler {
             
             return context.req()
                 .header("If-Modified-Since")
-                .map(Long::parseLong)
-                .map(modifiedSince -> lastModified <= modifiedSince)
+                .map(Long.class, modifiedSince -> lastModified <= modifiedSince)
                 .orElse(false);
         }
         return false;

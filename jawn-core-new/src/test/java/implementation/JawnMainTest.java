@@ -20,8 +20,8 @@ public class JawnMainTest extends Jawn {
         get("/xml", Results.xml("<xml>teeeest</xml>"));
         get("/json", Results.json("{\"key\":\"teeeest\"}"));
         
-        get("/test", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(201));
-        post("/test/{dd}", ctx -> Results.text("teeeest :: " + ctx.param("dd").orElse("")).status(Status.ALREADY_REPORTED));
+        get("/test", ctx -> Results.text("teeeest :: " + ctx.param("dd").value("")).status(201));
+        post("/test/{dd}", ctx -> Results.text("teeeest :: " + ctx.param("dd").value("")).status(Status.ALREADY_REPORTED));
         
         get("/", Results.view()/*.path("system")*//*.template("404").layout(null)*/);
         

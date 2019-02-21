@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.Optional;
 import java.util.Set;
 
@@ -91,6 +93,14 @@ public class MultiList<T> {
      */
     public List<T> list(String param) {
         return parts.get(param);
+    }
+    
+    public <U> MultiList<U> map(Function<T, U> mapper) {
+        MultiList<U> newList = new MultiList<>();
+        
+        parts.forEach((key, oldList) -> newList.put(key, oldList.stream().map(mapper).collect(Collectors.toList())));
+        
+        return newList;
     }
     
     public boolean contains(String key) {

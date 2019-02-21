@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public interface Value {
     
@@ -45,10 +47,14 @@ public interface Value {
         return to(String.class);
     }
     
+    default String value(final String fallback) {
+        return toOptional(String.class).orElse(fallback);
+    }
+    
     default <T extends Enum<T>> T toEnum(final Class<T> type) {
         return to(type);
     }
-
+    
     <T> T to(Class<T> type);
     
     <T> T to(Class<T> type, MediaType mtype) throws Up.ParsableError;
@@ -90,6 +96,7 @@ public interface Value {
     
     default <T> Optional<T> toOptional(final Class<T> type) {
         if (type.isPrimitive()) throw new IllegalArgumentException("Primitive types are not allowed in type parameters: " + type);
+        if (!isPresent()) return Optional.empty();
         try {
             return Optional.ofNullable(to(type));
         } catch (Exception e) {
@@ -98,4 +105,32 @@ public interface Value {
     }
 
     boolean isPresent();
+    
+    default void ifPresent(final Consumer<String> action) {
+        if (isPresent()) {
+            action.accept(value());
+        }
+    }
+    
+    default <T> void ifPresent(final Class<T> type, Consumer<T> action) {
+        if (isPresent()) {
+            action.accept(to(type));
+        }
+    }
+    
+    default <U> Optional<U> map(Function<String, U> mapper) {
+        if (!isPresent()) {
+            return Optional.empty();
+        } else {
+            return Optional.ofNullable(mapper.apply(value()));
+        }
+    }
+    
+    default <T,U> Optional<U> map(Class<T> type, Function<T, ? extends U> mapper) {
+        if (!isPresent()) {
+            return Optional.empty();
+        } else {
+            return Optional.ofNullable(mapper.apply(to(type)));
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.internal;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
@@ -96,6 +97,15 @@ class ValueImpl implements Value {
     @Override
     public boolean isPresent() {
         return parsable.length() > 0;
+    }
+    
+    @Override
+    public String toString() {
+        try {
+            return new String(parsable.bytes());
+        } catch (IOException e) {
+            return parsable.toString();
+        }
     }
     
     private Map<Type, Supplier<java.util.Collection<?>>> collectionOfCollections = 

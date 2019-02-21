@@ -37,6 +37,7 @@ final class ContextImpl implements Context {
     
     private final Request req;
     private final Response resp;
+    private final ServerRequest sreq;
     private final ServerResponse sresp;
     private final Injector injector;
     private Route route;
@@ -47,6 +48,7 @@ final class ContextImpl implements Context {
     
     ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset, final DeploymentInfo deploymentInfo, final Injector injector) {
         this.injector = injector;
+        this.sreq = sreq;
         this.sresp = resp;
         
         this.req = new Context.Request() {
@@ -80,8 +82,8 @@ final class ContextImpl implements Context {
             }
             
             @Override
-            public Optional<String> header(final String name) {
-                return sreq.header(name);
+            public Value header(final String name) {
+                return ValueImpl.of(injector.getInstance(ParserEngineManager.class), Parsable.of(sreq.header(name)));
             }
             
             @Override
@@ -110,8 +112,8 @@ final class ContextImpl implements Context {
             }
             
             @Override
-            public Optional<String> queryParam(final String name) {
-                return sreq.queryParam(name);
+            public Value queryParam(final String name) {
+                return ValueImpl.of(injector.getInstance(ParserEngineManager.class), Parsable.of(sreq.queryParam(name)));
             }
             
             @Override
@@ -152,8 +154,6 @@ final class ContextImpl implements Context {
                         StreamUtil.saveTo(body, sreq.in());
                         return ValueImpl.of(engine, type, Parsable.of(length, body));
                     }
-                    
-                    //new ValueImpl(engine, type, new BytesParsable(length, body, sreq.in(), bufferSize));
                 }
                 
                 return ValueImpl.empty();
@@ -284,15 +284,21 @@ final class ContextImpl implements Context {
     }
     
     @Override
-    public Optional<String> param(final String name) {
-        return 
-            req.queryParam(name)
-                .or(() -> Optional
-                    .ofNullable(req.formData().first(name)).map(FormItem::value)
-                    .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name)))
-                )
-            ;
+    public Value param(final String name) {
+        return ValueImpl.of(injector.getInstance(ParserEngineManager.class), Parsable.of(sreq.queryParam(name)
+            .or(() -> Optional
+                .ofNullable(req.formData().first(name)).map(FormItem::value)
+                .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name)))
+            ))
+        );
     }
+    
+    /*public Value params() {
+        MultiList<String> queryParams = sreq.queryParams();
+        MultiList<Optional<String>> formData = req.formData().map(FormItem::value);
+        Stream.concat(queryParams, null)        
+        return null;
+    }*/
     
     @Override
     public void attribute(final String name, final Object value) {

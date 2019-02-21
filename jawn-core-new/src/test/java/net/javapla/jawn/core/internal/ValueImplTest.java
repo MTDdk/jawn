@@ -51,8 +51,8 @@ public class ValueImplTest {
         Value value = ValueImpl.of(engine, Parsable.of((String)null));
         assertThat(value.toOptional().isPresent()).isFalse();
         
-//        value = new ValueImpl(engine, new StringParsable(""));
-//        assertThat(value.toOptional().isPresent()).isFalse();
+        value = ValueImpl.of(engine, Parsable.of(""));
+        assertThat(value.toOptional().isPresent()).isFalse();
     }
 
     @Test
@@ -97,6 +97,26 @@ public class ValueImplTest {
     public void emptyList() {
         List<String> list = ValueImpl.of(engine, Parsable.of((String)null)).toList();
         assertThat(list).isEmpty();
+    }
+    
+    @Test
+    public void mapString() {
+        String otherValue = "true";
+        boolean result = ValueImpl.of(engine, Parsable.of("true")).map(otherValue::equals).orElse(false);
+        assertThat(result).isTrue();
+        
+        result = ValueImpl.of(engine, Parsable.of("false")).map(otherValue::equals).orElse(false);
+        assertThat(result).isFalse();
+    }
+    
+    @Test
+    public void convertAndMap() {
+        long lastModified = 1080;
+        boolean result = ValueImpl.of(engine, Parsable.of("1080")).map(Long.class, modifiedSince -> lastModified <= modifiedSince).orElse(false);
+        assertThat(result).isTrue();
+        
+        result = ValueImpl.of(engine, Parsable.of("640")).map(Long.class, modifiedSince -> lastModified <= modifiedSince).orElse(false);
+        assertThat(result).isFalse();
     }
     
     @Test

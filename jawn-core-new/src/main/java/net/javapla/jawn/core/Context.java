@@ -89,7 +89,7 @@ public interface Context /*extends Injection*/ {
         
         Charset charset();
         
-        Optional<String> header(String name);
+        Value header(String name);
         
         MultiList<String> headers();
         
@@ -99,7 +99,7 @@ public interface Context /*extends Injection*/ {
 
         MediaType contentType();
 
-        Optional<String> queryParam(String name);
+        Value queryParam(String name);
 
         MultiList<String> queryParams();
 
@@ -123,7 +123,7 @@ public interface Context /*extends Injection*/ {
 
     Request req();
     Response resp();
-    Optional<String> param(String name);
+    Value param(String name);
     void attribute(String name, Object value);
     Optional<Object> attribute(String name);
     <T> Optional<T> attribute(String name, Class<T> type);

@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public interface Parsable extends Iterable<Parsable> {
@@ -48,6 +49,9 @@ public interface Parsable extends Iterable<Parsable> {
         return new ListParsable(parsables);
     }
     
+    static Parsable of(final Optional<String> opt) {
+        return opt.map(StringParsable::new).orElse(new StringParsable());
+    }
     
     static class BytesParsable implements Parsable {
         
@@ -56,7 +60,7 @@ public interface Parsable extends Iterable<Parsable> {
         private File file;
         private byte[] bytes;
         
-        public BytesParsable(final byte[] bytes) {
+        BytesParsable(final byte[] bytes) {
             this.length = bytes.length;
             this.bytes = bytes;
         }
@@ -85,7 +89,7 @@ public interface Parsable extends Iterable<Parsable> {
         private final long length;
         private final File file;
         
-        public FileParsable(final long length, final File file) {
+        FileParsable(final long length, final File file) {
             this.length = length;
             this.file = file;
         }
@@ -107,11 +111,15 @@ public interface Parsable extends Iterable<Parsable> {
         private final Charset cs;
         private final String text;
         
-        public StringParsable(final String text) {
+        StringParsable() {
+            this(null);
+        }
+        
+        StringParsable(final String text) {
             this(StandardCharsets.UTF_8, text);
         }
         
-        public StringParsable(final Charset cs, final String text) {
+        StringParsable(final Charset cs, final String text) {
             this.length = text ==  null ? 0 : text.length();
             this.cs = cs;
             this.text = text;
@@ -132,7 +140,7 @@ public interface Parsable extends Iterable<Parsable> {
         
         private final List<Parsable> list;
         
-        public ListParsable(List<Parsable> parsables) {
+        ListParsable(List<Parsable> parsables) {
             this.list = parsables;
         }
 
