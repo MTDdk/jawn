@@ -17,7 +17,7 @@ import net.javapla.jawn.core.Up.ParsableError;
 import net.javapla.jawn.core.util.DateUtil;
 
 @Singleton
-public class BasicParserEngine implements ParserEngine {
+final class BasicParserEngine implements ParserEngine {
     
     private interface BasicParser {
         <T> T parse(Parsable parsable, Class<T> type) throws Throwable;
@@ -40,14 +40,9 @@ public class BasicParserEngine implements ParserEngine {
             
             @SuppressWarnings("unchecked")
             @Override
-            public <T> T parse(Parsable parsable, Class<T> type) throws ParsableError {
-                try {
-                    Function<String, Object> function = parsers.get(type);
-                    //return (T) function.apply(parsable.text());
-                    return (T) function.apply(new String(parsable.bytes()));
-                } catch (IOException e) {
-                    throw new Up.ParsableError(e);
-                }
+            public <T> T parse(Parsable parsable, Class<T> type) throws IOException {
+                Function<String, Object> function = parsers.get(type);
+                return (T) function.apply(new String(parsable.bytes()));
             }
             
             private Long toLong(final String value) {
@@ -71,12 +66,8 @@ public class BasicParserEngine implements ParserEngine {
         Bytes {
             @SuppressWarnings("unchecked")
             @Override
-            public <T> T parse(Parsable parsable, Class<T> type) throws ParsableError {
-                try {
-                    return (T) parsable.bytes();
-                } catch (IOException e) {
-                    throw new Up.ParsableError(e);
-                }
+            public <T> T parse(Parsable parsable, Class<T> type) throws IOException {
+                return (T) parsable.bytes();
             }
 
             @Override
@@ -85,10 +76,9 @@ public class BasicParserEngine implements ParserEngine {
             }
             
         }, Enum {
-
             @SuppressWarnings({ "unchecked", "rawtypes" })
             @Override
-            public <T> T parse(Parsable parsable, Class<T> type) throws Throwable {
+            public <T> T parse(Parsable parsable, Class<T> type) throws IOException  {
                 Set<Enum> set = EnumSet.allOf((Class<? extends Enum>) type);
                 String value = new String(parsable.bytes());
                 return (T) set.stream()
@@ -101,7 +91,6 @@ public class BasicParserEngine implements ParserEngine {
             public <T> boolean matches(Class<T> type) {
                 return Enum.class.isAssignableFrom(type);
             }
-            
         }
     }
     

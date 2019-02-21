@@ -25,12 +25,13 @@ import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Value;
-import net.javapla.jawn.core.internal.parsers.StreamParsable;
+import net.javapla.jawn.core.parsers.Parsable;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
 import net.javapla.jawn.core.util.MultiList;
+import net.javapla.jawn.core.util.StreamUtil;
 
 final class ContextImpl implements Context {
     
@@ -136,18 +137,26 @@ final class ContextImpl implements Context {
                     Config config = injector.getInstance(Config.class);
                     ParserEngineManager engine = injector.getInstance(ParserEngineManager.class);
                     
-                    // TODO TMPdir is also used in server implementations and should be a part of Config instead
-                    String tmp = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/).toString();
-                    File body = new File(tmp, Integer.toHexString(System.identityHashCode(this)));
-                    addFile(body);
-                    
+                    // body work
                     int bufferSize = config.getInt("server.http.request.buffer_size");
                     
-                    // body work
-                    return new ValueImpl(engine, type, new StreamParsable(length, body, sreq.in(), bufferSize));
+                    if (length < bufferSize) {
+                        return ValueImpl.of(engine, type, Parsable.of(StreamUtil.bytes(sreq.in())));
+                        
+                    } else {
+                        // TODO TMPdir is also used in server implementations and should be a part of Config instead
+                        String tmp = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/).toString();
+                        File body = new File(tmp, Integer.toHexString(System.identityHashCode(this)));
+                        addFile(body);
+                        
+                        StreamUtil.saveTo(body, sreq.in());
+                        return ValueImpl.of(engine, type, Parsable.of(length, body));
+                    }
+                    
+                    //new ValueImpl(engine, type, new BytesParsable(length, body, sreq.in(), bufferSize));
                 }
                 
-                return new ValueImpl.Empty();
+                return ValueImpl.empty();
             }
             
             @Override

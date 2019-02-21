@@ -39,7 +39,7 @@ import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringBuilderWriter;
 
 @Singleton
-public final class StringTemplateTemplateEngine implements TemplateRendererEngine<ST> {
+final class StringTemplateTemplateEngine implements TemplateRendererEngine<ST> {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private static final String TEMPLATE_ENDING = ".st";

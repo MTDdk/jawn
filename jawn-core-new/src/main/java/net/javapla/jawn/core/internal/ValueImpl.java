@@ -14,6 +14,7 @@ import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Up.ParsableError;
 import net.javapla.jawn.core.Value;
+import net.javapla.jawn.core.parsers.Parsable;
 import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 
@@ -23,18 +24,18 @@ class ValueImpl implements Value {
     
     private final ParserEngineManager engines;
     private final MediaType type;
-    private final ParserEngine.Parsable parsable;
+    private final Parsable parsable;
 
-    public ValueImpl(final ParserEngineManager manager, final ParserEngine.Parsable parsable) {
+    public ValueImpl(final ParserEngineManager manager, final Parsable parsable) {
         this(manager, MediaType.PLAIN, parsable);
     }
     
-    public ValueImpl(final ParserEngineManager manager, final MediaType type, final ParserEngine.Parsable parsable) {
+    public ValueImpl(final ParserEngineManager manager, final MediaType type, final Parsable parsable) {
         this.engines = manager;
         this.type = type;
         this.parsable = parsable;
     }
-
+    
     @Override
     public <C extends Collection<T>, T> C toCollection(Class<T> type, Class<C> collectionType) throws ParsableError {
         return toCollection(type, collectionType, this.type);
@@ -92,6 +93,7 @@ class ValueImpl implements Value {
         return object;
     }
     
+    @Override
     public boolean isPresent() {
         return parsable.length() > 0;
     }
@@ -105,6 +107,20 @@ class ValueImpl implements Value {
     private boolean isCollection(Type type) {
         return collectionOfCollections.containsKey(type);
     }
+    
+    
+    static Value of(final ParserEngineManager manager, final Parsable parsable) {
+        return new ValueImpl(manager, parsable);
+    }
+    
+    static Value of(final ParserEngineManager manager, final MediaType type, final Parsable parsable) {
+        return new ValueImpl(manager, type, parsable);
+    }
+
+    static Value empty() {
+        return new Empty();
+    }
+    
 
     static class Empty implements Value {
 
@@ -127,5 +143,12 @@ class ValueImpl implements Value {
         public <C extends Collection<T>, T> C toCollection(Class<T> type, Class<C> collectionType, MediaType mtype) throws ParsableError {
             throw new Up(Status.BAD_REQUEST);
         }
+        
+        @Override
+        public boolean isPresent() {
+            return false;
+        }
     }
+    
+    
 }

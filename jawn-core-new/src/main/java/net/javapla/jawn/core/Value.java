@@ -97,4 +97,5 @@ public interface Value {
         }
     }
 
+    boolean isPresent();
 }
