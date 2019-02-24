@@ -8,8 +8,13 @@ import java.util.SortedSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public interface Value {
+public interface Value { // SimpleValue
     
+    interface ComplexValue extends Value {
+        <T> T to(Class<T> type, MediaType mtype) throws Up.ParsableError;
+        
+        <C extends Collection<T>, T> C toCollection(Class<T> type, Class<C> collectionType, MediaType mtype) throws Up.ParsableError;
+    }
     
     default boolean booleanValue() {
         return to(boolean.class);
@@ -57,11 +62,7 @@ public interface Value {
     
     <T> T to(Class<T> type);
     
-    <T> T to(Class<T> type, MediaType mtype) throws Up.ParsableError;
-    
     <C extends Collection<T>, T> C toCollection(Class<T> type, Class<C> collectionType) throws Up.ParsableError;
-    
-    <C extends Collection<T>, T> C toCollection(Class<T> type, Class<C> collectionType, MediaType mtype) throws Up.ParsableError;
     
     default List<String> toList() {
         return toList(String.class);

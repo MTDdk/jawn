@@ -1,5 +1,7 @@
 package net.javapla.jawn.core.parsers;
 
+import java.io.InputStream;
+
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
 
@@ -16,7 +18,10 @@ import net.javapla.jawn.core.Up;
  */
 public interface ParserEngine {
 
-    <T> T invoke(Parsable parsable, Class<T> type) throws Up.ParsableError;
+    //<T> T invoke(Parsable parsable, Class<T> type) throws Up.ParsableError;
+    
+    <T> T invoke(byte[] arr, Class<T> type) throws Up.ParsableError;
+    <T> T invoke(InputStream stream, Class<T> type) throws Up.ParsableError;
     
     /**
      * The content type this BodyParserEngine can handle

@@ -29,8 +29,8 @@ class ParserEngineManagerImpl implements ParserEngineManager {
     @Inject
     public ParserEngineManagerImpl(
                    final Provider<JsonParserEngine>  json,
-                   final Provider<XmlParserEngine>   xml,
-                   final Provider<BasicParserEngine> basic) {
+                   final Provider<XmlParserEngine>   xml/*,
+                   final Provider<BasicParserEngine> basic*/) {
         
         
         Map<MediaType, Provider<? extends ParserEngine>> map = new HashMap<>();
@@ -39,7 +39,7 @@ class ParserEngineManagerImpl implements ParserEngineManager {
         // custom bindings
         mapEngine(map, json);
         mapEngine(map, xml);
-        mapEngine(map, basic);
+        //mapEngine(map, basic);
         
         this.contentTypeToParserMap = Collections.unmodifiableMap(map);
         

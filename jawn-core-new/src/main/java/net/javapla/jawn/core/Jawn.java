@@ -219,6 +219,18 @@ public class Jawn implements Route.Filtering, Injection {
         return _addRoute(HttpMethod.OPTIONS, path, handler);
     }
     
+    // PATH
+    protected void path(final String rootPath) {
+        /**
+         * path("/api/v1/", () -> {
+         *  get("/{id}", ctx -> ... );
+         *  get"/", ctx -> ... );
+         *  post("/", ctx -> ... ); 
+         * });
+         */
+        //TOOD
+    }
+    
     private Route.Filtering _addRoute(HttpMethod method, String path, Handler handler) {
         return routesAndFilters.computeIfAbsent(new Route.Builder(method).path(path).handler(handler), c -> new RouteFilterPopulator());
     }

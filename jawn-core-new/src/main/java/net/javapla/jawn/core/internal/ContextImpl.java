@@ -83,7 +83,7 @@ final class ContextImpl implements Context {
             
             @Override
             public Value header(final String name) {
-                return ValueImpl.of(injector.getInstance(ParserEngineManager.class), Parsable.of(sreq.header(name)));
+                return ValueImpl.of(/*injector.getInstance(ParserEngineManager.class), */Parsable.of(sreq.header(name)));
             }
             
             @Override
@@ -113,7 +113,7 @@ final class ContextImpl implements Context {
             
             @Override
             public Value queryParam(final String name) {
-                return ValueImpl.of(injector.getInstance(ParserEngineManager.class), Parsable.of(sreq.queryParam(name)));
+                return ValueImpl.of(/*injector.getInstance(ParserEngineManager.class), */Parsable.of(sreq.queryParam(name)));
             }
             
             @Override
@@ -143,7 +143,7 @@ final class ContextImpl implements Context {
                     int bufferSize = config.getInt("server.http.request.buffer_size");
                     
                     if (length < bufferSize) {
-                        return ValueImpl.of(engine, type, Parsable.of(StreamUtil.bytes(sreq.in())));
+                        return ComplexValueImpl.of(engine, type, Parsable.of(StreamUtil.bytes(sreq.in()), cs));
                         
                     } else {
                         // TODO TMPdir is also used in server implementations and should be a part of Config instead
@@ -152,7 +152,7 @@ final class ContextImpl implements Context {
                         addFile(body);
                         
                         StreamUtil.saveTo(body, sreq.in());
-                        return ValueImpl.of(engine, type, Parsable.of(length, body));
+                        return ComplexValueImpl.of(engine, type, Parsable.of(length, body, cs));
                     }
                 }
                 
@@ -285,7 +285,7 @@ final class ContextImpl implements Context {
     
     @Override
     public Value param(final String name) {
-        return ValueImpl.of(injector.getInstance(ParserEngineManager.class), Parsable.of(sreq.queryParam(name)
+        return ValueImpl.of(/*injector.getInstance(ParserEngineManager.class), */Parsable.of(sreq.queryParam(name)
             .or(() -> Optional
                 .ofNullable(req.formData().first(name)).map(FormItem::value)
                 .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name)))

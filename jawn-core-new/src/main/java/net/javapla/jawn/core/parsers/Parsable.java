@@ -16,7 +16,7 @@ public interface Parsable extends Iterable<Parsable> {
     
     long length();
     byte[] bytes() throws IOException;
-    //String text() throws IOException;
+    String text() throws IOException;
     
     @Override
     default Iterator<Parsable> iterator() {
@@ -24,11 +24,11 @@ public interface Parsable extends Iterable<Parsable> {
     }
     
     
-    static Parsable of(final byte[] bytes) {
-        return new BytesParsable(bytes);
+    static Parsable of(final byte[] bytes, final Charset cs) {
+        return new BytesParsable(bytes, cs);
     }
-    static Parsable of(final long length, final File file) {
-        return new FileParsable(length, file);
+    static Parsable of(final long length, final File file, final Charset cs) {
+        return new FileParsable(length, file, cs);
     }
     static Parsable of(final String text) {
         return new StringParsable(text);
@@ -56,13 +56,14 @@ public interface Parsable extends Iterable<Parsable> {
     static class BytesParsable implements Parsable {
         
         private final long length;
+        private final byte[] bytes;
+        private final Charset cs;
+
         
-        private File file;
-        private byte[] bytes;
-        
-        BytesParsable(final byte[] bytes) {
+        BytesParsable(final byte[] bytes, final Charset cs) {
             this.length = bytes.length;
             this.bytes = bytes;
+            this.cs = cs;
         }
         
         @Override
@@ -72,26 +73,25 @@ public interface Parsable extends Iterable<Parsable> {
 
         @Override
         public byte[] bytes() throws IOException {
-            if (bytes == null)
-                return Files.readAllBytes(file.toPath());
             return bytes;
         }
 
-        /*@Override
+        @Override
         public String text() throws IOException {
-            if (bytes != null) return new String(bytes, cs);
-            return new String(bytes(), cs);
-        }*/
+            return new String(bytes, cs);
+        }
     }
     
     static class FileParsable implements Parsable {
         
         private final long length;
         private final File file;
+        private final Charset cs;
         
-        FileParsable(final long length, final File file) {
+        FileParsable(final long length, final File file, final Charset cs) {
             this.length = length;
             this.file = file;
+            this.cs = cs;
         }
 
         @Override
@@ -102,6 +102,11 @@ public interface Parsable extends Iterable<Parsable> {
         @Override
         public byte[] bytes() throws IOException {
             return Files.readAllBytes(file.toPath());
+        }
+        
+        @Override
+        public String text() throws IOException {
+            return new String(bytes(), cs);
         }
 
     }
@@ -134,6 +139,11 @@ public interface Parsable extends Iterable<Parsable> {
         public byte[] bytes() throws IOException {
             return text.getBytes(cs);
         }
+        
+        @Override
+        public String text() throws IOException {
+            return text;
+        }
     }
     
     static class ListParsable implements Parsable {
@@ -157,6 +167,11 @@ public interface Parsable extends Iterable<Parsable> {
         @Override
         public byte[] bytes() throws IOException {
             return list.get(0).bytes();
+        }
+
+        @Override
+        public String text() throws IOException {
+            return list.get(0).text();
         }
 
     }
