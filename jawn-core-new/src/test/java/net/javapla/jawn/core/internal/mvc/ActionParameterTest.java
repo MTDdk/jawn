@@ -43,7 +43,7 @@ public class ActionParameterTest {
         Parameter param = action("lookItUp", Long.class).getParameters()[0];
         ActionParameter actionParameter = new ActionParameter(param, "lmgtfy");
         
-        Value value = TestValueFactory.of("400");
+        Value value = Value.of("400");
         
         Context context = mock(Context.class);
         when(context.param("lmgtfy")).thenReturn(value);
@@ -60,7 +60,7 @@ public class ActionParameterTest {
         ActionParameter actionParameter = new ActionParameter(param, "lmgtfy");
         System.out.println(actionParameter);
         
-        Value value = TestValueFactory.of("400", "cookie", "value");
+        Value value = Value.of("400", "cookie", "value");
         
         Context context = mock(Context.class);
         when(context.param("lmgtfy")).thenReturn(value);

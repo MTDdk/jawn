@@ -83,7 +83,7 @@ final class ContextImpl implements Context {
             
             @Override
             public Value header(final String name) {
-                return ValueImpl.of(/*injector.getInstance(ParserEngineManager.class), */Parsable.of(sreq.header(name)));
+                return Value.of(sreq.header(name));
             }
             
             @Override
@@ -113,7 +113,7 @@ final class ContextImpl implements Context {
             
             @Override
             public Value queryParam(final String name) {
-                return ValueImpl.of(/*injector.getInstance(ParserEngineManager.class), */Parsable.of(sreq.queryParam(name)));
+                return Value.of(sreq.queryParam(name));
             }
             
             @Override
@@ -153,10 +153,12 @@ final class ContextImpl implements Context {
                         
                         StreamUtil.saveTo(body, sreq.in());
                         return ComplexValueImpl.of(engine, type, Parsable.of(length, body, cs));
+                        
+                        // Create a Body (kind of Value)
                     }
                 }
                 
-                return ValueImpl.empty();
+                return Value.empty();
             }
             
             @Override
@@ -285,10 +287,10 @@ final class ContextImpl implements Context {
     
     @Override
     public Value param(final String name) {
-        return ValueImpl.of(/*injector.getInstance(ParserEngineManager.class), */Parsable.of(sreq.queryParam(name)
+        return Value.of(sreq.queryParam(name)
             .or(() -> Optional
                 .ofNullable(req.formData().first(name)).map(FormItem::value)
-                .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name)))
+                .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name))
             ))
         );
     }

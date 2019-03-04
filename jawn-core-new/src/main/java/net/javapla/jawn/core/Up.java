@@ -24,6 +24,9 @@ public class Up extends RuntimeException {
         public ParsableError(final String message) {
             super(Status.UNSUPPORTED_MEDIA_TYPE, message);
         }
+        public ParsableError(final String message, final Throwable err) {
+            super(Status.UNSUPPORTED_MEDIA_TYPE, message, err);
+        }
     }
     
     public static class RenderableError extends Up {
@@ -40,6 +43,18 @@ public class Up extends RuntimeException {
         public ViewError(final String message) {
             super(Status.SERVER_ERROR, message);
         } 
+    }
+    
+    public static class BadRequest extends Up {
+        public BadRequest() {
+            super(Status.BAD_REQUEST);
+        }
+        public BadRequest(final String msg) {
+            super(Status.BAD_REQUEST, msg);
+        }
+        public BadRequest(final String msg, final Throwable err) {
+            super(Status.BAD_REQUEST, msg, err);
+        }
     }
     
     public static class BadResult extends Up {

@@ -28,7 +28,7 @@ public class ParserEngineMangerTest {
         //System.out.println(new ObjectMapper().writeValueAsString(new T("test")));
         
         ParserEngine json = engine.getParserEngineForContentType(MediaType.JSON);
-        T t = json.invoke(Parsable.of(("{\"test\":\"test\"}")), T.class);
+        T t = json.invoke("{\"test\":\"test\"}".getBytes(), T.class);
         
         assertThat(t).isNotNull();
         assertThat(t.test).isEqualTo("test");
@@ -39,7 +39,7 @@ public class ParserEngineMangerTest {
         //System.out.println(new XmlMapper().writeValueAsString(new T("test")));
         
         ParserEngine xml = engine.getParserEngineForContentType(MediaType.XML);
-        T t = xml.invoke(Parsable.of(("<T><test>test</test></T>")), T.class);
+        T t = xml.invoke("<T><test>test</test></T>".getBytes(), T.class);
         
         assertThat(t).isNotNull();
         assertThat(t.test).isEqualTo("test");

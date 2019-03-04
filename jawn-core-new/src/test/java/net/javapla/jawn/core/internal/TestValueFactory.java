@@ -13,15 +13,15 @@ import net.javapla.jawn.core.parsers.ParserEngineManager;
  */
 public class TestValueFactory {
 
-    public static Value of(String param) {
-        return ValueImpl.of(/*Guice.createInjector().getInstance(ParserEngineManager.class), */Parsable.of(param));
-    }
-    
-    public static Value of(String ... param) {
-        return ValueImpl.of(/*Guice.createInjector().getInstance(ParserEngineManager.class), */Parsable.of(param));
-    }
-    
-    public static Value of(byte[] bytes) {
-        return ComplexValueImpl.of(Guice.createInjector().getInstance(ParserEngineManager.class), Parsable.of(bytes, StandardCharsets.UTF_8));
-    }
+//    public static Value of(String param) {
+//        return ValueImpl.of(/*Guice.createInjector().getInstance(ParserEngineManager.class), */Parsable.of(param));
+//    }
+//    
+//    public static Value of(String ... param) {
+//        return ValueImpl.of(/*Guice.createInjector().getInstance(ParserEngineManager.class), */Parsable.of(param));
+//    }
+//    
+//    public static Value of(byte[] bytes) {
+//        return ComplexValueImpl.of(Guice.createInjector().getInstance(ParserEngineManager.class), Parsable.of(bytes, StandardCharsets.UTF_8));
+//    }
 }
