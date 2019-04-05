@@ -1,13 +1,10 @@
 package net.javapla.jawn.core.internal;
 
-import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,7 +12,6 @@ import java.util.stream.Collectors;
 
 import com.google.inject.Injector;
 
-import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.DeploymentInfo;
@@ -25,13 +21,12 @@ import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Value;
-import net.javapla.jawn.core.parsers.Parsable;
+import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
 import net.javapla.jawn.core.util.MultiList;
-import net.javapla.jawn.core.util.StreamUtil;
 
 final class ContextImpl implements Context {
     
@@ -44,7 +39,7 @@ final class ContextImpl implements Context {
     
     private final HashMap<String, Cookie> cookies = new HashMap<>();
     private HashMap<String, Object> attributes;
-    private LinkedList<File> files;
+    //private LinkedList<File> files;
     
     ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset, final DeploymentInfo deploymentInfo, final Injector injector) {
         this.injector = injector;
@@ -132,33 +127,30 @@ final class ContextImpl implements Context {
             }
             
             @Override
-            public Value body() throws Exception {
+            public String body() throws Exception {
+                return body(String.class);
+            }
+            
+            @Override
+            public <T> T body(final Class<T> type) throws Exception {
                 long length = length();
+                
                 if (length > 0) {
-                    MediaType type = contentType();
-                    Config config = injector.getInstance(Config.class);
-                    ParserEngineManager engine = injector.getInstance(ParserEngineManager.class);
+                    ParserEngineManager engineManager = injector.getInstance(ParserEngineManager.class);
+                    ParserEngine engine = engineManager.getParserEngineForContentType(contentType());
                     
-                    // body work
-                    int bufferSize = config.getInt("server.http.request.buffer_size");
-                    
-                    if (length < bufferSize) {
-                        return ComplexValueImpl.of(engine, type, Parsable.of(StreamUtil.bytes(sreq.in()), cs));
+                    if (engine == null) {
+                        return Value.of(new String(sreq.bytes(), cs)).to(type);
                         
-                    } else {
-                        // TODO TMPdir is also used in server implementations and should be a part of Config instead
-                        String tmp = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/).toString();
-                        File body = new File(tmp, Integer.toHexString(System.identityHashCode(this)));
-                        addFile(body);
-                        
-                        StreamUtil.saveTo(body, sreq.in());
-                        return ComplexValueImpl.of(engine, type, Parsable.of(length, body, cs));
-                        
-                        // Create a Body (kind of Value)
+                        // sreq.bytes()/in() might be empty
+                        // Clearly we got some body data at this point, but content-type might just be (unknowingly) wrongly set.
+                        // Probably should tell the implementor about this..
                     }
+                    
+                    return engine.invoke(sreq.in(), type);
                 }
                 
-                return Value.empty();
+                return Value.of(new String(sreq.bytes(), cs)).to(type);
             }
             
             @Override
@@ -287,12 +279,15 @@ final class ContextImpl implements Context {
     
     @Override
     public Value param(final String name) {
-        return Value.of(sreq.queryParam(name)
-            .or(() -> Optional
-                .ofNullable(req.formData().first(name)).map(FormItem::value)
-                .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name))
-            ))
-        );
+        return 
+            Value.of(
+                sreq.queryParam(name)
+                    .or(() -> 
+                        Optional
+                        .ofNullable(req.formData().first(name)).map(FormItem::value)
+                        .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name))
+                    ))
+            );
     }
     
     /*public Value params() {
@@ -337,7 +332,7 @@ final class ContextImpl implements Context {
         return Optional.ofNullable(route);
     }
     
-    // TODO could probably just as well be handled by ResultRunner
+    // README could probably just as well be handled by ResultRunner
     void readyResponse(final Result result) {
         if (sresp.committed()) return;
         
@@ -370,9 +365,9 @@ final class ContextImpl implements Context {
     }
     
     void done() {
-        if (files != null) {
+        /*if (files != null) {
             files.forEach(File::delete);
-        }
+        }*/
     }
     
     private void writeCookies() {
@@ -386,8 +381,8 @@ final class ContextImpl implements Context {
     private void instantiateAttributes() {
         if (attributes == null) attributes = new HashMap<>(5);
     }
-    private void addFile(final File file) {
+    /*private void addFile(final File file) {
         if (files == null) files = new LinkedList<>();
         files.add(file);
-    }
+    }*/
 }

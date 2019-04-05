@@ -3,9 +3,7 @@ package net.javapla.jawn.core.internal;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Value;
@@ -19,6 +17,11 @@ public class ValueParser {
         
     }
     
+    public static Object to(Value value, Type type) {
+        return value(value, parameterizedType0(type), type);
+    }
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static <T> Object value(Value value, Class<T> raw, Type type) {
         // is this really enough as long as we are comparing java.lang.* ?
         if (raw == String.class) return value.value();
@@ -29,14 +32,19 @@ public class ValueParser {
         
         if (Enum.class.isAssignableFrom(raw)) return value.toEnum((Class<? extends Enum>) raw);
         
-        if (List.class.isAssignableFrom(raw)) {
+        // Should not be necessary as long as we have Value#toList + #toSet
+        /*if (List.class.isAssignableFrom(raw)) {
             return toCollection(value, parameterizedType0(type), new ArrayList<T>());
         }
+        if (Set.class.isAssignableFrom(raw)) {
+            return toCollection(value, parameterizedType0(type), new LinkedHashSet<T>());
+        }*/
         
         
         throw new Up.ParsableError("No parser for type " + raw);
     }
     
+    @SuppressWarnings("unchecked")
     public static <C extends Collection<T>, T> C toCollection(Value value, Class<T> type, Collection<T> collection) {
         for (Value v : value) {
             if (value.isPresent())
@@ -46,9 +54,10 @@ public class ValueParser {
         return (C) collection;
     }
     
-    private static Class parameterizedType0(Type type) {
+    @SuppressWarnings("unused")
+    private static Class<?> parameterizedType0(Type type) {
         if (type instanceof Class) {
-          return (Class) type;
+          return (Class<?>) type;
         } else if (type instanceof ParameterizedType) {
           ParameterizedType parameterizedType = (ParameterizedType) type;
           return parameterizedType0(parameterizedType.getActualTypeArguments()[0]);

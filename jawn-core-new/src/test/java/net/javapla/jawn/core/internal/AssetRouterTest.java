@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.mvc;
+package net.javapla.jawn.core.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -17,6 +17,7 @@ import net.javapla.jawn.core.Assets;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Route.Builder;
+import net.javapla.jawn.core.internal.AssetRouter;
 
 public class AssetRouterTest {
     

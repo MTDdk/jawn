@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.mvc;
+package net.javapla.jawn.core.internal;
 
 import java.io.File;
 import java.io.FileInputStream;

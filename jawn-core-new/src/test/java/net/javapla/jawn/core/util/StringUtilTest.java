@@ -1,6 +1,8 @@
 package net.javapla.jawn.core.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,5 +42,12 @@ public class StringUtilTest {
         StringUtil.split(input, '&', arr::add);
         assertEquals(Arrays.toString(StringUtil.split(input, '&')), arr.toString());
         arr.clear();
+    }
+    
+    @Test
+    public void blank() {
+        assertTrue(StringUtil.blank(""));
+        assertTrue(StringUtil.blank(" "));
+        assertFalse(StringUtil.blank("false"));
     }
 }

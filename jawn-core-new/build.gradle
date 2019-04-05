@@ -75,7 +75,7 @@ dependencies {
   //Test
   //testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.2' // should be extracted into top-level build.gradle
   testCompile 'org.mockito:mockito-core:2.23.4'
-  testCompile ('com.google.truth:truth:0.42')  {
+  testCompile ('com.google.truth:truth:0.43')  {
     exclude module: 'guava' // We import it elsewhere to be concise in the versioning
     exclude module: 'junit'
   }

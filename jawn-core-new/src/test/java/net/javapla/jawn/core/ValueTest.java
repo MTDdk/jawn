@@ -1,23 +1,19 @@
-package net.javapla.jawn.core.internal;
+package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
-import net.javapla.jawn.core.Up;
-import net.javapla.jawn.core.Value;
-import net.javapla.jawn.core.parsers.Parsable;
-
-public class ValueImplTest {
+public class ValueTest {
 
     @Test
     public void asString() {
-        Value value = Value.of("4000");//ValueImpl.of(Parsable.of("4000"));//new ValueImpl(engine, new StringParsable("4000"));
+        Value value = Value.of("4000");
         
         assertThat(value.value()).isEqualTo("4000");
         
@@ -28,7 +24,7 @@ public class ValueImplTest {
     
     @Test
     public void asOptional() {
-        Value value = Value/*Impl*/.of(("4000"));
+        Value value = Value.of("4000");
         Optional<String> optional = value.toOptional();
         
         assertThat(optional).isInstanceOf(Optional.class);
@@ -36,75 +32,89 @@ public class ValueImplTest {
     }
     
     @Test
+    public void asTypedOptional() {
+        Value value = Value.of("4000");
+        Optional<Long> optional = value.toOptional(long.class);
+        
+        assertThat(optional).isInstanceOf(Optional.class);
+        assertThat(optional.get()).isEqualTo(4000);
+    }
+    
+    @Test
     public void emptyOptional() {
-        Value value = Value/*Impl*/.of(((String)null));
+        Value value = Value.of((String)null);
         assertThat(value.toOptional().isPresent()).isFalse();
         
-        value = Value/*Impl*/.of((""));
+        value = Value.of("");
         assertThat(value.toOptional().isPresent()).isFalse();
     }
 
     @Test
     public void asDouble() {
-        Value value = Value/*Impl*/.of(("4000.3"));
-        
+        Value value = Value.of("4000.3");
         assertThat(value.doubleValue()).isEqualTo(4000.3);
     }
     
     @Test
+    public void asLong() {
+        Value value = Value.of("4000000004");
+        assertThat(value.longValue()).isEqualTo(4_000_000_004l);
+    }
+    
+    @Test
     public void withFallback() {
-        Value value = Value/*Impl*/.of(("4000.3"));
-        
+        Value value = Value.of("4000.3");
         assertThat(value.intValue(333)).isEqualTo(333);
     }
     
     @Test(expected = Up.ParsableError.class)
     public void unparsable() {
-        Value value = Value/*Impl*/.of(("false"));
+        Value value = Value.of("false");
         value.intValue();
     }
     
-    /*@Test(expected = IllegalArgumentException.class)
+    @Ignore(value = "It is no longer illegal to use primitive types")
+    @Test(expected = IllegalArgumentException.class)
     public void primitiveNotAllowedAsGeneric() {
-        Value value = ValueImpl.of(Parsable.of("4000"));
+        Value value = Value.of("4000");
         value.toOptional(int.class);
-    }*/
+    }
     
     @Test
     public void asStringList() {
-        List<String> list = Value/*Impl*/.of("aa", "bb").toList();//new ValueImpl(engine, new ListParsable("aa", "bb")).toList();
+        List<String> list = Value.of("aa", "bb").toList();//new ValueImpl(engine, new ListParsable("aa", "bb")).toList();
         assertThat(list).containsExactly("aa", "bb");
     }
     
     @Test
     public void asStringSet() {
-        Set<String> set = Value/*Impl*/.of("aa", "bb", "bb", "cc").toSet();
+        Set<String> set = Value.of("aa", "bb", "bb", "cc").toSet();
         assertThat(set).containsExactly("aa", "bb", "cc");
     }
     
     @Test
     public void emptyList() {
-        List<String> list = Value/*Impl*/.of(((String)null)).toList();
+        List<String> list = Value.of(((String)null)).toList();
         assertThat(list).isEmpty();
     }
     
     @Test
     public void mapString() {
         String otherValue = "true";
-        boolean result = Value/*Impl*/.of("true").map(otherValue::equals).orElse(false);
+        boolean result = Value.of("true").map(otherValue::equals).orElse(false);
         assertThat(result).isTrue();
         
-        result = Value/*Impl*/.of("false").map(otherValue::equals).orElse(false);
+        result = Value.of("false").map(otherValue::equals).orElse(true);
         assertThat(result).isFalse();
     }
     
     @Test
     public void convertAndMap() {
         long lastModified = 1080;
-        boolean result = Value/*Impl*/.of("1080").mapLong(modifiedSince -> lastModified <= modifiedSince).orElse(false);
+        boolean result = Value.of("1080").map(long.class, modifiedSince -> lastModified <= modifiedSince).orElse(false);
         assertThat(result).isTrue();
         
-        result = Value/*Impl*/.of("640").mapLong(modifiedSince -> lastModified <= modifiedSince).orElse(false);
+        result = Value.of("640").map(long.class, modifiedSince -> lastModified <= modifiedSince).orElse(false);
         assertThat(result).isFalse();
     }
     

@@ -2,7 +2,6 @@ package net.javapla.jawn.core.internal.mvc;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -23,6 +22,7 @@ import com.google.inject.Provider;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
+import net.javapla.jawn.core.internal.reflection.ClassMeta;
 import net.javapla.jawn.core.mvc.GET;
 import net.javapla.jawn.core.mvc.Path;
 
@@ -46,29 +46,34 @@ public class MvcMethodHandlerTest {
     @Test
     public void contextParameter() {
         // setup
+        ActionParameterProvider actionParameterProvider = new ActionParameterProvider(new ClassMeta());
+        
         Injector injector = mock(Injector.class);
         when(injector.getProvider(Key.get(MethodParams.class))).thenReturn((Provider<MethodParams>) () -> new MethodParams());
         
         Context context = mock(Context.class);
-        when(context.attribute(anyString())).thenReturn(Optional.of("test"));
+        when(context.attribute("testAttr")).thenReturn(Optional.of("test"));
         
         @SuppressWarnings("unchecked")
-        Consumer<Method[]> c = mock(Consumer.class);
+        Consumer<Method[]> callback = mock(Consumer.class);
+        
         
         doAnswer(AdditionalAnswers.answerVoid((Method[] methods) -> {
+            
             // the actual work
-            MvcMethodHandler handler = new MvcMethodHandler( methods[0], MethodParams.class, mock(ActionParameterProvider.class), injector);
+            MvcMethodHandler handler = new MvcMethodHandler( methods[0], MethodParams.class, actionParameterProvider, injector);
             Result result = handler.handle(context);
             assertThat(result).isNotNull();
             assertThat(result.renderable().get()).isEqualTo("testtest".getBytes());
-        })).when(c).accept(any(Method[].class));
+            
+        })).when(callback).accept(any(Method[].class));
         
         
         // execute
-        MvcRouter.methods(MethodParams.class, c);
+        MvcRouter.methods(MethodParams.class, callback);
         
         // verify
-        verify(c, times(1)).accept(any(Method[].class));
+        verify(callback, times(1)).accept(any(Method[].class));
     }
 
     
@@ -86,7 +91,8 @@ public class MvcMethodHandlerTest {
     static class MethodParams {
         @GET
         public Result test(Context context) {
-            return Results.text(context.attribute("").map(att -> att + "test").orElse("nothing"));
+            // appends "test" onto the result from context.attribute()
+            return Results.text(context.attribute("testAttr").map(att -> att + "test").orElse("nothing"));
         }
     }
 }

@@ -1,9 +1,7 @@
 package net.javapla.jawn.core.internal.mvc;
 
-import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.List;
 
 import com.google.inject.Injector;
@@ -66,30 +64,39 @@ public class MvcMethodHandler implements Route.MethodHandler {
         
         // execute
         try {
-            return _handleReturnType(method.invoke(injector.getProvider(key).get(), _provideParameters(method, context)));
+            final Object controller = injector.getProvider(key).get();
+            final Object[] actionParameters = _provideParameters(method, context);
+            final Object result = method.invoke(controller, actionParameters);
+            
+            return _handleReturnType(result);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             //return Results.error();
             throw new Up.RenderableError(e);
         }
     }
     
+    /**
+     * Provide implementations for parameters for the MVC actions
+     * @param action
+     * @param context
+     * @return
+     */
     //might be its own class
     private Object[] _provideParameters(final Method action, final Context context) {
-        List<ActionParameter> params = provider.parameters(action);
+        final List<ActionParameter> params = provider.parameters(action);
         
-        
-        Parameter[] parameters = action.getParameters();
-        
-        if (parameters.length == 1 && parameters[0].getType() == Context.class) return new Object[] {context};
-        
-        /*if (parameters.length == 0)*/ return new Object[0];
-        
-        
-//        Object[] arguments = new Object[parameters.length];
-//        return arguments;
+        final Object[] arguments = new Object[params.size()];
+        for (int i = 0; i < arguments.length; i++) {
+            try {
+                arguments[i] = params.get(i).value(context);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+        return arguments;
     }
     
-    private Result _handleReturnType(Object result) {
+    private Result _handleReturnType(final Object result) {
 //        ViewController view = routeClass.getAnnotation(ViewController.class);
         
         

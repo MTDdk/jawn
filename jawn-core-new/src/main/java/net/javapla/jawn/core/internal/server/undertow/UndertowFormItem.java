@@ -60,5 +60,10 @@ final class UndertowFormItem implements FormItem {
     public String contentType() {
         return value.getHeaders().getFirst(HttpString.tryFromString("Content-Type"));
     }
+    
+    @Override
+    public String toString() {
+        return value().toString();
+    }
 
 }

@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.server;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -11,6 +10,7 @@ import java.util.concurrent.Executor;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.util.MultiList;
+import net.javapla.jawn.core.util.StreamUtil;
 
 public interface ServerRequest {
     
@@ -61,8 +61,7 @@ public interface ServerRequest {
      */
     default byte[] bytes() throws IOException {
         try (InputStream stream = in()) {
-            ByteArrayOutputStream array = new ByteArrayOutputStream(stream.available());
-            return array.toByteArray();
+            return StreamUtil.bytes(stream);
         }
     }
     

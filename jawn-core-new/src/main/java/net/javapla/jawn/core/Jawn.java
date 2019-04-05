@@ -2,8 +2,10 @@ package net.javapla.jawn.core;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -14,10 +16,10 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 
+import net.javapla.jawn.core.internal.AssetRouter;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.RouteFilterPopulator;
 import net.javapla.jawn.core.internal.mvc.ActionParameterProvider;
-import net.javapla.jawn.core.internal.mvc.AssetRouter;
 import net.javapla.jawn.core.internal.mvc.MvcFilterPopulator;
 import net.javapla.jawn.core.internal.reflection.ClassFactory;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
@@ -37,9 +39,10 @@ public class Jawn implements Route.Filtering, Injection {
     private final ServerConfig.Impl serverConfig;
     private final Assets.Impl assets;
     
-    private final HashMap<Route.Builder, RouteFilterPopulator> routesAndFilters;
+    private final Map<Route.Builder, RouteFilterPopulator> routesAndFilters;
     private final RouteFilterPopulator globalFilters;
     private final HashMap<String, MvcFilterPopulator> mvcFilters;
+    private final LinkedList<String> pathPrefix = new LinkedList<>();
     
     private Modes mode = Modes.DEV;
 
@@ -48,7 +51,7 @@ public class Jawn implements Route.Filtering, Injection {
         serverConfig = new ServerConfig.Impl();
         assets = new Assets.Impl();
         
-        routesAndFilters = new HashMap<>();
+        routesAndFilters = new LinkedHashMap<>(); // to maintain insertion order
         globalFilters = new RouteFilterPopulator();
         mvcFilters = new HashMap<>();
     }
@@ -220,20 +223,33 @@ public class Jawn implements Route.Filtering, Injection {
     }
     
     // PATH
-    protected void path(final String rootPath) {
-        /**
-         * path("/api/v1/", () -> {
-         *  get("/{id}", ctx -> ... );
-         *  get"/", ctx -> ... );
-         *  post("/", ctx -> ... ); 
-         * });
-         */
-        //TOOD
+    /**
+     * path("/api/v1/", () -> {
+     *  get("/{id}", ctx -> ... );
+     *  get"/", ctx -> ... );
+     *  post("/", ctx -> ... ); 
+     * });
+     */
+    protected Jawn path(final String rootPath, final Runnable routes) {
+        pathPrefix.addLast(rootPath);
+        routes(routes);
+        pathPrefix.removeLast();
+        return this;
+    }
+    
+    protected Jawn routes(final Runnable routes) {
+        routes.run();
+        return this;
     }
     
     private Route.Filtering _addRoute(HttpMethod method, String path, Handler handler) {
-        return routesAndFilters.computeIfAbsent(new Route.Builder(method).path(path).handler(handler), c -> new RouteFilterPopulator());
+        return routesAndFilters.computeIfAbsent(new Route.Builder(method).path(_pathPrefix(path)).handler(handler), c -> new RouteFilterPopulator());
     }
+    
+    private String _pathPrefix(final String path) {
+        return pathPrefix.stream().collect(Collectors.joining("","", path));
+    }
+    
     
     // ****************
     // Filters

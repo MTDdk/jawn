@@ -3,7 +3,6 @@ package net.javapla.jawn.core;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -15,21 +14,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import net.javapla.jawn.core.internal.ValueParser;
-import net.javapla.jawn.core.parsers.Parsable;
-import net.javapla.jawn.core.parsers.Parsable.StringParsable;
 import net.javapla.jawn.core.util.DateUtil;
 import net.javapla.jawn.core.util.StringUtil;
 
 public interface Value extends Iterable<Value> { // SimpleValue
-    
-    interface ComplexValue extends Value {
-        <T> T to(Class<T> type, MediaType mtype) throws Up.ParsableError;
-        
-        <C extends Collection<T>, T> C toCollection(Class<T> type, Class<C> collectionType, MediaType mtype) throws Up.ParsableError;
-    }
     
     /**
      * {@link Boolean#parseBoolean(String)} always returns either <code>true</code> or <code>false</code>
@@ -41,7 +30,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
      * @return
      */
     default boolean booleanValue() {
-        return simpleValue(Boolean::parseBoolean, boolean.class);
+        return Boolean.parseBoolean(value());
     }
     
     default double doubleValue() {
@@ -62,6 +51,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
     }
     
     default int intValue(final int fallback) {
+        //return map((s) -> (Integer::parseInt)).orElse(fallback);
         try {
             return intValue();
         } catch (Up.ParsableError e) {
@@ -82,10 +72,15 @@ public interface Value extends Iterable<Value> { // SimpleValue
     }
     
     default long longValue(final long fallback) {
-        return toOptional().map(Long::parseLong).orElse(fallback);
+        try {
+            return longValue();
+        } catch (Up.ParsableError e) {
+            return fallback;
+        }
+        //return toOptional().map(Long::parseLong).orElse(fallback);
     }
     
-    private <T> T simpleValue(Function<String, T> callback, Class<T> type) {
+    private <T extends Number> T simpleValue(final Function<String, T> callback, Class<T> type) {
         try {
             return callback.apply(value());
         } catch (NumberFormatException e) {
@@ -93,8 +88,6 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
-    @Nonnull
-    String value();
     
     @Override
     default Iterator<Value> iterator() {
@@ -118,9 +111,9 @@ public interface Value extends Iterable<Value> { // SimpleValue
         return ValueParser.to(this, type);
     }
     
-    /*<T> T to(Class<T> type);
-    
-    <C extends Collection<T>, T> C toCollection(Class<T> type, Class<C> collectionType) throws Up.ParsableError;*/
+    /*default Object to(Type type) {
+        return ValueParser.to(this, type);
+    }*/
     
     default List<String> toList() {
         if (isPresent())
@@ -130,11 +123,10 @@ public interface Value extends Iterable<Value> { // SimpleValue
     
     
     default <T> List<T> toList(final Class<T> type) {
-        return ValueParser.toCollection(this, type, new ArrayList<T>());//toCollection(type, List.class);
+        return ValueParser.toCollection(this, type, new ArrayList<T>());
     }
     
     default Set<String> toSet() {
-        //return toSet(String.class);
         return Collections.singleton(value());
     }
     
@@ -143,6 +135,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
     }
     
     default Optional<String> toOptional() {
+        if (!isPresent()) return Optional.empty();
         try {
             return Optional.of(value());
         } catch (Exception e) {
@@ -160,6 +153,8 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
+    String value();
+
     boolean isPresent();
     
     default void ifPresent(final Consumer<String> action) {
@@ -168,11 +163,11 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
-    /*default <T> void ifPresent(final Class<T> type, Consumer<T> action) {
+    default <T> void ifPresent(final Class<T> type, Consumer<T> action) {
         if (isPresent()) {
             action.accept(to(type));
         }
-    }*/
+    }
     
     default <U> Optional<U> map(Function<String, U> mapper) {
         if (!isPresent()) {
@@ -190,7 +185,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
-    default <U> Optional<U> mapBoolean(Function<Boolean, U> mapper) {
+    /*default <U> Optional<U> mapBoolean(Function<Boolean, U> mapper) {
         if (!isPresent()) {
             return Optional.empty();
         } else {
@@ -220,7 +215,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
         } else {
             return Optional.ofNullable(mapper.apply(longValue()));
         }
-    }
+    }*/
     
     static Value of(final String value) {
         return new StringValue(value);
@@ -266,7 +261,9 @@ public interface Value extends Iterable<Value> { // SimpleValue
         
         @Override
         public String toString() {
-            return super.toString();
+            return value != null
+                ? String.format("StringValue[%s]", value)
+                : "Value.empty";
         }
     }
     

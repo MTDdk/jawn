@@ -15,6 +15,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 public class StreamUtil {
+    
+    public static final int _4KB = 4096;
+    public static final int _8KB = 8192;
+    public static final int _16KB = 16384;
 
     /**
      * Reads contents of the input stream fully and returns it as byte array.
@@ -28,11 +32,13 @@ public class StreamUtil {
         if(in == null)
             throw new IllegalArgumentException("input stream cannot be null");
 
-        ByteArrayOutputStream bout = new ByteArrayOutputStream(1024);
-        byte[] bytes = new byte[1024];
+        ByteArrayOutputStream bout = new ByteArrayOutputStream(_16KB);
+        byte[] bytes = new byte[_16KB];
 
-        for (int x = in.read(bytes); x != -1; x = in.read(bytes))
-            bout.write(bytes, 0, x);
+        int read;
+        while ((read = in.read(bytes, 0, bytes.length)) != -1) {
+            bout.write(bytes, 0, read);
+        }
 
         return bout.toByteArray();
     }
@@ -64,7 +70,7 @@ public class StreamUtil {
             throw new IllegalArgumentException("input stream cannot be null");
 
         InputStreamReader reader = new InputStreamReader(in, charset);
-        char[] buffer = new char[1024];
+        char[] buffer = new char[_16KB];
         StringBuilder sb = new StringBuilder();
 
         for (int x = reader.read(buffer); x != -1; x = reader.read(buffer)) {
@@ -106,7 +112,7 @@ public class StreamUtil {
     
     public static void copy(final InputStream in, final OutputStream out) throws IOException {
         try (out) {
-            byte[] buff = new byte[8192];
+            byte[] buff = new byte[_8KB];
             for (int x = in.read(buff); x != -1; x = in.read(buff)) {
                 out.write(buff, 0, x);
             }

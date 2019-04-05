@@ -112,12 +112,14 @@ public interface Context /*extends Injection*/ {
          * @return The HTTP body
          * @throws Exception If body can't be converted or there is no HTTP body.
          */
-        Value body() throws Exception;
+        String body() throws Exception;
+        <T> T body(Class<T> type) throws Exception;
 
         /**
          * @return The length, in bytes, of the request body and made available by the input stream, or -1 if the length is not known
          */
         long length();
+
     }
     
 
