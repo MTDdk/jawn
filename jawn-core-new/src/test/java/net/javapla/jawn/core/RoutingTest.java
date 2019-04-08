@@ -33,12 +33,13 @@ public class RoutingTest {
             j.get("/first", Results.ok());
             j.post("/second", Results.ok());
             j.put("/third", Results.ok());
+            j.delete("/fourth", Results.noContent());
         });
         
         List<Route> routes = j.buildRoutes(injector);
         
-        assertThat(routes).hasSize(3);
-        assertThat(routes).comparingElementsUsing(routePathComparer).containsExactly("/prefix/first","/prefix/second","/prefix/third");
+        assertThat(routes).hasSize(4);
+        assertThat(routes).comparingElementsUsing(routePathComparer).containsExactly("/prefix/first","/prefix/second","/prefix/third","/prefix/fourth");
     }
     
     @Test

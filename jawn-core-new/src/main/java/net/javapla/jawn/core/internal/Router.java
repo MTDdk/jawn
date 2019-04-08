@@ -63,9 +63,9 @@ final class Router {
         return route;
     }
     
-    Router compileRoutes(List<Route> routes) {
+    Router compileRoutes(final List<Route> routes) {
         
-        for (Route route : routes) {
+        for (final Route route : routes) {
             if (route.isUrlFullyQualified()) {
                 trie.insert(route.path(), route);
             } else {
@@ -111,13 +111,12 @@ final class Router {
                 if(child == null) {
                     child = new TrieNode(c);
                     current.nodes[c] = child;
-                    current.end = false;
                 }
                 current = child;
             }
             current.routes[route.method().ordinal()] = route;
             current.routes[HttpMethod.HEAD.ordinal()] = route;
-            current.hasRoute = true;
+            current.end = true;
         }
         
         public boolean startsWith(final String input) {
@@ -237,8 +236,7 @@ final class Router {
             final TrieNode[] nodes;
             final char content;
             final Route[] routes; // a route can exist for GET,POST,PUT,etc
-            boolean end = true;
-            boolean hasRoute = false;
+            boolean end = false;
             
             TrieNode(char c) {
                 //nodes = new SearchTrie[255];//extended ascii
@@ -258,7 +256,7 @@ final class Router {
             
             public Route get(HttpMethod method) throws Up.RouteFoundWithDifferentMethod {
                 if (routes[method.ordinal()] == null) {
-                    if (hasRoute) throw new Up.RouteFoundWithDifferentMethod(method);
+                    if (end) throw new Up.RouteFoundWithDifferentMethod(method);
                 }
                 return routes[method.ordinal()];
             }
