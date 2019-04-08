@@ -96,19 +96,23 @@ public class Jawn implements Route.Filtering, Injection {
     }
     
     //MVC route classes
-    protected Route.Filtering mvc(final Class<?> routeClass) {
+    protected Route.Filtering controller(final Class<?> routeClass) {
         return mvcFilters.computeIfAbsent(routeClass.getName(), s -> new MvcFilterPopulator(routeClass));
+    }
+    
+    /**
+     * Look for MVC controllers within this package.
+     * @param packagePath
+     */
+    protected void controllers(final String packagePath) {
+        ClassLocator locator = new ClassLocator(packagePath);
+        locator.foundClasses().forEach(this::controller);
     }
     
     /**
      * Look for MVC controllers within this package.
      * @param path
      */
-    protected void controllers(final String packagePath) {
-        ClassLocator locator = new ClassLocator(packagePath);
-        locator.foundClasses().stream().forEach(this::mvc);
-    }
-    
     protected void controllers(final Package path) {
         controllers(path.getName());
     }
@@ -287,7 +291,7 @@ public class Jawn implements Route.Filtering, Injection {
     // ****************
     @Override
     public <T> T require(Key<T> key) {
-        checkState(bootstrap./*started()*/getInjector() != null, "App has not started yet");
+        checkState(bootstrap.getInjector() != null, "App has not started yet");
         return bootstrap.getInjector().getInstance(key);
     }
     
