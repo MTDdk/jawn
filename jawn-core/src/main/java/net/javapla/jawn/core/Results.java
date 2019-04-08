@@ -1,67 +1,89 @@
 package net.javapla.jawn.core;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
+import java.text.MessageFormat;
 
-import net.javapla.jawn.core.Result.NoHttpBody;
-
-public class Results {
+public abstract class Results {
     
-    public static final Result status(int status) {
-        return new Result(status);
+    public static Result status(final Status status) {
+        return new Result().status(status);
     }
+    
+    public static Result status(final int status) {
+        return status(Status.valueOf(status));
+    }
+    
     public static Result ok() {
-        return status(Status.OK.getStatusCode());
+        return status(Status.OK);
     }
+    
     public static Result noContent() {
-        return status(Status.NO_CONTENT.getStatusCode()).renderable(new NoHttpBody());
+        return status(Status.NO_CONTENT);
     }
-    public static Result noBody(int status) {
-        return status(status).renderable(new NoHttpBody());
+    
+    public static Result redirect(final String location) {
+        return redirect(Status.FOUND, location);
     }
+    
+    public static Result temporaryRedirect(final String location) {
+        return redirect(Status.TEMPORARY_REDIRECT, location);
+    }
+    
+    public static Result moved(final String location) {
+        return redirect(Status.MOVED_PERMANENTLY, location);
+    }
+    
+    public static Result seeOther(final String location) {
+        return redirect(Status.SEE_OTHER, location);
+    }
+    
     public static Result notFound() {
-        return status(Status.NOT_FOUND.getStatusCode()).renderable(new NoHttpBody());
-    }
-    public static Result unauthorized() {
-        return status(Status.UNAUTHORIZED.getStatusCode()).renderable(new NoHttpBody());
-    }
-    public static Result internalServerError() {
-        return status(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-    /** 302 (Found) */
-    static Result redirect() {
-        return status(Status.FOUND.getStatusCode()).renderable(new NoHttpBody());
-    }
-    /** 302 (Found) */
-    public static Result redirect(String location) {
-        return redirect().addHeader("Location", location);
+        return status(Status.NOT_FOUND);
     }
     
-    public static Result html() {
-        return ok().contentType(MediaType.TEXT_HTML);
-    }
-    public static Result text() {
-        return ok().contentType(MediaType.TEXT_PLAIN);
-    }
-    public static Result text(String t) {
-        return ok().contentType(MediaType.TEXT_PLAIN).renderable(t);
-    }
-    public static Result text(byte[] t) {
-        return ok().contentType(MediaType.TEXT_PLAIN).renderable(t);
-    }
-    public static Result xml() {
-        return ok().contentType(MediaType.APPLICATION_XML);
-    }
-    public static Result json() {
-        return ok().contentType(MediaType.APPLICATION_JSON);
-    }
-    public static Result json(Object o) {
-        return ok().contentType(MediaType.APPLICATION_JSON).renderable(o);
+    public static Result error() {
+        return status(Status.SERVER_ERROR);
     }
     
-    public static final Result gzip() {
-        return null; //TODO
+    
+    public static View view() {
+        return new View();
     }
     
-    //TODO asynchronous responses
+    public static Result json(final Object entity) {
+        return ok().renderable(entity).contentType(MediaType.JSON);
+    }
+    
+    public static Result xml(final Object entity) {
+        return ok().renderable(entity).contentType(MediaType.XML);
+    }
+    
+    public static Result text(final Object entity) {
+        if (entity instanceof String) {
+            // TODO weeee might want to use getBytes(Charset)..
+            return ok().renderable(((String) entity).getBytes()).contentType(MediaType.PLAIN);
+        }
+        return ok().renderable(entity).contentType(MediaType.PLAIN);
+    }
+    
+    /**
+     * This method will send the text to a client verbatim. It will not use any layouts. Use it to build app.services
+     * and to support AJAX.
+     * 
+     * @param text A string containing &quot;{index}&quot;, like so: &quot;Message: {0}, error: {1}&quot;
+     * @param objects A varargs of objects to be put into the <code>text</code>
+     * @return {@link Result}, to accept additional information.
+     * @see MessageFormat#format
+     */
+    public static Result text(String text, Object...objects) {
+        return text(MessageFormat.format(text, objects));
+    }
+    
+    public static Result ok(final Object entity) {
+        return ok().renderable(entity);
+    }
+
+    
+    private static Result redirect(final Status status, final String location) {
+        return status(status).header("location", location);
+    }
 }

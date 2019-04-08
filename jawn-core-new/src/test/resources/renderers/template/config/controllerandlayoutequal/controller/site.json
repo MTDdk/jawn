@@ -1,9 +1,0 @@
-{
-    "scripts": [
-        "videoscript.js"
-    ],
-
-	"styles": [
-		"voting.css"
-	]
-}

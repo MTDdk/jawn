@@ -1,7 +1,5 @@
 package net.javapla.jawn.core.util;
 
-import java.nio.charset.StandardCharsets;
-
 public interface Constants {
 
     /**
@@ -31,16 +29,6 @@ public interface Constants {
     public static final String SUPPORTED_LANGUAGES = "languages";
     
     /**
-     * The defined encoding used for all responses
-     */
-    public static final String DEFINED_ENCODING = "encoding";
-    
-    /**
-     * Default framework encoding = UTF-8
-     */
-    public static final String DEFAULT_ENCODING = StandardCharsets.UTF_8.displayName();
-    
-    /**
      * Name of the framework (used in response headers)
      */
     public static final String FRAMEWORK_NAME = "java-web-planet / jawn";
@@ -60,11 +48,11 @@ public interface Constants {
 /* ************** 
  *   Properties
  * ************** */
-    String PROPERTIES_FILE_DEFAULT = "jawn_defaults.properties"; // Standard in the resources
+    String PROPERTIES_FILE_FRAMEWORK = "jawn_defaults.properties"; // Standard in the resources
     String PROPERTIES_FILE_USER = "jawn.properties"; // Overrides standard 
     
-    String PROPERTY_APPLICATION_BASE_PACKAGE = "application.base_package"; // TODO should be configurable in Jawn#basePackage
-    String PROPERTY_APPLICATION_PLUGINS_PACKAGE = "application.plugins_package";
+    //String PROPERTY_APPLICATION_BASE_PACKAGE = "application.base.package"; // TODO should be configurable in Jawn#basePackage
+    String PROPERTY_APPLICATION_PLUGINS_PACKAGE = "application.plugins.package";
     
     String PROPERTY_CACHE_IMPLEMENTATION = "cache.implementation";
     String PROPERTY_CACHE_DEFAULT_EXPIRATION = "cache.default_expiration";
@@ -84,5 +72,5 @@ public interface Constants {
      * This might need to be this way, as the System properties *can* have some of the same keys.
      * So always prepend with something application specific.
      */
-    static final String SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE = "jawn." + PROPERTY_APPLICATION_BASE_PACKAGE;
+    //static final String SYSTEM_PROPERTY_APPLICATION_BASE_PACKAGE = "jawn." + PROPERTY_APPLICATION_BASE_PACKAGE;
 }

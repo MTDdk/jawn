@@ -1,48 +1,57 @@
 package net.javapla.jawn.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
+import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.Test;
 
-import app.controllers.UnitTestController;
-import net.javapla.jawn.core.exceptions.RouteException;
-import net.javapla.jawn.core.reflection.ActionInvoker;
-import net.javapla.jawn.core.routes.Route;
-import net.javapla.jawn.core.routes.RouteBuilder;
+import net.javapla.jawn.core.Route.Chain;
 
 public class RouteBuilderTest {
 
+    @Test(expected = IllegalArgumentException.class)
+    public void emptyPath() {
+        new Route.Builder(HttpMethod.GET).path("");
+    }
+    
+    @Test(expected = NullPointerException.class)
+    public void nullPath() {
+        String s = null;
+        new Route.Builder(HttpMethod.GET).path(s);
+    }
 
-    @Test(expected=RouteException.class)
-    public void should_throw_because_action_not_found() {
-        RouteBuilder.get().route("/").to(UnitTestController.class, "getNothing").build(new FiltersHandler(), mock(ActionInvoker.class));
+    @Test(expected = NullPointerException.class)
+    public void nullPathBuild() {
+        new Route.Builder(HttpMethod.GET).build(); 
     }
     
     @Test
-    public void should_return_route() {
-        Route route = RouteBuilder.get().to(UnitTestController.class, "getSimple").route("/different/path").build(new FiltersHandler(), mock(ActionInvoker.class));
+    public void filterGivesBeforeAndAfter() {
+        Route route = new Route
+            .Builder(HttpMethod.POST)
+            .path("/")
+            .filter(new Route.Filter() {
+                @Override
+                public Result before(Context context, Chain chain) {
+                    return chain.next();
+                }
+                
+                @Override
+                public Result after(Context context, Result result) {
+                    return null;
+                }
+            }).build();
         
-        assertNotNull(route);
-        assertEquals("getSimple", route.getAction());
+        assertThat(route.before()).isNotNull();
+        assertThat(route.after()).isNotNull();
     }
     
     @Test
-    public void should_mapToUnderscoreActionName() {
-        Route route = RouteBuilder.get().to(UnitTestController.class, "getLongerAction").route("/different/path").build(new FiltersHandler(), mock(ActionInvoker.class));
-        
-        assertNotNull(route);
-        assertEquals("getLongerAction", route.getAction());
-        assertEquals("longer_action", route.getActionName());
-        
-        route = RouteBuilder.get().to(UnitTestController.class, "getSimpleTestAction").route("/different/path").build(new FiltersHandler(), mock(ActionInvoker.class));
-        assertEquals("getSimpleTestAction", route.getAction());
-        assertEquals("simple_test_action", route.getActionName());
+    public void emptyBefores() {
+        assertThat(new Route.Builder(HttpMethod.GET).path("/").build().before()).isNull();
     }
-
-    @Test(expected=RouteException.class)
-    public void strippingTheWrongHttpMethod_should_resultInFailure() {
-        RouteBuilder.post().to(UnitTestController.class, "getLongerAction").build(new FiltersHandler(), mock(ActionInvoker.class));
+    
+    @Test
+    public void emptyAfters() {
+        assertThat(new Route.Builder(HttpMethod.GET).path("/").build().after()).isNull();
     }
 }

@@ -2,135 +2,146 @@ package net.javapla.jawn.core.server;
 
 import java.net.ServerSocket;
 
-public class ServerConfig {
+public interface ServerConfig {
     
     /**
      * Default value is the same as for {@link ServerSocket#bind(java.net.SocketAddress, int)}
      * @see ServerSocket#bind(java.net.SocketAddress, int)
      */
-    public static final int BACKLOG_DEFAULT = 50; 
+    public static final int BACKLOG_DEFAULT = -1;//50; 
     
     /**
      * Holds default values for common performance modes.
      * 
      * <p><code>HIGHEST</code> Sets the server to use best configuration for highest possible performance
-     * <p><code>HIGH</code> Sets the server to use configuration for high performance
-     * <p><code>MEDIUM</code> 
-     * <p><code>MINIMAL</code>
+     * <p><code>MINIMUM</code>
      * <p><code>CUSTOM</code> Use the user-inputted configuration, like {@link ServerConfig#ioThreads(int)}
      *
      */
-    public enum PERFORMANCE_MODE { HIGHEST(10_000), HIGH(1024), MEDIUM(256), LOW(50), CUSTOM(BACKLOG_DEFAULT);
+    public enum Performance { HIGHEST(8192), MINIMUM(50), CUSTOM(BACKLOG_DEFAULT);
         private final int backlog;
-        private PERFORMANCE_MODE(final int backlog) {
+        private Performance(final int backlog) {
             this.backlog = backlog;
         }
         public int getBacklogValue() { return backlog; }
     }
     
-    private String contextPath = "";
-    private int port = 8080;
-    
-    /** The source folder to read templates from */
-    private String webapp = "src/main/webapp";
-    private String host = "0.0.0.0";
-    
-    private int ioThreads = 1;
-    
-    private PERFORMANCE_MODE performance = PERFORMANCE_MODE.MEDIUM;
-    private int backlog = 0;
-    private boolean backlogSet = false;
-    
-    /**
-     * @return empty string, if no context path is specified;
-     *         otherwise the input context path, guaranteed to start with '/'
-     */
-    public String contextPath() {
-        return contextPath;
-    }
-    public ServerConfig contextPath(String contextPath) {
-        if (contextPath.charAt(0) != '/') this.contextPath = '/' + contextPath;
-        else this.contextPath = contextPath;
-        return this;
-    }
-    
-    public int port() {
-        return port;
-    }
-    public ServerConfig port(int port) {
-        this.port = port;
-        return this;
-    }
-    
-    public String webappPath() {
-        return webapp;
-    }
-    public ServerConfig webappPath(String webapp) {
-        this.webapp = webapp;
-        return this;
-    }
-    
-    public int ioThreads() {
-        return ioThreads;
-    }
-    /**
-     * Automatically set server performance to PERFORMANCE_MODE#CUSTOM
-     * @param number
-     * @return this for chaining
-     */
-    public ServerConfig ioThreads(int number) {
-        this.performance = PERFORMANCE_MODE.CUSTOM;
+    final class Impl implements ServerConfig {
         
-        if (number > 0)
-            this.ioThreads = number;
         
-        return this;
-    }
-    
-    /**
-     * Sets the backlog value for the ServerSocket.
-     * 
-     * @see ServerSocket#bind(java.net.SocketAddress, int)
-     * @param backlog
-     * @return this for chaining
-     */
-    public ServerConfig backlog(int backlog) {
-        this.backlog = backlog;
-        backlogSet = true;
-        return this;
-    }
-    public int backlog() {
-        return backlogSet ? backlog : performance.getBacklogValue();
-    }
-    
-    public PERFORMANCE_MODE serverPerformance() {
-        return performance;
-    }
-    public ServerConfig serverPerformance(PERFORMANCE_MODE mode) {
-        this.performance = mode;
-        return this;
+        private String contextPath = "";
+        private int port = 8080;
+        
+        /** The source folder to read templates from */
+        private String webapp = "src/main/webapp";//TODO read from configuration
+        private String host = "0.0.0.0";
+        
+        private int ioThreads = 1;
+        
+        private Performance performance = Performance.MINIMUM;
+        private int backlog = -1;
+        
+        
+        public int port() {
+            return port;
+        }
+        
+        @Override
+        public ServerConfig port(int port) {
+            this.port = port;
+            return this;
+        }
+
+        /**
+         * @return empty string, if no context path is specified;
+         *         otherwise the input context path, guaranteed to start with '/'
+         */
+        public String context() {
+            return contextPath;
+        }
+
+        @Override
+        public ServerConfig context(String path) {
+            if (path == null || path.isEmpty()) return this;
+            
+            if (path.charAt(0) != '/') this.contextPath = '/' + path;
+            else this.contextPath = path;
+            return this;
+        }
+
+        public String host() {
+            return host;
+        }
+
+        @Override
+        public ServerConfig host(String host) {
+            this.host = host;
+            return this;
+        }
+
+        public String webapp() {
+            return webapp;
+        }
+
+        @Override
+        public ServerConfig webapp(String path) {
+            this.webapp = path;
+            return this;
+        }
+
+        public int ioThreads() {
+            return ioThreads;
+        }
+
+        @Override
+        public ServerConfig ioThreads(int number) {
+            if (number > 0) {
+                this.performance = Performance.CUSTOM;
+                this.ioThreads = number;
+            }
+            return this;
+        }
+
+        public int backlog() {
+            return backlog;
+        }
+
+        @Override
+        public ServerConfig backlog(int number) {
+            this.performance = Performance.CUSTOM;
+            this.backlog = number;
+            return this;
+        }
+
+        public Performance performance() {
+            return performance;
+        }
+
+        @Override
+        public ServerConfig performance(Performance mode) {
+            this.performance = mode;
+            this.backlog = mode.getBacklogValue();
+            return this;
+        }
     }
 
-    private boolean useauthentication = false;
-    private String authenticationFilterUrlMapping = "/*";
-    public boolean useAuthentication() {
-        return this.useauthentication;
-    }
-    public void useAuthentication(boolean secure) {
-        this.useauthentication = secure;
-    }
-    public String getAuthenticationFilterUrlMapping() {
-        return this.authenticationFilterUrlMapping;
-    }
-    public void setAuthenticationFilterUrlMapping(String url) {
-        this.authenticationFilterUrlMapping = url;
-    }
-    
-    public String host() {
-        return host;
-    }
-    public void host(String host) {
-        this.host = host;
-    }
-    
+    ServerConfig port(int port);
+    ServerConfig context/*Path*/(String path);
+    ServerConfig host(String host);
+    ServerConfig webapp/*Path*/(String path);
+    /**
+     * Automatically set server performance to {@link Performance#CUSTOM}
+     * @param number
+     * @return
+     */
+    ServerConfig ioThreads(int number);
+    /**
+     * Sets the backlog value for the underlying ServerSocket.
+     * Automatically set server performance to {@link Performance#CUSTOM}
+     * @see ServerSocket#bind(java.net.SocketAddress,int)
+     * @param number
+     * @return
+     */
+    ServerConfig backlog(int number);
+    ServerConfig performance(Performance mode);
 }

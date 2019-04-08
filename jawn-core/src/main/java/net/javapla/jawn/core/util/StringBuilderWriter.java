@@ -4,10 +4,10 @@ import java.io.Writer;
 
 public class StringBuilderWriter extends Writer {
     
-    private StringBuilder bob;
+    private final StringBuilder bob;
     
-    public StringBuilderWriter() {
-        bob = new StringBuilder();
+    public StringBuilderWriter(int initialCapacity) {
+        bob = new StringBuilder(initialCapacity);
         lock = bob;
     }
 

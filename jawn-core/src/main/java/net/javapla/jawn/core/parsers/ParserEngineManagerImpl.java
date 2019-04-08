@@ -5,49 +5,67 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import net.javapla.jawn.core.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 
-public class ParserEngineManagerImpl implements ParserEngineManager {
+import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.util.StringUtil;
+
+@Singleton
+class ParserEngineManagerImpl implements ParserEngineManager {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     
     // Keep a reference of providers rather than instances, so body parser engines
-    // don't have to be singleton if they don't want
-    private final Map<String, Provider<? extends ParserEngine>> contentTypeToParserMap;
+    // don't have to be singleton if they don't want to
+    private final Map<MediaType, Provider<? extends ParserEngine>> contentTypeToParserMap;
     
     
     @Inject
-    public ParserEngineManagerImpl(Provider<JsonParserEngine> json,
-                                   Provider<XmlParserEngine>  xml) {
+    public ParserEngineManagerImpl(
+                   final Provider<JsonParserEngine>  json,
+                   final Provider<XmlParserEngine>   xml/*,
+                   final Provider<BasicParserEngine> basic*/) {
         
         
-        Map<String, Provider<? extends ParserEngine>> map = new HashMap<>();
+        Map<MediaType, Provider<? extends ParserEngine>> map = new HashMap<>();
 
         // First put the built in ones in, this is so they can be overridden by
         // custom bindings
-        map.put(json.get().getContentType(), json);
-        map.put(xml.get().getContentType(), xml);
+        mapEngine(map, json);
+        mapEngine(map, xml);
+        //mapEngine(map, basic);
         
         this.contentTypeToParserMap = Collections.unmodifiableMap(map);
         
         logParsers();
     }
     
+    /**
+     * Map the engine to all the content types it supports.
+     * If any kind of overlap exists, a race condition occurs
+     * @param map
+     * @param engine
+     */
+    private void mapEngine(Map<MediaType, Provider<? extends ParserEngine>> map, Provider<? extends ParserEngine> engine) {
+        for (MediaType type : engine.get().getContentType()) {
+            map.put(type, engine);
+        }
+    }
+    
     @Override
-    public Set<String> getContentTypes() {
+    public Set<MediaType> getContentTypes() {
         // is unmodifiable when the map is
         return contentTypeToParserMap.keySet();
     }
 
     @Override
-    public ParserEngine getParserEngineForContentType(String contentType) {
+    public ParserEngine getParserEngineForContentType(MediaType contentType) {
         Provider<? extends ParserEngine> provider = contentTypeToParserMap.get(contentType);
         
         if (provider != null) {
@@ -57,17 +75,17 @@ public class ParserEngineManagerImpl implements ParserEngineManager {
     }
 
     private void logParsers() {
-        Set<String> types = getContentTypes();
+        Set<MediaType> types = getContentTypes();
         
         int maxContentTypeLen = 0;
         int maxParserEngineLen = 0;
 
-        for (String contentType : types) {
+        for (MediaType contentType : types) {
 
             ParserEngine bodyParserEngine = getParserEngineForContentType(contentType);
 
             maxContentTypeLen = Math.max(maxContentTypeLen,
-                    contentType.length());
+                    contentType.name().length());
             maxParserEngineLen = Math.max(maxParserEngineLen,
                     bodyParserEngine.getClass().getName().length());
 
@@ -80,11 +98,11 @@ public class ParserEngineManagerImpl implements ParserEngineManager {
         log.info("Registered request bodyparser engines");
         log.info(border);
 
-        for (String contentType : types) {
+        for (MediaType contentType : types) {
 
             ParserEngine templateEngine = getParserEngineForContentType(contentType);
             log.info("{}  =>  {}",
-                    StringUtil.padEnd(contentType, maxContentTypeLen, ' '),
+                    StringUtil.padEnd(contentType.name(), maxContentTypeLen, ' '),
                     templateEngine.getClass().getName());
 
         }

@@ -2,71 +2,62 @@ package net.javapla.jawn.core.parsers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-
-import javax.ws.rs.core.MediaType;
-
-import net.javapla.jawn.core.exceptions.ParsableException;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
-class XmlParserEngine implements ParserEngine {
+import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Up;
+
+@Singleton
+final class XmlParserEngine implements ParserEngine {
     
-//    private static final XmlMapper XML_MAPPER = new XmlMapper();
-//    static {
-//        // ensure same configuration for all parsers
-//        ParserConfiguration.config(XML_MAPPER);
-//    }
-//    
-//    public static final <T> T parseObject(Reader reader, Class<T> clazz) throws JsonParseException, JsonMappingException, IOException {
-//        return XML_MAPPER.readValue(reader, clazz);
-//    }
-//    public static final <T> T parseObject(InputStream input, Class<T> clazz) throws JsonParseException, JsonMappingException, IOException {
-//        return XML_MAPPER.readValue(input, clazz);
-//    }
-//    
-//    
-//    public static final void writeObject(Object obj, Writer writer) throws JsonGenerationException, JsonMappingException, IOException {
-//        XML_MAPPER.writeValue(writer, obj);
-//    }
-
     private final XmlMapper mapper;
     
     @Inject
-    public XmlParserEngine(XmlMapper mapper) {
+    XmlParserEngine(XmlMapper mapper) {
         this.mapper = mapper;
     }
     
-    @Override
-    public <T> T invoke(Reader reader, Class<T> clazz) throws ParsableException {
+    /*@Override
+    public <T> T invoke(Reader reader, Class<T> clazz) throws Up.ParsableError {
         try (Reader r = reader) {
             return mapper.readValue(r, clazz);
         } catch (IOException e) {
-            throw new ParsableException(e);
+            throw new Up.ParsableError(e);
         }
-    }
+    }*/
     @Override
-    public <T> T invoke(InputStream stream, Class<T> clazz) throws ParsableException {
+    public <T> T invoke(InputStream stream, Class<T> clazz) throws Up.ParsableError {
         try (InputStream s = stream) {
             return mapper.readValue(s, clazz);
         } catch (IOException e) {
-            throw new ParsableException(e);
+            throw new Up.ParsableError(e);
         }
     }
     
     @Override
-    public <T> T invoke(byte[] arr, Class<T> clazz) throws ParsableException {
+    public <T> T invoke(byte[] arr, Class<T> clazz) throws Up.ParsableError {
         try {
             return mapper.readValue(arr, clazz);
         } catch (IOException e) {
-            throw new ParsableException(e);
+            throw new Up.ParsableError(e);
         }
     }
     
+    /*@Override
+    public <T> T invoke(Parsable parsable, Class<T> type) throws ParsableError {
+        try {
+            return mapper.readValue(parsable.bytes(), type);
+        } catch (IOException e) {
+            throw new Up.ParsableError(e);
+        }
+    }*/
+    
     @Override
-    public String getContentType() {
-        return MediaType.APPLICATION_XML;
+    public MediaType[] getContentType() {
+        return new MediaType[]{ MediaType.XML };
     }
 
 }

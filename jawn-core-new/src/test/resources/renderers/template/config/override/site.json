@@ -1,8 +1,0 @@
-{
-	"title": "jawn test overridden",
-	"overrideDefault": true,
-
-	"scripts": [
-		{"url": "script3.js"}
-	]
-}

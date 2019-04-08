@@ -13,7 +13,7 @@ import java.util.BitSet;
  * 
  * @author MTD
  */
-public class URLCodec {
+public final class URLCodec {
     
     static final BitSet dontNeedEncoding;
     static final int caseDiff = ('a' - 'A');
@@ -82,10 +82,10 @@ public class URLCodec {
      * @param charset
      * @return
      */
-    public static String encode(String s, Charset charset) {
+    public static String encode(final String s, final Charset charset) {
         boolean needToChange = false;
         StringBuilder out = new StringBuilder(s.length()); // MTD: Using StringBuilder instead of the much slower StringBuffer
-        CharArrayListWriter charArrayWriter = new CharArrayListWriter(); // MTD: non-synchronised CharArrayWriter
+        CharArrayList charArrayWriter = new CharArrayList(); // MTD: non-synchronised CharArrayWriter
 
         for (int i = 0; i < s.length();) {
             int c = (int) s.charAt(i);
@@ -121,8 +121,8 @@ public class URLCodec {
                 } while (i < s.length() && !dontNeedEncoding.get((c = (int) s.charAt(i))));
 
                 //charArrayWriter.flush(); //MTD: does absolutely nothing
-                String str = charArrayWriter.toString();//new String(charArrayWriter.toCharArray());
-                byte[] ba = str.getBytes(charset);
+                //String str = charArrayWriter.toString();//new String(charArrayWriter.toCharArray());
+                byte[] ba = charArrayWriter.getBytes(charset);//str.getBytes(charset);
                 for (int j = 0; j < ba.length; j++) {
                     out.append('%');
                     char ch = Character.forDigit((ba[j] >> 4) & 0xF, 16);
@@ -142,6 +142,7 @@ public class URLCodec {
                 needToChange = true;
             }
         }
+        charArrayWriter.close();
 
         return (needToChange? out.toString() : s);
     }
@@ -153,7 +154,7 @@ public class URLCodec {
      * @param cs
      * @return
      */
-    public static String decode(String s, Charset cs) {
+    public static String decode(final String s, final Charset cs) {
         boolean needToChange = false;
         int numChars = s.length();
         StringBuilder sb = new StringBuilder(numChars > 500 ? numChars / 2 : numChars); // MTD: Using StringBuilder instead of StringBuffer

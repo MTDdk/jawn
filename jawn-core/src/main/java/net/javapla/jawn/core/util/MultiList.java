@@ -5,8 +5,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * 
@@ -24,28 +27,42 @@ public class MultiList<T> {
         this.parts = new HashMap<String, List<T>>();
     }
     
-    public MultiList(Map<String, T> map) {
+    public MultiList(Map<String, List<T>> map) {
         this();
-        map.forEach((key, value) -> put(key, value));
+        map.forEach(this::put);
+    }
+    
+    public MultiList(List<Entry<String, T>> entries) {
+        this();
+        entries.forEach(entry -> put(entry.getKey(),entry.getValue()));
     }
     
     @SafeVarargs
-    public final void put(String key, T... param) {
-        if (!parts.containsKey(key)) {
-            parts.put(key, new ArrayList<T>());
-        }
+    public final MultiList<T> put(final String key, T... param) {
+        parts.putIfAbsent(key, new ArrayList<T>());
         
         for (T p : param) {
             parts.get(key).add(p);
         }
+        
+        return this;
     }
     
-    public final void put(String key, Collection<T> params) {
+    public final MultiList<T> put(final String key, Collection<T> params) {
         parts.putIfAbsent(key, new ArrayList<T>());
         
         for (T p : params) {
             parts.get(key).add(p);
         }
+        
+        return this;
+    }
+    
+    public final MultiList<T> put(final String key, T param) {
+        parts.putIfAbsent(key, new ArrayList<T>());
+        parts.get(key).add(param);
+        
+        return this;
     }
     
     /**
@@ -57,6 +74,10 @@ public class MultiList<T> {
         List<T> items = parts.get(param);
         if (items == null) return null;
         return items.get(0);
+    }
+    
+    public Optional<T> firstOptionally(final String param) {
+        return Optional.ofNullable(first(param));
     }
     
     public T last(String param) {
@@ -74,6 +95,14 @@ public class MultiList<T> {
         return parts.get(param);
     }
     
+    public <U> MultiList<U> map(Function<T, U> mapper) {
+        MultiList<U> newList = new MultiList<>();
+        
+        parts.forEach((key, oldList) -> newList.put(key, oldList.stream().map(mapper).collect(Collectors.toList())));
+        
+        return newList;
+    }
+    
     public boolean contains(String key) {
         return parts.containsKey(key);
     }
@@ -89,14 +118,6 @@ public class MultiList<T> {
     
     public boolean isEmpty() {
         return size() == 0;
-    }
-    
-    public MultiList<T> orElse(Supplier<MultiList<T>> sup) {
-        return sup.get();
-    }
-    
-    public MultiList<T> orElse(MultiList<T> multilist) {
-        return multilist;
     }
     
     @Override

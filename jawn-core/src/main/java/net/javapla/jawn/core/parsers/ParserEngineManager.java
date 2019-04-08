@@ -2,6 +2,11 @@ package net.javapla.jawn.core.parsers;
 
 import java.util.Set;
 
+import com.google.inject.ImplementedBy;
+
+import net.javapla.jawn.core.MediaType;
+
+@ImplementedBy(ParserEngineManagerImpl.class)
 public interface ParserEngineManager {
 
     /**
@@ -9,7 +14,7 @@ public interface ParserEngineManager {
      *
      * @return the registered content types
      */
-    Set<String> getContentTypes();
+    Set<MediaType> getContentTypes();
 
     /**
      * Find the body parser engine for the given content type
@@ -18,5 +23,5 @@ public interface ParserEngineManager {
      *            The content type
      * @return The body parser engine, if found
      */
-    ParserEngine getParserEngineForContentType(String contentType);
+    ParserEngine getParserEngineForContentType(MediaType contentType);
 }

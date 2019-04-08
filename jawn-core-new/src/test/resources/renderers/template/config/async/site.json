@@ -1,8 +1,0 @@
-{
-	title: "jawn test async",
-	overrideDefault: true,
-
-	scripts: [
-		{url: "script3.js", attr: {async: true}}
-	]
-}
