@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -22,23 +21,19 @@ import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.ServerConnection;
-import io.undertow.server.handlers.CookieImpl;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
-import net.javapla.jawn.core.http.Cookie;
-import net.javapla.jawn.core.http.Response;
+import net.javapla.jawn.core.server.ServerResponse;
 
-public class UndertowResponse implements Response {
+final class UndertowResponse implements ServerResponse {
     
     private final HttpServerExchange exchange;
     private final Runnable blocking;
     
     private volatile boolean endExchange = true;
     
-    private String contentType;
-    private Optional<Charset> charset = Optional.empty();
     private boolean streamCreated = false;
 
     public UndertowResponse(final HttpServerExchange exchange) {
@@ -62,37 +57,37 @@ public class UndertowResponse implements Response {
     @Override
     public void header(String name, List<String> values) {
         HeaderMap headers = exchange.getResponseHeaders();
-        headers.putAll(new HttpString(name), Collections.unmodifiableList(values));
+        headers.putAll(HttpString.tryFromString(name), Collections.unmodifiableList(values));
     }
 
     @Override
     public void header(String name, String value) {
-        exchange.getResponseHeaders().put(new HttpString(name), value);
+        exchange.getResponseHeaders().put(HttpString.tryFromString(name), value);
     }
-    
+
     @Override
     public void removeHeader(String name) {
         exchange.getResponseHeaders().remove(name);
     }
 
     @Override
-    public void send(byte[] bytes) throws Exception {
+    public void send(final byte[] bytes) throws Exception {
         send(ByteBuffer.wrap(bytes));
     }
-//TODO make all parameters final
+
     @Override
-    public void send(ByteBuffer buffer) throws Exception {
+    public void send(final ByteBuffer buffer) throws Exception {
         exchange.getResponseSender().send(buffer);
     }
 
     @Override
-    public void send(InputStream stream) throws Exception {
+    public void send(final InputStream stream) throws Exception {
         endExchange = false;
         new ChunkedStream().send(Channels.newChannel(stream), exchange, IoCallback.END_EXCHANGE);
     }
 
     @Override
-    public void send(FileChannel channel) throws Exception {
+    public void send(final FileChannel channel) throws Exception {
         endExchange = false;
         new ChunkedStream().send(channel, exchange, IoCallback.END_EXCHANGE);
     }
@@ -106,51 +101,7 @@ public class UndertowResponse implements Response {
     public void statusCode(int code) {
         exchange.setStatusCode(code);
     }
-    
-    @Override
-    public String contentType() {
-        return contentType;
-    }
-    
-    @Override
-    public void contentType(String contentType) {
-        this.contentType = contentType;
-        setContentType();
-    }
-    
-    @Override
-    public void addCookie(Cookie cookie) {
-        exchange.setResponseCookie(cookie(cookie));
-    }
-    
-    @Override
-    public void characterEncoding(String encoding) {
-        charset = Optional.ofNullable(Charset.forName(encoding));
-        setContentType();
-    }
-    
-    @Override
-    public Optional<Charset> characterEncoding() {
-        return charset;
-    }
 
-    @Override
-    public Writer writer() {
-        return new OutputStreamWriter(outputStream());
-    }
-    
-    @Override
-    public OutputStream outputStream() {
-        streamCreated = true;
-        blocking.run();
-        return exchange.getOutputStream();
-    }
-    
-    @Override
-    public boolean usingStream() {
-        return streamCreated;
-    }
-    
     @Override
     public boolean committed() {
         return exchange.isResponseStarted();
@@ -181,10 +132,21 @@ public class UndertowResponse implements Response {
         exchange.getResponseHeaders().clear();
     }
 
-    private void setContentType() {
-        if (contentType != null) {
-            exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, contentType + charset.map(ch -> "; charset=" + ch).orElse("") );
-        }
+    @Override
+    public Writer writer() {
+        return new OutputStreamWriter(outputStream());
+    }
+
+    @Override
+    public OutputStream outputStream() {
+        streamCreated = true;
+        blocking.run();
+        return exchange.getOutputStream();
+    }
+
+    @Override
+    public boolean usingStream() {
+        return streamCreated;
     }
     
     static class ChunkedStream implements IoCallback, Runnable {
@@ -290,17 +252,5 @@ public class UndertowResponse implements Response {
             IoUtils.safeClose(source);
         }
 
-    }
-    
-    private static io.undertow.server.handlers.Cookie cookie(final Cookie cookie) {
-        return new CookieImpl(cookie.getName(),cookie.getValue())
-                .setComment(cookie.getComment())
-                .setDomain(cookie.getDomain())
-                .setPath(cookie.getPath())
-                .setVersion(cookie.getVersion())
-                .setMaxAge(cookie.getMaxAge())
-                .setHttpOnly(cookie.isHttpOnly())
-                .setSecure(cookie.isSecure())
-                .setExpires(cookie.getExpires());
     }
 }

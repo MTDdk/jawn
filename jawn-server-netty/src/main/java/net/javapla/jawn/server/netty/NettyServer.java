@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.server.netty;
+package net.javapla.jawn.server.netty;
 
 import java.util.Iterator;
 import java.util.List;
@@ -28,7 +28,7 @@ import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
 
 @Singleton
-class NettyServer implements Server {
+public class NettyServer implements Server {
     
     private final HttpHandler dispatcher;
     

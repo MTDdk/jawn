@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.template.stringtemplate.rewrite;
+package net.javapla.jawn.templates.stringtemplate.rewrite;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;

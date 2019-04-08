@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.server.netty;
+package net.javapla.jawn.server.netty;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

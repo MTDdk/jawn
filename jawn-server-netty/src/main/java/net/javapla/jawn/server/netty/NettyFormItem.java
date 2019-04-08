@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.server.netty;
+package net.javapla.jawn.server.netty;
 
 import java.io.File;
 import java.io.IOException;

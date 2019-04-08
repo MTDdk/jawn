@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.server.netty;
+package net.javapla.jawn.server.netty;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +37,7 @@ import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.util.MultiList;
 
-public class NettyRequest implements ServerRequest {
+class NettyRequest implements ServerRequest {
     // TODO should be instantiated in the core module instead of a server module
     private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/);
     static {

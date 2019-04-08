@@ -47,6 +47,9 @@ public final class STFastGroupDir extends STRawGroupDir {
                 root = cl.getResource(dirName);
             }
         }
+        
+        // overwrite the ObjectModelAdaptor
+        adaptors.put(Object.class, new ObjectWithAttributeNamedGettersModelAdaptor());
     }
 
     @Override

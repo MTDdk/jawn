@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.server.netty;
+package net.javapla.jawn.server.netty;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,7 +32,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.Attribute;
 import net.javapla.jawn.core.server.ServerResponse;
 
-public class NettyResponse implements ServerResponse {
+class NettyResponse implements ServerResponse {
 
     
     private /*final*/ ChannelHandlerContext ctx;

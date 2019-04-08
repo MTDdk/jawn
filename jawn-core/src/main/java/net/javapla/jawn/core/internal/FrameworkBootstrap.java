@@ -35,6 +35,7 @@ import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
+import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
 
 public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to FrameworkEngine
@@ -84,8 +85,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
                 }
             };
             // Makes it possible for plugins to override framework-specific implementations
-            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.server.undertow");//readRegisteredPlugins(pluginConfig, frameworkConfig.getOptionally(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE).orElse("net.javapla.jawn.plugins.modules"));
-            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.template.stringtemplate");
+            readRegisteredPlugins(pluginConfig, frameworkConfig.getOptionally(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE).orElse("net.javapla.jawn.plugins.modules"));
             readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.image");
             
             // Makes it possible for users to override single framework-specific implementations
@@ -205,18 +205,18 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
      * signal the framework that we are closing down
      */
     public synchronized void shutdown() {
-
-        logger.info("Shutting down ..");
-        
-        onShutdown.forEach(run -> {
-            try {
-                run.run();
-            } catch (Exception e) {
-                logger.error("Failed a onShutdown task", e);
-            }
-        });
         
         if (injector != null) {
+            
+            logger.info("Shutting down ..");
+            
+            onShutdown.forEach(run -> {
+                try {
+                    run.run();
+                } catch (Exception e) {
+                    logger.error("Failed a onShutdown task", e);
+                }
+            });
             
             // shutdown the database connection pool
             /*try {

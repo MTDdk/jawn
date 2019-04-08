@@ -2,35 +2,32 @@ package net.javapla.jawn.server.undertow;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.util.HeaderValues;
+import io.undertow.util.Headers;
+import io.undertow.util.Protocols;
 
-public class UndertowHandler implements HttpHandler {
+class UndertowHandler implements HttpHandler {
+
     
-    private final net.javapla.jawn.core.server.HttpHandler handler;
-    private final String contextPath;
+    private final net.javapla.jawn.core.server.HttpHandler dispatcher;
 
-    public UndertowHandler(net.javapla.jawn.core.server.HttpHandler handler, String contextPath) {
-        this.handler = handler;
-        this.contextPath = contextPath;
+    UndertowHandler(final net.javapla.jawn.core.server.HttpHandler dispatcher) {
+        this.dispatcher = dispatcher;
     }
 
     @Override
-    public void handleRequest(HttpServerExchange exchange) throws Exception {
+    public void handleRequest(final HttpServerExchange exchange) throws Exception {
         if (exchange.isInIoThread()) {
+            HeaderValues upgrade = exchange.getRequestHeaders().get(Headers.UPGRADE);
+            if (upgrade != null && upgrade.contains("h2c")) {
+                // reset protocol
+                exchange.setProtocol(Protocols.HTTP_1_1);
+            }
             exchange.dispatch(this);
             return;
         }
-        //exchange.getResponseHeaders().add(HttpString.tryFromString("Server"), "Undertow");
         
-        // TODO do this in a runnable (test)
-        handler.handle(new UndertowRequest(exchange, contextPath), new UndertowResponse(exchange));
-        
-        //TODO probably extend Undertow's HttpHandler to have an exception callback or something
-        /*exchange.dispatch(() -> {
-            try {
-                handler.handle(new UndertowRequest(exchange, contextPath), new UndertowResponse(exchange));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });*/
+        dispatcher.handle(new UndertowRequest(exchange), new UndertowResponse(exchange));
     }
+
 }

@@ -2,6 +2,7 @@ package net.javapla.jawn.core.internal.reflection;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -64,14 +65,16 @@ public class PackageWatcher implements Closeable {
             @Override
             public void run() {
                 running = true;
-                WatchKey key;
+                WatchKey key = null;
                 
                 try {
                     while (running && (key = service.take()) != null) {
                         consumeKey(key);
                     }
-                } catch (InterruptedException | IOException e) {
-                    e.printStackTrace();
+                } catch (InterruptedException | ClosedWatchServiceException | IOException e) {
+                    if (running) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }.start();
@@ -197,6 +200,7 @@ public class PackageWatcher implements Closeable {
     @Override
     public void close() throws IOException {
         running = false;
+        
         if (service != null) {
             service.close();
         }

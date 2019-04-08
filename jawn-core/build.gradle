@@ -11,25 +11,6 @@ jar {
 }
 
 dependencies {
-  // Server (to be extracted into jawn-server-undertow)
-  compile 'io.undertow:undertow-core:2.0.17.Final'
-  
-  // Server
-  String netty = '4.1.33.Final'
-  compile "io.netty:netty-handler:$netty"
-  compile "io.netty:netty-codec-http:$netty"
-  compile "io.netty:netty-transport-native-epoll:$netty" //this has some classifiers - do we need to handle these?
-  
-  compile "io.netty:netty-transport:$netty"
-  compile "io.netty:netty-resolver:$netty"
-  compile "io.netty:netty-codec:$netty"
-  compile "io.netty:netty-codec-http2:$netty"
-  compile "io.netty:netty-common:$netty"
-  
-  //Template Engine
-  //StringTemplate
-  compile('org.antlr:ST4:4.0.8')
-
 
   compile ('com.google.inject:guice:4.2.2') {
     // Damn! Used in runtime by guice

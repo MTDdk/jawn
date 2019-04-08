@@ -1,13 +1,13 @@
 apply plugin: 'java'
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
 
-    // Framework
-    compile project(':jawn-core')
+  // Framework
+  compile project(':jawn-core')
 	
 	//Template Engine
 	//StringTemplate
