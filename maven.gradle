@@ -1,115 +1,94 @@
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 
-// Generates the javadoc
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
 // Collect the source
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+  from sourceSets.main.allJava
+  archiveClassifier = 'sources'
+}
+
+// Generates the javadoc
+task javadocJar(type: Jar) {
+  from javadoc
+  archiveClassifier = 'javadoc'
 }
 
 javadoc { failOnError = false }
 
 
-// hooks up the javadoc to the generated artifacts
-artifacts { archives sourcesJar, javadocJar }
+ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
 
-// sign the generated artifacts
-//http://www.gradle.org/docs/current/userguide/signing_plugin.html
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
-signing {
-    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
-}
 
-task ensurePropertiesFile() {
-    doLast {
-        if (!project.hasProperty('ossrhUsername')) {
-            println 'Could not find credentials for deploying archives - if you do not need this, don\'t sweat it, we\'ve got you covered!'
-
-            def properties = new Properties()
-            properties.setProperty('ossrhUsername','')
-            properties.setProperty('ossrhPassword','')
-            def fos = new FileOutputStream("gradle.properties")
-            properties.store(fos,"")
-            fos.close()
-
-            // set the properties manually for now
-            // so the build does not fail because
-            // the properties file is only read at startup
-            project.ext.setProperty('ossrhUsername','')
-            project.ext.setProperty('ossrhPassword','')
-        }}
-}
-
-// ========================
-//     Maven deploy
-// https://oss.sonatype.org
-// ========================
-uploadArchives {
-
-    doLast {
-
-        // TODO
-        // This is not exactly how we want to do it,
-        // because it gets called multiple times during builds
-        // but it works so we will leave it for now
-        // UPDATE
-        // doLast might actually be what we want to!
-        //ensurePropertiesFile.execute()
-
-        repositories {
-            mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                    authentication(userName: ossrhUsername, password: ossrhPassword)
-                }
-
-                snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                    authentication(userName: ossrhUsername, password: ossrhPassword)
-                }
-
-                pom.project {
-
-                    name "${project.group}:${project.archivesBaseName}"
-                    description 'java-web-planet / jawn - A simple web framework in Java'
-                    url 'https://github.com/MTDdk/jawn'
-
-                    packaging 'jar'
-
-                    scm {
-                        connection 'scm:git://github.com/MTDdk/jawn.git'
-                        developerConnection 'scm:git:git@github.com:MTDdk/jawn.git'
-                        url 'https://github.com/MTDdk/jawn'
-                    }
-
-                    issueManagement {
-                        system 'Github Issues'
-                        url 'https://github.com/MTDdk/jawn/issues'
-                    }
-
-                    licenses {
-                        license {
-                            name 'GNU LGPL, Version 3.0'
-                            url 'http://www.gnu.org/licenses/lgpl-3.0.txt'
-                        }
-                    }
-
-                    developers {
-                        developer {
-                            id 'MTDdk'
-                            name 'MTDdk'
-                            email 'alvn@alvn.dk'
-                        }
-                    }
-                }
-            }
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+      
+      artifact sourcesJar
+      artifact javadocJar
+      
+      pom {
+        name = "${project.group}:${project.archivesBaseName}"
+        description = 'java-web-planet / jawn - A simple web framework in Java'
+        url = 'https://github.com/MTDdk/jawn'
+        
+        licenses {
+          license {
+            name = 'GNU LGPL, Version 3.0'
+            url = 'http://www.gnu.org/licenses/lgpl-3.0.txt'
+          }
         }
+        
+        developers {
+          developer {
+            id = 'MTDdk'
+            name = 'MTDdk'
+            email = 'alvn@alvn.dk'
+          }
+        }
+        
+        issueManagement {
+          system = 'Github Issues'
+          url = 'https://github.com/MTDdk/jawn/issues'
+        }
+        
+        scm {
+          connection = 'scm:git://github.com/MTDdk/jawn.git'
+          developerConnection = 'scm:git:git@github.com:MTDdk/jawn.git'
+          url = 'https://github.com/MTDdk/jawn'
+        }
+      }
     }
+  }
+  
+  repositories {
+    maven {
+      // change URLs to point to your repos, e.g. http://my.org/repo
+      def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+      def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+      url = isReleaseVersion ? releasesRepoUrl : snapshotsRepoUrl
+      
+      gradle.taskGraph.whenReady { taskGraph ->
+        if (taskGraph.hasTask(':generatePomFileForMavenJavaPublication') && !taskGraph.hasTask(':publishToMavenLocal')) {
+        
+          // only do any maven related if we have the needed properties available
+          if (project.hasProperty('ossrhUsername') && project.hasProperty('ossrhPassword')) {
+            credentials {
+              username = ossrhUsername
+              password = ossrhPassword
+            }
+          } else {
+            throw new GradleException('You do not have your credentials stated')
+          }
+        }
+      }
+      
+    }
+  }
+}
+
+signing {
+  required { isReleaseVersion }
+  sign publishing.publications.mavenJava
 }

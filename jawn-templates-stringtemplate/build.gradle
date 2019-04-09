@@ -7,10 +7,10 @@ repositories {
 dependencies {
 
   // Framework
-  compile project(':jawn-core')
+  implementation project(':jawn-core')
 	
 	//Template Engine
 	//StringTemplate
-	compile('org.antlr:ST4:4.0.8')// { exclude module: 'antlr-runtime'}
+	implementation('org.antlr:ST4:4.0.8')// { exclude module: 'antlr-runtime'}
     
 }

@@ -1,73 +1,89 @@
 buildscript {
-    repositories { maven { url "https://plugins.gradle.org/m2/" } }
-    //dependencies { classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.8' }
+  repositories { maven { url "https://plugins.gradle.org/m2/" } }
+  //dependencies { classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.8' }
 }
 
 //http://gradle.org/docs/current/userguide/multi_project_builds.html#sub:real_life_examples
 
 allprojects {
-    apply plugin: 'java'
-    apply from: "$rootProject.projectDir/maven.gradle"
+  apply plugin: 'java'
 
-    // maven metadata
-    group = "net.javapla.jawn"
-    version = "1.0.0-SNAPSHOT"//'0.9.15-SNAPSHOT'
-    // try to use this notion of versioning henceforth
-    // https://github.com/jashkenas/backbone/issues/2888#issuecomment-29076249
+  // maven metadata
+  group = 'net.javapla.jawn'
+  version = '1.0.0-SNAPSHOT'
+  // try to use this notion of versioning henceforth
+  // https://github.com/jashkenas/backbone/issues/2888#issuecomment-29076249
 
-    tasks.withType(Javadoc).all { enabled = true }
+  javadoc {
+    enabled = true
+  
+    if(JavaVersion.current().isJava9Compatible()) {
+      options.addBooleanOption('html5', true)
+    }
+  }
+  
+  
+  // gradle publish | publishToMavenLocal
+  apply from: "$rootProject.projectDir/maven.gradle"
 }
 
 subprojects {
-    apply plugin: 'eclipse'
-    apply plugin: 'jacoco'
-//    apply plugin: 'net.ltgt.errorprone'
+  apply plugin: 'eclipse'
+  apply plugin: 'jacoco'
+//  apply plugin: 'net.ltgt.errorprone'
 
 
-    // compiler options
-    sourceCompatibility = JavaVersion.VERSION_1_10
-    targetCompatibility = JavaVersion.VERSION_1_10
+  // compiler options
+  sourceCompatibility = JavaVersion.VERSION_1_10
+  targetCompatibility = JavaVersion.VERSION_1_10
 
-    repositories { mavenCentral() }
+  repositories { mavenCentral() }
     
-    dependencies {
-        //Test across all submodules
-        testCompile ('junit:junit:4.12') {
-            exclude module: 'hamcrest-core'
-        }
-        testCompile 'org.hamcrest:java-hamcrest:2.0.0.0'
+  dependencies {
+    //Test across all submodules
+    testRuntime ('junit:junit:4.12') {
+      exclude module: 'hamcrest-core'
     }
-
-    // test configurations
-    tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
-
-    test {
-        testLogging {
-            // Make sure output from
-            // standard out or error is shown
-            // in Gradle output.
-            showStandardStreams = true
-        }
-        ignoreFailures false
-        
+    testRuntime 'org.hamcrest:java-hamcrest:2.0.0.0'
+    
+    //testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.2'
+    testRuntime 'org.mockito:mockito-core:2.23.4'
+    testRuntime ('com.google.truth:truth:0.43')  {
+      exclude module: 'guava' // We import it elsewhere to be concise in the versioning
+      exclude module: 'junit'
     }
-    jacocoTestReport {
-        dependsOn test
-    }
+  }
 
-    /*tasks.withType(JavaCompile) {
-     options.compilerArgs += [ '-Xep:DeadException:WARN', '-Xep:GuardedByValidator:OFF' ]
-     }*/
-    // implement https://github.com/kt3k/coveralls-gradle-plugin
+  // test configurations
+  tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+
+  test {
+    testLogging {
+      // Make sure output from
+      // standard out or error is shown
+      // in Gradle output.
+      showStandardStreams = true
+    }
+    ignoreFailures false
+  }
+  
+  jacocoTestReport {
+    dependsOn test
+  }
+
+  /*tasks.withType(JavaCompile) {
+   options.compilerArgs += [ '-Xep:DeadException:WARN', '-Xep:GuardedByValidator:OFF' ]
+   }*/
+  // implement https://github.com/kt3k/coveralls-gradle-plugin
 }
 
 //https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.ResolutionStrategy.html
 configurations.all {
-    resolutionStrategy {
-        // fail eagerly on version conflict (includes transitive dependencies)
-        // e.g. multiple different versions of the same dependency (group and name are equal)
-        failOnVersionConflict()
-    }
+  resolutionStrategy {
+    // fail eagerly on version conflict (includes transitive dependencies)
+    // e.g. multiple different versions of the same dependency (group and name are equal)
+    failOnVersionConflict()
+  }
 }
 
 
@@ -79,8 +95,8 @@ configurations.all {
 // Specify the resulting archive
 archivesBaseName = 'jawn'
 dependencies {
-    // Currently, this is the only needed dependency that has everything you need
-    compile project(':jawn-core')
-    compile project(':jawn-server-undertow')
-    compile project(':jawn-templates-stringtemplate')
+  // Currently, this is the only needed dependency that has everything you need
+  implementation project(':jawn-core')
+  implementation project(':jawn-server-undertow')
+  implementation project(':jawn-templates-stringtemplate')
 }

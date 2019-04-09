@@ -6,18 +6,18 @@ repositories {
 
 dependencies {
   // Framework
-  compile project(':jawn-core')
+  implementation project(':jawn-core')
   
   // Server
   String netty = '4.1.33.Final'
-  compile "io.netty:netty-handler:$netty"
-  compile "io.netty:netty-codec-http:$netty"
-  compile "io.netty:netty-transport-native-epoll:$netty" //this has some classifiers - do we need to handle these?
+  implementation "io.netty:netty-handler:$netty"
+  implementation "io.netty:netty-codec-http:$netty"
+  implementation "io.netty:netty-transport-native-epoll:$netty" //this has some classifiers - do we need to handle these?
   
-  compile "io.netty:netty-transport:$netty"
-  compile "io.netty:netty-resolver:$netty"
-  compile "io.netty:netty-codec:$netty"
-  compile "io.netty:netty-codec-http2:$netty"
-  compile "io.netty:netty-common:$netty"
+  implementation "io.netty:netty-transport:$netty"
+  implementation "io.netty:netty-resolver:$netty"
+  implementation "io.netty:netty-codec:$netty"
+  implementation "io.netty:netty-codec-http2:$netty"
+  implementation "io.netty:netty-common:$netty"
 }
 

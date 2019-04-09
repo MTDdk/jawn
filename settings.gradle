@@ -4,15 +4,3 @@ include 'jawn-core'
 include 'jawn-server-netty'
 include 'jawn-server-undertow'
 include 'jawn-templates-stringtemplate'
-
-//automatically include all jawn-*
-/*file('.')
-    .listFiles() // find all files in rootDir
-    .findAll {
-        it.isDirectory() && // only look at folders
-        it.name.startsWith('jawn-') // filter all folders starting with 'jawn-'
-    }
-    .each {
-        include it.name // let the root project include each of these folders
-    }
-*/

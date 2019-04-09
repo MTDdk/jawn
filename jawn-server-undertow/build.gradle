@@ -6,9 +6,9 @@ repositories {
 
 dependencies {
   // Framework
-  compile project(':jawn-core')
+  implementation project(':jawn-core')
   
   // Server
-  compile 'io.undertow:undertow-core:2.0.17.Final'
+  implementation 'io.undertow:undertow-core:2.0.17.Final'
 }
 
