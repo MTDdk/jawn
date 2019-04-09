@@ -41,14 +41,14 @@ subprojects {
     
   dependencies {
     //Test across all submodules
-    testRuntime ('junit:junit:4.12') {
+    testImplementation ('junit:junit:4.12') {
       exclude module: 'hamcrest-core'
     }
-    testRuntime 'org.hamcrest:java-hamcrest:2.0.0.0'
+    testImplementation 'org.hamcrest:java-hamcrest:2.0.0.0'
     
     //testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.2'
-    testRuntime 'org.mockito:mockito-core:2.23.4'
-    testRuntime ('com.google.truth:truth:0.43')  {
+    testImplementation 'org.mockito:mockito-core:2.23.4'
+    testImplementation ('com.google.truth:truth:0.43')  {
       exclude module: 'guava' // We import it elsewhere to be concise in the versioning
       exclude module: 'junit'
     }
