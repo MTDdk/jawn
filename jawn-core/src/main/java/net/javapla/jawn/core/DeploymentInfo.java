@@ -5,7 +5,7 @@ import net.javapla.jawn.core.util.StringUtil;
 
 public class DeploymentInfo {
     
-    private final String WEBAPP_FOLDER_NAME = "webapp/"; //TODO move to jawn_defaults.properties
+    private final String WEBAPP_FOLDER_NAME = "webapp";
 
 	private final String webappPath;
 	private final String contextPath;
@@ -13,17 +13,37 @@ public class DeploymentInfo {
 	private final int contextPathLength;
 	
 	public DeploymentInfo(final Config conf, final String contextPath) {
-		this.webappPath = assertPath(conf.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse("")) + WEBAPP_FOLDER_NAME;
-		this.contextPath = contextPath;
-		this.isContextPathSet = !contextPath.isEmpty();
-		this.contextPathLength = contextPath.length();
+	    final String wp = conf.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse(WEBAPP_FOLDER_NAME);
+	    
+		this.webappPath = assertNoEndSlash(wp); // is allowed to have start slash, e.g.: /var/www/webapp
+		this.contextPath = assertStartSlash(assertNoEndSlash(contextPath));
+		this.isContextPathSet = !this.contextPath.isEmpty();
+		this.contextPathLength = this.contextPath.length();
 	}
 	
-	private static String assertPath(String path) {
-		if (!StringUtil.blank(path) && !path.endsWith("/"))
-			return path + "/";
-		return path;
+	private static String assertStartSlash(final String path) {
+	    if (!StringUtil.blank(path) && !StringUtil.startsWith(path, '/')) 
+	        return '/' + path;
+        return path;
 	}
+	
+	private static String assertNoEndSlash(final String path) {
+	    if (!StringUtil.blank(path) && StringUtil.endsWith(path, '/')) 
+            return path.substring(0, path.length() -1);
+        return path;
+	}
+	
+	/*private static String assertEndSlash(final String path) {
+	    if (!StringUtil.blank(path) && !StringUtil.endsWith(path, '/')) 
+	        return path + '/';
+        return path;
+	}
+	
+	private static String assertNoStartSlash(final String path) {
+	    if (!StringUtil.blank(path) && StringUtil.startsWith(path, '/'))
+	        return path.substring(1);
+	    return path;
+	}*/
 	
 	/**
      * Returns a String containing the real path for a given virtual path. For example, the path "/index.html" returns
@@ -45,8 +65,11 @@ public class DeploymentInfo {
      */
     public String getRealPath(final String path) {
     	if (path == null) return null;
-    	if (isContextPathSet && path.startsWith(contextPath)) return webappPath + path.substring(contextPath.length());
-        return webappPath + path;
+    	
+    	final String p = assertStartSlash(path); 
+    	
+    	if (isContextPathSet && p.startsWith(contextPath)) return webappPath + p.substring(contextPath.length());
+        return webappPath + p;
     }
     
     public String getContextPath() {
