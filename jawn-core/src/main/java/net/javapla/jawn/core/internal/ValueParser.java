@@ -12,9 +12,7 @@ public class ValueParser {
 
     @SuppressWarnings("unchecked")
     public static <T> T to(Value value, Class<T> type) {
-        
         return (T) value(value, type, type);
-        
     }
     
     public static Object to(Value value, Type type) {
@@ -54,7 +52,6 @@ public class ValueParser {
         return (C) collection;
     }
     
-    @SuppressWarnings("unused")
     private static Class<?> parameterizedType0(Type type) {
         if (type instanceof Class) {
           return (Class<?>) type;
