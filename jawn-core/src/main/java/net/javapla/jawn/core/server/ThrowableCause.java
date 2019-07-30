@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ConnectionResetByPeer {
+public class ThrowableCause {
 
-    public static boolean test(final Throwable cause) {
+    public static boolean connectionResetByPeer(final Throwable cause) {
         return Optional.ofNullable(cause)
             .filter(IOException.class::isInstance)
             .map(x -> x.getMessage())

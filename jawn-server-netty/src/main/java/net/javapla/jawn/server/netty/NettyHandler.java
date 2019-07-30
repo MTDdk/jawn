@@ -1,5 +1,8 @@
 package net.javapla.jawn.server.netty;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
@@ -16,10 +19,12 @@ import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AsciiString;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import net.javapla.jawn.core.server.ConnectionResetByPeer;
 import net.javapla.jawn.core.server.HttpHandler;
+import net.javapla.jawn.core.server.ThrowableCause;
 
 class NettyHandler extends SimpleChannelInboundHandler<Object> {
+    
+    protected static final Logger log = LoggerFactory.getLogger(NettyHandler.class);
     
     private static AsciiString STREAM_ID = HttpConversionUtil.ExtensionHeaderNames.STREAM_ID.text();
     public static final AttributeKey<String> PATH = AttributeKey.newInstance(NettyHandler.class.getName());
@@ -71,15 +76,14 @@ class NettyHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) {
         try {
-            if (ConnectionResetByPeer.test(cause)) {
-                //log.trace("execution of: " + ctx.channel().attr(PATH).get() + " resulted in error", cause);
+            if (ThrowableCause.connectionResetByPeer(cause)) {
+                log.trace("execution of: " + ctx.channel().attr(PATH).get() + " resulted in error", cause);
             } else {
                 /*Attribute<NettyWebSocket> ws = ctx.channel().attr(NettyWebSocket.KEY);
                 if (ws != null && ws.get() != null) {
                     ws.get().handle(cause);
                 } else */{
-                    //log.debug("execution of: " + ctx.channel().attr(PATH).get() + " resulted in error",
-                    //    cause);
+                    log.debug("execution of: " + ctx.channel().attr(PATH).get() + " resulted in error", cause);
                 }
             }
         } finally {
@@ -102,7 +106,7 @@ class NettyHandler extends SimpleChannelInboundHandler<Object> {
         throws Exception {
         // Idle timeout
         if (evt instanceof IdleStateEvent) {
-            //log.debug("idle timeout: {}", ctx);
+            log.debug("idle timeout: {}", ctx);
             ctx.close();
         } else if (evt instanceof HttpServerUpgradeHandler.UpgradeEvent) {
             // Write an HTTP/2 response to the upgrade request
