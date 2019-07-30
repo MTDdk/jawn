@@ -3,15 +3,18 @@ package net.javapla.jawn.core;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
+import net.javapla.jawn.core.util.TimeUtil;
 
 public interface Config {
 
@@ -92,6 +95,30 @@ public interface Config {
     
     default boolean getBooleanOrDie(final String name) throws RuntimeException {
         return getBooleanOptionally(name).orElseThrow(exception.apply(name));
+    }
+    
+    default Duration getDuration(final String name) {
+        return Duration.ofSeconds(TimeUtil.parse(get(name)));
+    }
+    
+    default Optional<Duration> getDurationOptionally(final String name) {
+        return getOptionally(name).map( value -> Duration.ofSeconds(TimeUtil.parse(value)));
+    }
+    
+    default Duration getDurationOrDie(final String name) throws RuntimeException {
+        return getDurationOptionally(name).orElseThrow(exception.apply(name));
+    }
+    
+    default long getDuration(final String name, final TimeUnit unit) {
+        return unit.convert(TimeUtil.parse(get(name)), TimeUnit.SECONDS);
+    }
+    
+    default Optional<Long> getDurationOptionally(final String name, final TimeUnit unit) {
+        return getOptionally(name).map( value -> unit.convert(TimeUtil.parse(value), TimeUnit.SECONDS));
+    }
+    
+    default long getDurationOrDie(final String name, final TimeUnit unit) throws RuntimeException {
+        return getDurationOptionally(name, unit).orElseThrow(exception.apply(name));
     }
     
     Set<Map.Entry<String, String>> entrySet();

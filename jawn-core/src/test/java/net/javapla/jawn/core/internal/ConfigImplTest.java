@@ -2,6 +2,9 @@ package net.javapla.jawn.core.internal;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -51,6 +54,21 @@ public class ConfigImplTest {
     public void readBoolValue() {
         assertThat(config.getBooleanOptionally("application.somebool").isPresent()).isTrue();
         assertThat(config.getBoolean("application.somebool")).isFalse();
+    }
+    
+    @Test
+    public void readDurationValue() {
+        assertThat(config.getDuration("application.sometime")).isEqualTo(Duration.ofMinutes(5));
+        assertThat(config.getDurationOptionally("application.sometime").get()).isEqualTo(Duration.ofMinutes(5));
+        
+        assertThat(config.getDuration("application.sometime2")).isEqualTo(Duration.ofSeconds(10));
+    }
+    
+    @Test
+    public void readDurationAsAnotherUnit() {
+        assertThat(config.getDuration("application.sometime", TimeUnit.SECONDS)).isEqualTo(Duration.ofMinutes(5).getSeconds());
+        assertThat(config.getDuration("application.sometime", TimeUnit.MINUTES)).isEqualTo(5);
+        assertThat(config.getDuration("application.sometime2", TimeUnit.SECONDS)).isEqualTo(10);
     }
     
     @Test
