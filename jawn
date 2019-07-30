@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+GRADLE_VERSION='jdk11'
+
+
+
+
+gradleDockerCommand () {
+  docker run --rm -u gradle -v "$PWD":/usr/src/jawn -w /usr/src/jawn gradle:$GRADLE_VERSION gradle --no-daemon $@
+}
+
+main () {
+  echo "main"
+}
+
+
+commands=
+
+while [ "$1" != "" ]; do
+  case $1 in
+    -t | --test )     gradleDockerCommand test
+                      exit
+                      ;;
+    * )               commands="$commands $1"
+                      ;;
+  esac
+  shift
+done
+
+echo "Commands  ::   $commands"
+gradleDockerCommand $commands
