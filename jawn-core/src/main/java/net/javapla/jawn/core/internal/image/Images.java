@@ -38,7 +38,7 @@ public class Images {
             return name().toLowerCase();
         }
         
-        static ImageFormat fromExtension(String ext) throws IllegalArgumentException {
+        static ImageFormat fromExtension(final String ext) throws IllegalArgumentException {
             for (ImageFormat format : values()) {
                 for (var n : format.names) {
                     if (n.equals(ext)) {
@@ -49,13 +49,13 @@ public class Images {
             throw new IllegalArgumentException("None found with ext [" + ext + "]");
         }
         
-        static ImageFormat fromFileName(String ext) throws IllegalArgumentException {
+        static ImageFormat fromFileName(final String ext) throws IllegalArgumentException {
             int dot = ext.lastIndexOf('.');
             if (dot < 1) throw new IllegalArgumentException(ext);
             return fromExtension(ext.substring(dot + 1).toLowerCase());
         }
         
-        static ImageFormat from(File file) throws IllegalArgumentException {
+        static ImageFormat from(final File file) throws IllegalArgumentException {
             return fromFileName(file.getName());
         }
     }
@@ -133,7 +133,7 @@ public class Images {
         //void save(Path path);
     }
     
-    public Image image(FormItem item) throws Up.IO {
+    public Image image(final FormItem item) throws Up.IO {
         try {
             return image(ImageIO.read(item.file().orElseThrow()), ImageFormat.fromFileName(item.fileName().get()));
         } catch (IOException e) {
@@ -141,7 +141,7 @@ public class Images {
         }
     }
     
-    public Image image(File file) throws Up.IO {
+    public Image image(final File file) throws Up.IO {
         try {
             return image(ImageIO.read(file), ImageFormat.from(file));
         } catch (IllegalArgumentException | IOException e) {
@@ -149,7 +149,7 @@ public class Images {
         }
     }
     
-    public Image image(byte[] bytes, ImageFormat format) throws Up.IO {
+    public Image image(final byte[] bytes, final ImageFormat format) throws Up.IO {
         try {
             return image(ImageIO.read(new ByteArrayInputStream(bytes)), format);
         } catch (IOException e) {

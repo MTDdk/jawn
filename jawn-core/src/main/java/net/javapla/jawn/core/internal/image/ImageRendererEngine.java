@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.renderers;
+package net.javapla.jawn.core.internal.image;
 
 import java.awt.image.BufferedImage;
 import java.text.MessageFormat;
@@ -11,32 +11,35 @@ import com.google.inject.Singleton;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.renderers.RendererEngine;
 
 @Singleton
-class ImageRendererEngine extends StreamRendererEngine {
+class ImageRendererEngine implements /*Stream*/RendererEngine {
 
     @Override
     public void invoke(Context context, Object obj) throws Exception {
-        
-        
+
+
         if (obj instanceof BufferedImage) {
-            
+
             // We assume the content type to be of the form "image/{extension}"
             // This is what we extract, as the image ought to be of the same format
-//            String contentType = context.resp().contentType().get();
             String extension = context.resp().contentType().get().subtype();//contentType.substring(contentType.indexOf('/')+1);
-            
+
             // As we are using ImageIO as a serialiser, we need to ensure that it is actually going to 
             // do some work
             //if (!Arrays.asList(ImageIO.getWriterFileSuffixes()).contains(extension))
                 throw new Up.BadMediaType(MessageFormat.format("An image writer could not be found for the extension {}", extension));
-            
-            //ImageIO.write((BufferedImage) obj, extension, null);
-            
+
+            /*ImageInputStream stream = ImageIO.createImageInputStream(obj);
+            context.resp().send(stream);
+
+            ImageIO.write((BufferedImage) obj, extension, context.resp());*/
+
         } else {
-            super.invoke(context, obj);
+            //super.invoke(context, obj);
         }
-        
+
     }
 
     @Override

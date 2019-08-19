@@ -4,6 +4,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -53,12 +55,12 @@ public class RendererEngineOrchestratorTest {
 
     @Test
     public void rendererExecutes() {
-        boolean[] executed = new boolean[1];
+        AtomicBoolean executed = new AtomicBoolean(false);
         Context context = mock(Context.class);
         
         RendererEngineOrchestrator orchestrator = engine(binder -> {
             binder.bind(RendererEngine.class).toInstance(new RendererEngine() {
-                public void invoke(Context context, Object renderable) throws Exception { executed[0] = true; }
+                public void invoke(Context context, Object renderable) throws Exception { executed.setPlain(true); }
                 public MediaType[] getContentType() { return new MediaType[] { MediaType.valueOf("test/test") }; }
             });
         });
@@ -68,7 +70,7 @@ public class RendererEngineOrchestratorTest {
             try { engine.invoke(context, new Object()); } catch (Exception e) { fail(); }
         });
         
-        assertThat(executed[0]).isTrue();
+        assertThat(executed.getPlain()).isTrue();
     }
     
     private static RendererEngineOrchestrator engine(Module ... modules) {

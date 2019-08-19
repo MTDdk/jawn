@@ -99,7 +99,7 @@ final class HttpHandlerImpl implements HttpHandler {
         
         
         // Before filters
-        Before[] befores = route.before();
+        final Before[] befores = route.before();
         if (befores != null) {
             do {
                 result = befores[i].before(context, () -> null);
@@ -117,7 +117,7 @@ final class HttpHandlerImpl implements HttpHandler {
         }
         
         // After filters
-        After[] afters = route.after();
+        final After[] afters = route.after();
         if (afters != null) {
             Result r = result; // <-- TODO like this
             for (i = 0; i < afters.length; i++) {

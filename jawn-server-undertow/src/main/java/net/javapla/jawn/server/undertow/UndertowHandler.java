@@ -19,7 +19,7 @@ class UndertowHandler implements HttpHandler {
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
         if (exchange.isInIoThread()) {
             HeaderValues upgrade = exchange.getRequestHeaders().get(Headers.UPGRADE);
-            if (upgrade != null && upgrade.contains("h2c")) {
+            if (upgrade != null && upgrade.contains("h2c")) { // HTTP/2 over TCP - https://http2.github.io/http2-spec/#versioning
                 // reset protocol
                 exchange.setProtocol(Protocols.HTTP_1_1);
             }

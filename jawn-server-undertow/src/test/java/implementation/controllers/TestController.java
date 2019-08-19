@@ -2,10 +2,6 @@ package implementation.controllers;
 
 import com.google.inject.Inject;
 
-import net.javapla.jawn.core.Results;
-import net.javapla.jawn.core.View;
-import net.javapla.jawn.core.mvc.Body;
-import net.javapla.jawn.core.mvc.GET;
 import net.javapla.jawn.core.mvc.POST;
 import net.javapla.jawn.core.mvc.Path;
 import net.javapla.jawn.core.mvc.ViewController;
@@ -20,6 +16,13 @@ public class TestController {
     public TestController(Modes mode) {
         System.out.println("initialised + " + mode);
     }
+    
+    /*@GET
+    public Result get() {
+        Image image2 = image.image(new File("src/test/resources/webapp/img/image.png"));
+        System.out.println("get - " + image2);
+        return image2.asResult();
+    }*/
 
     @POST
     public void post(Double t) {

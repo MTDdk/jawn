@@ -86,7 +86,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
             };
             // Makes it possible for plugins to override framework-specific implementations
             readRegisteredPlugins(pluginConfig, frameworkConfig.getOptionally(Constants.PROPERTY_APPLICATION_PLUGINS_PACKAGE).orElse("net.javapla.jawn.plugins.modules"));
-            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.image");
+            readRegisteredPlugins(pluginConfig, "net.javapla.jawn.core.internal.image"); // TODO ImageRendererEngine needs to be thoroughly thought through as well
             
             // Makes it possible for users to override single framework-specific implementations
             userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
