@@ -1,6 +1,7 @@
 package net.javapla.jawn.templates.stringtemplate.rewrite;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 
@@ -18,16 +19,20 @@ public class ANTLRNoNewLineStream extends ANTLRStringStream {
     protected final static int EXPECTED_LINE_LENGTH = 180;
     
     public ANTLRNoNewLineStream(URL f) throws IOException {
-        this(f, null);
+        this(f.openStream(), null);
     }
     
     public ANTLRNoNewLineStream(URL f, String encoding) throws IOException {
+        this(f.openStream(), encoding);
+    }
+    
+    public ANTLRNoNewLineStream(InputStream input, String encoding) throws IOException {
         
         final InputStreamReader isr;
         if ( encoding!=null ) {
-            isr = new InputStreamReader(f.openStream(), encoding);
+            isr = new InputStreamReader(input, encoding);
         } else {
-            isr = new InputStreamReader(f.openStream());
+            isr = new InputStreamReader(input);
         }
         
         // load the file

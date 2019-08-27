@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.FileSystem;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
@@ -101,7 +100,7 @@ public final class STFastGroupDir extends STRawGroupDir {
 
     /**
      * Stolen ruthlessly from
-     * {@link FileSystem#prefixLength}
+     * {@link java.io.UnixFileSystem#prefixLength}
      * 
      * Compute the length of this pathname string's prefix.  The pathname
      * string must be in normal form.
@@ -156,7 +155,7 @@ public final class STFastGroupDir extends STRawGroupDir {
     private final ANTLRStringStream constructStringStream(URL f) throws IOException {
         return 
             skipLF ? 
-            new ANTLRNoNewLineStream(f, encoding) : //removing \r and \n and trimming lines
+            new ANTLRNoNewLineStream(f.openStream(), encoding) : //removing \r and \n and trimming lines
             new ANTLRInputStream(f.openStream(), encoding); //reading templates as is
     }
     
