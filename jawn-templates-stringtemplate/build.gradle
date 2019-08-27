@@ -11,6 +11,6 @@ dependencies {
 	
 	//Template Engine
 	//StringTemplate
-	implementation('org.antlr:ST4:4.0.8')// { exclude module: 'antlr-runtime'}
+	implementation('org.antlr:ST4:4.1')// { exclude module: 'antlr-runtime'}
     
 }
