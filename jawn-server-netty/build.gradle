@@ -9,7 +9,7 @@ dependencies {
   implementation project(':jawn-core')
   
   // Server
-  String netty = '4.1.33.Final'
+  String netty = '4.1.39.Final'
   implementation "io.netty:netty-handler:$netty"
   implementation "io.netty:netty-codec-http:$netty"
   implementation "io.netty:netty-transport-native-epoll:$netty" //this has some classifiers - do we need to handle these?
