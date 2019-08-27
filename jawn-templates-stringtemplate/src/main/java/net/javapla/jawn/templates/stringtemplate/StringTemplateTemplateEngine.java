@@ -26,7 +26,7 @@ import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
-import net.javapla.jawn.core.renderers.template.ContentTemplateLoader;
+import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 import net.javapla.jawn.core.renderers.template.TemplateRendererEngine;
 import net.javapla.jawn.core.renderers.template.ViewTemplates;
 import net.javapla.jawn.core.renderers.template.config.Site;
@@ -45,7 +45,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     private static final String TEMPLATE_ENDING = ".st";
     
     private final SiteConfigurationReader configReader;
-    private final ContentTemplateLoader<ST> templateLoader;
+    private final ViewTemplateLoader<ST> templateLoader;
     
     // The StringTemplateGroup actually handles some sort of caching internally
     private final STGroupDir group;
@@ -70,7 +70,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         mode = conf.getMode();
         
         this.configReader = configReader;
-        this.templateLoader = new ContentTemplateLoader<>(info, this);
+        this.templateLoader = new ViewTemplateLoader<>(info, this);
         templateRootFolder = templateLoader.getTemplateRootFolder();
         
         StringTemplateConfiguration config = new StringTemplateConfiguration();

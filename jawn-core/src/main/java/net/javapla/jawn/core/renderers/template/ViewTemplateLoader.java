@@ -10,7 +10,7 @@ import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
 import net.javapla.jawn.core.util.CharArrayList;
 
-public class ContentTemplateLoader<T> {
+public class ViewTemplateLoader<T> {
     
     private final String realPath;
     private final TemplateRendererEngine<T> engine;
@@ -20,7 +20,7 @@ public class ContentTemplateLoader<T> {
     
     private final HashMap<String, T> cachedTemplates = new HashMap<>();
     
-    public ContentTemplateLoader(DeploymentInfo info, TemplateRendererEngine<T> engine) {
+    public ViewTemplateLoader(DeploymentInfo info, TemplateRendererEngine<T> engine) {
         realPath = getTemplateRootFolder(info);
         this.engine = engine;
         templateSuffix = engine.getSuffixOfTemplatingEngine();
@@ -34,7 +34,6 @@ public class ContentTemplateLoader<T> {
         return realPath;
     }
     
-    //TODO rename whole class to ViewTemplateLoader
     public ViewTemplates<T> load(final View view, final boolean useCache) throws Up.ViewError {
         final String templateName = getTemplateNameForResult(view);
         final String layoutName = getLayoutNameForResult(view);
