@@ -26,8 +26,8 @@ import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
-import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 import net.javapla.jawn.core.renderers.template.TemplateRendererEngine;
+import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 import net.javapla.jawn.core.renderers.template.ViewTemplates;
 import net.javapla.jawn.core.renderers.template.config.Site;
 import net.javapla.jawn.core.renderers.template.config.SiteConfiguration;
@@ -71,7 +71,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         
         this.configReader = configReader;
         this.templateLoader = new ViewTemplateLoader<>(info, this);
-        templateRootFolder = templateLoader.getTemplateRootFolder();
+        templateRootFolder = templateLoader.getTemplateRootFolder().toString();
         
         StringTemplateConfiguration config = new StringTemplateConfiguration();
         

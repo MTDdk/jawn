@@ -2,6 +2,7 @@ package net.javapla.jawn.templates.stringtemplate.rewrite;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -157,6 +158,10 @@ public final class STFastGroupDir extends STRawGroupDir {
             skipLF ? 
             new ANTLRNoNewLineStream(f.openStream(), encoding) : //removing \r and \n and trimming lines
             new ANTLRInputStream(f.openStream(), encoding); //reading templates as is
+    }
+    
+    private final ANTLRStringStream constructStringStream(InputStream input) throws IOException {
+        return new ANTLRInputStream(input, encoding);
     }
     
     private final CompiledST tryClone(CompiledST template) {
