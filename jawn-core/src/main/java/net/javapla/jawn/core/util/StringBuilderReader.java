@@ -1,4 +1,4 @@
-package net.javapla.jawn.templates.stringtemplate.rewrite;
+package net.javapla.jawn.core.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.util.stream.StreamSupport;
  * 
  * @author MTD
  */
-public class IgnoreLFBufferedReader extends Reader {
+public class StringBuilderReader extends Reader {
     
     private Reader in;
     
@@ -35,7 +35,7 @@ public class IgnoreLFBufferedReader extends Reader {
     private boolean markedSkipLF = false;
 
     private static int defaultCharBufferSize = 8192;
-    private static int defaultExpectedLineLength = 80;
+    private static int defaultExpectedLineLength = 180; // MTD: changed from 80
 
     
     /**
@@ -47,7 +47,7 @@ public class IgnoreLFBufferedReader extends Reader {
      *
      * @exception  IllegalArgumentException  If {@code sz <= 0}
      */
-    public IgnoreLFBufferedReader(Reader in, int sz) {
+    public StringBuilderReader(Reader in, int sz) {
         super(in);
         if (sz <= 0)
             throw new IllegalArgumentException("Buffer size <= 0");
@@ -61,7 +61,7 @@ public class IgnoreLFBufferedReader extends Reader {
      *
      * @param  in   A Reader
      */
-    public IgnoreLFBufferedReader(Reader in) {
+    public StringBuilderReader(Reader in) {
         this(in, defaultCharBufferSize);
     }
     
