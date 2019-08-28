@@ -3,12 +3,14 @@ package net.javapla.jawn.templates.stringtemplate.rewrite;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
 import org.antlr.runtime.ANTLRInputStream;
+import org.antlr.runtime.ANTLRReaderStream;
 import org.antlr.runtime.ANTLRStringStream;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STRawGroupDir;
@@ -160,8 +162,8 @@ public final class STFastGroupDir extends STRawGroupDir {
             new ANTLRInputStream(f.openStream(), encoding); //reading templates as is
     }
     
-    private final ANTLRStringStream constructStringStream(InputStream input) throws IOException {
-        return new ANTLRInputStream(input, encoding);
+    private final ANTLRReaderStream constructStringStream(Reader input) throws IOException {
+        return new ANTLRReaderStream(input);//new ANTLRInputStream(input, encoding);
     }
     
     private final CompiledST tryClone(CompiledST template) {

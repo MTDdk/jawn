@@ -46,7 +46,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     private static final String TEMPLATE_ENDING = ".st";
     
     private final SiteConfigurationReader configReader;
-    private final ViewTemplateLoader<ST> templateLoader;
+    private final ViewTemplateLoader/*<ST>*/ templateLoader;
     
     // The StringTemplateGroup actually handles some sort of caching internally
     private final STGroupDir group;
@@ -71,7 +71,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         mode = conf.getMode();
         
         this.configReader = configReader;
-        this.templateLoader = new ViewTemplateLoader<>(info, this);
+        this.templateLoader = new ViewTemplateLoader(info);
         templateRootFolder = templateLoader.getTemplateRootFolder();
         
         StringTemplateConfiguration config = new StringTemplateConfiguration();
@@ -104,7 +104,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         final ST contentTemplate = templateName != null ? templateLoader.locateContentTemplate(templateName, useCache) : null;*/
         
         final ErrorBuffer error = new ErrorBuffer();
-        final ViewTemplates<ST> viewTemplates = templateLoader.load(result, useCache);
+        final ViewTemplates/*<ST>*/ viewTemplates = templateLoader.load(result, TEMPLATE_ENDING, useCache);
         
         templateLoader.render(context, writer -> {
             if (viewTemplates.layoutName() == null) { // no layout

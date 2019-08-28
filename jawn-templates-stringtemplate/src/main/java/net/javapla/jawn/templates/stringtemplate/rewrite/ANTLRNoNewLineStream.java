@@ -7,6 +7,8 @@ import java.net.URL;
 
 import org.antlr.runtime.ANTLRStringStream;
 
+import net.javapla.jawn.core.util.StringBuilderReader;
+
 /**
  * This is purposefully not optimised for speed, as it only ought to be
  * for reading files, and it should be up to other classes to cache the
@@ -36,7 +38,7 @@ public class ANTLRNoNewLineStream extends ANTLRStringStream {
         }
         
         // load the file
-        try (IgnoreLFBufferedReader reader = new IgnoreLFBufferedReader(isr)) {
+        try (StringBuilderReader reader = new StringBuilderReader(isr)) {
             final StringBuilder bob = new StringBuilder(EXPECTED_LINE_LENGTH);
             
             reader.lines().forEach(line -> trim(bob, line));
@@ -56,7 +58,7 @@ public class ANTLRNoNewLineStream extends ANTLRStringStream {
      * However, skip the extra space if the line starts with a tag start '&lt;', as the previous line
      * probably ended anyway.
      * 
-     * At this point in the execution we know that \r and \n are removed completely (due to {@linkplain IgnoreLFBufferedReader}),
+     * At this point in the execution we know that \r and \n are removed completely (due to {@linkplain StringBuilderReader}),
      * so we only need to look at the spaces surrounding the line.
      * 
      * @see {@linkplain String#trim()}
