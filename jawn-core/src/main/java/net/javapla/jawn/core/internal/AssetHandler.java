@@ -1,8 +1,9 @@
 package net.javapla.jawn.core.internal;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,16 +51,16 @@ public class AssetHandler implements Handler {
     public Result handle(Context context) {
         final String path = context.req().path();
         
-        final File file = new File(deploymentInfo.getRealPath(path));
-        if (!file.canRead()) {
+        final Path file = deploymentInfo.getRealPath(path);
+        if (!Files.isReadable(file)) {
             return Results.notFound();
         }
         
         final Result result = Results.ok().contentType(MediaType.byPath(path).orElse(MediaType.OCTET_STREAM));
         
-        
-        if (_etag(result, file, context)) return result.status(Status.NOT_MODIFIED);
-        if (_lastModified(result, file, context)) return result.status(Status.NOT_MODIFIED);
+        long lastModified = file.toFile().lastModified();
+        if (_etag(result, lastModified, context)) return result.status(Status.NOT_MODIFIED);
+        if (_lastModified(result, lastModified, context)) return result.status(Status.NOT_MODIFIED);
         _cacheControl(result);
         
         
@@ -69,7 +70,7 @@ public class AssetHandler implements Handler {
         }
         
         try {
-            return result.renderable(new FileInputStream(file)); // gets closed by the response (or at least it should be)
+            return result.renderable(Files.newInputStream(file, StandardOpenOption.READ)); // gets closed by the response (or at least it should be)
         } catch (IOException e) {
             logger.error("Something went wrong when rendering asset ", e);
             throw new Up.IO(e);
@@ -78,13 +79,13 @@ public class AssetHandler implements Handler {
     
     /**
      * @param result
-     * @param file
+     * @param lastModified
      * @param context
      * @return true, if not modified
      */
-    private boolean _etag(final Result result, final File file, final Context context) {
+    private boolean _etag(final Result result, final long lastModified, final Context context) {
         if (this.etag) {
-            String etag = String.valueOf(file.lastModified());
+            String etag = String.valueOf(lastModified);
             result.header("ETag", etag);
             
             return context.req()
@@ -97,13 +98,12 @@ public class AssetHandler implements Handler {
     
     /**
      * @param result
-     * @param file
+     * @param lastModified
      * @param context
      * @return true, if not modified
      */
-    private boolean _lastModified(final Result result, final File file, final Context context) {
+    private boolean _lastModified(final Result result, final long lastModified, final Context context) {
         if (this.lastModified) {
-            long lastModified = file.lastModified();
             result.header("Last-Modified", String.valueOf(lastModified));
             
             return context.req()

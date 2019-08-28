@@ -69,14 +69,15 @@ public class StreamUtil {
         if(in == null)
             throw new IllegalArgumentException("input stream cannot be null");
 
-        InputStreamReader reader = new InputStreamReader(in, charset);
-        char[] buffer = new char[_16KB];
-        StringBuilder sb = new StringBuilder();
-
-        for (int x = reader.read(buffer); x != -1; x = reader.read(buffer)) {
-            sb.append(buffer, 0, x);
+        try (InputStreamReader reader = new InputStreamReader(in, charset)) {
+            char[] buffer = new char[_16KB];
+            StringBuilder sb = new StringBuilder();
+    
+            for (int x = reader.read(buffer); x != -1; x = reader.read(buffer)) {
+                sb.append(buffer, 0, x);
+            }
+            return sb.toString();
         }
-        return sb.toString();
     }
     
     /**

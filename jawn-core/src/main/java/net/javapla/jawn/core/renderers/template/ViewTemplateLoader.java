@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.renderers.template;
 
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
@@ -12,11 +13,11 @@ import net.javapla.jawn.core.util.CharArrayList;
 
 public class ViewTemplateLoader<T> {
     
-    private final String realPath;
+    private final Path realPath;
     private final TemplateRendererEngine<T> engine;
     private final String templateSuffix;
     private final int templateSuffixLengthToRemove;
-    private final HashMap<String,String> layoutMap = new HashMap<>();
+    private final HashMap<String,String> layoutCache = new HashMap<>();
     
     private final HashMap<String, T> cachedTemplates = new HashMap<>();
     
@@ -27,10 +28,10 @@ public class ViewTemplateLoader<T> {
         templateSuffixLengthToRemove = templateSuffix.length() + (templateSuffix.charAt(0) == '.' ? 0 : 1); // add one if the dot is missing
     }
     
-    public static final String getTemplateRootFolder(final DeploymentInfo info) {
+    public static final Path getTemplateRootFolder(final DeploymentInfo info) {
         return info.getRealPath(TemplateRendererEngine.TEMPLATES_FOLDER);
     }
-    public final String getTemplateRootFolder() {
+    public final Path getTemplateRootFolder() {
         return realPath;
     }
     
@@ -92,8 +93,8 @@ public class ViewTemplateLoader<T> {
     public final String getLayoutNameForResult(View view) {
         String layout = view.layout();
         if (layout != null) {
-            // handle layout endings
-            layout = layoutMap.computeIfAbsent(layout, (l -> {
+            // handle and cache layout endings
+            layout = layoutCache.computeIfAbsent(layout, (l -> {
                 if (l.endsWith(templateSuffix))
                     l = l.substring(0, l.length() - templateSuffixLengthToRemove);
                 if (!l.endsWith(".html"))

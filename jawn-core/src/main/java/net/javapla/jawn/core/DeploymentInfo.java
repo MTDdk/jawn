@@ -1,5 +1,12 @@
 package net.javapla.jawn.core;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -63,13 +70,13 @@ public class DeploymentInfo {
      * @param path a String specifying a virtual path
      * @return a String specifying the real path, or null if the translation cannot be performed
      */
-    public String getRealPath(final String path) {
+    public Path getRealPath(final String path) {
     	if (path == null) return null;
     	
     	final String p = assertStartSlash(path); 
     	
-    	if (isContextPathSet && p.startsWith(contextPath)) return webappPath + p.substring(contextPath.length());
-        return webappPath + p;
+    	if (isContextPathSet && p.startsWith(contextPath)) return Paths.get(webappPath + p.substring(contextPath.length()));
+        return Paths.get(webappPath + p);
     }
     
     public String getContextPath() {
@@ -97,6 +104,15 @@ public class DeploymentInfo {
         
         // Cache the result when in PROD?
         return stripContextPath(contextPath, contextPathLength, path);
+    }
+    
+    public InputStream resourceAsStream(final String path) throws IOException {
+        Path p = getRealPath(path);
+        return Files.newInputStream(p, StandardOpenOption.READ);
+    }
+    
+    public boolean resourceExists(final String path) {
+        return Files.exists(getRealPath(path));
     }
     
     public static final String stripContextPath(final String contextPath, final String requestPath) {

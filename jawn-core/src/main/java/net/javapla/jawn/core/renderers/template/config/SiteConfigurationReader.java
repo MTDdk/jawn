@@ -165,7 +165,8 @@ public class SiteConfigurationReader {
     }
     
     private String createPathIdentification(String folder, String controller) {
-        return new StringBuilder().append(folder).append('+').append(controller).toString();
+        // per Java11 simple string concatenation is faster than using StringBuilder (https://www.youtube.com/watch?time_continue=3913&v=OL4Ye2r7ohY)
+        return folder + '+' + controller;
     }
 
     private final SiteConfiguration readSiteFile(Path folder) {

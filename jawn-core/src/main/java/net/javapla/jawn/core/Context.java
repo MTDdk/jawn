@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -145,7 +146,7 @@ public interface Context /*extends Injection*/ {
      * </p>
      *
      * @param file a String specifying a virtual path
-     * @return a String specifying the real path, or null if the translation cannot be performed
+     * @return a Path specifying the real path, or null if the translation cannot be performed
      */
-    String realPath(String file);
+    Path realPath(String file);
 }

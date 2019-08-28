@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +22,7 @@ import net.javapla.jawn.core.internal.AssetRouter;
 
 public class AssetRouterTest {
     
-    private static String resources = Paths.get("src", "test", "resources", "webapp").toString();
+    private static Path resources = Paths.get("src", "test", "resources", "webapp");
     private static DeploymentInfo di;
 
     @BeforeClass

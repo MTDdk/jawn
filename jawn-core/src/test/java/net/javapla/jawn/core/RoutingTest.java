@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.BeforeClass;
@@ -19,7 +20,7 @@ public class RoutingTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         DeploymentInfo di = mock(DeploymentInfo.class);
-        when(di.getRealPath("")).thenReturn("");
+        when(di.getRealPath("")).thenReturn(Paths.get(""));
         
         injector = mock(Injector.class);
         when(injector.getInstance(DeploymentInfo.class)).thenReturn(di);
