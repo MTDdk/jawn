@@ -103,6 +103,7 @@ public class MvcMethodHandler implements Route.MethodHandler {
         if (method.getReturnType() == void.class) {
             return Results.noContent();
         } else {
+            // We might need to do some processing based on the return type - but for now it is not used
             if (method.getReturnType() == Result.class) {
                 return (Result) result;
             } else if (method.getReturnType() == View.class) {
