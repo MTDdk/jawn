@@ -2,6 +2,8 @@ package net.javapla.jawn.core.renderers.template.config;
 
 import static org.mockito.Mockito.mock;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
@@ -20,7 +22,7 @@ import net.javapla.jawn.core.util.Modes;
 
 public class SiteConfigurationReaderTest {
     
-    private static final String resources = Paths.get("src", "test", "resources", "renderers", "template", "config").toString(); 
+    private static final Path resources = Paths.get("src", "test", "resources", "renderers", "template", "config"); 
 	
     static ObjectMapper objectMapper;
 	static SiteConfigurationReader confReader;
@@ -29,7 +31,7 @@ public class SiteConfigurationReaderTest {
 	public static void setUpBeforeClass() throws Exception {
 		objectMapper = new JsonMapperProvider().get();
 		
-		DeploymentInfo di = new DeploymentInfo(mock(Config.class), "");
+		DeploymentInfo di = new DeploymentInfo(mock(Config.class), StandardCharsets.UTF_8, "");
 		
 		confReader = new SiteConfigurationReader(objectMapper, di, Modes.DEV);
 	}
@@ -134,7 +136,7 @@ public class SiteConfigurationReaderTest {
 	
 	@Test
 	public void merge_should_not_readTwiceWithLayoutInControllerFolder() {
-        SiteConfiguration controllerConf = confReader.read(resources + "/controllerandlayoutequal", "controller", "controller");
+        SiteConfiguration controllerConf = confReader.read(resources.resolve("controllerandlayoutequal"), "controller", "controller");
         
         Assert.assertEquals(3, controllerConf.scripts.length);
         Assert.assertEquals(3, controllerConf.styles.length);
@@ -170,7 +172,7 @@ public class SiteConfigurationReaderTest {
 	@Test
 	public void readSiteConfiguration_with_contextPath() {
 	    Config config = mock(Config.class);
-        DeploymentInfo info = new DeploymentInfo(config,"/certaincontext");
+        DeploymentInfo info = new DeploymentInfo(config, StandardCharsets.UTF_8 ,"/certaincontext");
 	    SiteConfigurationReader confReader = new SiteConfigurationReader(objectMapper, info, Modes.PROD);
         
 	    SiteConfiguration conf = confReader.read(resources, "index", "index", false);

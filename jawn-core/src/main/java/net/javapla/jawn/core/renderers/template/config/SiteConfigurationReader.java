@@ -1,7 +1,6 @@
 package net.javapla.jawn.core.renderers.template.config;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -171,7 +170,7 @@ public class SiteConfigurationReader {
         Path rootFile = folder.resolve(SITE_FILE);
         if ( !Files.exists(rootFile) ) return new SiteConfiguration();
 
-        try (Reader r = new FileReader(rootFile.toFile())) {
+        try (Reader r = Files.newBufferedReader(rootFile)) {
             SiteConfiguration configuration = mapper.readValue(r, SiteConfiguration.class);
             
             Path parent = folder.getParent(); // we always assume that "js/" and "css/" is at the same level as "folder" (which is most likely "webapp/views")

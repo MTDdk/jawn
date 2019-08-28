@@ -1,7 +1,9 @@
 package net.javapla.jawn.core;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,14 +20,18 @@ public class DeploymentInfo {
 	private final String contextPath;
 	private final boolean isContextPathSet;
 	private final int contextPathLength;
+	private final Charset charset;
+
 	
-	public DeploymentInfo(final Config conf, final String contextPath) {
-	    final String wp = conf.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse(WEBAPP_FOLDER_NAME);
+	public DeploymentInfo(final Config conf, final Charset charset, final String contextPath) {
+        final String wp = conf.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse(WEBAPP_FOLDER_NAME);
 	    
 		this.webappPath = assertNoEndSlash(wp); // is allowed to have start slash, e.g.: /var/www/webapp
 		this.contextPath = assertStartSlash(assertNoEndSlash(contextPath));
 		this.isContextPathSet = !this.contextPath.isEmpty();
 		this.contextPathLength = this.contextPath.length();
+		
+		this.charset = charset;
 	}
 	
 	private static String assertStartSlash(final String path) {
@@ -75,6 +81,7 @@ public class DeploymentInfo {
     	
     	final String p = assertStartSlash(path); 
     	
+    	// if there is a contextPath and it starts with contextPath, remove the contextPath
     	if (isContextPathSet && p.startsWith(contextPath)) return Paths.get(webappPath + p.substring(contextPath.length()));
         return Paths.get(webappPath + p);
     }
@@ -106,9 +113,17 @@ public class DeploymentInfo {
         return stripContextPath(contextPath, contextPathLength, path);
     }
     
+    // TODO: This does only take the file system into account
+    // In order to be more powerful, it should also look for other resources with Thread.currentThread().getContextClassLoader().getResources(dir..)
+    // Just like STFastGroupDir of jawn-templates-stringtemplate
     public InputStream resourceAsStream(final String path) throws IOException {
         Path p = getRealPath(path);
         return Files.newInputStream(p, StandardOpenOption.READ);
+    }
+    
+    public BufferedReader resourceAsReader(final String path) throws IOException {
+        Path p = getRealPath(path);
+        return Files.newBufferedReader(p, charset);
     }
     
     public boolean resourceExists(final String path) {

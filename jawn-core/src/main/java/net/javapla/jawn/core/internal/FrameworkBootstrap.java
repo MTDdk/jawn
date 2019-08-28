@@ -238,12 +238,13 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
         
         //addModule(new DatabaseModule(connections, properties));
+        Charset charset = Charset.forName(config.getOrDie("application.charset"));
                 
         // CoreModule
-        binder.bind(Charset.class).toInstance(Charset.forName(config.getOrDie("application.charset")));
+        binder.bind(Charset.class).toInstance(charset);
         binder.bind(Modes.class).toInstance(mode);
         binder.bind(Config.class).toInstance(config);
-        binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, serverConfig.context()));
+        binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, charset, serverConfig.context()));
         //binder.bind(Injection.class).toInstance(this);
         
         // Marshallers
