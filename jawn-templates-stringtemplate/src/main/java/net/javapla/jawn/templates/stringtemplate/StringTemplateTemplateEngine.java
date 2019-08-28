@@ -2,6 +2,7 @@ package net.javapla.jawn.templates.stringtemplate;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -50,7 +51,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     // The StringTemplateGroup actually handles some sort of caching internally
     private final STGroupDir group;
     
-    private final String templateRootFolder;
+    private final Path templateRootFolder;
     private final boolean useCache;
     private final boolean outputHtmlIndented;
     private final Modes mode;
@@ -71,7 +72,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         
         this.configReader = configReader;
         this.templateLoader = new ViewTemplateLoader<>(info, this);
-        templateRootFolder = templateLoader.getTemplateRootFolder().toString();
+        templateRootFolder = templateLoader.getTemplateRootFolder();
         
         StringTemplateConfiguration config = new StringTemplateConfiguration();
         
@@ -82,7 +83,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
             stringTemplateConfig.init(config);
         }
         
-        group = setupTemplateGroup(templateRootFolder, config);
+        group = setupTemplateGroup(templateRootFolder.toString(), config);
     }
 
     @Override

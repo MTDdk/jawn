@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -54,8 +53,8 @@ public class SiteConfigurationReader {
     /**
      * @see #read(String, String, String, boolean)
      */
-    public SiteConfiguration read(String templateFolder, String controller, String layoutPath) {
-        return read(templateFolder, controller, layoutPath, false);
+    public SiteConfiguration read(Path rootFolder, String controller, String layoutPath) {
+        return read(rootFolder, controller, layoutPath, false);
     }
     /**
      * Reads the {@value #SITE_FILE} of the <code>templateFolder</code> and merges with <code>templateFolder/controller</code>,
@@ -68,7 +67,7 @@ public class SiteConfigurationReader {
      * <li>continue on to look in <code>templateFolder</code>(root) and merge</li>
      * </ol>
      * 
-     * @param templateFolder 
+     * @param rootFolder 
      *      The root folder to read from. The {@value #SITE_FILE} in this location is the default configuration file.
      *      Same as the index.html is the default layout.
      * @param controller
@@ -86,8 +85,7 @@ public class SiteConfigurationReader {
      *      This might be the default configuration, or the merged configuration, or only the controller configuration
      *      if the controller configuration has {@link SiteConfiguration#overrideDefault} set to override everything.
      */
-    public SiteConfiguration read(String templateFolder, String controller, String layoutPath, boolean useCache) {
-        Path rootFolder = Paths.get(templateFolder);
+    public SiteConfiguration read(Path rootFolder, String controller, String layoutPath, boolean useCache) {
 
         // find eventual extra configurations in the controller folder
         // we skip path.controller+'/'+path.method because we only look for other configurations on controller level
