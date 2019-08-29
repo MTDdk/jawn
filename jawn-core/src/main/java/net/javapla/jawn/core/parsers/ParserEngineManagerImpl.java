@@ -43,7 +43,8 @@ class ParserEngineManagerImpl implements ParserEngineManager {
         
         this.contentTypeToParserMap = Collections.unmodifiableMap(map);
         
-        logParsers();
+        if (log.isDebugEnabled())
+            logParsers();
     }
     
     /**
@@ -94,14 +95,14 @@ class ParserEngineManagerImpl implements ParserEngineManager {
         int borderLen = 6 + maxContentTypeLen + maxParserEngineLen;
         String border = StringUtil.padEnd("", borderLen, '-');
 
-        log.info(border);
-        log.info("Registered request bodyparser engines");
-        log.info(border);
+        log.debug(border);
+        log.debug("Registered request bodyparser engines");
+        log.debug(border);
 
         for (MediaType contentType : types) {
 
             ParserEngine templateEngine = getParserEngineForContentType(contentType);
-            log.info("{}  =>  {}",
+            log.debug("{}  =>  {}",
                     StringUtil.padEnd(contentType.name(), maxContentTypeLen, ' '),
                     templateEngine.getClass().getName());
 
