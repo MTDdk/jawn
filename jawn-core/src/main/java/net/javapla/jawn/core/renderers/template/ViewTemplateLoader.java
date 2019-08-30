@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.function.Consumer;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
@@ -15,24 +17,21 @@ import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
 import net.javapla.jawn.core.util.CharArrayList;
 import net.javapla.jawn.core.util.CharArrayStringReader;
+import net.javapla.jawn.core.util.StringUtil;
 
-public class ViewTemplateLoader/*<T>*/ {
+@Singleton
+public class ViewTemplateLoader {
     
     private final DeploymentInfo deploymentInfo;
-    private final Path realPath;
-//    private final TemplateRendererEngine<T> engine;
-//    private final String templateSuffix;
-//    private final int templateSuffixLengthToRemove;
-    private final HashMap<String,String> layoutCache = new HashMap<>();
+    private final Path realPath; // TODO to be deprecated
+    //private final HashMap<String,String> layoutCache = new HashMap<>();
     
     private final HashMap<String, CharArrayStringReader> cachedTemplates = new HashMap<>();
     
-    public ViewTemplateLoader(DeploymentInfo info/*, TemplateRendererEngine<T> engine*/) {
+    @Inject
+    public ViewTemplateLoader(DeploymentInfo info) {
         deploymentInfo = info;
         realPath = getTemplateRootFolder(info);
-//        this.engine = engine;
-//        templateSuffix = engine.getSuffixOfTemplatingEngine();
-//        templateSuffixLengthToRemove = templateSuffix.length() + (templateSuffix.charAt(0) == '.' ? 0 : 1); // add one if the dot is missing
     }
     
     public static final Path getTemplateRootFolder(final DeploymentInfo info) {
@@ -42,34 +41,42 @@ public class ViewTemplateLoader/*<T>*/ {
         return realPath;
     }
     
-    public ViewTemplates/*<T>*/ load(final View view, final String suffixOfTemplatingEngine, final boolean useCache) throws Up.ViewError {
-        final String templateName = getTemplateNameForResult(view, suffixOfTemplatingEngine);
+    public ViewTemplates load(final View view, final String suffixOfTemplatingEngine, final boolean useCache) throws Up.ViewError {
+        final String templatePath = getTemplatePathForResult(view, suffixOfTemplatingEngine);
         final String layoutName = getLayoutNameForResult(view, suffixOfTemplatingEngine);
-        final CharArrayStringReader template = templateName != null ? locateContentTemplate(templateName, useCache) : null; 
+        final CharArrayStringReader template = templatePath != null ? locateContentTemplate(templatePath, useCache) : null; 
         
-        final CharArrayStringReader layout;
+        final Tuple<String, CharArrayStringReader> layout;
         if (layoutName == null) { // no layout
             // both layout and template should not be null
             if (template == null) {
-                throw new Up.ViewError("Could not find the template " + templateName + ". Is it spelled correctly?");
+                throw new Up.ViewError("Could not find the template " + templatePath + ". Is it spelled correctly?");
             }
             
-            layout = null;
+            layout = new Tuple<>(layoutName, null);
         } else {
             layout = locateLayoutTemplate(view.path(), layoutName, suffixOfTemplatingEngine, useCache);
         }
         
-        // TODO
-        
-        return new ViewTemplates/*<T>*/() {
+        return new ViewTemplates() {
             @Override
-            public String templateName() {
-                return templateName;
+            public String templatePath() {
+                return templatePath;
             }
 
             @Override
-            public String layoutName() {
-                return layoutName;
+            public String layoutPath() {
+                return layout.first;//layoutName;
+            }
+            
+            @Override
+            public boolean templateFound() {
+                return template != null;
+            }
+            
+            @Override
+            public boolean layoutFound() {
+                return layout.second != null;
             }
             
             @Override
@@ -80,8 +87,8 @@ public class ViewTemplateLoader/*<T>*/ {
             
             @Override
             public Reader layoutAsReader() throws FileNotFoundException, IOException {
-                if (layout == null) throw new FileNotFoundException();
-                return layout;
+                if (layout.second == null) throw new FileNotFoundException();
+                return layout.second;
             }
         };
     }
@@ -103,22 +110,26 @@ public class ViewTemplateLoader/*<T>*/ {
 
     public final String getLayoutNameForResult(View view, String suffixOfTemplatingEngine) {
         String layout = view.layout();
-        if (layout != null) {
-            // handle and cache layout endings
-            layout = layoutCache.computeIfAbsent(layout, (l -> {
-                /*if (l.endsWith(suffixOfTemplatingEngine)) {
-                    int templateSuffixLengthToRemove = suffixOfTemplatingEngine.length() + (suffixOfTemplatingEngine.charAt(0) == '.' ? 0 : 1); // add one if the dot is missing
-                    l = l.substring(0, l.length() - templateSuffixLengthToRemove);
-                }
-                if (!l.endsWith(".html"))
-                    l += ".html";*///TODO .html needs to be a part
-                if (!l.endsWith(suffixOfTemplatingEngine)) {
-                    l += suffixOfTemplatingEngine;
-                }
-                return l;
-            }));
-        }
-        return layout;//TemplateRendererEngine.TEMPLATES_FOLDER + '/' + layout;//layout;
+//        if (layout != null) {
+//            // handle and cache layout endings
+//            layout = layoutCache.computeIfAbsent(layout, (l -> {
+//                /*if (l.endsWith(suffixOfTemplatingEngine)) {
+//                    int templateSuffixLengthToRemove = suffixOfTemplatingEngine.length() + (suffixOfTemplatingEngine.charAt(0) == '.' ? 0 : 1); // add one if the dot is missing
+//                    l = l.substring(0, l.length() - templateSuffixLengthToRemove);
+//                }
+//                if (!l.endsWith(".html"))
+//                    l += ".html";*///TODO .html needs to be a part
+//                if (!l.endsWith(suffixOfTemplatingEngine)) {
+//                    l += suffixOfTemplatingEngine;
+//                }
+//                return l;
+//            }));
+//        }
+        
+        if (!layout.endsWith(suffixOfTemplatingEngine)) {
+          layout += suffixOfTemplatingEngine;
+      }
+        return layout;
     }
     
     /**
@@ -129,7 +140,7 @@ public class ViewTemplateLoader/*<T>*/ {
      * @param view
      * @return
      */
-    public String getTemplateNameForResult(View view, String suffixOfTemplatingEngine) {
+    public String getTemplatePathForResult(View view, String suffixOfTemplatingEngine) {
         
         final String path = view.path();
         
@@ -140,15 +151,11 @@ public class ViewTemplateLoader/*<T>*/ {
         }*/
         
         String template = view.template();
-        /*if (template.endsWith(suffixOfTemplatingEngine)) {
-            int templateSuffixLengthToRemove = suffixOfTemplatingEngine.length() + (suffixOfTemplatingEngine.charAt(0) == '.' ? 0 : 1); // add one if the dot is missing
-            template = template.substring(0, template.length() - templateSuffixLengthToRemove);
-        }*/
         if (!template.endsWith(suffixOfTemplatingEngine)) {
             template = template + suffixOfTemplatingEngine;
         }
         
-        return TemplateRendererEngine.TEMPLATES_FOLDER + '/' + path + '/' + template;//path + "/" + template;
+        return StringUtil.blank(path) ? template : path + '/' + template;
         
         
         
@@ -182,52 +189,48 @@ public class ViewTemplateLoader/*<T>*/ {
         if (useCache && cachedTemplates.containsKey(contentTemplateName)) 
             return cachedTemplates.get(contentTemplateName);
         
-        CharArrayStringReader template = lookupLayout/*engine.readTemplate*/(contentTemplateName);
+        CharArrayStringReader template = lookupLayout(contentTemplateName);
         if (template != null) return cacheTemplate(contentTemplateName, template, useCache);
         
         return null; //throws new ViewException();??
     }
     
-    public CharArrayStringReader locateLayoutTemplate(final String controller, final String layout, String suffixOfTemplatingEngine) throws Up.ViewError {
-        return locateLayoutTemplate(controller, layout, suffixOfTemplatingEngine, false);
-    }
-
     /**
      * If found, uses the provided layout within the controller folder.
      * If not found, it looks for the default template within the controller folder
      * then use this to override the root default template
      */
-    private CharArrayStringReader locateLayoutTemplate(String controller, final String layout, String suffixOfTemplatingEngine, final boolean useCache) throws Up.ViewError {
+    private Tuple<String,CharArrayStringReader> locateLayoutTemplate(String controller, final String layoutName, String suffixOfTemplatingEngine, final boolean useCache) throws Up.ViewError {
         // first see if we have already looked for the template
-        final String controllerLayoutCombined = TemplateRendererEngine.TEMPLATES_FOLDER + '/' + controller + '/' + layout;
+        final String controllerLayoutCombined = StringUtil.blank(controller) ? layoutName : controller + '/' + layoutName;
         if (useCache && cachedTemplates.containsKey(controllerLayoutCombined)) 
-            return cachedTemplates.get(controllerLayoutCombined);//engine.clone(cachedTemplates.get(controllerLayoutCombined)); // README: computeIfAbsent does not save the result if null - which it actually might need to do to minimise disk reads
-        
+            return new Tuple<>(controllerLayoutCombined, cachedTemplates.get(controllerLayoutCombined)); // README: computeIfAbsent does not save the result if null - which it actually might need to do to minimise disk reads
         
         CharArrayStringReader template;
         // look for a layout of a given name within the controller folder
         if ((template = lookupLayout(controllerLayoutCombined)) != null) // lookupLayoutWithNonDefaultName 
-            return cacheTemplate(controllerLayoutCombined, template, useCache);
+            return new Tuple<>(controllerLayoutCombined, cacheTemplate(controllerLayoutCombined, template, useCache));
         
         // going for defaults
-        if ((template = lookupDefaultLayoutInControllerPathChain(controller, suffixOfTemplatingEngine)) != null) 
-            return cacheTemplate(controllerLayoutCombined, template, useCache);
+        Tuple<String,CharArrayStringReader> t;
+        if ((template = (t = lookupDefaultLayoutInControllerPathChain(controller, suffixOfTemplatingEngine)).second) != null) 
+            return new Tuple<>(t.first, cacheTemplate(controllerLayoutCombined, template, useCache));
         
-        if ((template = lookupDefaultLayout(suffixOfTemplatingEngine)) != null) 
-            return cacheTemplate(controllerLayoutCombined, template, useCache);
+        if ((template = (t = lookupDefaultLayout(suffixOfTemplatingEngine)).second) != null) 
+            return new Tuple<>(t.first, cacheTemplate(controllerLayoutCombined, template, useCache));
         
-        throw new Up.ViewError(TemplateRendererEngine.LAYOUT_DEFAULT /*+ engine.getSuffixOfTemplatingEngine()*/ + " is not to be found anywhere");
+        throw new Up.ViewError(TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine + " is not to be found anywhere");
     }
     
     private CharArrayStringReader lookupLayout(final String controllerLayoutCombined) {
         try {
-            return new CharArrayStringReader(deploymentInfo.resourceAsReader(controllerLayoutCombined));
+            return new CharArrayStringReader(deploymentInfo.viewResourceAsReader(controllerLayoutCombined));
         } catch (IOException ignore) {
             return null;
-        }//engine.readTemplate(controllerLayoutCombined);
+        }
     }
     
-    private CharArrayStringReader lookupDefaultLayoutInControllerPathChain(String controller, String suffixOfTemplatingEngine) {
+    private Tuple<String, CharArrayStringReader> lookupDefaultLayoutInControllerPathChain(String controller, String suffixOfTemplatingEngine) {
         // look for the default layout in controller folder
         // and bubble up one folder if nothing is found
         // (controller can be: /folder1/folder2/folder3 - so it is possible to bubble up)
@@ -235,12 +238,12 @@ public class ViewTemplateLoader/*<T>*/ {
         while ((template = lookupLayout(controller + '/' + TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine)) == null && controller.indexOf('/') > 0) {
             controller = controller.substring(0, controller.lastIndexOf('/'));
         }
-        return template;
+        return new Tuple<>(controller + '/' + TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine, template);
     }
     
-    private CharArrayStringReader lookupDefaultLayout(String suffixOfTemplatingEngine) {
+    private Tuple<String, CharArrayStringReader> lookupDefaultLayout(String suffixOfTemplatingEngine) {
         // last resort - this should always be present
-        return lookupLayout/*engine.readTemplate*/(TemplateRendererEngine.TEMPLATES_FOLDER + '/' + TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine);
+        return new Tuple<>(TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine, lookupLayout(TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine));
     }
     
     private CharArrayStringReader cacheTemplate(final String controllerLayoutCombined, final CharArrayStringReader template, final boolean useCache) {
@@ -248,6 +251,12 @@ public class ViewTemplateLoader/*<T>*/ {
             cachedTemplates.putIfAbsent(controllerLayoutCombined, template);
         }
         return template;
+    }
+    
+    private class Tuple<T,U> {
+        final T first;
+        final U second;
+        Tuple(T f, U s) { first = f; second = s; }
     }
     
     // TODO does this not already exists?

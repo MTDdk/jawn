@@ -69,7 +69,7 @@ public class AssetRouter {
         resourcePaths.removeIf( path -> path.contains("-INF") || path.contains("-inf"));
     
         // We still need to also remove the views folder from being processed by other handlers
-        resourcePaths.removeIf( path -> path.contains(TemplateRendererEngine.TEMPLATES_FOLDER));
+        resourcePaths.removeIf( path -> path.contains(TemplateRendererEngine.TEMPLATES_FOLDER)); // TODO use the fact that the templates folder is handled by DeploymentInfo
         
         // Add the remaining paths to exclusions
         for (String path : resourcePaths) {

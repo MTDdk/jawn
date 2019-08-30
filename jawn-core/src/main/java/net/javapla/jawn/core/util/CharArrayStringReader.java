@@ -5,6 +5,7 @@ import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -51,12 +52,9 @@ public class CharArrayStringReader extends Reader {
     }
     
     public CharArrayStringReader(BufferedReader reader) {
-        final StringBuilder bob = new StringBuilder(8196);
-        reader.lines().forEach(bob::append);
-        
-        this.buf = bob.toString().toCharArray();
+        this.buf = reader.lines().collect(Collectors.joining("\n")).toCharArray();
         this.pos = 0;
-        this.count = bob.length();
+        this.count = buf.length;
     }
     
     
@@ -197,4 +195,10 @@ public class CharArrayStringReader extends Reader {
         buf = null;
     }
 
+    @Override
+    public String toString() {
+        String result = String.valueOf(buf);
+        close();
+        return result;
+    }
 }

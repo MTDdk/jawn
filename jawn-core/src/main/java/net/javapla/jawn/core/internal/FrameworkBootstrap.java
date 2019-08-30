@@ -31,6 +31,7 @@ import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
+import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.spi.ApplicationConfig;
@@ -245,6 +246,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         binder.bind(Modes.class).toInstance(mode);
         binder.bind(Config.class).toInstance(config);
         binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, charset, serverConfig.context()));
+        binder.bind(ViewTemplateLoader.class).in(Singleton.class);
         //binder.bind(Injection.class).toInstance(this);
         
         // Marshallers

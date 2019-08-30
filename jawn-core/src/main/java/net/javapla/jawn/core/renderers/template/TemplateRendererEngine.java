@@ -5,7 +5,7 @@ import net.javapla.jawn.core.View;
 import net.javapla.jawn.core.renderers.RendererEngine;
 
 public interface TemplateRendererEngine<T> extends RendererEngine {
-    String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "views");//"WEB-INF/views/"); //TODO move to jawn_defaults.properties
+    String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "views");//"WEB-INF/views/"); //TODO use DeploymentInfo instead
     String LAYOUT_DEFAULT = "index.html"; //TODO move to jawn_defaults.properties
     
     @Override
@@ -38,18 +38,4 @@ public interface TemplateRendererEngine<T> extends RendererEngine {
      */
     String getSuffixOfTemplatingEngine();
     
-    /**
-     * When using caches we want to be able to clone the cached value, so
-     * nothing gets carried over when re-using the template
-     * <p>
-     * If the templates are re-usable out of the box, then no need to
-     * override this
-     * @param 
-     *      cloneThis the template to be cloned
-     * @return 
-     *      the cloned template or simply <code>cloneThis</code> if nothing needs
-     *      to be altered
-     * 
-     */
-    default T clone(T cloneThis) { return cloneThis; } 
 }

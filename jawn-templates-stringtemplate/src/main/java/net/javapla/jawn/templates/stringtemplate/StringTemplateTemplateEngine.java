@@ -14,7 +14,6 @@ import org.stringtemplate.v4.NoIndentWriter;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroupDir;
 import org.stringtemplate.v4.STWriter;
-import org.stringtemplate.v4.compiler.CompiledST;
 import org.stringtemplate.v4.misc.ErrorBuffer;
 import org.stringtemplate.v4.misc.ErrorType;
 import org.stringtemplate.v4.misc.STMessage;
@@ -24,7 +23,6 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
@@ -60,7 +58,8 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
                                         Config conf,
-                                        DeploymentInfo info,
+                                        //DeploymentInfo info,
+                                        ViewTemplateLoader templateLoader,
                                         SiteConfigurationReader configReader) {
         log.warn("Starting the StringTemplateTemplateEngine");
         
@@ -72,7 +71,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         mode = conf.getMode();
         
         this.configReader = configReader;
-        this.templateLoader = new ViewTemplateLoader(info);
+        this.templateLoader = templateLoader;//new ViewTemplateLoader(info);
         templateRootFolder = templateLoader.getTemplateRootFolder();
         
         StringTemplateConfiguration config = new StringTemplateConfiguration();
@@ -98,31 +97,25 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         if (! useCache)
             reloadGroup();
 
-        //generate name of the template
-        /*final String templateName = templateLoader.getTemplateNameForResult(response);
-        String layoutName = templateLoader.getLayoutNameForResult(response);
-
-        final ST contentTemplate = templateName != null ? templateLoader.locateContentTemplate(templateName, useCache) : null;*/
-        
         final ErrorBuffer error = new ErrorBuffer();
-        final ViewTemplates/*<ST>*/ viewTemplates = templateLoader.load(result, TEMPLATE_ENDING, useCache);
+        final ViewTemplates viewTemplates = templateLoader.load(result, TEMPLATE_ENDING, useCache);
         
         templateLoader.render(context, writer -> {
-            if (viewTemplates.layoutName() == null) { // no layout
+            if (viewTemplates.layoutPath() == null) { // no layout
                 
-                ST template = group.getInstanceOf(viewTemplates.templateName(), viewTemplates.templateAsReader());
+                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.templateAsReader());
                 writeContentTemplate(template, writer, values, error);
 
             } else { // with layout
 
-                ST template = group.getInstanceOf(viewTemplates.templateName(), viewTemplates.templateAsReader());
+                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.templateAsReader());
                 final String content = writeContentTemplate(template, values, error, false);
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
                 final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
                 
-                ST layout = group.getInstanceOf(viewTemplates.layoutName(), viewTemplates.layoutAsReader());
+                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layoutAsReader());
                 injectValuesIntoLayoutTemplate(layout, context, content, values, controller);
 
                 writeTemplate(layout, writer, error);
@@ -131,7 +124,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
 
 
         if (log.isInfoEnabled())
-            log.info("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templateName(), viewTemplates.layoutName(), (System.currentTimeMillis() - time));
+            log.info("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
         
         if (!error.errors.isEmpty() && log.isWarnEnabled())
             log.warn(error.errors.toString());
@@ -150,19 +143,6 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     @Override
     public final ST readTemplate(String templatePath) {
         return group.getInstanceOf(templatePath);
-    }
-    
-    @Override
-    public ST clone(ST cloneThis) {
-        if (cloneThis != null) {
-            cloneThis.impl.formalArguments = null; // this is apparently enough for "cloning"
-            
-            // If the above is not enough, this seems like the way to go:
-            /*try {
-                return group.createStringTemplate(cloneThis.impl.clone());
-            } catch (CloneNotSupportedException ignore) {}*/
-        }
-        return cloneThis;
     }
     
     private final STFastGroupDir setupTemplateGroup(String templateRootFolder, StringTemplateConfiguration config) {

@@ -137,12 +137,15 @@ final class HttpHandlerImpl implements HttpHandler {
     }*/
     
     void renderSystemError(final ContextImpl context, final int status, Throwable e) {
-        runner.execute(Results.status(Status.valueOf(status)), context);
-        
         if (status == 404) {
             logger.info("404 [{}]", context.req().path());
         } else {
             logger.error("{} [{}] ", status, context.req().path(), e);
         }
+        
+        runner.execute(Results.status(Status.valueOf(status)), context);
+        
+        // TODO needs DeploymentInfo to also look for resources
+        //runner.execute(Results.view().path("system").template("404").status(Status.valueOf(status)), context);
     }
 }

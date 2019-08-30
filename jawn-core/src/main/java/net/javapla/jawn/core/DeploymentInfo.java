@@ -15,8 +15,10 @@ import net.javapla.jawn.core.util.StringUtil;
 public class DeploymentInfo {
     
     private final String WEBAPP_FOLDER_NAME = "webapp";
+    private final String WEBAPP_TEMPLATES_FOLDER_NAME = "views";
 
 	private final String webappPath;
+	private final String viewsPath;
 	private final String contextPath;
 	private final boolean isContextPathSet;
 	private final int contextPathLength;
@@ -25,8 +27,10 @@ public class DeploymentInfo {
 	
 	public DeploymentInfo(final Config conf, final Charset charset, final String contextPath) {
         final String wp = conf.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse(WEBAPP_FOLDER_NAME);
+        final String views = conf.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_TEMPLATES_PATH).orElse(WEBAPP_TEMPLATES_FOLDER_NAME);
 	    
 		this.webappPath = assertNoEndSlash(wp); // is allowed to have start slash, e.g.: /var/www/webapp
+		this.viewsPath = webappPath + assertStartSlash(assertNoEndSlash(views));
 		this.contextPath = assertStartSlash(assertNoEndSlash(contextPath));
 		this.isContextPathSet = !this.contextPath.isEmpty();
 		this.contextPathLength = this.contextPath.length();
@@ -124,6 +128,12 @@ public class DeploymentInfo {
     public BufferedReader resourceAsReader(final String path) throws IOException {
         Path p = getRealPath(path);
         return Files.newBufferedReader(p, charset);
+    }
+    
+    // Does not handle contextPath
+    public BufferedReader viewResourceAsReader(final String path) throws IOException {
+        String p = assertStartSlash(path);
+        return p.startsWith(viewsPath) ? Files.newBufferedReader(Paths.get(p), charset) : Files.newBufferedReader(Paths.get(viewsPath, p), charset);
     }
     
     public boolean resourceExists(final String path) {

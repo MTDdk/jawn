@@ -41,7 +41,7 @@ public class Up extends RuntimeException {
         }
         
         public ViewError(final String message) {
-            super(Status.SERVER_ERROR, message);
+            super(Status.SERVER_ERROR, message); // TODO perhaps SERVER_ERROR is a bit too harsh
         } 
     }
     
