@@ -2,7 +2,6 @@ package net.javapla.jawn.templates.stringtemplate.rewrite;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,6 +14,7 @@ import org.antlr.runtime.ANTLRStringStream;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STRawGroupDir;
 import org.stringtemplate.v4.compiler.CompiledST;
+import org.stringtemplate.v4.compiler.Compiler;
 import org.stringtemplate.v4.misc.ErrorType;
 import org.stringtemplate.v4.misc.Misc;
 
@@ -52,6 +52,33 @@ public final class STFastGroupDir extends STRawGroupDir {
         
         // overwrite the ObjectModelAdaptor
         adaptors.put(Object.class, new ObjectWithAttributeNamedGettersModelAdaptor());
+    }
+    
+    public ST getInstanceOf(String name, Reader file) {
+        CompiledST c = lookupTemplate( name, file );
+        if ( c!=null ) {
+            return createStringTemplate(c);
+        }
+        return null;
+    }
+    
+    // TODO might need some revision
+    public CompiledST lookupTemplate(String name, Reader file) {
+        CompiledST code = rawGetTemplate(name);
+        if ( code == NOT_FOUND_ST ) {
+            return null; //  previously seen as not found
+        }
+        if (code != null) return tryClone(code);
+        
+        // TODO perhaps the following could actually be enough :  CompiledST impl = new Compiler(this).compile(fullyQualifiedTemplateName, template);
+        // But without : ANTLRStringStream is = new ANTLRStringStream(template);
+        if ( code == null ) code = loadTemplateFile("", name+TEMPLATE_FILE_EXTENSION, constructStringStream( name, file )); // load t.st file
+        if ( code == null ) templates.put(name, NOT_FOUND_ST);
+        
+        //TODO rewrite in order to not use 'templates', which is synchronized
+        // we can probably manage with only synchronising writes and not all reads
+        
+        return code != null ? tryClone(code) : null;
     }
 
     @Override
@@ -162,8 +189,13 @@ public final class STFastGroupDir extends STRawGroupDir {
             new ANTLRInputStream(f.openStream(), encoding); //reading templates as is
     }
     
-    private final ANTLRReaderStream constructStringStream(Reader input) throws IOException {
-        return new ANTLRReaderStream(input);//new ANTLRInputStream(input, encoding);
+    private final ANTLRReaderStream constructStringStream(String name, Reader input) {
+        try {
+            return new ANTLRReaderStream(input); //new ANTLRInputStream(input, encoding);
+        } catch (IOException e) {
+            errMgr.IOError(null, ErrorType.NO_SUCH_TEMPLATE, e, name);
+        }
+        return null;
     }
     
     private final CompiledST tryClone(CompiledST template) {

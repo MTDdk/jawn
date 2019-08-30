@@ -14,6 +14,7 @@ import org.stringtemplate.v4.NoIndentWriter;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroupDir;
 import org.stringtemplate.v4.STWriter;
+import org.stringtemplate.v4.compiler.CompiledST;
 import org.stringtemplate.v4.misc.ErrorBuffer;
 import org.stringtemplate.v4.misc.ErrorType;
 import org.stringtemplate.v4.misc.STMessage;
@@ -49,7 +50,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     private final ViewTemplateLoader/*<ST>*/ templateLoader;
     
     // The StringTemplateGroup actually handles some sort of caching internally
-    private final STGroupDir group;
+    private final STFastGroupDir/*STGroupDir*/ group;
     
     private final Path templateRootFolder;
     private final boolean useCache;
@@ -66,7 +67,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         STGroupDir.verbose = false;
         Interpreter.trace = false;
 
-        useCache = !conf.isDev();
+        useCache = !conf.isDev(); // TODO should be the responsibility of core (i.e.: ViewTemplateLoader + SiteConfigurationReader)
         outputHtmlIndented = !conf.isProd();
         mode = conf.getMode();
         
@@ -109,21 +110,22 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         templateLoader.render(context, writer -> {
             if (viewTemplates.layoutName() == null) { // no layout
                 
-                writeContentTemplate(viewTemplates.template(), writer, values, error);
+                ST template = group.getInstanceOf(viewTemplates.templateName(), viewTemplates.templateAsReader());
+                writeContentTemplate(template, writer, values, error);
 
             } else { // with layout
 
-                final String content = writeContentTemplate(viewTemplates.template(), values, error, false);
+                ST template = group.getInstanceOf(viewTemplates.templateName(), viewTemplates.templateAsReader());
+                final String content = writeContentTemplate(template, values, error, false);
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
                 final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
                 
-                //final ST layoutTemplate = templateLoader.locateLayoutTemplate(controller, viewTemplates.layoutName, useCache);
-                //layoutName = layoutTemplate.getName(); // for later logging
-                injectValuesIntoLayoutTemplate(viewTemplates.layout(), context, content, values, controller);
+                ST layout = group.getInstanceOf(viewTemplates.layoutName(), viewTemplates.layoutAsReader());
+                injectValuesIntoLayoutTemplate(layout, context, content, values, controller);
 
-                writeTemplate(viewTemplates.layout(), writer, error);
+                writeTemplate(layout, writer, error);
             }
         });
 
@@ -163,7 +165,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         return cloneThis;
     }
     
-    private final STGroupDir setupTemplateGroup(String templateRootFolder, StringTemplateConfiguration config) {
+    private final STFastGroupDir setupTemplateGroup(String templateRootFolder, StringTemplateConfiguration config) {
             
         // TODO if in production or test
         // when reading the template from disk, do the minification at this point
@@ -172,7 +174,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         // a little differently)
         boolean minimise = mode != Modes.DEV; // probably just as outputHtmlIndented
         
-        STGroupDir group = new STFastGroupDir(templateRootFolder, config.delimiterStart, config.delimiterEnd, minimise);
+        STFastGroupDir group = new STFastGroupDir(templateRootFolder, config.delimiterStart, config.delimiterEnd, minimise);
         
         // add the user configurations
         config.adaptors.forEach(group::registerModelAdaptor);
