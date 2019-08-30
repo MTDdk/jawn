@@ -94,9 +94,10 @@ configurations.all {
 
 // Specify the resulting archive
 archivesBaseName = 'jawn'
+apply plugin: 'java-library'
 dependencies {
   // Currently, this is the only needed dependency that has everything you need
-  implementation project(':jawn-core')
-  implementation project(':jawn-server-undertow')
+  api project(':jawn-core') // This is needed to be 'api' as it holds classes needed by implementors
+  implementation project(':jawn-server-undertow') // These might be fine by being 'implementation'
   implementation project(':jawn-templates-stringtemplate')
 }

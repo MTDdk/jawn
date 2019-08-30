@@ -16,7 +16,7 @@ dependencies {
     // Damn! Used in runtime by guice
     exclude module: 'guava' // We import it elsewhere to be concise in the versioning
   }
-  api 'com.google.guava:guava:27.0.1-jre'
+  implementation 'com.google.guava:guava:27.0.1-jre'
   
   
   //compile 'net.sf.trove4j:trove4j:3.0.3'
@@ -41,11 +41,11 @@ dependencies {
   //compile 'com.typesafe:config:1.3.1'
   
   // https://mvnrepository.com/artifact/org.ow2.asm/asm
-  api 'org.ow2.asm:asm:7.0'
+  implementation 'org.ow2.asm:asm:7.0'
   
 
   //ImgScalr (image manipulation)
-  api 'org.imgscalr:imgscalr-lib:4.2'
+  implementation 'org.imgscalr:imgscalr-lib:4.2'
   
 
   //Logging
