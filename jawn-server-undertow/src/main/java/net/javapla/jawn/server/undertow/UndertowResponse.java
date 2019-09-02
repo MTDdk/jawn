@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -133,8 +134,8 @@ final class UndertowResponse implements ServerResponse {
     }
 
     @Override
-    public Writer writer() {
-        return new OutputStreamWriter(outputStream());
+    public Writer writer(final Charset charset) {
+        return new OutputStreamWriter(outputStream(), charset);
     }
 
     @Override

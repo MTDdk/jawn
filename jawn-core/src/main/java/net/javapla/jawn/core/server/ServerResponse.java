@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ public interface ServerResponse {
     boolean committed();
     void end();
     void reset();
-    Writer writer();
+    Writer writer(Charset charset);
     OutputStream outputStream();
     boolean usingStream();
 }

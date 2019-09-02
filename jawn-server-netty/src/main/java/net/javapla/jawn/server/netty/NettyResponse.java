@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -205,7 +206,7 @@ class NettyResponse implements ServerResponse {
     }
 
     @Override
-    public Writer writer() {
+    public Writer writer(final Charset charset) {
         return null;//TODO remove?
     }
 
