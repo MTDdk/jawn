@@ -99,15 +99,18 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         final ViewTemplates viewTemplates = templateLoader.load(result, TEMPLATE_ENDING, useCache);
         
         templateLoader.render(context, writer -> {
-            if (viewTemplates.layoutPath() == null) { // no layout
+            if (!viewTemplates.layoutFound()) { // no layout
                 
                 ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.templateAsReader());
                 writeContentTemplate(template, writer, values, error);
 
             } else { // with layout
 
-                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.templateAsReader());
-                final String content = writeContentTemplate(template, values, error, false);
+                final String content;
+                if (viewTemplates.templateFound()) {
+                    ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.templateAsReader());
+                    content = writeContentTemplate(template, values, error, false);
+                } else content = "";
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
