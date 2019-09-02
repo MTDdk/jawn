@@ -1,11 +1,13 @@
 package net.javapla.jawn.core.renderers.template.config;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -16,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
+import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
 
 
@@ -31,7 +34,9 @@ public class SiteConfigurationReaderTest {
 	public static void setUpBeforeClass() throws Exception {
 		objectMapper = new JsonMapperProvider().get();
 		
-		DeploymentInfo di = new DeploymentInfo(mock(Config.class), StandardCharsets.UTF_8, "");
+		Config config = mock(Config.class);
+		when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(resources.toString()));
+        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, "");
 		
 		confReader = new SiteConfigurationReader(objectMapper, di, Modes.DEV);
 	}

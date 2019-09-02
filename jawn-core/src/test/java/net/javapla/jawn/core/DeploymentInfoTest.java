@@ -6,6 +6,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
@@ -102,5 +104,17 @@ public class DeploymentInfoTest {
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
         
         assertThat(di.resourceExists("css/unavailable.css")).isFalse();
+    }
+    
+    @Test
+    public void jarResources() throws IOException {
+        Config config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(Paths.get("src", "test", "resources", "webapp").toString()));
+        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        di.addResourceRoot(new URL("jar:file:" + Paths.get("src", "test", "resources", "test-jawn-templates.jar").toAbsolutePath() + "!/"));
+        
+        
+        System.out.println(di.resourceLastModified("views/system/404.st"));
+        System.out.println(di.resourceAsStream("views/system/404.st"));
     }
 }

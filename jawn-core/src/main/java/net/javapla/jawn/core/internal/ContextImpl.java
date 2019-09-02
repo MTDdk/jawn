@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -322,8 +323,8 @@ final class ContextImpl implements Context {
     }*/
     
     @Override
-    public Path realPath(final String file) {
-        return injector.getInstance(DeploymentInfo.class).getRealPath(file);
+    public Path realPath(final String file) { // Do we even need this method?
+        return Paths.get(injector.getInstance(DeploymentInfo.class).getRealPath(file));
     }
     
     void route(final Route route) {

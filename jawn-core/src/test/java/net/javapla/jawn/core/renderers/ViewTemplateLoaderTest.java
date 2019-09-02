@@ -113,13 +113,9 @@ public class ViewTemplateLoaderTest {
         assertThat(template.templateFound()).isTrue();
     }
 
-    @Test(expected = Up.ViewError.class) // The path is wrong, and a layout or template can therefore not be found, which
+    @Test(expected = Up.ViewError.class) // The ending is wrong, and a layout or template can therefore not be found, which
     public void layoutMissing() {
-        Config config = mock(Config.class);
-        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, "");
-        
-        ViewTemplateLoader templateLoader = new ViewTemplateLoader(di);
-        templateLoader.load(Results.view(), templateEnding, false);
+        templateLoader.load(Results.view(), ".kein", false);
     }
     
     public void noLayout() {

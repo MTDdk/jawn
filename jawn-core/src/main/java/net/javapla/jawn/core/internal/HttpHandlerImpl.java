@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.internal;
 
+import java.io.File;
 import java.nio.charset.Charset;
 import java.util.function.Consumer;
 
@@ -12,6 +13,7 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
@@ -19,6 +21,7 @@ import net.javapla.jawn.core.Route.After;
 import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 import net.javapla.jawn.core.server.HttpHandler;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
@@ -143,9 +146,15 @@ final class HttpHandlerImpl implements HttpHandler {
             logger.error("{} [{}] ", status, context.req().path(), e);
         }
         
-        runner.execute(Results.status(Status.valueOf(status)), context);
+        File f = new File(deploymentInfo.getRealPath("views/system/404.st"));
+        System.out.println(f + "  .   " + f.lastModified() + " ::" + f.canRead());
+        System.out.println(deploymentInfo.resourceLastModified("views/system/404.st"));
         
-        // TODO needs DeploymentInfo to also look for resources
-        //runner.execute(Results.view().path("system").template("404").status(Status.valueOf(status)), context);
+        if (injector.getInstance(RendererEngineOrchestrator.class).hasRendererEngineForContentType(MediaType.HTML)) {
+            runner.execute(Results.view().path("system").template(String.valueOf(status)).status(Status.valueOf(status)), context);
+        } else { 
+            // A HTML parser is probably not present, so just 
+            runner.execute(Results.status(Status.valueOf(status)), context);
+        }
     }
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
@@ -26,15 +27,15 @@ public class ViewTemplateLoader {
     private final Path realPath; // TODO to be deprecated
     //private final HashMap<String,String> layoutCache = new HashMap<>();
     
-    private final HashMap<String, CharArrayStringReader> cachedTemplates = new HashMap<>();
+    private final HashMap<String, char[]> cachedTemplates = new HashMap<>();
     
     @Inject
     public ViewTemplateLoader(DeploymentInfo info) {
         deploymentInfo = info;
-        realPath = getTemplateRootFolder(info);
+        realPath = Paths.get(getTemplateRootFolder(info));
     }
     
-    public static final Path getTemplateRootFolder(final DeploymentInfo info) {
+    public static final String getTemplateRootFolder(final DeploymentInfo info) {
         return info.getRealPath(TemplateRendererEngine.TEMPLATES_FOLDER);
     }
     public final Path getTemplateRootFolder() {
@@ -110,7 +111,7 @@ public class ViewTemplateLoader {
 
     public final String getLayoutNameForResult(View view, String suffixOfTemplatingEngine) {
         String layout = view.layout();
-//        if (layout != null) {
+        if (layout != null) {
 //            // handle and cache layout endings
 //            layout = layoutCache.computeIfAbsent(layout, (l -> {
 //                /*if (l.endsWith(suffixOfTemplatingEngine)) {
@@ -124,11 +125,12 @@ public class ViewTemplateLoader {
 //                }
 //                return l;
 //            }));
-//        }
+            
+            if (!layout.endsWith(suffixOfTemplatingEngine)) {
+                layout += suffixOfTemplatingEngine;
+            }
+        }
         
-        if (!layout.endsWith(suffixOfTemplatingEngine)) {
-          layout += suffixOfTemplatingEngine;
-      }
         return layout;
     }
     
@@ -186,8 +188,9 @@ public class ViewTemplateLoader {
     }
     
     public CharArrayStringReader locateContentTemplate(final String contentTemplateName, boolean useCache) {
-        if (useCache && cachedTemplates.containsKey(contentTemplateName)) 
-            return cachedTemplates.get(contentTemplateName);
+        if (useCache && cachedTemplates.containsKey(contentTemplateName)) {
+            return new CharArrayStringReader(cachedTemplates.get(contentTemplateName));
+        }
         
         CharArrayStringReader template = lookupLayout(contentTemplateName);
         if (template != null) return cacheTemplate(contentTemplateName, template, useCache);
@@ -204,7 +207,7 @@ public class ViewTemplateLoader {
         // first see if we have already looked for the template
         final String controllerLayoutCombined = StringUtil.blank(controller) ? layoutName : controller + '/' + layoutName;
         if (useCache && cachedTemplates.containsKey(controllerLayoutCombined)) 
-            return new Tuple<>(controllerLayoutCombined, cachedTemplates.get(controllerLayoutCombined)); // README: computeIfAbsent does not save the result if null - which it actually might need to do to minimise disk reads
+            return new Tuple<>(controllerLayoutCombined, new CharArrayStringReader(cachedTemplates.get(controllerLayoutCombined))); // README: computeIfAbsent does not save the result if null - which it actually might need to do to minimise disk reads
         
         CharArrayStringReader template;
         // look for a layout of a given name within the controller folder
@@ -248,7 +251,7 @@ public class ViewTemplateLoader {
     
     private CharArrayStringReader cacheTemplate(final String controllerLayoutCombined, final CharArrayStringReader template, final boolean useCache) {
         if (useCache) {
-            cachedTemplates.putIfAbsent(controllerLayoutCombined, template);
+            cachedTemplates.putIfAbsent(controllerLayoutCombined, template.buffer());
         }
         return template;
     }

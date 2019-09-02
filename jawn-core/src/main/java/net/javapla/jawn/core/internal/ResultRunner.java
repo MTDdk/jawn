@@ -23,7 +23,7 @@ final class ResultRunner {
     }
     
     
-    void execute(final Result result, final ContextImpl context) {
+    void execute(final Result result, final ContextImpl context) throws Up.BadMediaType {
         
         context.readyResponse(result);
     
@@ -33,7 +33,9 @@ final class ResultRunner {
         }
         
         result.renderable().ifPresent(renderable -> {
-            final MediaType type = result.contentType().orElseThrow(() -> new Up(Status.NOT_ACCEPTABLE, "Could not find any suitable way to serve you your content"));
+            final MediaType type = result
+                .contentType()
+                .orElseThrow(() -> new Up(Status.NOT_ACCEPTABLE, "Could not find any suitable way to serve you your content"));
             
             engines.getRendererEngineForContentType(type, engine -> invoke(engine, context, renderable));
         });

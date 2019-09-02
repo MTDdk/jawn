@@ -1,9 +1,7 @@
 package net.javapla.jawn.core.internal;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,14 +49,14 @@ public class AssetHandler implements Handler {
     public Result handle(Context context) {
         final String path = context.req().path();
         
-        final Path file = deploymentInfo.getRealPath(path);
-        if (!Files.isReadable(file)) {
+        final File file = new File(deploymentInfo.getRealPath(path));
+        if (!file.canRead()) {
             return Results.notFound();
         }
         
         final Result result = Results.ok().contentType(MediaType.byPath(path).orElse(MediaType.OCTET_STREAM));
         
-        long lastModified = file.toFile().lastModified();
+        long lastModified = file.lastModified();
         if (_etag(result, lastModified, context)) return result.status(Status.NOT_MODIFIED);
         if (_lastModified(result, lastModified, context)) return result.status(Status.NOT_MODIFIED);
         _cacheControl(result);
@@ -70,7 +68,7 @@ public class AssetHandler implements Handler {
         }
         
         try {
-            return result.renderable(Files.newInputStream(file, StandardOpenOption.READ)); // gets closed by the response (or at least it should be)
+            return result.renderable(deploymentInfo.resourceAsStream(path)); // gets closed by the response (or at least it should be)
         } catch (IOException e) {
             logger.error("Something went wrong when rendering asset ", e);
             throw new Up.IO(e);

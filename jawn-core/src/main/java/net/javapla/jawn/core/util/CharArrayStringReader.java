@@ -201,4 +201,8 @@ public class CharArrayStringReader extends Reader {
         close();
         return result;
     }
+    
+    public char[] buffer() {
+        return buf;
+    }
 }

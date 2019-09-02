@@ -37,13 +37,14 @@ final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator
     // Even better if the providers are sorted into some array of size Enum.values().length.
     // How to handle user defined content types has not yet been devised
     
+    
     @Inject
     RendererEngineOrchestratorImpl(
              final Provider<JsonRendererEngine>   json,
              final Provider<XmlRendererEngine>    xml,
              final Provider<TextRendererEngine>   text,
              final Provider<StreamRendererEngine> stream,
-             final Injector injector) {
+             final Injector injector ) {
         
         final Map<MediaType, Provider<? extends RendererEngine>> map = new HashMap<>();
 
@@ -52,6 +53,8 @@ final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator
         mapEngine(map, xml);
         mapEngine(map, text);
         mapEngine(map, stream);
+        
+        
         
         
         // Find any other defined bindings for TemplateEngine,

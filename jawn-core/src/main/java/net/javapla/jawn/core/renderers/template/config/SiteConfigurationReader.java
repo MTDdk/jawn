@@ -122,7 +122,7 @@ public class SiteConfigurationReader {
     private Site createCachableSite(Context ctx, SiteConfiguration conf) {
         // does not contain 'content'
         return Site.builder(mode/*ctx.mode()*/) // state the current mode
-                    .url(ctx.req().path()) // add the URL
+                    .url(ctx.req().path()) // add the URL <-- seems to be something we should not/can not cache
                     .title(conf.title) // add title
                     
                     //add scripts

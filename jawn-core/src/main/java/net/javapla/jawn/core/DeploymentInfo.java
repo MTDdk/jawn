@@ -1,13 +1,18 @@
 package net.javapla.jawn.core;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Enumeration;
 
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StringUtil;
@@ -23,6 +28,8 @@ public class DeploymentInfo {
 	private final boolean isContextPathSet;
 	private final int contextPathLength;
 	private final Charset charset;
+	
+	private final ArrayList<URL> resourceRoots;
 
 	
 	public DeploymentInfo(final Config conf, final Charset charset, final String contextPath) {
@@ -30,12 +37,28 @@ public class DeploymentInfo {
         final String views = conf.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_TEMPLATES_PATH).orElse(WEBAPP_TEMPLATES_FOLDER_NAME);
 	    
 		this.webappPath = assertNoEndSlash(wp); // is allowed to have start slash, e.g.: /var/www/webapp
-		this.viewsPath = webappPath + assertStartSlash(assertNoEndSlash(views));
+		this.viewsPath = /*webappPath + */assertStartSlash(assertNoEndSlash(views));
 		this.contextPath = assertStartSlash(assertNoEndSlash(contextPath));
 		this.isContextPathSet = !this.contextPath.isEmpty();
 		this.contextPathLength = this.contextPath.length();
 		
 		this.charset = charset;
+		
+		this.resourceRoots = new ArrayList<>();
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        try {
+            Enumeration<URL> resources = cl.getResources(WEBAPP_FOLDER_NAME); // should this be "webappPath" or fixed to always point at framework internal resources?
+            while (resources.hasMoreElements()) {
+                URL url = resources.nextElement();
+                if (!url.getPath().contains("/test/")) {
+                    resourceRoots.add(url);
+                }
+            }
+        } catch (IOException ignore) { }
+	}
+	
+	public void addResourceRoot(URL resourceRoot) {
+	    resourceRoots.add(resourceRoot);
 	}
 	
 	private static String assertStartSlash(final String path) {
@@ -80,14 +103,20 @@ public class DeploymentInfo {
      * @param path a String specifying a virtual path
      * @return a String specifying the real path, or null if the translation cannot be performed
      */
-    public Path getRealPath(final String path) {
+    public String getRealPath(final String path) {
+        
+        
     	if (path == null) return null;
+
     	
-    	final String p = assertStartSlash(path); 
+    	String p = assertStartSlash(path);
     	
-    	// if there is a contextPath and it starts with contextPath, remove the contextPath
-    	if (isContextPathSet && p.startsWith(contextPath)) return Paths.get(webappPath + p.substring(contextPath.length()));
-        return Paths.get(webappPath + p);
+    	// if there is a contextPath and path starts with contextPath, remove the contextPath
+        if (isContextPathSet && p.startsWith(contextPath)) 
+            p = p.substring(contextPath.length());
+
+        
+        return Paths.get(webappPath + p).toAbsolutePath().toString();
     }
     
     public String getContextPath() {
@@ -117,27 +146,86 @@ public class DeploymentInfo {
         return stripContextPath(contextPath, contextPathLength, path);
     }
     
-    // TODO: This does only take the file system into account
-    // In order to be more powerful, it should also look for other resources with Thread.currentThread().getContextClassLoader().getResources(dir..)
-    // Just like STFastGroupDir of jawn-templates-stringtemplate
     public InputStream resourceAsStream(final String path) throws IOException {
-        Path p = getRealPath(path);
-        return Files.newInputStream(p, StandardOpenOption.READ);
+        final String real = getRealPath(path);
+        
+        // Read from file system
+        final File f = new File(real);
+        try {
+            return new FileInputStream(f);
+        } catch (FileNotFoundException e) { }
+        
+        
+        // Else try to read from resources
+        if (!resourceRoots.isEmpty()) {
+            for (URL resourceRoot : resourceRoots) {
+                try {
+                    return new URL(resourceRoot, WEBAPP_FOLDER_NAME + '/' + path).openStream();
+                } catch (IOException e) { }
+            }
+        }
+        
+        // Perhaps mark the resource as not found for later lookup
+        
+        
+        throw new NoSuchFileException(real);
     }
     
     public BufferedReader resourceAsReader(final String path) throws IOException {
-        Path p = getRealPath(path);
-        return Files.newBufferedReader(p, charset);
+        return new BufferedReader(new InputStreamReader(resourceAsStream(path), charset));
     }
     
     // Does not handle contextPath
     public BufferedReader viewResourceAsReader(final String path) throws IOException {
         String p = assertStartSlash(path);
-        return p.startsWith(viewsPath) ? Files.newBufferedReader(Paths.get(p), charset) : Files.newBufferedReader(Paths.get(viewsPath, p), charset);
+        return resourceAsReader(p.startsWith(viewsPath) ? p : viewsPath + p);
+        
+        //return p.startsWith(viewsPath) ? Files.newBufferedReader(Paths.get(p), charset) : Files.newBufferedReader(Paths.get(viewsPath, p), charset);
     }
     
     public boolean resourceExists(final String path) {
-        return Files.exists(getRealPath(path));
+        try (InputStream i = resourceAsStream(path)) {
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+    
+    public long resourceLastModified(final String path) {
+        final String real = getRealPath(path);
+        System.out.println(real);
+        
+        // Read from file system
+        File f = file(real);
+        if (f.exists()) return f.lastModified();
+        
+        
+        // Else try to read from resources
+        if (!resourceRoots.isEmpty()) {
+            for (URL resourceRoot : resourceRoots) {
+                System.out.println(resourceRoot);
+                try {
+                    URL url = new URL(resourceRoot, WEBAPP_FOLDER_NAME + '/' + path);
+                    System.out.println(url);
+                    
+                    File file = new File(url.getPath());
+                    if (file.canRead()) {
+                        return file.lastModified();
+                    }
+                    
+                    // FileUrlConnection opens an inputstream on #getLastModified, whereas JarURLConnection does not
+                    // So we do not use #openConnection when we know/assume the resource to be a simple file on the filesystem
+                    long l = url.openConnection().getLastModified();
+                    if (l > 0) return l;
+                } catch (IOException e) { } 
+            }
+        }
+        
+        return -1;
+    }
+    
+    private File file(String realPath) {
+        return new File(realPath);
     }
     
     public static final String stripContextPath(final String contextPath, final String requestPath) {
