@@ -88,9 +88,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
 
     @Override
     public final void invoke(final Context context, final View result) throws Up.ViewError {
-        long time = 0;
-        if (log.isInfoEnabled())
-            time = System.currentTimeMillis();
+        final long time = System.currentTimeMillis();
 
         final Map<String, Object> values = result.model();
 
@@ -120,14 +118,15 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
 
                 writeTemplate(layout, writer, error);
             }
+            
+            if (log.isInfoEnabled())
+                log.info("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
+            
+            if (!error.errors.isEmpty() && log.isWarnEnabled())
+                log.warn(error.errors.toString());
         });
 
 
-        if (log.isInfoEnabled())
-            log.info("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
-        
-        if (!error.errors.isEmpty() && log.isWarnEnabled())
-            log.warn(error.errors.toString());
     }
     
     @Override
@@ -172,8 +171,9 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     /** Renders template directly to writer */
     private final void writeContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values, final ErrorBuffer error) {
         injectTemplateValues(contentTemplate, values);
+        
         contentTemplate.write(createSTWriter(writer), error);
-//            contentTemplate.write(createSTWriter(writer), new Locale(language), error);
+        //contentTemplate.write(createSTWriter(writer), new Locale(language), error);
     }
 
     /** Renders template into string
