@@ -23,6 +23,7 @@ public class PackageWatcher implements Closeable {
     
     private final String jawnInstanceClassName;
     private final String jawnInstancePackageClass;
+    private final String jawnInstancePackage;
     private final Path packageFileSystemPath;
     private final BiConsumer<Jawn, Class<?>> reloader;
     
@@ -32,7 +33,8 @@ public class PackageWatcher implements Closeable {
     public PackageWatcher(final Class<? extends Jawn> jawn, final BiConsumer<Jawn, Class<?>> reloader) {
         this.jawnInstanceClassName = jawn.getSimpleName() + ".class";
         this.jawnInstancePackageClass = jawn.getName();
-        this.packageFileSystemPath = Paths.get(jawn.getResource("").getFile());
+        this.jawnInstancePackage = jawn.getPackageName();
+        this.packageFileSystemPath = Paths.get(jawn.getResource("").getPath());
         this.reloader = reloader;
     }
 
@@ -117,7 +119,7 @@ public class PackageWatcher implements Closeable {
                         
                         //convert to a class file and reload it from filesystem
                         try {
-                            c = reloadClass(packageFileSystemPath.getFileName().resolve(packageClassPath).toString().replace('/', '.'));
+                            c = reloadClass(jawnInstancePackage + '.'  + packageClassPath.replace('/', '.'));
                         } catch (Up.Compilation | Up.UnloadableClass e) {
                             e.printStackTrace();
                         }
@@ -125,11 +127,12 @@ public class PackageWatcher implements Closeable {
                         /* 
                          * Example:
                          * 
-                         * packageFileSystemPath = /home/user/project/bin/main/app
-                         * changedFile           = /home/user/project/bin/main/app/controller/Class.class
+                         * 
+                         * packageFileSystemPath = /home/user/project/bin/main/com/site/app
+                         * changedFile           = /home/user/project/bin/main/com/site/app/controller/Class.class
+                         * jawnInstancePackage   = com.site.app
                          * packageClassPath      = controller/Class.class
-                         * packageFileSystemPath.getFileName() = app
-                         * class name            = app.controller.Class.class 
+                         * class name            = com.site.app.controller.Class.class 
                          */
                     }
                     
