@@ -193,7 +193,6 @@ public class DeploymentInfo {
     
     public long resourceLastModified(final String path) {
         final String real = getRealPath(path);
-        System.out.println(real);
         
         // Read from file system
         File f = file(real);
@@ -203,10 +202,8 @@ public class DeploymentInfo {
         // Else try to read from resources
         if (!resourceRoots.isEmpty()) {
             for (URL resourceRoot : resourceRoots) {
-                System.out.println(resourceRoot);
                 try {
                     URL url = new URL(resourceRoot, WEBAPP_FOLDER_NAME + '/' + path);
-                    System.out.println(url);
                     
                     File file = new File(url.getPath());
                     if (file.canRead()) {
