@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.internal.image;
 
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Arrays;
 
@@ -36,8 +37,9 @@ class ImageRendererEngine implements /*Stream*/RendererEngine {
 
             ImageIO.write((BufferedImage) obj, extension, context.resp());*/
 
-        } else {
+        } else if (obj instanceof InputStream) {
             //super.invoke(context, obj);
+            context.resp().send((InputStream)obj);
         }
 
     }

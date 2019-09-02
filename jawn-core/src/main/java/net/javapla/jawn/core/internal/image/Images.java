@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -145,6 +146,14 @@ public class Images {
         try {
             return image(ImageIO.read(file), ImageFormat.from(file));
         } catch (IllegalArgumentException | IOException e) {
+            throw new Up.IO(e); // this is not really an IO error..
+        }
+    }
+    
+    public Image image(final InputStream stream, final ImageFormat format) throws Up.IO {
+        try {
+            return image(ImageIO.read(stream), format);
+        } catch (IOException e) {
             throw new Up.IO(e); // this is not really an IO error..
         }
     }
