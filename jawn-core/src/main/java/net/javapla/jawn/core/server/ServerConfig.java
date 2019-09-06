@@ -24,6 +24,15 @@ public interface ServerConfig {
             this.backlog = backlog;
         }
         public int getBacklogValue() { return backlog; }
+        
+        public static Performance determineFromString(final String performance) throws IllegalArgumentException {
+            final String p = performance.toLowerCase();
+            for (Performance perf : Performance.values()) {
+                if (perf.toString().equals(p) || perf.name().toLowerCase().equals(p)) 
+                    return perf;
+            }
+            throw new IllegalArgumentException("No enum constant " + Performance.class.getName() + "." + performance);
+        }
     }
     
     final class Impl implements ServerConfig {
@@ -32,8 +41,8 @@ public interface ServerConfig {
         private String contextPath = "";
         private int port = 8080;
         
-        /** The source folder to read templates from */
-        private String webapp = "src/main/webapp";//TODO read from configuration
+        ///** The source folder to read templates from */
+        //private String webapp = "src/main/webapp";//TODO read from configuration
         private String host = "0.0.0.0";
         
         private int ioThreads = 1;
@@ -79,7 +88,7 @@ public interface ServerConfig {
             return this;
         }
 
-        public String webapp() {
+        /*public String webapp() {
             return webapp;
         }
 
@@ -87,7 +96,7 @@ public interface ServerConfig {
         public ServerConfig webapp(String path) {
             this.webapp = path;
             return this;
-        }
+        }*/
 
         public int ioThreads() {
             return ioThreads;
@@ -128,7 +137,7 @@ public interface ServerConfig {
     ServerConfig port(int port);
     ServerConfig context/*Path*/(String path);
     ServerConfig host(String host);
-    ServerConfig webapp/*Path*/(String path);
+    //ServerConfig webapp/*Path*/(String path);
     /**
      * Automatically set server performance to {@link Performance#CUSTOM}
      * @param number
