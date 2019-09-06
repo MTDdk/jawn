@@ -39,7 +39,7 @@ public class Images {
             return name().toLowerCase();
         }
         
-        static ImageFormat fromExtension(final String ext) throws IllegalArgumentException {
+        public static ImageFormat fromExtension(final String ext) throws IllegalArgumentException {
             for (ImageFormat format : values()) {
                 for (var n : format.names) {
                     if (n.equals(ext)) {
@@ -50,14 +50,22 @@ public class Images {
             throw new IllegalArgumentException("None found with ext [" + ext + "]");
         }
         
-        static ImageFormat fromFileName(final String ext) throws IllegalArgumentException {
+        public static ImageFormat fromFileName(final String ext) throws IllegalArgumentException {
             int dot = ext.lastIndexOf('.');
             if (dot < 1) throw new IllegalArgumentException(ext);
             return fromExtension(ext.substring(dot + 1).toLowerCase());
         }
         
-        static ImageFormat from(final File file) throws IllegalArgumentException {
+        public static ImageFormat from(final File file) throws IllegalArgumentException {
             return fromFileName(file.getName());
+        }
+        
+        /**
+         * @param contentType Like "image/gif", "image/jpg", "image/png"
+         * @return
+         */
+        public static ImageFormat fromContentType(final String contentType) throws IllegalArgumentException {
+            return fromExtension(contentType.substring(contentType.lastIndexOf('/') + 1));
         }
     }
     
