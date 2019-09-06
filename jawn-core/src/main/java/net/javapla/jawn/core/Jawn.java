@@ -27,6 +27,7 @@ import net.javapla.jawn.core.internal.reflection.ClassMeta;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
+import net.javapla.jawn.core.server.ServerConfig.Performance;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.ConvertUtil;
 import net.javapla.jawn.core.util.Modes;
@@ -425,6 +426,13 @@ public class Jawn implements Route.Filtering, Injection {
             server().port(ConvertUtil.toInteger(args[0], serverConfig.port()));
         if (args.length >= 2)
             mode(Modes.determineModeFromString(args[1]));
+        if (args.length >= 3) {
+            try {
+                server().performance(Performance.determineFromString(args[2]));
+            } catch (IllegalArgumentException e) {
+                logger.warn("", e);
+            }
+        }
             
         return this;
     }
