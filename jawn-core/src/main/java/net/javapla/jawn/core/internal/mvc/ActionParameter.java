@@ -123,6 +123,16 @@ public class ActionParameter {
                 }
                 
                 return value.to(childOrContainer(param.type));
+                
+            } else {
+                
+                if (param.optional) {
+                    return Optional.empty();
+                } else if (param.list) {
+                    return List.of();
+                } else if (param.set) {
+                    return Set.of();
+                }
             }
             
             return null;

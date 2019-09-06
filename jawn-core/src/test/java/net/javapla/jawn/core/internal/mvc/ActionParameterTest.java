@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.internal.mvc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -11,6 +12,7 @@ import java.lang.reflect.Parameter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Named;
 
@@ -54,6 +56,36 @@ public class ActionParameterTest {
         
         assertThat(actionParameter.optional).isTrue();
         assertThat(actionParameter.type).isEqualTo(com.google.inject.util.Types.newParameterizedType(Optional.class, String.class));
+    }
+    
+    @Test
+    public void optionalParameter_with_missingValue() throws Throwable {
+        Parameter param = action("lookItUp", Optional.class).getParameters()[0];
+        ActionParameter actionParameter = new ActionParameter(param, "lmgtfy-optional");
+        
+        Context context = mock(Context.class);
+        when(context.param(anyString())).thenReturn(Value.empty());
+        
+        Object result = actionParameter.value(context);
+        
+        assertThat(result).isNotNull(); // the returned must not be null, when the parameter is Optional
+        assertThat(result).isInstanceOf(Optional.class);
+    }
+    
+    @Test
+    public void setParameter_with_missingValue() throws Throwable {
+        String paramName = "lmgtfyset";
+        
+        Parameter param = action("lookItUp", Set.class).getParameters()[0];
+        ActionParameter actionParameter = new ActionParameter(param, paramName);
+        
+        Context context = mock(Context.class);
+        when(context.param(paramName)).thenReturn(Value.empty());
+        
+        Object result = actionParameter.value(context);
+        
+        assertThat(result).isNotNull();
+        assertThat(result).isInstanceOf(Set.class);
     }
     
     @Test
@@ -167,9 +199,11 @@ public class ActionParameterTest {
     public void lookItUp(@Named("lmgtfy-optional") Optional<String> s) {}
     public void lookItUp(long lmgtfy_long) {}
     public void lookItUp(@Named("lmgtfy-list") List<String> l) {}
+    public void lookItUp(Set<String> lmgtfyset) {}
     public void lookItUp(Context.Request req, Context.Response resp) {}
     public void body(@Body String b) {}
     public void body(@Body long l) {}
+    
 
     private static Parameter firstParam(String name) throws NoSuchMethodException, SecurityException {
         return action(name, String.class).getParameters()[0];

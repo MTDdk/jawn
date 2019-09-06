@@ -284,11 +284,13 @@ final class ContextImpl implements Context {
         return 
             Value.of(
                 sreq.queryParam(name)
-                    .or(() -> 
+                    .or(() ->
                         Optional
-                        .ofNullable(req.formData().first(name)).map(FormItem::value)
-                        .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name))
-                    ))
+                            .ofNullable(req.formData())
+                            .map(formData -> formData.first(name))
+                            .map(FormItem::value)
+                            .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name)))
+                    )
             );
     }
     

@@ -22,6 +22,7 @@ import com.google.inject.Provider;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
+import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.internal.reflection.ClassMeta;
 import net.javapla.jawn.core.mvc.GET;
 import net.javapla.jawn.core.mvc.Path;
@@ -75,7 +76,40 @@ public class MvcMethodHandlerTest {
         // verify
         verify(callback, times(1)).accept(any(Method[].class));
     }
-
+    
+    @Test
+    public void stringParameter() {
+        // setup
+        ActionParameterProvider actionParameterProvider = new ActionParameterProvider(new ClassMeta());
+        
+        Injector injector = mock(Injector.class);
+        when(injector.getProvider(Key.get(StringParameter.class))).thenReturn((Provider<StringParameter>) () -> new StringParameter());
+        
+        Context context = mock(Context.class);
+        when(context.param("param")).thenReturn(Value.of("stringParameter"));
+        
+        @SuppressWarnings("unchecked")
+        Consumer<Method[]> callback = mock(Consumer.class);
+        
+        
+        doAnswer(AdditionalAnswers.answerVoid((Method[] methods) -> {
+            
+            // the actual work
+            MvcMethodHandler handler = new MvcMethodHandler( methods[0], StringParameter.class, actionParameterProvider, injector);
+            Result result = handler.handle(context);
+            assertThat(result).isNotNull();
+            assertThat(result.renderable().get()).isEqualTo("stringParameter".getBytes());
+            
+        })).when(callback).accept(any(Method[].class));
+        
+        
+        // execute
+        MvcRouter.methods(StringParameter.class, callback);
+        
+        // verify
+        verify(callback, times(1)).accept(any(Method[].class));
+    }
+    
     
 /**** TEST CLASSES ****/
     
@@ -93,6 +127,14 @@ public class MvcMethodHandlerTest {
         public Result test(Context context) {
             // appends "test" onto the result from context.attribute()
             return Results.text(context.attribute("testAttr").map(att -> att + "test").orElse("nothing"));
+        }
+    }
+    
+    @Path("/string")
+    static class StringParameter {
+        @GET
+        public Result test(Optional<String> param) {
+            return Results.text(param.get());
         }
     }
 }
