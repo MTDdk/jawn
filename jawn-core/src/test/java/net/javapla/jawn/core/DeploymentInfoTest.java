@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -43,8 +42,8 @@ public class DeploymentInfoTest {
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of("webapp"));
         DeploymentInfo di = new DeploymentInfo(config, charset, context);
         
-        assertThat(di.getRealPath("start_of_path/real.jpg").toString()).isEqualTo("webapp/real.jpg");
-        assertThat(di.getRealPath("/start_of_path/real.jpg").toString()).isEqualTo("webapp/real.jpg");
+        assertThat(di.getRealPath("start_of_path/real.jpg").toString()).endsWith("webapp/real.jpg");
+        assertThat(di.getRealPath("/start_of_path/real.jpg").toString()).endsWith("webapp/real.jpg");
     }
 
     @Test
@@ -53,8 +52,8 @@ public class DeploymentInfoTest {
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of("webapp/directory"));
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
         
-        assertThat(di.getRealPath("/img/real.jpg").toString()).isEqualTo("webapp/directory/img/real.jpg");
-        assertThat(di.getRealPath("img/real.jpg").toString()).isEqualTo("webapp/directory/img/real.jpg");
+        assertThat(di.getRealPath("/img/real.jpg").toString()).endsWith("webapp/directory/img/real.jpg");
+        assertThat(di.getRealPath("img/real.jpg").toString()).endsWith("webapp/directory/img/real.jpg");
     }
     
     @Test
