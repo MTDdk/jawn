@@ -1,0 +1,12 @@
+{
+	"title": "jawn test faulty",
+	"overrideDefault": true,
+
+	"scripts": [
+	// missing commas
+		/*{"url": "script1.js"}
+		{"url": "script1.js"}
+		{"url": "script2.js"}
+		{"url": "script2.js"}*/
+	]
+}

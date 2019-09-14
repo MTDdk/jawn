@@ -25,7 +25,7 @@ import net.javapla.jawn.core.util.Modes;
 
 public class SiteConfigurationReaderTest {
     
-    private static final Path resources = Paths.get("src", "test", "resources", "renderers", "template", "config"); 
+    private static final Path resources = Paths.get("src", "test", "resources", "renderers", "template", "config", "views"); 
 	
     static ObjectMapper objectMapper;
 	static SiteConfigurationReader confReader;
