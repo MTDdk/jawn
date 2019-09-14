@@ -1,15 +1,16 @@
 package net.javapla.jawn.core.renderers.template.config;
 
+import java.text.MessageFormat;
+
 import net.javapla.jawn.core.util.Modes;
 
 public class Site {
 
-    public final String url,
-                        title,
+    public final String title,
                         scripts,
                         styles;
     
-    public String content;
+    public String url, content;
     
     public final Modes mode;
     
@@ -26,6 +27,11 @@ public class Site {
     public boolean isProd() { return mode == Modes.PROD; }
     public boolean isTest() { return mode == Modes.TEST; }
     
+    public Site url(String url) {
+        this.url = url;
+        return this;
+    }
+    
     public Site content(final String content) {
         this.content = content;
         return this;
@@ -33,6 +39,11 @@ public class Site {
     
     public static Site.Builder builder(final Modes mode) {
         return new Site.Builder(mode);
+    }
+    
+    @Override
+    public String toString() {
+        return MessageFormat.format("url[{0}] title[{1}] mode[{2}] \nscripts[\n\t{3}] \nstyles[\n\t{4}]", url, title, mode, scripts, styles);
     }
     
     public static class Builder {
