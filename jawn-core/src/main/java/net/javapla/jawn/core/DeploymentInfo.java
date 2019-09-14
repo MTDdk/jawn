@@ -107,6 +107,7 @@ public class DeploymentInfo {
         
         
     	if (path == null) return null;
+    	if (path.startsWith(webappPath)) return path;
 
     	
     	String p = assertStartSlash(path);
