@@ -52,6 +52,8 @@ subprojects {
       exclude module: 'guava' // We import it elsewhere to be concise in the versioning
       exclude module: 'junit'
     }
+    
+    implementation 'com.google.guava:guava:28.1-jre'
   }
 
   // test configurations
