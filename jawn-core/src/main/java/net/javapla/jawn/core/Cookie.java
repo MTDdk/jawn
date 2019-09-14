@@ -12,6 +12,9 @@ import java.util.function.Predicate;
  * We need an internal Cookie representation, as this will make it agnostic to
  * implementation specifics such as a Servlet Cookie.
  * 
+ * Cookies are currently not hashed, signed, encrypted or handling special characters in
+ * keys or values.
+ * 
  * @author MTD
  */
 public class Cookie {
@@ -180,7 +183,7 @@ public class Cookie {
                 return true;
             }
             if (c < 0x20 || c >= 0x7f) {
-                throw new IllegalArgumentException("Illegal character found at: [" + i + "]");
+                throw new IllegalArgumentException("Illegal character [" + c + "] found in (" + str + ") at: [" + i + "]");
             }
         }
         return false;
