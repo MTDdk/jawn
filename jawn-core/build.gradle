@@ -21,8 +21,8 @@ dependencies {
   
   //compile 'net.sf.trove4j:trove4j:3.0.3'
 
-  api 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.8'
-  api 'com.fasterxml.jackson.module:jackson-module-afterburner:2.9.8' // faster data binding
+  api 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.9'
+  api 'com.fasterxml.jackson.module:jackson-module-afterburner:2.9.9' // faster data binding
   
   
   // https://github.com/ronmamo/reflections
@@ -41,7 +41,7 @@ dependencies {
   //compile 'com.typesafe:config:1.3.1'
   
   // https://mvnrepository.com/artifact/org.ow2.asm/asm
-  implementation 'org.ow2.asm:asm:7.0'
+  implementation 'org.ow2.asm:asm:7.0' // use byte-buddy instead https://github.com/raphw/byte-buddy
   
 
   //ImgScalr (image manipulation)
