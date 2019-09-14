@@ -2,17 +2,14 @@ package net.javapla.jawn.templates.stringtemplate;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.stringtemplate.v4.AutoIndentWriter;
-import org.stringtemplate.v4.Interpreter;
 import org.stringtemplate.v4.NoIndentWriter;
 import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroupDir;
 import org.stringtemplate.v4.STWriter;
 import org.stringtemplate.v4.misc.ErrorBuffer;
 import org.stringtemplate.v4.misc.ErrorType;
@@ -21,7 +18,6 @@ import org.stringtemplate.v4.misc.STMessage;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
@@ -30,60 +26,57 @@ import net.javapla.jawn.core.renderers.template.TemplateRendererEngine;
 import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 import net.javapla.jawn.core.renderers.template.ViewTemplates;
 import net.javapla.jawn.core.renderers.template.config.Site;
-import net.javapla.jawn.core.renderers.template.config.SiteConfiguration;
-import net.javapla.jawn.core.renderers.template.config.SiteConfigurationReader;
+import net.javapla.jawn.core.renderers.template.config.SiteProvider;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfig;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfigProvider;
 import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.core.util.StringBuilderWriter;
-import net.javapla.jawn.templates.stringtemplate.rewrite.STFastGroupDir;
+import net.javapla.jawn.templates.stringtemplate.rewrite.FastSTGroup;
 
 @Singleton
-public final class StringTemplateTemplateEngine implements TemplateRendererEngine<ST> {
+public final class StringTemplateTemplateEngine implements TemplateRendererEngine {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private static final String TEMPLATE_ENDING = ".st";
     
-    private final SiteConfigurationReader configReader;
-    private final ViewTemplateLoader/*<ST>*/ templateLoader;
+    //private final SiteConfigurationReader configReader;
+    private final ViewTemplateLoader templateLoader;
+    private final SiteProvider siteProvider;
     
     // The StringTemplateGroup actually handles some sort of caching internally
-    private final STFastGroupDir/*STGroupDir*/ group;
+    private final FastSTGroup/*STFastGroupDir*//*STGroupDir*/ group;
     
-    private final Path templateRootFolder;
+    //private final Path templateRootFolder;
     private final boolean useCache;
     private final boolean outputHtmlIndented;
-    private final Modes mode;
     
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
-                                        Config conf,
+                                        Modes mode,
                                         //DeploymentInfo info,
                                         ViewTemplateLoader templateLoader,
-                                        SiteConfigurationReader configReader) {
-        log.warn("Starting the StringTemplateTemplateEngine");
+                                        //SiteConfigurationReader configReader
+                                        SiteProvider siteProvider) {
+        log.info("Starting the StringTemplateTemplateEngine");
         
-        STGroupDir.verbose = false;
-        Interpreter.trace = false;
-
-        useCache = !conf.isDev(); // TODO should be the responsibility of core (i.e.: ViewTemplateLoader + SiteConfigurationReader)
-        outputHtmlIndented = !conf.isProd();
-        mode = conf.getMode();
+        useCache = mode != Modes.DEV;//!conf.isDev(); // TODO should be the responsibility of core (i.e.: ViewTemplateLoader + SiteConfigurationReader)
+        outputHtmlIndented = mode != Modes.PROD;//!conf.isProd();
         
-        this.configReader = configReader;
+        //this.configReader = configReader;
         this.templateLoader = templateLoader;//new ViewTemplateLoader(info);
-        templateRootFolder = templateLoader.getTemplateRootFolder();
+        this.siteProvider = siteProvider;
+        //templateRootFolder = templateLoader.getTemplateRootFolder();
         
         StringTemplateConfiguration config = new StringTemplateConfiguration();
         
         // Some standard renderers could be added here.. E.g.: HTML escaping
         
-        TemplateConfig<StringTemplateConfiguration> stringTemplateConfig = templateConfig.get();
+        TemplateConfig<StringTemplateConfiguration> stringTemplateConfig = templateConfig.get(); // TODO The TemplateConfig is non-functional at the moment
         if (stringTemplateConfig != null) {
             stringTemplateConfig.init(config);
         }
         
-        group = setupTemplateGroup(templateRootFolder.toString(), config);
+        group = setupTemplateGroup(/*templateRootFolder.toString(),*/ config);
     }
 
     @Override
@@ -96,19 +89,19 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
             reloadGroup();
 
         final ErrorBuffer error = new ErrorBuffer();
-        final ViewTemplates viewTemplates = templateLoader.load(result, TEMPLATE_ENDING, useCache);
+        final ViewTemplates viewTemplates = templateLoader.load(result, TEMPLATE_ENDING/*, useCache*/);
         
         templateLoader.render(context, writer -> {
             if (!viewTemplates.layoutFound()) { // no layout
                 
-                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.templateAsReader());
+                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template/*AsReader*/());
                 writeContentTemplate(template, writer, values, error);
 
             } else { // with layout
 
                 final String content;
                 if (viewTemplates.templateFound()) {
-                    ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.templateAsReader());
+                    ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template/*AsReader*/());
                     content = writeContentTemplate(template, values, error, false);
                 } else content = "";
 
@@ -116,14 +109,14 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
                 // An action might specify a template that is not a part of the controller.
                 final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
                 
-                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layoutAsReader());
-                injectValuesIntoLayoutTemplate(layout, context, content, values, controller);
+                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout/*AsReader*/());
+                injectValuesIntoLayoutTemplate(layout, context, content, values, controller, result);
 
                 writeTemplate(layout, writer, error);
             }
             
-            if (log.isInfoEnabled())
-                log.info("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
+            if (log.isDebugEnabled())
+                log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
             
             if (!error.errors.isEmpty() && log.isWarnEnabled())
                 log.warn(error.errors.toString());
@@ -142,21 +135,16 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         return new MediaType[]{ MediaType.HTML };
     }
     
-    @Override
-    public final ST readTemplate(String templatePath) {
-        return group.getInstanceOf(templatePath);
-    }
-    
-    private final STFastGroupDir setupTemplateGroup(String templateRootFolder, StringTemplateConfiguration config) {
+    private final FastSTGroup setupTemplateGroup(/*String templateRootFolder,*/ StringTemplateConfiguration config) {
             
         // TODO if in production or test
         // when reading the template from disk, do the minification at this point
         // so the STWriter does not have to handle that.
         // (This probably means something like extending STGroup and handle its caching
         // a little differently)
-        boolean minimise = mode != Modes.DEV; // probably just as outputHtmlIndented
+        //boolean minimise = mode != Modes.DEV; // probably just as outputHtmlIndented
         
-        STFastGroupDir group = new STFastGroupDir(templateRootFolder, config.delimiterStart, config.delimiterEnd, minimise);
+        FastSTGroup group = new FastSTGroup(/*templateRootFolder,*/ config.delimiterStart, config.delimiterEnd/*, minimise*/);
         
         // add the user configurations
         config.adaptors.forEach(group::registerModelAdaptor);
@@ -195,9 +183,9 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
                             log.warn("Reloading GroupDir as we have found a problem during rendering of template \"{}\"\n{}",contentTemplate.getName(), templateErrors.errors.toString());
                             //README when errors occur, try to reload the specified templates and try the whole thing again
                             // this often rectifies the problem
-                            reloadGroup();
+                            /*reloadGroup();
                             ST reloadedContentTemplate = readTemplate(contentTemplate.getName());
-                            return writeContentTemplate(reloadedContentTemplate, values, error, true);
+                            return writeContentTemplate(reloadedContentTemplate, values, error, true);*/
                         }
                     }
                 }
@@ -213,7 +201,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     
     private final void injectValuesIntoLayoutTemplate(
             final ST layoutTemplate, final Context ctx, final String content, 
-            final Map<String, Object> values, final String controller) {
+            final Map<String, Object> values, final String controller, View view) {
         
         injectTemplateValues(layoutTemplate, values);
         
@@ -221,8 +209,9 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         // README doesn't work like this..
 //        if (layoutTemplate.getAttribute("site") == null) return;
         
-        SiteConfiguration conf = configReader.read(templateRootFolder, controller, layoutTemplate.impl.prefix.substring(1), useCache);
-        Site site = configReader.retrieveSite(ctx, conf, controller + layoutTemplate.impl.prefix, content, useCache);
+//        SiteConfiguration conf = configReader.read(templateRootFolder, controller.length() > 1 && controller.charAt(0) == '/' ? controller.substring(1) : controller, layoutTemplate.impl.prefix.substring(1), useCache);
+//        Site site = configReader.retrieveSite(ctx, conf, controller + layoutTemplate.impl.prefix, content, useCache);
+        Site site = siteProvider.load(ctx, view, content);
         
         // put everything into the reserved keyword
         layoutTemplate.add("site", site);

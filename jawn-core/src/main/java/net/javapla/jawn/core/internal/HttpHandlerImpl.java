@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.internal;
 
-import java.io.File;
 import java.nio.charset.Charset;
 import java.util.function.Consumer;
 
@@ -145,10 +144,6 @@ final class HttpHandlerImpl implements HttpHandler {
         } else {
             logger.error("{} [{}] ", status, context.req().path(), e);
         }
-        
-//        File f = new File(deploymentInfo.getRealPath("views/system/404.st"));
-//        System.out.println(f + "  .   " + f.lastModified() + " ::" + f.canRead());
-//        System.out.println(deploymentInfo.resourceLastModified("views/system/404.st"));
         
         if (injector.getInstance(RendererEngineOrchestrator.class).hasRendererEngineForContentType(MediaType.HTML)) {
             runner.execute(Results.view().path("system").template(String.valueOf(status)).status(Status.valueOf(status)), context);

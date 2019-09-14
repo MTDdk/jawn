@@ -1,9 +1,5 @@
 package net.javapla.jawn.core.renderers.template;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Reader;
-
 public interface ViewTemplates {
 
     String templatePath();
@@ -12,6 +8,9 @@ public interface ViewTemplates {
     boolean templateFound();
     boolean layoutFound();
     
-    Reader templateAsReader() throws FileNotFoundException, IOException;
-    Reader layoutAsReader() throws FileNotFoundException, IOException;
+//    Reader templateAsReader() throws FileNotFoundException, IOException;
+//    Reader layoutAsReader() throws FileNotFoundException, IOException;
+    
+    String template();
+    String layout();
 }

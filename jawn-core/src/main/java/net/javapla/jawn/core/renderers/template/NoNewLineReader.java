@@ -1,11 +1,7 @@
-package net.javapla.jawn.templates.stringtemplate.rewrite;
+package net.javapla.jawn.core.renderers.template;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-
-import org.antlr.runtime.ANTLRStringStream;
+import java.io.Reader;
 
 import net.javapla.jawn.core.util.StringBuilderReader;
 
@@ -16,29 +12,19 @@ import net.javapla.jawn.core.util.StringBuilderReader;
  * 
  * @author MTD
  */
-public class ANTLRNoNewLineStream extends ANTLRStringStream {
+class NoNewLineReader {
     
-    protected final static int EXPECTED_LINE_LENGTH = 180;
+    final static int EXPECTED_LINE_LENGTH = 180;
     
-    public ANTLRNoNewLineStream(URL f) throws IOException {
-        this(f.openStream(), null);
-    }
-    
-    public ANTLRNoNewLineStream(URL f, String encoding) throws IOException {
-        this(f.openStream(), encoding);
-    }
-    
-    public ANTLRNoNewLineStream(InputStream input, String encoding) throws IOException {
-        
-        final InputStreamReader isr;
-        if ( encoding!=null ) {
-            isr = new InputStreamReader(input, encoding);
-        } else {
-            isr = new InputStreamReader(input);
-        }
-        
+    /** The data being scanned */
+    protected char[] data;
+
+    /** How many characters are actually in the buffer */
+    protected int n;
+
+    public NoNewLineReader(Reader in) throws IOException {
         // load the file
-        try (StringBuilderReader reader = new StringBuilderReader(isr)) {
+        try (StringBuilderReader reader = new StringBuilderReader(in)) {
             final StringBuilder bob = new StringBuilder(EXPECTED_LINE_LENGTH);
             
             reader.lines(true).forEach(line -> trim(bob, line));
@@ -47,7 +33,6 @@ public class ANTLRNoNewLineStream extends ANTLRStringStream {
             this.n = bob.length();
         }
     }
-    
     
     /**
      * Trim the string but keep a single space in the end of the string if one or more is present.
@@ -91,5 +76,9 @@ public class ANTLRNoNewLineStream extends ANTLRStringStream {
             len--;
         }
         return (len > 0) ? len : 0;
+    }
+    
+    public char[] data() {
+        return data;
     }
 }

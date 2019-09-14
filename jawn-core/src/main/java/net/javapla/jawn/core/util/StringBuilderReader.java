@@ -12,7 +12,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * Reimplementation of {@linkplain BufferedReader} using {@linkplain StringBuilder} instead of {@linkplain StringBuffer}
+ * Reimplementation of {@linkplain BufferedReader} using {@linkplain StringBuilder} instead of {@linkplain StringBuffer}.
+ * 
+ * Used to be named IgnoreLFBufferedReader
  * 
  * @author MTD
  */
@@ -336,7 +338,7 @@ public class StringBuilderReader extends Reader {
      *
      * @since 1.8
      */
-    public Stream<String> lines() {
+    /*public Stream<String> lines() {
         Iterator<String> iter = new Iterator<String>() {
             String nextLine = null;
 
@@ -347,6 +349,39 @@ public class StringBuilderReader extends Reader {
                 } else {
                     try {
                         nextLine = readLine(true);
+                        return (nextLine != null);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+            }
+
+            @Override
+            public String next() {
+                if (nextLine != null || hasNext()) {
+                    String line = nextLine;
+                    nextLine = null;
+                    return line;
+                } else {
+                    throw new NoSuchElementException();
+                }
+            }
+        };
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
+                iter, Spliterator.ORDERED | Spliterator.NONNULL), false);
+    }*/
+    
+    public Stream<String> lines(boolean skipLF) throws IOException {
+        Iterator<String> iter = new Iterator<String>() {
+            String nextLine = null;
+
+            @Override
+            public boolean hasNext() {
+                if (nextLine != null) {
+                    return true;
+                } else {
+                    try {
+                        nextLine = readLine(skipLF);
                         return (nextLine != null);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);

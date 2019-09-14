@@ -1,6 +1,8 @@
 package net.javapla.jawn.core.internal.image;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -40,6 +42,8 @@ class ImageRendererEngine implements /*Stream*/RendererEngine {
         } else if (obj instanceof InputStream) {
             //super.invoke(context, obj);
             context.resp().send((InputStream)obj);
+        } else if (obj instanceof File) {
+            context.resp().send(new FileInputStream((File)obj));
         }
 
     }

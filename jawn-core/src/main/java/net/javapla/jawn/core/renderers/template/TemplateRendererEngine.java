@@ -4,7 +4,7 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.View;
 import net.javapla.jawn.core.renderers.RendererEngine;
 
-public interface TemplateRendererEngine<T> extends RendererEngine {
+public interface TemplateRendererEngine extends RendererEngine {
     String TEMPLATES_FOLDER = System.getProperty("resources.templates.folder", "views");//"WEB-INF/views/"); //TODO use DeploymentInfo instead
     String LAYOUT_DEFAULT = "index.html"; //TODO move to jawn_defaults.properties
     
@@ -18,13 +18,6 @@ public interface TemplateRendererEngine<T> extends RendererEngine {
     
     void invoke(Context context, View viewable);
 
-    /**
-     * Let the template engine handle lookups of templates and in effect also caching hereof.
-     * @param templatePath
-     * @return
-     */
-    T readTemplate(String templatePath);
-    
     /**
      * For instance returns .st, .ftl.html, or .ftl.json.
      * <p>

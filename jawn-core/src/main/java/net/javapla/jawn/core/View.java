@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.javapla.jawn.core.renderers.template.TemplateRendererEngine;
+
 public class View extends Result {
 
     
@@ -16,7 +18,7 @@ public class View extends Result {
     
     //README perhaps this ought to be a boolean, as it is solely used as a flag whether to use the 
     //defacto layout or not
-    private String layout = "index.html";//Configuration.getDefaultLayout();
+    private String layout = TemplateRendererEngine.LAYOUT_DEFAULT;//Configuration.getDefaultLayout();
     
     private String path = "";
     
@@ -68,7 +70,7 @@ public class View extends Result {
     }
     
     public View layout(String layout) {
-        this.layout = layout;
+        this.layout = !layout.endsWith(".html") ? layout + ".html" : layout;
         return this;
     }
     
@@ -76,8 +78,8 @@ public class View extends Result {
         return path;
     }
     
-    public View path(String path) {
-        this.path = path;
+    public View path(final String path) {
+        this.path = path.charAt(0) == '/' ? path : '/' + path;
         return this;
     }
     
