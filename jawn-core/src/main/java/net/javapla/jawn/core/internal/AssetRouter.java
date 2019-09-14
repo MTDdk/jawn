@@ -32,16 +32,33 @@ public class AssetRouter {
         Set<String> paths = findExclusionPaths(deploymentInfo);
         logger.debug("Letting the server take care of providing resources from: {}", paths);
         
+        
+        
         return paths
             .stream()
-            .map(path -> new Route.Builder(HttpMethod.GET)
+            .map(path -> {
+                
+                // We assume if the path contains a dot '.', it is a file and not a folder
+                if (path.indexOf('.') > 0) {
+                    return new Route.Builder(HttpMethod.GET)
+                        .path(path)
+                        .handler(
+                            new AssetHandler(deploymentInfo)
+                                .etag(assets.etag)
+                                .lastModified(assets.lastModified)
+                                .maxAge(assets.maxAge)
+                        );
+                }
+                
+                // This should be a folder then
+                return new Route.Builder(HttpMethod.GET)
                                 .path(path + "/{file: .*}")
                                 .handler(new AssetHandler(deploymentInfo)
                                     .etag(assets.etag)
                                     .lastModified(assets.lastModified)
                                     .maxAge(assets.maxAge)
-                                )
-            )
+                                );
+            })
             .collect(Collectors.toList());
     }
 
@@ -67,9 +84,10 @@ public class AssetRouter {
         
         Set<String> resourcePaths = new TreeSet<>(collect);//servletContext.getResourcePaths("/");
         resourcePaths.removeIf( path -> path.contains("-INF") || path.contains("-inf"));
-    
+        
         // We still need to also remove the views folder from being processed by other handlers
         resourcePaths.removeIf( path -> path.contains(TemplateRendererEngine.TEMPLATES_FOLDER)); // TODO use the fact that the templates folder is handled by DeploymentInfo
+        
         
         // Add the remaining paths to exclusions
         for (String path : resourcePaths) {

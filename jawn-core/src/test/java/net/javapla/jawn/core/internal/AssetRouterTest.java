@@ -32,18 +32,11 @@ public class AssetRouterTest {
     @Test
     public void readAssetFolders() {
         List<Builder> assets = AssetRouter.assets(di, new Assets.Impl());
-        assertThat(assets).hasSize(3);
+        assertThat(assets).hasSize(5);
         
         assertThat(assets.stream().map(Route.Builder::build).collect(Collectors.toList()))
-            .comparingElementsUsing(new Correspondence<Route, String>() {
-                @Override
-                public boolean compare(Route actual, String expected) {
-                    return actual.path().startsWith(expected);
-                }
-                
-                public String toString() { return null; }
-            })
-            .containsExactly("/img","/js", "/css");
+            .comparingElementsUsing(Correspondence.from((Route route, String expected) -> route.path().startsWith(expected), "starts with"))
+            .containsExactly("/img/","/js/", "/css/", "/favicon.ico", "/favicon-red.ico");
     }
     
     
