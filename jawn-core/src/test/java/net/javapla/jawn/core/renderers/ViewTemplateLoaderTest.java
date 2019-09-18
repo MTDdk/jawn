@@ -133,11 +133,19 @@ public class ViewTemplateLoaderTest {
         templateLoader.load(Results.view(), ".kein"/*, false*/);
     }
     
+    @Test
     public void noLayout() {
         ViewTemplates template = templateLoader.load(Results.view().path("nolayout").template("update").layout(null), templateEnding/*, false*/);
         
-        assertThat(template.templatePath()).isEqualTo("nolayout/update" + templateEnding);
+        assertThat(template.templatePath()).isEqualTo("/nolayout/update" + templateEnding);
         assertThat(template.layoutPath()).isEqualTo(null);
         assertThat(template.layoutFound()).isFalse();
+    }
+    
+    @Test
+    public void loadStandaloneTemplate() {
+        String template = templateLoader.loadTemplate("/nolayout/update" + templateEnding);
+        assertThat(template).isNotNull();
+        assertThat(template).isEqualTo("<div class=\"content\">update</div>");
     }
 }

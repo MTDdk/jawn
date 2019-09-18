@@ -43,6 +43,10 @@ public class ViewTemplateLoader {
         return realPath;
     }*/
     
+    public String loadTemplate(final String path) {
+        return new String(lookupTemplate(path));
+    }
+    
     public ViewTemplates load(final View view, final String suffixOfTemplatingEngine/*, final boolean useCache*/) throws Up.ViewError {
         final String templatePath = getTemplatePathForResult(view, suffixOfTemplatingEngine);
         final String layoutName = getLayoutNameForResult(view, suffixOfTemplatingEngine);

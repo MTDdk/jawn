@@ -144,7 +144,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         // a little differently)
         //boolean minimise = mode != Modes.DEV; // probably just as outputHtmlIndented
         
-        FastSTGroup group = new FastSTGroup(/*templateRootFolder,*/ config.delimiterStart, config.delimiterEnd/*, minimise*/);
+        FastSTGroup group = new FastSTGroup(templateLoader, /*templateRootFolder,*/ config.delimiterStart, config.delimiterEnd/*, minimise*/);
         
         // add the user configurations
         config.adaptors.forEach(group::registerModelAdaptor);

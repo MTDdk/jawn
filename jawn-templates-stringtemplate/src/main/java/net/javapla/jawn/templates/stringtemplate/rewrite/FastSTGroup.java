@@ -9,6 +9,8 @@ import org.stringtemplate.v4.compiler.CompiledST;
 import org.stringtemplate.v4.compiler.Compiler;
 import org.stringtemplate.v4.misc.ErrorType;
 
+import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
+
 /**
  * Overriding STGroup for a shred of greater performance, and because the framework handles all finding and loading of templates.
  * 
@@ -16,8 +18,13 @@ import org.stringtemplate.v4.misc.ErrorType;
  */
 public final class FastSTGroup extends STGroup {
     
-    public FastSTGroup(char delimiterStartChar, char delimiterStopChar) {
+    private final ViewTemplateLoader templateLoader;
+
+    public FastSTGroup(ViewTemplateLoader templateLoader, char delimiterStartChar, char delimiterStopChar) {
         super(delimiterStartChar, delimiterStopChar);
+        
+        this.templateLoader = templateLoader;
+        
         STGroupDir.verbose = false;
         Interpreter.trace = false;
         
@@ -81,6 +88,13 @@ public final class FastSTGroup extends STGroup {
             fullyQualifiedName = scope.st.impl.prefix + name;
         }
         CompiledST code = rawGetTemplate(fullyQualifiedName);
+        
+        // TODO not fully tested and does clearly not handle if templateLoader returns an invalid response
+        if (code == null) { // we might need to look at the filesystem
+            code = loadTemplate(fullyQualifiedName, templateLoader.loadTemplate(fullyQualifiedName + TEMPLATE_FILE_EXTENSION));
+        }
+        
+        
         if ( code == NOT_FOUND_ST ) {
             errMgr.runTimeError(interp, scope, ErrorType.NO_SUCH_TEMPLATE, fullyQualifiedName);
             return createStringTemplateInternally(new CompiledST());

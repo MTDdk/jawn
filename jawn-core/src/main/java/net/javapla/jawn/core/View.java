@@ -70,7 +70,7 @@ public class View extends Result {
     }
     
     public View layout(String layout) {
-        this.layout = !layout.endsWith(".html") ? layout + ".html" : layout;
+        this.layout = layout != null && !layout.endsWith(".html") ? layout + ".html" : layout;
         return this;
     }
     
