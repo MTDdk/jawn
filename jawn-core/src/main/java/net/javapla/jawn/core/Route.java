@@ -277,7 +277,7 @@ public interface Route extends Handler {
             while (m.find()) {
                 // group(1) is the name of the group. Must be always there...
                 // "/assets/{file}" and "/assets/{file: [a-zA-Z][a-zA-Z_0-9]}" 
-                // will return file.
+                // will return "file".
                 params.add(m.group(1));
             }
             

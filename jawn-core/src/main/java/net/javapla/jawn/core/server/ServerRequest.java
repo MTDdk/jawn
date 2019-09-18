@@ -40,6 +40,9 @@ public interface ServerRequest {
     
     //something handling upload
     MultiList<FormItem> formData();
+    default Optional<FormItem> formData(String name) {
+        return Optional.ofNullable(formData().first(name));
+    }
     
     
     // ****************

@@ -124,6 +124,11 @@ final class ContextImpl implements Context {
             }
             
             @Override
+            public Value pathParam(final String name) {
+                return Value.of(_pathParam(name));
+            }
+            
+            @Override
             public MultiList<FormItem> formData() {
                 return sreq.formData();
             }
@@ -283,14 +288,16 @@ final class ContextImpl implements Context {
     public Value param(final String name) {
         return 
             Value.of(
-                sreq.queryParam(name)
-                    .or(() ->
-                        Optional
-                            .ofNullable(req.formData())
-                            .map(formData -> formData.first(name))
-                            .map(FormItem::value)
-                            .orElse(route().map(route -> route.getPathParametersEncoded(req.path()).get(name)))
+                _pathParam(name)
+                    .orElse(sreq.queryParam(name)
+                        .orElse(
+                            sreq.formData(name) // TODO might also merit an annotation in mvc
+                                .map(FormItem::value)
+                                .orElse(Optional.empty())
+                                .orElse(null)
+                        )
                     )
+                
             );
     }
     
@@ -334,6 +341,14 @@ final class ContextImpl implements Context {
     }
     Optional<Route> route() {
         return Optional.ofNullable(route);
+    }
+    
+    Optional<String> _pathParam(final String name) {
+        return Optional.ofNullable(
+                route()
+                    .map(route -> route.getPathParametersEncoded(req.path()).get(name))
+                    .orElse(null)
+                );
     }
     
     // README could probably just as well be handled by ResultRunner

@@ -105,6 +105,8 @@ public interface Context /*extends Injection*/ {
         MultiList<String> queryParams();
 
         List<String> queryParams(String name);
+        
+        Value pathParam(String name);
 
         MultiList<FormItem> formData();
         

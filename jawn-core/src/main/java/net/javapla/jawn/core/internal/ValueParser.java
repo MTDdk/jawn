@@ -21,6 +21,8 @@ public class ValueParser {
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private static <T> Object value(Value value, Class<T> raw, Type type) {
+        if (raw == Value.class) return value;
+        
         // is this really enough as long as we are comparing java.lang.* ?
         if (raw == String.class) return value.value();
         if (raw == int.class || raw == Integer.class) return value.intValue();
