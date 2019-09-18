@@ -78,7 +78,8 @@ final class UndertowResponse implements ServerResponse {
 
     @Override
     public void send(final ByteBuffer buffer) throws Exception {
-        exchange.getResponseSender().send(buffer);
+        endExchange = false;
+        exchange.getResponseSender().send(buffer, IoCallback.END_EXCHANGE);
     }
 
     @Override
@@ -124,8 +125,9 @@ final class UndertowResponse implements ServerResponse {
         }*/
         
         // this is a noop when response has been set, still call it...
-        if (endExchange)
+        if (endExchange) {
             exchange.endExchange();
+        }
     }
 
     @Override
