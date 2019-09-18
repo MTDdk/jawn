@@ -5,12 +5,16 @@ import static com.google.common.truth.Truth.assertThat;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.internal.reflection.ClassMeta;
+import net.javapla.jawn.core.mvc.Param;
+import net.javapla.jawn.core.mvc.PathParam;
+import net.javapla.jawn.core.mvc.QueryParam;
 
 public class ActionParameterProviderTest {
 
@@ -67,11 +71,43 @@ public class ActionParameterProviderTest {
         assertThat(list.get(0).name).isEqualTo("actionParameterOfAwesome");
     }
     
+    @Test
+    public void paramAnnotation() throws NoSuchMethodException, SecurityException {
+        Method action = action("paramMethod", String.class);
+        
+        List<ActionParameter> list = provider.parameters(action);
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).name).isEqualTo("paramName");
+    }
+    
+    @Test
+    public void pathParamAnnotation() throws NoSuchMethodException, SecurityException {
+        Method action = action("pathMethod", int.class);
+        
+        List<ActionParameter> list = provider.parameters(action);
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).name).isEqualTo("pathName");
+    }
+    
+    @Test
+    public void queryParamAnnotation() throws NoSuchMethodException, SecurityException {
+        Method action = action("queryMethod", Optional.class);
+        
+        List<ActionParameter> list = provider.parameters(action);
+        assertThat(list).hasSize(1);
+        assertThat(list.get(0).name).isEqualTo("qName");
+        assertThat(list.get(0).optional).isTrue();
+    }
+    
+    
     // this is what we are looking for
     public void testMethodFTW_guice(@com.google.inject.name.Named("actionParameterOfAwesome") final String s) { }
     public void testMethodFTW(@javax.inject.Named("actionParameterOfAwesome") final String s) { }
     public void testMethod(String actionParameter) {}
     public void testMethod(final String actionParameter, final Context actionContext, final Integer actionValue) {}
+    public void paramMethod(@Param("paramName") String name) {}
+    public void pathMethod(@PathParam("pathName") int name) {}
+    public void queryMethod(@QueryParam("qName") Optional<Long> name) {}
     
     private static Parameter firstParam(String name) throws NoSuchMethodException, SecurityException {
         return action(name, String.class).getParameters()[0];

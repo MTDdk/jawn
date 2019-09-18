@@ -15,6 +15,9 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.mvc.Body;
+import net.javapla.jawn.core.mvc.Param;
+import net.javapla.jawn.core.mvc.PathParam;
+import net.javapla.jawn.core.mvc.QueryParam;
 
 // parameter for a request
 public class ActionParameter {
@@ -23,8 +26,14 @@ public class ActionParameter {
     private interface CalculateValue {
         Object apply(Context ctx, ActionParameter param) throws Exception;
     }
+    private interface Valuable {
+        Value apply(Context ctx, ActionParameter param) throws Exception;
+    }
     
     private static final Type bodyType = Body.class;
+    private static final Type paramType = Param.class;
+    private static final Type pathParamType = PathParam.class;
+    private static final Type queryParamType = QueryParam.class;
     
     private static final HashMap<Type, CalculateValue> converters = new HashMap<>();
     static {
@@ -33,7 +42,18 @@ public class ActionParameter {
          * @Body
          */
         converters.put(bodyType, (ctx, param) -> { return ctx.req().body((Class<?>) param.type); } );
-        
+        /**
+         * @Param
+         */
+        converters.put(paramType, param() );//(ctx, param) -> { return ctx.param(param.name).to(param.type); });
+        /**
+         * @PathParam
+         */
+        converters.put(pathParamType, wrap((ctx, param)-> ctx.req().pathParam(param.name)) );//(ctx, param)-> { return ctx.req().pathParam(param.name).to(param.type); });
+        /**
+         * @QueryParam
+         */
+        converters.put(queryParamType, wrap((ctx, param) -> ctx.req().queryParam(param.name)) );//(ctx, param)-> { return wrap(ctx.req().queryParam(param.name));/*.to(param.type);*/ });
         
         /**
          * Request
@@ -81,6 +101,12 @@ public class ActionParameter {
         final Type strategyType;
         if (parameter.getAnnotation(Body.class) != null) {
             strategyType = bodyType;
+//        } else if (parameter.getAnnotation(Param.class) != null) {
+//            strategyType = paramType; // not necessary as Context#param is the default strategy
+        } else if (parameter.getAnnotation(PathParam.class) != null) {
+            strategyType = pathParamType;
+        } else if (parameter.getAnnotation(QueryParam.class) != null) {
+            strategyType = queryParamType;
         } else {
             strategyType = this.type;
         }
@@ -94,25 +120,48 @@ public class ActionParameter {
     
     @Override
     public String toString() {
-        return MessageFormat.format("p[{0}] n[{1}] t[{2}] o[{3}]", parameter, name, type, optional);
+        return MessageFormat.format("param[{0}] nanme[{1}] type[{2}] opt[{3}]", parameter, name, type, optional);
     }
 
     private static final CalculateValue param() {
-        return (ctx, param) -> {
+        return wrap((ctx, param) -> ctx.param(param.name));
+        
+        /*return (ctx, param) -> {
             Value value = ctx.param(param.name);
             
             if (value.isPresent()) {
                 
-                //if (clazz(param.type) == Collection.class) {
-                /*System.out.println(param.parameter.getType());
-                Class<?> clazz = clazz(param.type);
-                System.out.println(clazz);
-                if (ReflectionMetadata.isAssignableFrom(param.parameter.getType()clazz, Collection.class)) {
-                    System.out.println("type collections");
-                    if (clazz == List.class) {
-                        return value.toList(childOrContainer(param.type));
-                    }
-                }*/
+                if (param.optional) {
+                    return value.toOptional(childOrContainer(param.type));
+                } else if (param.list) {
+                    return value.toList(childOrContainer(param.type));
+                } else if (param.set) {
+                    return value.toSet(childOrContainer(param.type));
+                }
+                
+                return value.to(childOrContainer(param.type));
+                
+            } else {
+                
+                if (param.optional) {
+                    return Optional.empty();
+                } else if (param.list) {
+                    return List.of();
+                } else if (param.set) {
+                    return Set.of();
+                }
+            }
+            
+            return null;
+        };*/
+    }
+    
+    private static final CalculateValue wrap(Valuable work) {
+        return (ctx, param) -> {
+            
+            Value value = work.apply(ctx, param);
+            
+            if (value.isPresent()) {
                 
                 if (param.optional) {
                     return value.toOptional(childOrContainer(param.type));
