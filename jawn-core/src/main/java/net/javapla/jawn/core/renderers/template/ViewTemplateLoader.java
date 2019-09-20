@@ -87,6 +87,7 @@ public class ViewTemplateLoader {
             
             @Override
             public String template() {
+                if (template == null) return new String();
                 return new String(template); // actually also does copying of the array
             }
             

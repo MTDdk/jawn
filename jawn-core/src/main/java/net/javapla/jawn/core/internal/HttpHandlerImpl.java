@@ -72,8 +72,8 @@ final class HttpHandlerImpl implements HttpHandler {
                 renderSystemError(context, /*"/system/404", "index",*/ 404, e);
             }
         } catch (Up.ViewError e) {
-            // 501
-            renderSystemError(context, /*"/system/500", "index",*/ 501, e);
+            // The implementor might have correctly stated a status
+            renderSystemError(context, /*"/system/501", "index",*/ context.resp().status().value(), e);
         } catch (Up.BadResult | Up.BadMediaType e) {
             // 400
             renderSystemError(context, /*"/system/400", "index",*/ 400, e);
@@ -144,12 +144,17 @@ final class HttpHandlerImpl implements HttpHandler {
         } else {
             logger.error("{} [{}] ", status, context.req().path(), e);
         }
+
         
         if (injector.getInstance(RendererEngineOrchestrator.class).hasRendererEngineForContentType(MediaType.HTML)) {
-            runner.execute(Results.view().path("system").template(String.valueOf(status)).status(Status.valueOf(status)), context);
-        } else { 
-            // A HTML parser is probably not present, so just 
-            runner.execute(Results.status(Status.valueOf(status)), context);
+            try {
+                runner.execute(Results.view().path("system").template(String.valueOf(status)).status(Status.valueOf(status)), context);
+                return;
+            } catch (Up.ViewError v) {return;}
         }
+
+        
+        // A HTML parser is probably not present, so just 
+        runner.execute(Results.status(Status.valueOf(status)), context);
     }
 }

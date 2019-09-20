@@ -46,6 +46,10 @@ final class ResultRunner {
     private void invoke(final RendererEngine engine, final Context context, final Object renderable) {
         try {
             engine.invoke(context, renderable);
+        } catch (Up e) {
+            // nothing - just rethrow
+            // this is to not wrap the exception in Up.RenderableError as below 
+            throw e;
         } catch (Exception e) {
             throw new Up.RenderableError(e);
         }
