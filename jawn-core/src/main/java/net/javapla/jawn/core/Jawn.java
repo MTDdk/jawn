@@ -330,7 +330,7 @@ public class Jawn implements Route.Filtering, Injection {
         
         logger.info(FrameworkBootstrap.FRAMEWORK_SPLASH);
         logger.info("Bootstrap of framework started in: " + (System.currentTimeMillis() - startupTime) + " ms");
-        logger.info("Jawn: Environment:                 " + mode);
+        logger.info("Jawn: Environment:                 " + mode.name());
         logger.info("Jawn: Running on port:             " + serverConfig.port());
         if (!serverConfig.context().isEmpty())
             logger.info("Jawn: With context path:           " + serverConfig.context());

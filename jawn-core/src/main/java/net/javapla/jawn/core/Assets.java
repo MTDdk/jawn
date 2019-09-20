@@ -50,10 +50,10 @@ public interface Assets {
     }
     
     /**
-     * @param duration {@link TimeUtil#parse}
+     * @param duration {@link TimeUtil#seconds(String)}
      * @return
      */
     default Assets maxAge(String duration) {
-        return maxAge(TimeUtil.parse(duration));
+        return maxAge(TimeUtil.seconds(duration));
     }
 }
