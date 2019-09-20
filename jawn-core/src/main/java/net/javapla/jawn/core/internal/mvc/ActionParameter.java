@@ -15,7 +15,6 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.mvc.Body;
-import net.javapla.jawn.core.mvc.Param;
 import net.javapla.jawn.core.mvc.PathParam;
 import net.javapla.jawn.core.mvc.QueryParam;
 
@@ -31,7 +30,7 @@ public class ActionParameter {
     }
     
     private static final Type bodyType = Body.class;
-    private static final Type paramType = Param.class;
+    //private static final Type paramType = Param.class;
     private static final Type pathParamType = PathParam.class;
     private static final Type queryParamType = QueryParam.class;
     
@@ -45,15 +44,15 @@ public class ActionParameter {
         /**
          * @Param
          */
-        converters.put(paramType, param() );//(ctx, param) -> { return ctx.param(param.name).to(param.type); });
+        //converters.put(paramType, param() );//(ctx, param) -> { return ctx.param(param.name).to(param.type); });
         /**
          * @PathParam
          */
-        converters.put(pathParamType, wrap((ctx, param)-> ctx.req().pathParam(param.name)) );//(ctx, param)-> { return ctx.req().pathParam(param.name).to(param.type); });
+        converters.put(pathParamType, wrap((ctx, param)->  ctx.req().pathParam(param.name))  );//(ctx, param)-> { return ctx.req().pathParam(param.name).to(param.type); });
         /**
          * @QueryParam
          */
-        converters.put(queryParamType, wrap((ctx, param) -> ctx.req().queryParam(param.name)) );//(ctx, param)-> { return wrap(ctx.req().queryParam(param.name));/*.to(param.type);*/ });
+        converters.put(queryParamType, wrap((ctx, param) -> { if(param.list || param.set) return ctx.req().queryParams(param.name); else return ctx.req().queryParam(param.name); } ));//(ctx, param)-> { return wrap(ctx.req().queryParam(param.name));/*.to(param.type);*/ });
         
         /**
          * Request
@@ -108,7 +107,7 @@ public class ActionParameter {
         } else if (parameter.getAnnotation(QueryParam.class) != null) {
             strategyType = queryParamType;
         } else {
-            strategyType = this.type;
+            strategyType = this.type; // Context#param is the default strategy
         }
         
         this.strategy = converters.getOrDefault(strategyType, param());
@@ -124,7 +123,7 @@ public class ActionParameter {
     }
 
     private static final CalculateValue param() {
-        return wrap((ctx, param) -> ctx.param(param.name));
+        return wrap((ctx, param) -> ctx.param(param.name) );
         
         /*return (ctx, param) -> {
             Value value = ctx.param(param.name);

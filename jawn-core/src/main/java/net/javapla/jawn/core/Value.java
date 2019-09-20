@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -223,7 +224,11 @@ public interface Value extends Iterable<Value> { // SimpleValue
     }
     
     static Value of(final String ... valuables) {
-        return new ListValue(Arrays.asList(valuables).stream().map(StringValue::new).collect(Collectors.toList()));
+        return of(Arrays.asList(valuables));//new ListValue(Arrays.asList(valuables).stream().map(StringValue::new).collect(Collectors.toList()));
+    }
+    
+    static Value of(final Collection<String> valuables) {
+        return new ListValue(valuables.stream().map(StringValue::new).collect(Collectors.toList()));
     }
     
     static Value of(final Optional<String> opt) {

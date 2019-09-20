@@ -119,8 +119,8 @@ final class ContextImpl implements Context {
             }
             
             @Override
-            public List<String> queryParams(final String name) {
-                return sreq.queryParams(name);
+            public Value queryParams(final String name) {
+                return Value.of(sreq.queryParams(name));
             }
             
             @Override

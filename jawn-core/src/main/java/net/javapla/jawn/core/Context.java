@@ -104,7 +104,7 @@ public interface Context /*extends Injection*/ {
 
         MultiList<String> queryParams();
 
-        List<String> queryParams(String name);
+        Value queryParams(String name);
         
         Value pathParam(String name);
 
