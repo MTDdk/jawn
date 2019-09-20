@@ -123,4 +123,9 @@ public class MvcMethodHandler implements Route.MethodHandler {
     public Class<?> routeClass() {
         return routeClass;
     }
+    
+    @Override
+    public String toString() {
+        return MvcMethodHandler.class.getSimpleName() + " : " + routeClass.getSimpleName() + "#" + method.getName();
+    }
 }
