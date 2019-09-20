@@ -98,11 +98,11 @@ public interface Config {
     }
     
     default Duration getDuration(final String name) {
-        return Duration.ofSeconds(TimeUtil.parse(get(name)));
+        return Duration.ofSeconds(TimeUtil.seconds(get(name)));
     }
     
     default Optional<Duration> getDurationOptionally(final String name) {
-        return getOptionally(name).map( value -> Duration.ofSeconds(TimeUtil.parse(value)));
+        return getOptionally(name).map( value -> Duration.ofSeconds(TimeUtil.seconds(value)));
     }
     
     default Duration getDurationOrDie(final String name) throws RuntimeException {
@@ -110,11 +110,11 @@ public interface Config {
     }
     
     default long getDuration(final String name, final TimeUnit unit) {
-        return unit.convert(TimeUtil.parse(get(name)), TimeUnit.SECONDS);
+        return unit.convert(TimeUtil.seconds(get(name)), TimeUnit.SECONDS);
     }
     
     default Optional<Long> getDurationOptionally(final String name, final TimeUnit unit) {
-        return getOptionally(name).map( value -> unit.convert(TimeUtil.parse(value), TimeUnit.SECONDS));
+        return getOptionally(name).map( value -> unit.convert(TimeUtil.seconds(value), TimeUnit.SECONDS));
     }
     
     default long getDurationOrDie(final String name, final TimeUnit unit) throws RuntimeException {

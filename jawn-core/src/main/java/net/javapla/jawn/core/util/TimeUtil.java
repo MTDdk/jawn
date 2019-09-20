@@ -16,7 +16,7 @@ public class TimeUtil {
      * 
      * @return the number of seconds or 30 minutes (1800) if <code>duration</code> is null or unparseable.
      */
-    public static int parse(String duration) {
+    public static int seconds(String duration) {
         if (StringUtil.blank(duration)) return 1800;
         
         /*
