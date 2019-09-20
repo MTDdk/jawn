@@ -50,7 +50,7 @@ public class DeploymentInfo {
             Enumeration<URL> resources = cl.getResources(WEBAPP_FOLDER_NAME); // should this be "webappPath" or fixed to always point at framework internal resources?
             while (resources.hasMoreElements()) {
                 URL url = resources.nextElement();
-                if (!url.getPath().contains("/test/")) {
+                if (!url.getPath().contains("/test/") && !url.getPath().contains("/default/")) {
                     resourceRoots.add(url);
                 }
             }
