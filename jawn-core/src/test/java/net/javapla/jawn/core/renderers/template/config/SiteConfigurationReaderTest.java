@@ -1,191 +1,185 @@
 package net.javapla.jawn.core.renderers.template.config;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Optional;
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.truth.Correspondence;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.Modes;
-
-
 
 public class SiteConfigurationReaderTest {
     
-    private static final Path resources = Paths.get("src", "test", "resources", "renderers", "template", "config", "views"); 
-	
+    private static final Path resources = Paths.get("src", "test", "resources", "renderers", "template", "config"); 
+    
     static ObjectMapper objectMapper;
-	static SiteConfigurationReader confReader;
+    static Config config;
+    static SiteConfigurationReader confReader;
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		objectMapper = new JsonMapperProvider().get();
-		
-		Config config = mock(Config.class);
-		when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(resources.toString()));
-        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, "");
-		
-		confReader = new SiteConfigurationReader(objectMapper, di, Modes.DEV);
-	}
 
-	@Test
-	public void readingResources() {
-		SiteConfiguration conf = confReader.read(resources, "index", "index", false);
-		Assert.assertEquals("jawn test", conf.title);
-		
-		Assert.assertEquals(2, conf.scripts.length);
-		Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
-		Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
-		
-		Assert.assertEquals(2, conf.styles.length);
-		Assert.assertEquals("/" + SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style1.css", conf.styles[0].url);
-		Assert.assertNull(conf.styles[0].attr.get("integrity"));
-		Assert.assertNull(conf.styles[0].attr.get("crossorigin"));
-		
-		Assert.assertEquals("/" + SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style2.css", conf.styles[1].url);
-		Assert.assertEquals("#2", conf.styles[1].attr.get("integrity"));
-		Assert.assertEquals("none", conf.styles[1].attr.get("crossorigin"));
-		
-		Assert.assertEquals(false, conf.overrideDefault);
-	}
-	
-	@Test
-    public void parsingScripts_should_addSlashJs() {
-	    SiteConfiguration conf = confReader.read(resources, "index", "index", false);
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        objectMapper = new JsonMapperProvider().get();
         
-	    Arrays.stream(conf.scripts).forEach(script -> Assert.assertTrue(script.url.contains("/js/")));
+        config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(resources.toString()));
+        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, "");
+        
+        confReader = new SiteConfigurationReader(objectMapper, di);
+    }
+
+    @Test
+    public void readSiteFile() {
+        SiteConfiguration conf = confReader.readSiteFile("");
+        
+        assertThat(conf.title).isEqualTo("jawn test");
+        assertThat(conf.scripts).hasLength(2);
+        assertThat(conf.styles).hasLength(2);
+        
+        assertThat(conf.scripts)
+            .asList()
+            .comparingElementsUsing(Correspondence.transforming((SiteConfiguration.Tag tag) -> tag.url, "has url"))
+            .containsExactly("/js/script1.js", "/js/script2.js");
+        
+        assertThat(conf.styles)
+            .asList()
+            .comparingElementsUsing(Correspondence.transforming((SiteConfiguration.Tag tag) -> tag.url, "has url"))
+            .containsExactly("/css/style1.css", "/css/style2.css");
+        
+        assertThat(conf.styles[1].attr).containsExactly("integrity","#2",   "crossorigin", "none");
     }
     
     @Test
-    public void parsingScripts_should_not_addAnything() {
-        SiteConfiguration conf = confReader.read(resources, "nontranslatable", "index", false);
-        Assert.assertEquals("jawn test non-translatable", conf.title);
+    public void readSiteFile_handleSlash() {
+        SiteConfiguration conf = confReader.readSiteFile("/");
         
-        Arrays.stream(conf.scripts).forEach(script -> Assert.assertFalse(script.url.contains("/js/")));
+        assertThat(conf.title).isEqualTo("jawn test");
+        assertThat(conf.scripts).hasLength(2);
+        assertThat(conf.styles).hasLength(2);
     }
     
-    //TODO
-    // add test that catches or tells the user whenever there is an error when reading site.json
-    // like in confReader.read("src/test/resources", "faulty", "index", false);
-	
-	@Test
-	public void overrideDefault() {
-		SiteConfiguration conf = confReader.read(resources, "override", "index");
-		Assert.assertEquals("jawn test overridden", conf.title);
-		Assert.assertEquals(true, conf.overrideDefault);
-		
-		Assert.assertEquals(1, conf.scripts.length);
-		Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script3.js", conf.scripts[0].url);
-	}
-	
-	@Test
-	public void asyncScripts() {
-		SiteConfiguration conf = confReader.read(resources, "async", "index");
-		Assert.assertEquals("jawn test async", conf.title);
-	}
-	
-	@Test
+    @Test
+    public void override() {
+        SiteConfiguration conf = confReader.find("override");
+        
+        assertThat(conf).isNotNull();
+        assertThat(conf.overrideDefault).isTrue();
+        assertThat(conf.title).isEqualTo("jawn test overridden");
+        assertThat(conf.scripts).hasLength(1);
+        assertThat(conf.styles).isNull(); //.hasLength(0);
+        
+        assertThat(conf.scripts[0].url).isEqualTo("/js/script3.js");
+    }
+
+    @Test
+    public void merge() {
+        // "first" is the base, and "second" will override the title, if it has any
+        // All Tags will be merged
+        SiteConfiguration first = confReader.readSiteFile("");
+        SiteConfiguration second = confReader.readSiteFile("mergable");
+        
+        SiteConfiguration merge = confReader.merge(first, second);
+        
+        assertThat(merge.title).isEqualTo(second.title);
+        assertThat(merge.scripts).hasLength(first.scripts.length + second.scripts.length);
+        assertThat(merge.styles).hasLength(first.styles.length/* + second.styles.length*/); // "second" has no styles
+    }
+    
+    @Test
+    public void merge_should_not_alterCachedVersions() {
+        SiteConfiguration first = confReader.readSiteFile("");
+        SiteConfiguration second = confReader.readSiteFile("mergable");
+        confReader.merge(first, second);
+        
+        assertThat(first.title).isNotEqualTo(second.title);
+        assertThat(first.scripts.length).isNotEqualTo(second.scripts.length);
+        assertThat(second.styles).isNull(); // as it where to begin with
+        assertThat(first.styles).hasLength(2);
+    }
+    
+    @Test
+    public void find_should_not_mergeWithItself() {
+        // Had an issue if "path" is the same as "root", 
+        // the method would merge the same file into a new one,
+        // which of course resulted in doubled Tags
+        
+        SiteConfiguration conf = confReader.find("");
+        
+        assertThat(conf.scripts).hasLength(2);
+        assertThat(conf.styles).hasLength(2);
+    }
+    
+    @Test
+    public void contextPath() {
+        String context = "/somecontextpath";
+        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, context);
+        
+        SiteConfigurationReader contextPathConfReader = new SiteConfigurationReader(objectMapper, di);
+        SiteConfiguration conf = contextPathConfReader.readSiteFile("");
+        
+        assertThat(conf.scripts)
+            .asList()
+            .comparingElementsUsing(Correspondence.transforming((SiteConfiguration.Tag tag) -> tag.url, "has url"))
+            .containsExactly(context + "/js/script1.js", context +"/js/script2.js");
+        
+        assertThat(conf.styles)
+            .asList()
+            .comparingElementsUsing(Correspondence.transforming((SiteConfiguration.Tag tag) -> tag.url, "has url"))
+            .containsExactly(context + "/css/style1.css", context + "/css/style2.css");
+    }
+    
+    @Test
     public void clone_should_includeAttributes() {
-	    SiteConfiguration conf = confReader.read(resources, "index", "index");
-	    
-	    SiteConfiguration clone = conf.clone();
-	    
-	    Assert.assertEquals(conf.styles[1].attr.size(), clone.styles[1].attr.size());
-	    conf.styles[1].attr.forEach((key,value) -> {
-	        Assert.assertEquals(value, clone.styles[1].attr.get(key));
-	    });
+        SiteConfiguration conf = confReader.readSiteFile("");
+        
+        SiteConfiguration clone = conf.clone();
+        
+        assertThat(conf.styles[1].attr).hasSize(clone.styles[1].attr.size());
+        assertThat(conf.styles[1].attr).containsExactlyEntriesIn(clone.styles[1].attr);
     }
-	
-	@Test
-	public void merge() {
-	    SiteConfiguration topConf = confReader.read(resources, "index", "index");
-	    SiteConfiguration localConf = confReader.read(resources, "mergable", "index");
-	    
-	    Assert.assertNotEquals(topConf.title, localConf.title);
-	    Assert.assertTrue(topConf.scripts.length < localConf.scripts.length);
-	    Assert.assertTrue(topConf.styles.length == localConf.styles.length);
-	    
-	    Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", localConf.scripts[0].url);
-	    Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", localConf.scripts[1].url);
-	    Assert.assertEquals("/" + SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script3.js", localConf.scripts[2].url);
-	}
-	
-	@Test
-	public void mergeWithCache_should_not_affectOtherInstances() {
-	    SiteConfiguration topConf = confReader.read(resources, "index", "index", true);
-        SiteConfiguration localConf = confReader.read(resources, "mergable", "index", true);
+    
+    @Test
+    public void nonTranslatableLinks() {
+        SiteConfiguration conf = confReader.find("nontranslatable");
         
-        Assert.assertTrue(localConf.styles[0].attr.isEmpty());
-        Assert.assertTrue(topConf.styles[0].attr.isEmpty());
+        assertThat(conf.title).isEqualTo("jawn test non-translatable");
+        assertThat(conf.scripts).hasLength(4);
         
-        // we need to assert that a change to localConf does not affect the cached topConf
-        localConf.styles[0].attr.put("some", "value");
-        localConf.styles[0].attr.put("test", "value");
-        
-        Assert.assertFalse(localConf.styles[0].attr.isEmpty());
-        Assert.assertTrue(topConf.styles[0].attr.isEmpty());
-	}
-	
-	@Test
-	public void merge_should_not_readTwiceWithLayoutInControllerFolder() {
-        SiteConfiguration controllerConf = confReader.read(resources.resolve("controllerandlayoutequal"), "controller", "controller");
-        
-        Assert.assertEquals(3, controllerConf.scripts.length);
-        Assert.assertEquals(3, controllerConf.styles.length);
-	}
-	
-	@Test
-    public void standardConf_should_not_readTwiceWithEmptyLayout() {
-        SiteConfiguration conf = confReader.read(resources, "index", "", false);
-        Assert.assertEquals("jawn test", conf.title);
-        Assert.assertEquals(false, conf.overrideDefault);
-        
-        Assert.assertEquals(2, conf.scripts.length);
-        Assert.assertEquals(2, conf.styles.length);
-        
-        conf = confReader.read(resources, "index", "/", false);
-        Assert.assertEquals(2, conf.scripts.length);
-        Assert.assertEquals(2, conf.styles.length);
+        // should not translate the urls and prepend with /js/ or /css/
+        assertThat(conf.scripts)
+            .asList()
+            .comparingElementsUsing(Correspondence.transforming((SiteConfiguration.Tag tag) -> tag.url, "has url"))
+            .doesNotContain("/js/");
     }
-	
-	@Test
-	public void isLocal() {
-	    Assert.assertTrue(SiteConfigurationReader.isLocal(""));
-	    Assert.assertFalse(SiteConfigurationReader.isLocal("http://something.com"));
-	    Assert.assertFalse(SiteConfigurationReader.isLocal("https://something.com"));
-	    Assert.assertFalse(SiteConfigurationReader.isLocal("ftp://something.com"));
-	    Assert.assertFalse(SiteConfigurationReader.isLocal("ftps://something.com"));
-	    Assert.assertFalse(SiteConfigurationReader.isLocal("//something.com"));
-	    Assert.assertTrue(SiteConfigurationReader.isLocal("file://something"));
-	    Assert.assertTrue(SiteConfigurationReader.isLocal("something.css"));
-	    Assert.assertTrue(SiteConfigurationReader.isLocal("something.js"));
-	}
-	
-	@Test
-	public void readSiteConfiguration_with_contextPath() {
-	    Config config = mock(Config.class);
-        DeploymentInfo info = new DeploymentInfo(config, StandardCharsets.UTF_8 ,"/certaincontext");
-	    SiteConfigurationReader confReader = new SiteConfigurationReader(objectMapper, info, Modes.PROD);
-        
-	    SiteConfiguration conf = confReader.read(resources, "index", "index", false);
-	    
-        Assert.assertEquals("/certaincontext/"+SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script1.js", conf.scripts[0].url);
-        Assert.assertEquals("/certaincontext/"+SiteConfigurationReader.SCRIPT_STANDARD_FOLDER + "script2.js", conf.scripts[1].url);
-        
-        Assert.assertEquals("/certaincontext/"+SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style1.css", conf.styles[0].url);
-        Assert.assertEquals("/certaincontext/"+SiteConfigurationReader.STYLE_STANDARD_FOLDER + "style2.css", conf.styles[1].url);
-	}
+    
+    @Test
+    public void isLocal() {
+        assertThat(SiteConfigurationReader.isLocal("")).isTrue();
+        assertThat(SiteConfigurationReader.isLocal("http://something.com")).isFalse();
+        assertThat(SiteConfigurationReader.isLocal("https://something.com")).isFalse();
+        assertThat(SiteConfigurationReader.isLocal("ftp://something.com")).isFalse();
+        assertThat(SiteConfigurationReader.isLocal("ftps://something.com")).isFalse();
+        assertThat(SiteConfigurationReader.isLocal("//something.com")).isFalse();
+        assertThat(SiteConfigurationReader.isLocal("file://something")).isTrue();
+        assertThat(SiteConfigurationReader.isLocal("something.css")).isTrue();
+        assertThat(SiteConfigurationReader.isLocal("something.js")).isTrue();
+    }
+    
+    public void faulty() {
+        //TODO
+        // add test that catches or tells the user whenever there is an error when reading site.json
+        // like in SiteConfiguration conf = confReader.readSiteFile("faulty");
+    }
 }

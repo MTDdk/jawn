@@ -22,7 +22,7 @@ public class SiteProvider {
 
     private final Modes mode;
     private final boolean useCache;
-    private final SiteConfReader confReader;
+    private final SiteConfigurationReader confReader;
     
     // README: ConcurrentHashMap might deadlock with the same hash - so do we really need the concurrency?
     // https://stackoverflow.com/questions/43861945/deadlock-in-concurrenthashmap
@@ -32,7 +32,7 @@ public class SiteProvider {
     public SiteProvider(final ObjectMapper mapper, final DeploymentInfo deploymentInfo, final Modes mode) {
         this.mode = mode;
         this.useCache = mode != Modes.DEV;
-        this.confReader = new SiteConfReader(mapper, deploymentInfo);
+        this.confReader = new SiteConfigurationReader(mapper, deploymentInfo);
     }
     
     
