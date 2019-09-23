@@ -147,7 +147,7 @@ public class DeploymentInfo {
         return stripContextPath(contextPath, contextPathLength, path);
     }
     
-    public InputStream resourceAsStream(final String path) throws IOException {
+    public InputStream resourceAsStream(final String path) throws NoSuchFileException {
         final String real = getRealPath(path);
         
         // Read from file system
@@ -172,12 +172,12 @@ public class DeploymentInfo {
         throw new NoSuchFileException(real);
     }
     
-    public BufferedReader resourceAsReader(final String path) throws IOException {
+    public BufferedReader resourceAsReader(final String path) throws NoSuchFileException {
         return new BufferedReader(new InputStreamReader(resourceAsStream(path), charset));
     }
     
     // Does not handle contextPath
-    public BufferedReader viewResourceAsReader(final String path) throws IOException {
+    public BufferedReader viewResourceAsReader(final String path) throws NoSuchFileException {
         String p = assertStartSlash(path);
         return resourceAsReader(p.startsWith(viewsPath) ? p : viewsPath + p);
         

@@ -2,6 +2,7 @@ package net.javapla.jawn.core.renderers.template.config;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -107,10 +108,11 @@ class SiteConfigurationReader {
             decorateLocalResourceLinks(configuration.styles, STYLE_STANDARD_FOLDER);
             
             return configuration;
+        } catch (NoSuchFileException ignoreForNow) {
         } catch (IOException e) {
-            log.error("Reading site_file {} \n{}", folder + '/' + SITE_FILE, e.getMessage());
-            return new SiteConfiguration();
+            log.error("Could not read site_file {} \n{}", folder + '/' + SITE_FILE, e.getMessage());
         }
+        return new SiteConfiguration();
     }
     
     
