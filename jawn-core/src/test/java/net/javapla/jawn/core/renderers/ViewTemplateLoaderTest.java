@@ -16,7 +16,6 @@ import org.junit.Test;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Results;
-import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 import net.javapla.jawn.core.renderers.template.ViewTemplates;
 import net.javapla.jawn.core.util.Constants;
@@ -41,7 +40,7 @@ public class ViewTemplateLoaderTest {
     
     @Test
     public void standardView() throws FileNotFoundException, IOException {
-        ViewTemplates template = templateLoader.load(Results.view(), templateEnding/*, false*/);
+        ViewTemplates template = templateLoader.load(Results.view(), templateEnding);
         
         assertThat(template.templatePath()).isEqualTo("/index" + templateEnding);
         assertThat(template.layoutPath()).isEqualTo("/index.html" + templateEnding);
@@ -56,7 +55,7 @@ public class ViewTemplateLoaderTest {
     
     @Test//(expected = FileNotFoundException.class)
     public void standardView_noTemplateOnlyLayout() throws FileNotFoundException, IOException {
-        ViewTemplates template = templateLoader.load(Results.view(), templateEnding/*, false*/);
+        ViewTemplates template = templateLoader.load(Results.view(), templateEnding);
         
         assertThat(template.templateFound()).isFalse();
         //template.templateAsReader();
@@ -82,7 +81,7 @@ public class ViewTemplateLoaderTest {
     
     @Test
     public void useStandardLayout() {
-        ViewTemplates template = templateLoader.load(Results.view().path("nolayout"), templateEnding/*, false*/);
+        ViewTemplates template = templateLoader.load(Results.view().path("nolayout"), templateEnding);
         
         assertThat(template.templatePath()).isEqualTo("/nolayout/index" + templateEnding);
         assertThat(template.layoutPath()).isEqualTo("/index.html" + templateEnding);
@@ -101,7 +100,7 @@ public class ViewTemplateLoaderTest {
     
     @Test
     public void overrideLayout() {
-        ViewTemplates template = templateLoader.load(Results.view().path("withlayout"), templateEnding/*, false*/);
+        ViewTemplates template = templateLoader.load(Results.view().path("withlayout"), templateEnding);
         
         assertThat(template.templatePath()).isEqualTo("/withlayout/index" + templateEnding);
         assertThat(template.layoutPath()).isEqualTo("/withlayout/index.html" + templateEnding);
@@ -111,7 +110,7 @@ public class ViewTemplateLoaderTest {
     
     @Test
     public void readTemplateFromLongerPath() throws FileNotFoundException, IOException {
-        ViewTemplates template = templateLoader.load(Results.view().path("withlayout"), templateEnding/*, false*/);
+        ViewTemplates template = templateLoader.load(Results.view().path("withlayout"), templateEnding);
         
         String read = template.template();//StreamUtil.read(template.templateAsReader());
         assertThat(read).isEqualTo(
@@ -120,7 +119,7 @@ public class ViewTemplateLoaderTest {
     
     @Test
     public void nonDefaultTemplate() {
-        ViewTemplates template = templateLoader.load(Results.view().path("nolayout").template("update"), templateEnding/*, false*/);
+        ViewTemplates template = templateLoader.load(Results.view().path("nolayout").template("update"), templateEnding);
         
         assertThat(template.templatePath()).isEqualTo("/nolayout/update" + templateEnding);
         assertThat(template.layoutPath()).isEqualTo("/index.html" + templateEnding);
@@ -128,14 +127,22 @@ public class ViewTemplateLoaderTest {
         assertThat(template.templateFound()).isTrue();
     }
 
-    @Test(expected = Up.ViewError.class) // The ending is wrong, and a layout or template can therefore not be found, which
+    @Test 
     public void layoutMissing() {
-        templateLoader.load(Results.view(), ".kein"/*, false*/);
+        // The ending is wrong, and a layout or template can therefore not be found, which
+        ViewTemplates templates = templateLoader.load(Results.view(), ".kein");
+        
+        assertThat(templates.templateFound()).isFalse();
+        assertThat(templates.template()).isEmpty();
+        assertThat(templates.templatePath()).isEqualTo("/index.kein");
+        assertThat(templates.layoutFound()).isFalse();
+        assertThat(templates.layout()).isEmpty();
+        assertThat(templates.layoutPath()).isEqualTo("/index.html.kein");
     }
     
     @Test
     public void noLayout() {
-        ViewTemplates template = templateLoader.load(Results.view().path("nolayout").template("update").layout(null), templateEnding/*, false*/);
+        ViewTemplates template = templateLoader.load(Results.view().path("nolayout").template("update").layout(null), templateEnding);
         
         assertThat(template.templatePath()).isEqualTo("/nolayout/update" + templateEnding);
         assertThat(template.layoutPath()).isEqualTo(null);

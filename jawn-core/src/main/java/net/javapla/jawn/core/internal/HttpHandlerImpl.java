@@ -145,8 +145,9 @@ final class HttpHandlerImpl implements HttpHandler {
             logger.error("{} [{}] ", status, context.req().path(), e);
         }
 
+        //if (e instanceof Up.ViewError) return;
         
-        if (injector.getInstance(RendererEngineOrchestrator.class).hasRendererEngineForContentType(MediaType.HTML)) {
+        if (injector.getInstance(RendererEngineOrchestrator.class).hasRendererEngineForContentType(MediaType.HTML) && !(e instanceof Up.ViewError)) {
             try {
                 runner.execute(Results.view().path("system").template(String.valueOf(status)).status(Status.valueOf(status)), context);
                 return;

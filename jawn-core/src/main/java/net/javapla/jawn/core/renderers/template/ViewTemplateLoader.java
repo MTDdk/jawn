@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -20,41 +23,37 @@ import net.javapla.jawn.core.util.Modes;
 @Singleton
 public class ViewTemplateLoader {
     
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    
     private static final char[] NOT_FOUND = {'N','F'};
     
     private final DeploymentInfo deploymentInfo;
-    //private final Path realPath; // TODO to be deprecated
     private final boolean useCache;
-    //private final HashMap<String,String> layoutCache = new HashMap<>();
     
     private final HashMap<String, char[]> cachedTemplates = new HashMap<>();
     
     @Inject
     public ViewTemplateLoader(DeploymentInfo info, Modes mode) {
         deploymentInfo = info;
-        //realPath = Paths.get(getTemplateRootFolder(info));
         useCache = mode != Modes.DEV; // use cache if NOT DEV
     }
     
     public static final String getTemplateRootFolder(final DeploymentInfo info) {
         return info.getRealPath(TemplateRendererEngine.TEMPLATES_FOLDER);
     }
-    /*public final Path getTemplateRootFolder() {
-        return realPath;
-    }*/
     
     public String loadTemplate(final String path) {
         return new String(lookupTemplate(path));
     }
     
-    public ViewTemplates load(final View view, final String suffixOfTemplatingEngine/*, final boolean useCache*/) throws Up.ViewError {
+    public ViewTemplates load(final View view, final String suffixOfTemplatingEngine) throws Up.ViewError {
         final String templatePath = getTemplatePathForResult(view, suffixOfTemplatingEngine);
         final String layoutName = getLayoutNameForResult(view, suffixOfTemplatingEngine);
-        final char[]/*CharArrayStringReader*/ template = templatePath != null ? lookupTemplate(templatePath)/*locateContentTemplate(templatePath, useCache)*/ : null; 
+        final char[] template = locateContentTemplate(templatePath); 
         
         final Tuple<String, char[]> layout;
         if (layoutName == null) { // no layout
-            // both layout and template should not be null
+            // both layout and template should never be null
             if (template == null) {
                 throw new Up.ViewError("Could not find the template " + templatePath + ". Is it spelled correctly?");
             }
@@ -93,20 +92,9 @@ public class ViewTemplateLoader {
             
             @Override
             public String layout() {
+                if (layout.second == null) return new String();
                 return new String(layout.second);
             }
-            
-            /*@Override
-            public Reader templateAsReader() throws FileNotFoundException, IOException {
-                if (template == null) throw new FileNotFoundException();
-                return template;
-            }
-            
-            @Override
-            public Reader layoutAsReader() throws FileNotFoundException, IOException {
-                if (layout.second == null) throw new FileNotFoundException();
-                return layout.second;
-            }*/
         };
     }
     
@@ -203,42 +191,45 @@ public class ViewTemplateLoader {
         }*/
     }
     
-    /*public CharArrayStringReader locateContentTemplate(final String contentTemplateName, boolean useCache) {
-        if (useCache && cachedTemplates.containsKey(contentTemplateName)) {
-            return new CharArrayStringReader(cachedTemplates.get(contentTemplateName));
+    private char[] locateContentTemplate(String templatePath) {
+        try {
+            return templatePath != null ? lookupTemplate(templatePath) : null;
+        } catch (Up.ViewError e) {
+            logger.debug(e.getMessage());
+            return null;
         }
-        
-        CharArrayStringReader template = diskReadLayout(contentTemplateName);
-        if (template != null) return cacheTemplate(contentTemplateName, template, useCache);
-        
-        return null; //throws new ViewException();??
-    }*/
+    }
     
     /**
      * If found, uses the provided layout within the controller folder.
      * If not found, it looks for the default template within the controller folder
      * then use this to override the root default template
      */
-    private Tuple<String,char[]/*CharArrayStringReader*/> locateLayoutTemplate(String controller, final String layoutName, String suffixOfTemplatingEngine/*, final boolean useCache*/) throws Up.ViewError {
+    private Tuple<String,char[]> locateLayoutTemplate(String controller, final String layoutName, String suffixOfTemplatingEngine)/* throws Up.ViewError*/ {
         // first see if we have already looked for the template
-        final String controllerLayoutCombined = /*StringUtil.blank(controller) ? layoutName :*/ controller + '/' + layoutName;
-//        if (useCache && cachedTemplates.containsKey(controllerLayoutCombined)) 
-//            return new Tuple<>(controllerLayoutCombined, /*new CharArrayStringReader(*/cachedTemplates.get(controllerLayoutCombined)); // README: computeIfAbsent does not save the result if null - which it actually might need to do to minimise disk reads
+        final String controllerLayoutCombined = controller + '/' + layoutName;
         
-        char[]/*CharArrayStringReader*/ template;
-        // look for a layout of a given name within the controller folder
-        if ((template = lookupTemplate(controllerLayoutCombined)) != null)//diskReadLayout(controllerLayoutCombined)) != null) // lookupLayoutWithNonDefaultName 
-            return new Tuple<>(controllerLayoutCombined, template/*cacheTemplate(controllerLayoutCombined, template, useCache)*/);
+        try {
+            char[] template;
+            // look for a layout of a given name within the controller folder
+            if ((template = lookupTemplate(controllerLayoutCombined)) != null) // lookupLayoutWithNonDefaultName 
+                return new Tuple<>(controllerLayoutCombined, template);
+            
+            
+            // going for defaults
+            Tuple<String,char[]> t;
+            if ((template = (t = lookupDefaultLayoutInControllerPathChain(controller, suffixOfTemplatingEngine)).second) != null) 
+                return t;
+            
+            if ((template = (t = lookupDefaultLayout(suffixOfTemplatingEngine)).second) != null) 
+                return t;
         
-        // going for defaults
-        Tuple<String,char[]/*CharArrayStringReader*/> t;
-        if ((template = (t = lookupDefaultLayoutInControllerPathChain(controller, suffixOfTemplatingEngine)).second) != null) 
-            return t;//new Tuple<>(t.first, t.second/*cacheTemplate(controllerLayoutCombined, template, useCache)*/);
+        } catch (Up.ViewError e) {
+            logger.debug(TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine + " is not to be found anywhere");
+        }
         
-        if ((template = (t = lookupDefaultLayout(suffixOfTemplatingEngine)).second) != null) 
-            return t;//new Tuple<>(t.first, cacheTemplate(controllerLayoutCombined, template/*, useCache*/));
-        
-        throw new Up.ViewError(TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine + " is not to be found anywhere");
+        return new Tuple<>(controllerLayoutCombined, null);
+        //throw new Up.ViewError(TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine + " is not to be found anywhere");
     }
     
     private Tuple<String, char[]/*CharArrayStringReader*/> lookupDefaultLayoutInControllerPathChain(String controller, String suffixOfTemplatingEngine) {
@@ -271,7 +262,7 @@ public class ViewTemplateLoader {
                 }
                 return template;
             } else if (arr.length == NOT_FOUND.length && arr[0] == NOT_FOUND[0] && arr[1] == NOT_FOUND[1]) { // previously seen as not found
-                return null;
+                throw new Up.ViewError(controllerLayoutCombined + " is not to be found anywhere");
             }
             return arr;
         }
@@ -293,13 +284,6 @@ public class ViewTemplateLoader {
             return null;
         }
     }
-    
-    /*private CharArrayStringReader cacheTemplate(final String controllerLayoutCombined, final CharArrayStringReader template, final boolean useCache) {
-        if (useCache) {
-            cachedTemplates.putIfAbsent(controllerLayoutCombined, template.buffer());
-        }
-        return template;
-    }*/
     
     private class Tuple<T,U> {
         final T first;
