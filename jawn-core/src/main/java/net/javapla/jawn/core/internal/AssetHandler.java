@@ -20,7 +20,7 @@ public class AssetHandler implements Handler {
     private final static Logger logger = LoggerFactory.getLogger(AssetHandler.class.getSimpleName());
     private final static MediaType SVG = MediaType.byExtension("svg").get();
     
-    private boolean etag = true;
+    private boolean etag = false;
     private boolean lastModified = false;
     private long maxAge = -1;
     

@@ -37,11 +37,11 @@ public class Up extends RuntimeException {
     
     public static class ViewError extends Up {
         public ViewError(final Throwable err) {
-            super(Status.SERVER_ERROR, err);
+            super(Status.NOT_FOUND, err);
         }
         
         public ViewError(final String message) {
-            super(Status.SERVER_ERROR, message); // TODO perhaps SERVER_ERROR is a bit too harsh
+            super(Status.NOT_FOUND, message);
         } 
     }
     

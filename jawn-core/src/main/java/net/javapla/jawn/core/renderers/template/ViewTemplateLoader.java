@@ -195,7 +195,7 @@ public class ViewTemplateLoader {
         try {
             return templatePath != null ? lookupTemplate(templatePath) : null;
         } catch (Up.ViewError e) {
-            logger.debug(e.getMessage());
+            //logger.debug(e.getMessage());
             return null;
         }
     }
