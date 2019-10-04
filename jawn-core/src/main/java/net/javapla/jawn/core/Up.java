@@ -1,7 +1,5 @@
 package net.javapla.jawn.core;
 
-import javax.annotation.Nullable;
-
 @SuppressWarnings("serial")
 public class Up extends RuntimeException {
     
@@ -157,7 +155,7 @@ public class Up extends RuntimeException {
      * @param tail A message to append.
      * @return An error message.
      */
-    private static String message(final Status status, @Nullable final String tail) {
+    private static String message(final Status status, final String tail) {
         return message(status.reason(), status.value(), tail);
     }
 
@@ -169,7 +167,7 @@ public class Up extends RuntimeException {
      * @param tail A message to append.
      * @return An error message.
      */
-    private static String message(final String reason, final int status, @Nullable  final String tail) {
+    private static String message(final String reason, final int status, final String tail) {
         return reason + "(" + status + ")" + (tail == null ? "" : ": " + tail);
     }
 }
