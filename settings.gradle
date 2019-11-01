@@ -1,6 +1,6 @@
 rootProject.name = 'jawn'
 
 include 'jawn-core'
-include 'jawn-server-netty'
+//include 'jawn-server-netty'
 include 'jawn-server-undertow'
 include 'jawn-templates-stringtemplate'
