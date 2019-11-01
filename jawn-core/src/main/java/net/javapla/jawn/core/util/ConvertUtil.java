@@ -1,12 +1,15 @@
 package net.javapla.jawn.core.util;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
 
-public class ConvertUtil {
+public abstract class ConvertUtil {
+    
+    private ConvertUtil() { }
 
     
     /**
@@ -30,7 +33,7 @@ public class ConvertUtil {
      */
     public static Integer toInteger(Object value) throws ConversionException {
         if (value == null) {
-            return null;
+            throw new ConversionException("failed to convert: '" + value + "' to Integer");
         } else if (value instanceof Number) {
             return  ((Number)value).intValue();
         } else {
@@ -59,11 +62,11 @@ public class ConvertUtil {
     }
     
     /**
-     * Returns true if the value is any numeric type and has a value of 1, or
+     * Returns true if the value is any numeric type and has a value above 0, or
      * if string type has a value of 'y', 't', 'true' or 'yes'. Otherwise, return false.
      *
      * @param value value to convert
-     * @return true if the value is any numeric type and has a value of 1, or
+     * @return true if the value is any numeric type and has a value above 0, or
      * if string type has a value of 'y', 't', 'true' or 'yes'. Otherwise, return false.
      */
     public static Boolean toBoolean(Object value){
@@ -72,17 +75,18 @@ public class ConvertUtil {
         } else if (value instanceof Boolean) {
             return (Boolean) value;
         } else if (value instanceof BigDecimal) {
-            return value.equals(BigDecimal.ONE);
+            return ((BigDecimal) value).signum() > 0;
+        } else if (value instanceof BigInteger) {
+            return ((BigInteger) value).signum() > 0;
         } else if (value instanceof Long) {
-            return value.equals(1L);
+            return ((Long) value) > 0;
         } else if (value instanceof Integer) {
-            return value.equals(1);
+            return ((Integer) value) > 0;
         } else if (value instanceof Character) {
             return value.equals('y') || value.equals('Y')
                     || value.equals('t') || value.equals('T');
 
-        }else return value.toString().equalsIgnoreCase("yes")
-                || value.toString().equalsIgnoreCase("true") 
+        } else return value.toString().equalsIgnoreCase("yes")
                 || value.toString().equalsIgnoreCase("y")
                 || value.toString().equalsIgnoreCase("t")
                 || Boolean.parseBoolean(value.toString());
