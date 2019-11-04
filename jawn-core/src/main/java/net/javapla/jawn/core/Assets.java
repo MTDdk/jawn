@@ -6,8 +6,10 @@ import net.javapla.jawn.core.util.TimeUtil;
 
 public interface Assets {
     
+    long ONE_WEEK_SECONDS = 60 * 60 * 24 * 7;
+    
     final class Impl implements Assets {
-        public boolean etag = true;
+        public boolean etag = false;
         public boolean lastModified = false;
         public long maxAge = -1;
         
@@ -42,7 +44,7 @@ public interface Assets {
      * https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching#cache-control
      */
     default Assets maxAge() {
-        return maxAge(604800);
+        return maxAge(ONE_WEEK_SECONDS);
     }
     
     default Assets maxAge(Duration duration) {

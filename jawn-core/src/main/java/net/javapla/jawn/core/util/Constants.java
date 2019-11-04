@@ -6,35 +6,35 @@ public interface Constants {
      * The package controllers should be placed in relative to base package
      * defined in the property file
      */
-    public static final String APPLICATION_CONTROLLER_PACKAGE = "controllers";//"app.controllers";
-    public static final String APPLICATION_CONFIGURATION_PACKAGE = "config";
-    public static final String APPLICATION_STANDARD_PACKAGE = "app";
+    String APPLICATION_CONTROLLER_PACKAGE = "controllers";//"app.controllers";
+    String APPLICATION_CONFIGURATION_PACKAGE = "config";
+    String APPLICATION_STANDARD_PACKAGE = "app";
     
     
     /**
      * Default method name of controllers if nothing else is specified
      */
-    public static final String DEFAULT_ACTION_NAME = "index";
+    String DEFAULT_ACTION_NAME = "index";
     
     /**
      * Default name of a controller if nothing else is specified.
      * Of course still with the extension 'Controller'
      */
-    public static final String ROOT_CONTROLLER_NAME = "index";
+    String ROOT_CONTROLLER_NAME = "index";
     
     
     /**
      * The defined languages available in the app
      */
-    public static final String SUPPORTED_LANGUAGES = "languages";
+    String SUPPORTED_LANGUAGES = "languages";
     
     /**
      * Name of the framework (used in response headers)
      */
-    public static final String FRAMEWORK_NAME = "java-web-planet / jawn";
+    String FRAMEWORK_NAME = "java-web-planet / jawn";
     
-    public static final String SESSION_SUFFIX = "_SESSION";
-    public static final String FLASH_SUFFIX = "_FLASH";
+    String SESSION_SUFFIX = "_SESSION";
+    String FLASH_SUFFIX = "_FLASH";
     
     
 /* ************* 

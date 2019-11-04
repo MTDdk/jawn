@@ -32,6 +32,10 @@ public class DeploymentInfoTest {
         assertThat(di.getContextPath()).isEqualTo(context);
         assertThat(di.translateIntoContextPath("/img/some.jpg")).isEqualTo("/start_of_path/img/some.jpg");
         assertThat(di.translateIntoContextPath("img/some.jpg")).isEqualTo("/start_of_path/img/some.jpg");
+        
+        String[] paths = new String[] {"/js/script.js","/css/style.css","hope/is/here/file"};
+        di.translateIntoContextPath(paths);
+        assertThat(paths).asList().containsExactly(context + "/js/script.js", context + "/css/style.css", context + "/hope/is/here/file");
     }
     
     @Test
@@ -65,6 +69,11 @@ public class DeploymentInfoTest {
         
         assertThat(di.stripContextPath("/start_of_path/img/some.jpg")).isEqualTo("/img/some.jpg");
         assertThat(di.stripContextPath("/img/some.jpg")).isEqualTo("/img/some.jpg");
+    }
+    
+    @Test
+    public void stripContextPath_static() {
+        assertThat(DeploymentInfo.stripContextPath("/ctx", "/ctx/url/jpg.png")).isEqualTo("/url/jpg.png");
     }
     
     @Test
@@ -112,8 +121,7 @@ public class DeploymentInfoTest {
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
         di.addResourceRoot(new URL("jar:file:" + Paths.get("src", "test", "resources", "test-jawn-templates.jar").toAbsolutePath() + "!/"));
         
-        
-        System.out.println(di.resourceLastModified("views/system/404.st"));
-        System.out.println(di.resourceAsStream("views/system/404.st"));
+        assertThat(di.resourceLastModified("views/system/404.st")).isGreaterThan(0l);
+        assertThat(di.resourceExists("views/system/404.st")).isTrue();
     }
 }

@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,9 @@ public class ConfigImplTest {
     @Test
     public void parse() {
         assertThat(config).isNotNull();
+        assertThat(config.isDev()).isTrue();
+        assertThat(config.isTest()).isFalse();
+        assertThat(config.isProd()).isFalse();
     }
 
     @Test
@@ -36,6 +40,7 @@ public class ConfigImplTest {
     public void readValue() {
         assertThat(config.getOptionally("application.charset").isPresent()).isTrue();
         assertThat(config.get("application.charset")).isEqualTo("UTF-8");
+        assertThat(config.getOrDie("application.charset")).isEqualTo("UTF-8");
     }
     
     @Test(expected = RuntimeException.class)
@@ -48,6 +53,19 @@ public class ConfigImplTest {
         assertThat(config.getIntOptionally("application.someint").isPresent()).isTrue();
         assertThat(config.getIntOptionally("application.someint").get()).isEqualTo(200);
         assertThat(config.getInt("application.someint")).isEqualTo(200);
+        assertThat(config.getIntOrDie("application.someint"));
+        
+        assertThrows(RuntimeException.class, () -> config.getIntOrDie("no"));
+    }
+    
+    @Test
+    public void readLongValue() {
+        assertThat(config.getLongOptionally("application.somelong").isPresent()).isTrue();
+        assertThat(config.getLongOptionally("application.somelong").get()).isEqualTo(4_599_100_100l);
+        assertThat(config.getLong("application.somelong")).isEqualTo(4_599_100_100l);
+        assertThat(config.getLongOrDie("application.somelong"));
+        
+        assertThrows(RuntimeException.class, () -> config.getLongOrDie("no"));
     }
     
     @Test
@@ -99,4 +117,5 @@ public class ConfigImplTest {
         
         assertThat(conf1.getMode()).isEqualTo(Modes.TEST);
     }
+    
 }

@@ -1,8 +1,10 @@
 package net.javapla.jawn.core;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -129,9 +131,16 @@ public interface Config {
     
     final class ParseOptions {
         final ClassLoader classLoader;
+        final Charset charset;
+        
+        private ParseOptions(final ClassLoader classLoader, final Charset charset) {
+            this.classLoader = classLoader;
+            this.charset = charset;
+        }
         
         private ParseOptions(final ClassLoader classLoader) {
             this.classLoader = classLoader;
+            this.charset = StandardCharsets.UTF_8;
         }
         
         public static ParseOptions defaults() {
@@ -147,13 +156,22 @@ public interface Config {
             if (classLoader == null) return Thread.currentThread().getContextClassLoader();
             return classLoader;
         }
+        
+        public ParseOptions charset(Charset charset) {
+            if (charset.equals(charset)) return this;
+            return new ParseOptions(classLoader, charset);
+        }
+        
+        public Charset charset() {
+            return charset;
+        }
     }
     
     final class PropertiesLoader {
         public static Properties parseResourse(final String file, final ParseOptions options) {
             
             URL resource = options.classLoader().getResource(file);
-            if (resource != null) return _read(resource);
+            if (resource != null) return _read(resource, options.charset());
             
             if (!file.endsWith(".properties")) {
                 resource = options.classLoader().getResource(file + ".properties");
@@ -161,11 +179,11 @@ public interface Config {
             
             if (resource == null) throw new Up.IO("Resource '"+file+"' was not found");
             
-            return _read(resource);
+            return _read(resource, options.charset());
         }
         
-        private static Properties _read(final URL resource) {
-            try (InputStream stream = resource.openStream()) {
+        private static Properties _read(final URL resource, final Charset charset) {
+            try (InputStreamReader stream = new InputStreamReader(resource.openStream(), charset)) {
                 Properties p = new Properties();
                 p.load(stream);
                 return p;

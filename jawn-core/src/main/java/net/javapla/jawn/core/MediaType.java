@@ -84,11 +84,12 @@ public class MediaType implements Comparable<MediaType> {
       cache.put("*", ALL);
     }
     
+    // TODO: Perhaps a default/user defined mechanism, like jawn_defaults
     static final Properties mimes = Config
         .PropertiesLoader
         .parseResourse("mime.properties", ParseOptions.defaults());
     
-    public MediaType(final String type, final String subtype, final Map<String, String> parameters) {
+    MediaType(final String type, final String subtype, final Map<String, String> parameters) {
         this(type, subtype, null, createParametersMap(parameters));
     }
     
@@ -104,16 +105,16 @@ public class MediaType implements Comparable<MediaType> {
      * Creates a new instance of {@code MediaType}, both type and subtype are wildcards.
      * Consider using the constant {@link #WILDCARD_TYPE} instead.
      */
-    public MediaType() {
+    MediaType() {
         this(WILDCARD_TYPE, WILDCARD_TYPE, null, null);
     }
     
     private MediaType(final String type, final String subtype, final String charset, final Map<String, String> parameters) {
         this.type = type == null ? WILDCARD_TYPE : type;
         this.subtype = subtype == null ? WILDCARD_TYPE : subtype;
-        this.name = type + '/' + subtype;
-        this.wildcardType = WILDCARD_TYPE.equals(type);
-        this.wildcardSubtype = WILDCARD_TYPE.equals(subtype);
+        this.name = this.type + '/' + this.subtype;
+        this.wildcardType = WILDCARD_TYPE.equals(this.type);
+        this.wildcardSubtype = WILDCARD_TYPE.equals(this.subtype);
 
         TreeMap<String, String> params = createParametersMap(parameters);
         if (charset != null && !charset.isEmpty()) {
@@ -156,6 +157,9 @@ public class MediaType implements Comparable<MediaType> {
         return parse(type).get(0);
     }
     
+    /**
+     * Converts a comma-separated string into a list of MediaTypes 
+     */
     public static List<MediaType> parse(final String type) throws Up.BadMediaType {
         return cache.computeIfAbsent(type, MediaType::_parse);
     }
@@ -186,7 +190,10 @@ public class MediaType implements Comparable<MediaType> {
         }
         if (obj instanceof MediaType) {
             MediaType that = (MediaType) obj;
-            return type.equals(that.type) && subtype.equals(that.subtype) && parameters.equals(that.parameters);
+            return this.hashCode() == that.hashCode();
+            
+            // #hashCode might actually be sufficient if we are looking at the same values correctly
+            //return type.equals(that.type) && subtype.equals(that.subtype) && parameters.equals(that.parameters);
         }
         return false;
     }
