@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.lang.reflect.Parameter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -298,7 +297,7 @@ public class ActionParameterTest {
         return ActionParameterTest.class.getDeclaredMethod(name, parameters).getParameters()[index];
     }
 
-    private Context sendStringBody(String body) throws IOException {
+    private Context sendStringBody(String body) throws Exception {
         ServerRequest request = mock(ServerRequest.class);
         when(request.header("Content-Length")).thenReturn(Optional.of(String.valueOf(body.length())));
         when(request.header("Content-Type")).thenReturn(Optional.of(MediaType.TEXT.name()));

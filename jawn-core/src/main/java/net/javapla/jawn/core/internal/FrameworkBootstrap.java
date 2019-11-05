@@ -273,13 +273,13 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         return frameworkConfig;
     }
     
-    private ModuleBootstrap[] readRegisteredPlugins(ApplicationConfig config, String pluginsPackage) {
+    private void/*ModuleBootstrap[]*/ readRegisteredPlugins(ApplicationConfig config, String pluginsPackage) {
         try {
             ClassLocator locator = new ClassLocator(pluginsPackage);
-            return locateAll(locator,  ModuleBootstrap.class, impl -> impl.bootstrap(config));
+            /*return*/ locateAll(locator,  ModuleBootstrap.class, impl -> impl.bootstrap(config));
         } catch (IllegalArgumentException e) {
             logger.warn("Did not find any " + ModuleBootstrap.class.getSimpleName() + " implementations", e);
-            return null;
+            //return null;
         }
     }
     

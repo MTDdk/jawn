@@ -1,6 +1,5 @@
 package net.javapla.jawn.core;
 
-import java.lang.reflect.Type;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,9 +112,10 @@ public interface Value extends Iterable<Value> { // SimpleValue
         return ValueParser.to(this, type);
     }
     
-    default Object to(Type type) {
+    // Commented out until we know if we ever are going to need it
+    /*default Object to(Type type) {
         return ValueParser.to(this, type);
-    }
+    }*/
     
     default List<String> toList() {
         if (isPresent())

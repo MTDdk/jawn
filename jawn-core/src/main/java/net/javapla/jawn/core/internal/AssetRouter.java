@@ -17,8 +17,10 @@ import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.renderers.template.TemplateRendererEngine;
 
-public class AssetRouter {
+public abstract class AssetRouter {
     private final static Logger logger = LoggerFactory.getLogger(AssetRouter.class.getSimpleName());
+    
+    private AssetRouter() {}
     
     /*
      * This class should be a part of the template-module
@@ -63,19 +65,21 @@ public class AssetRouter {
     }
 
     private static Set<String> findExclusionPaths(final DeploymentInfo deploymentInfo) throws Up.IO {
-        Set<String> exclusions = new TreeSet<String>(); // Actually sorts the paths, which is not appreciated and not even used anywhere
+        Set<String> exclusions = new TreeSet<String>(); // Actually sorts the paths, which is not appreciated by the application and not even used anywhere
         
         // Let other handlers deal with folders that do not reside in the WEB-INF or META-INF
-        List<String> collect = null;
         File webapp = new File(deploymentInfo.getRealPath(""));
-        String[] paths = webapp.list();
-        if (webapp.exists() && paths != null)
-            collect = Arrays.asList(paths);
-        
         if (webapp.exists() && !webapp.canRead()) {
             // It means that the server cannot read files at all
             throw new Up.IO( AssetRouter.class.getName() + " cannot read files. Reason is unknown");
-        } else if (!webapp.exists() || collect == null || collect.isEmpty()) {
+        }
+        
+        String[] paths = webapp.list();
+        List<String> collect = null;
+        if (webapp.exists() && paths != null)
+            collect = Arrays.asList(paths);
+        
+        if (!webapp.exists() || collect == null || collect.isEmpty()) {
             // Whenever this is empty it might just be because someone forgot to add the 'webapp' folder to the distribution
             // OR the framework is used without the need for serving files (such as views).
             logger.info(AssetRouter.class.getName() + " did not find any files in webapp - not serving any files then");
