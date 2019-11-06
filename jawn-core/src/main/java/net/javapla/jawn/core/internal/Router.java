@@ -261,7 +261,7 @@ final class Router {
                 return routes[method.ordinal()];
             }
             
-            @Override
+            /*@Override
             public String toString() {
                 StringBuilder bob = new StringBuilder();
                 for (TrieNode node : nodes) {
@@ -271,7 +271,7 @@ final class Router {
                     }
                 }
                 return content + " " + bob.toString();
-            }
+            }*/
         }
     }
 }

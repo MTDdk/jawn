@@ -47,8 +47,8 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
     protected com.google.inject.Module frameworkModule;
     protected Injector injector;
     
-    private LinkedList<Runnable> onStartup = new LinkedList<>();
-    private LinkedList<Runnable> onShutdown = new LinkedList<>();
+    private final LinkedList<Runnable> onStartup = new LinkedList<>();
+    private final LinkedList<Runnable> onShutdown = new LinkedList<>();
 
     
     public FrameworkBootstrap() {
@@ -160,6 +160,8 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
     }*/
     
     public void reboot___strap(final Function<Injector,List<Route>> routes/*, com.google.inject.Module userModule*/) {
+        if (injector == null) throw new RuntimeException(this.getClass().getSimpleName() + " not initialised");
+        
         /*
         var childInjector = injector.createChildInjector(userModule(Modes.DEV));//Guice.createInjector(frameworkModule, userModule(Modes.DEV, false));
         injector = childInjector;
@@ -199,7 +201,13 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
     }
     
     private void startup() {
-        onStartup.forEach(Runnable::run);
+        onStartup.forEach(run -> {
+            try {
+                run.run();
+            } catch (Exception e) {
+                logger.error("Failed an onStartup task", e);
+            }
+        });
     }
     
     /**
@@ -207,7 +215,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
      */
     public synchronized void shutdown() {
         
-        if (injector != null) {
+        if (injector != null) { // We haven't started anything up anyway
             
             logger.info("Shutting down ..");
             
@@ -215,7 +223,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
                 try {
                     run.run();
                 } catch (Exception e) {
-                    logger.error("Failed a onShutdown task", e);
+                    logger.error("Failed an onShutdown task", e);
                 }
             });
             

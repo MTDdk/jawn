@@ -6,14 +6,13 @@ import org.junit.Test;
 
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.internal.Router.RouteTrie;
 
 public class RouteTrieTest {
 
 
     @Test
     public void simple() {
-        RouteTrie trie = new RouteTrie();
+        Router.RouteTrie trie = new Router.RouteTrie();
         
         String path = "/route/to/redemption";
         Route route = new Route.Builder(HttpMethod.GET).path(path).build();
@@ -23,11 +22,14 @@ public class RouteTrieTest {
         Route r = trie.findExact(path, HttpMethod.GET);
         assertThat(r).isNotNull();
         assertThat(r.path()).isEqualTo(path);
+        
+        Route r2 = trie.findExact(path.toCharArray(), HttpMethod.GET);
+        assertThat(r).isEqualTo(r2);
     }
     
     @Test
     public void wildcardInMiddle() {
-        RouteTrie trie = new RouteTrie();
+        Router.RouteTrie trie = new Router.RouteTrie();
         
         String path = "/route/*/redemption";
         Route route = new Route.Builder(HttpMethod.GET).path(path).build();
@@ -49,7 +51,7 @@ public class RouteTrieTest {
 
     @Test
     public void wildcardAtEnd() {
-        RouteTrie trie = new RouteTrie();
+        Router.RouteTrie trie = new Router.RouteTrie();
         
         String path = "/route/redemption/of/*";
         Route route = new Route.Builder(HttpMethod.GET).path(path).build();
@@ -67,4 +69,18 @@ public class RouteTrieTest {
         assertThat(r).isNotNull();
         assertThat(r.path()).isEqualTo(route.path());
     }
+    
+    @Test
+    public void startsWith() {
+        Router.RouteTrie trie = new Router.RouteTrie();
+        
+        String path = "/route/to/redemption";
+        Route route = new Route.Builder(HttpMethod.DELETE).path(path).build();
+        trie.insert(path, route);
+        
+        assertThat(trie.startsWith("/route/to")).isTrue();
+        assertThat(trie.startsWith("/rout".toCharArray())).isTrue();
+        assertThat(trie.startsWith("/route/to/b")).isFalse();
+    }
+    
 }
