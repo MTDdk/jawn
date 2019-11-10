@@ -51,4 +51,6 @@ dependencies {
   //Logging
   //compile 'org.slf4j:slf4j-api:1.7.25'
   api 'ch.qos.logback:logback-classic:1.2.3'
+  
+  //testImplementation files('src/test/resources/test-jawn-templates.jar')
 }
