@@ -38,14 +38,16 @@ class DynamicClassLoader extends ClassLoader {
     }
 
     @Override
-    public Class<?> loadClass(String name) throws ClassNotFoundException, Up.Compilation {
+    public Class<?> loadClass(String name) throws ClassNotFoundException/*, Up.Compilation*/ {
 
         if (!name.startsWith(allowedPackage, 0)) return loadByParent(name);
-        int endIndex = name.indexOf(".class");
-        if (endIndex > 0) name = name.substring(0, endIndex);
+        if (name.endsWith(".class")) {
+            int endIndex = name.lastIndexOf(".class");
+            /*if (endIndex > 0) */name = name.substring(0, endIndex);
+        }
         final String pathToClassFile = name.replace('.', '/') + ".class";
         
-        try{
+        try {
             /*// net.javapla.jawn
             if (name.startsWith(FRAMEWORK_PACKAGE)) {
                 return loadByParent(name);
@@ -80,7 +82,7 @@ class DynamicClassLoader extends ClassLoader {
 
             logger.debug("Loaded class: " + pathToClassFile);
             return daClass;
-        } catch(Exception e){
+        } catch (Exception e) {
             logger.debug("Failed to dynamically load class: " + pathToClassFile + ". Loading by parent class loader.");
             try {
                 return loadByParent(name);

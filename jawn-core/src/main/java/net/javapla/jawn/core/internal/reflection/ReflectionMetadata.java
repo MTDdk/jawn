@@ -1,28 +1,28 @@
 package net.javapla.jawn.core.internal.reflection;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-public class ReflectionMetadata {
+public abstract class ReflectionMetadata {
+    private ReflectionMetadata() {}
     
     public static final Optional<Class<?>> getSuperclass(Class<?> cls) {
         return Optional.ofNullable(cls.getSuperclass());
     }
 
-    public static final String getClassName(Class<?> cls) {
+    /*public static final String getClassName(Class<?> cls) {
         return cls.getName();
     }
 
-    public static final String getSuperclassName(Class<?> cls) {
+    /*public static final String getSuperclassName(Class<?> cls) {
         return getSuperclass(cls).map(c -> c.getName()).orElse("");
-    }
+    }*/
     
     public static final List<String> getInterfacesNames(Class<?> cls) {
         Class<?>[] classes = cls.getInterfaces();
-        List<String> names = new ArrayList<String>(classes != null ? classes.length : 0);
-        if (classes != null) for (Class<?> cls1 : classes) names.add(cls1.getName());
-        return names;
+        return Arrays.asList(classes).stream().map(Class::getName).collect(Collectors.toList());
     }
     
     public static final boolean isAssignableFrom(Class<?> cls, Class<?> superCls) {

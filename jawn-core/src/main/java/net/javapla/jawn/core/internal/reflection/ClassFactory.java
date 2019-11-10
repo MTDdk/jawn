@@ -11,6 +11,8 @@ import net.javapla.jawn.core.Up;
  */
 public abstract class ClassFactory {
     private final static Map<String, Class<?>> CACHED_CONTROLLERS = new ConcurrentHashMap<>();
+    
+    private ClassFactory() {}
 
     /**
      * Loads and instantiates the class into the stated <code>expectedType</code>.
@@ -73,20 +75,24 @@ public abstract class ClassFactory {
                 dynamicClassLoader = null;
                 return cl;
             } else {
-                return CACHED_CONTROLLERS.computeIfAbsent(fullClassName, WRAP_FORNAME);
+                return CACHED_CONTROLLERS.computeIfAbsent(removeClassEnding(fullClassName), WRAP_FORNAME);
             }
+        } catch (ClassNotFoundException e) {
+            throw new Up.Compilation(fullClassName, e);
+        } catch (Up.Compilation e) {
+            throw e;
         } catch (Exception e) {
             throw new Up.UnloadableClass(fullClassName, e);
         }
     }
     
-    public final static <T> Class<? extends T> getCompiledClass(String className, Class<T> expected, boolean useCache) throws Up.Compilation, Up.UnloadableClass {
+    /*public final static <T> Class<? extends T> getCompiledClass(String className, Class<T> expected, boolean useCache) throws Up.Compilation, Up.UnloadableClass {
         Class<?> compiledClass = getCompiledClass(className, useCache);
         return compiledClass.asSubclass(expected);
-    }
+    }*/
     
-    public final static Class<?> recompileClass(Class<?> clzz) throws Up.Compilation, Up.UnloadableClass {
-        return getCompiledClass(clzz.getName(), false);
+    public final static Class<?> recompileClass(String clzz) throws Up.Compilation, Up.UnloadableClass {
+        return getCompiledClass(clzz, false);
     }
     
     
@@ -100,18 +106,17 @@ public abstract class ClassFactory {
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new Up.Compilation(className, e);
         }
     };
     
     static String packageName(final String fullClassName) {
-        int end;
-        if (fullClassName.endsWith(".class")) { // 6 chars
-            end = fullClassName.substring(0, fullClassName.length() - 6).lastIndexOf('.');
-        } else {
-            end = fullClassName.lastIndexOf('.');
-        }
-        
-        return fullClassName.substring(0, end);
+        return fullClassName.substring(0, removeClassEnding(fullClassName).lastIndexOf('.'));
+    }
+    
+    static String removeClassEnding(final String fullClassName) {
+        if (fullClassName.endsWith(".class")) // 6 chars
+            return fullClassName.substring(0, fullClassName.length() - 6);
+        return fullClassName;
     }
 }

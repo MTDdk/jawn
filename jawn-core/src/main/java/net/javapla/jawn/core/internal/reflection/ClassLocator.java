@@ -62,7 +62,7 @@ public class ClassLocator {
             if (scannedFile.isDirectory())
                 return classLoader.getResources(scannedPath);
             else  {//we assume the classpath is inside a jar
-                try (JarLoader jar = new JarLoader(scannedPath)) {
+                try (JarLoader jar = new JarLoader(classLoader, scannedPath)) {
                     return jar.getResourcesFromJarFile();
                 }
             }

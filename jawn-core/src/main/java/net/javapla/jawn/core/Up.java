@@ -69,6 +69,10 @@ public class Up extends RuntimeException {
         public Compilation(final Throwable err) {
             super(Status.SERVER_ERROR, err);
         }
+        
+        public Compilation(final String msg, final Throwable err) {
+            super(Status.SERVER_ERROR, msg, err);
+        }
     }
     
     public static class UnloadableClass extends Up {
@@ -77,7 +81,7 @@ public class Up extends RuntimeException {
         }
         
         public UnloadableClass(final String msg, final Throwable err) {
-            super(Status.SERVER_ERROR, msg);
+            super(Status.SERVER_ERROR, msg, err);
         }
     }
     

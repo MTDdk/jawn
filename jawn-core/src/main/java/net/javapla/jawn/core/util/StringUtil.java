@@ -10,7 +10,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-public final class StringUtil {
+public abstract class StringUtil {
+    private StringUtil() {}
 
     /**
      * Splits a string into an array using a provided delimiter. The split chunks are also trimmed.

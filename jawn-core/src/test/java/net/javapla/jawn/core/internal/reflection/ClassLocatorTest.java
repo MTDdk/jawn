@@ -1,12 +1,14 @@
 package net.javapla.jawn.core.internal.reflection;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.mvc.ViewController;
 
 public class ClassLocatorTest {
@@ -20,7 +22,7 @@ public class ClassLocatorTest {
 
     @Test
     public void findAllClasses() {
-        assertThat(locator.foundClasses()).hasSize(3);
+        assertThat(locator.foundClasses()).hasSize(4);
     }
     
     @Test
@@ -41,5 +43,16 @@ public class ClassLocatorTest {
         Class<?> class2 = classes.iterator().next();
         assertThat(class2.getSimpleName()).isEqualTo("LocatableClass2");
         assertThat(class2.getPackageName()).isEqualTo(locator.packageToScan);
+    }
+    
+    @Test
+    public void incorrectPackage() {
+        assertThrows(IllegalArgumentException.class, () -> new ClassLocator("test.nopes"));
+    }
+    
+    @Test
+    public void subtypesFromPackage() {
+        assertThat(ClassLocator.subtypesFromPackage(Object.class, "test.classlocator")).hasSize(4);
+        assertThat(ClassLocator.subtypesFromPackage(Jawn.class, "test.classlocator")).hasSize(1);
     }
 }

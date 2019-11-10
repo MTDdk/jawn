@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
-public class ThrowableCause {
+public abstract class ThrowableCause {
+    private ThrowableCause() {}
 
     public static boolean connectionResetByPeer(final Throwable cause) {
         return Optional.ofNullable(cause)

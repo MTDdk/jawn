@@ -3,17 +3,16 @@ package net.javapla.jawn.core.internal.reflection;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.BiConsumer;
 
 import net.javapla.jawn.core.Jawn;
@@ -26,21 +25,49 @@ public class PackageWatcher implements Closeable {
     private final String jawnInstancePackage;
     private final Path packageFileSystemPath;
     private final BiConsumer<Jawn, Class<?>> reloader;
+    //private final Consumer<Path> changed;
     
-    private WatchService service;
+    private final LinkedList<Path> watchedDirs = new LinkedList<>();
+    
+    private final WatchService service;
+    private final MiniFileSystem miniFS;
     private volatile boolean running = false;
     
-    public PackageWatcher(final Class<? extends Jawn> jawn, final BiConsumer<Jawn, Class<?>> reloader) {
+    public PackageWatcher(WatchService service, MiniFileSystem miniFS, final Class<? extends Jawn> jawn, final BiConsumer<Jawn, Class<?>> reloader) {
+        this.service = service;
+        this.miniFS = miniFS;
+        
         this.jawnInstanceClassName = jawn.getSimpleName() + ".class";
         this.jawnInstancePackageClass = jawn.getName();
         this.jawnInstancePackage = jawn.getPackageName();
         this.packageFileSystemPath = Paths.get(jawn.getResource("").getPath());
         this.reloader = reloader;
     }
+    
+    /*public PackageWatcher(final Class<? extends Jawn> jawn, final BiConsumer<Jawn, Class<?>> reloader) {
+        this(jawn, reloader, p -> {});
+    }
+    
+    public PackageWatcher(final Class<? extends Jawn> jawn, final BiConsumer<Jawn, Class<?>> reloader, final Consumer<Path> changed) {
+        this.jawnInstanceClassName = jawn.getSimpleName() + ".class";
+        this.jawnInstancePackageClass = jawn.getName();
+        this.jawnInstancePackage = jawn.getPackageName();
+        this.packageFileSystemPath = Paths.get(jawn.getResource("").getPath());
+        this.reloader = reloader;
+        this.changed = changed;
+    }*/
+    
+    public Path getWatchingFileSystemPath() {
+        return packageFileSystemPath;
+    }
+    
+    public List<Path> watchedDirs() {
+        return Collections.unmodifiableList(watchedDirs);
+    }
 
     private void registerDirAndSubDirectories(final Path root, WatchService service) {
         // register directory and sub-directories
-        try {
+        /*try {
             Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -50,18 +77,30 @@ public class PackageWatcher implements Closeable {
             });
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
+        miniFS.listDirectories(root).stream().forEach(dir -> {
+            try {
+                registerDir(dir);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
     
-    private void registerDir(final Path dir, WatchService service) throws IOException {
-        dir.register(service, StandardWatchEventKinds.ENTRY_MODIFY, StandardWatchEventKinds.ENTRY_CREATE);
+    private void registerDir(final Path dir/*, WatchService service*/) throws IOException {
+        //dir.register(service, StandardWatchEventKinds.ENTRY_MODIFY, StandardWatchEventKinds.ENTRY_CREATE); // watch for an existing file gets modified or directory added
+        miniFS.watchForChanges(dir, service);
+        watchedDirs.add(dir);
         //System.out.println("Watching dir " + dir);
     }
     
     public void start() throws IOException, InterruptedException {
-        service = FileSystems.getDefault().newWatchService();
-        //packagePath.register(service, StandardWatchEventKinds.ENTRY_MODIFY); //currently, only when an existing file gets modified
+        if (isRunning()) new RuntimeException(this.getClass().getSimpleName() + " already initialised");
+        
+        //service = FileSystems.getDefault().newWatchService();
         registerDirAndSubDirectories(packageFileSystemPath, service);
+        
+        CountDownLatch latch = new CountDownLatch(1); // with this we can know when the thread is running
         
         new Thread(getClass().getSimpleName()) {
             @Override
@@ -69,6 +108,7 @@ public class PackageWatcher implements Closeable {
                 running = true;
                 WatchKey key = null;
                 
+                latch.countDown();
                 try {
                     while (running && (key = service.take()) != null) {
                         consumeKey(key);
@@ -80,6 +120,8 @@ public class PackageWatcher implements Closeable {
                 }
             }
         }.start();
+        
+        latch.await();
     }
     
     private void consumeKey(WatchKey key) throws IOException {
@@ -88,27 +130,35 @@ public class PackageWatcher implements Closeable {
             
             if (event.context() != null) {
                 Path p = (Path) event.context();
+                if (!p.isAbsolute()) {
+                    p = ((Path) key.watchable()).resolve(p);
+                }
+
                 
                 // it can be something like: bin/test/implementation/JawnMainTest$1.class
                 if (p.getFileName().toString().indexOf('$') > 0) continue;
-                // its main class *should* always be a part of the pollEvents as well, 
+                // its declaring class *should* always be a part of the pollEvents as well, 
                 // and that is sufficient
-                
+
                 
                 if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                    Path changedDir = locateChangedDir(p);
+                    Path changedDir = p;
                     
                     if (changedDir != null) {
                         // If an event is a StandardWatchEventKinds.ENTRY_CREATE
                         // and path is a directory, then create a watcher for that
                         // new dir as well
-                        registerDir(changedDir, service);
+                        try {
+                            registerDir(changedDir/*, service*/);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                     
-                    break;
+                    continue;
                 } else if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
                     
-                    Path changedFile = locateChangedFile(p);
+                    Path changedFile = p;
                     Class<?> c = null;
                     
                     // We always reload the Jawn-instance, so skip it here
@@ -122,6 +172,7 @@ public class PackageWatcher implements Closeable {
                             c = reloadClass(jawnInstancePackage + '.'  + packageClassPath.replace('/', '.'));
                         } catch (Up.Compilation | Up.UnloadableClass e) {
                             e.printStackTrace();
+                            continue;
                         }
                         
                         /* 
@@ -140,50 +191,11 @@ public class PackageWatcher implements Closeable {
                     // Always reload Jawn-instance
                     reloadMainJawn(c);
                     
-                    break;
+                    continue;
                 }
             }
         }
         key.reset();
-    }
-    
-    private Path locateChangedFile(final Path p) throws IOException {
-        Path[] k = new Path[1];
-        
-        // Try to locate the file in the directory structure
-        Files.walkFileTree(packageFileSystemPath, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                boolean equals = file.getFileName().equals(p);
-                if (equals) {
-                    k[0] = file;
-                    return FileVisitResult.TERMINATE;
-                }
-                
-                return FileVisitResult.CONTINUE;
-            }
-        });
-        
-        return k[0];
-    }
-    
-    private Path locateChangedDir(final Path p) throws IOException {
-        Path[] k = new Path[1];
-        
-        Files.walkFileTree(packageFileSystemPath, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                boolean equals = dir.getFileName().equals(p);
-                if (equals) {
-                    k[0] = dir;
-                    return FileVisitResult.TERMINATE;
-                }
-                
-                return FileVisitResult.CONTINUE;
-            }
-        });
-        
-        return k[0];
     }
     
     private void reloadMainJawn(final Class<?> reloadedClass) /*throws Up.Compilation*/ {
@@ -191,13 +203,13 @@ public class PackageWatcher implements Closeable {
             Jawn instance = ClassFactory.createInstance(reloadClass(jawnInstancePackageClass), Jawn.class);
             reloader.accept(instance, reloadedClass);
         } catch (Up.UnloadableClass | Up.Compilation e) {
-            e.printStackTrace();                                        
+            e.printStackTrace();
         }
     }
     
     private Class<?> reloadClass(String className) throws Up.Compilation, Up.UnloadableClass {
-        boolean cacheTheClassFile = false;
-        return ClassFactory.getCompiledClass(className, cacheTheClassFile);
+        //boolean cacheTheClassFile = false;
+        return ClassFactory.recompileClass(className);//getCompiledClass(className, cacheTheClassFile);
     }
 
     @Override
@@ -206,7 +218,12 @@ public class PackageWatcher implements Closeable {
         
         if (service != null) {
             service.close();
+            watchedDirs.clear();
         }
+    }
+    
+    public boolean isRunning() {
+        return running;
     }
     
 }

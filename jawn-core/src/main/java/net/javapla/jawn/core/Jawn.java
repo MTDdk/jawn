@@ -1,6 +1,8 @@
 package net.javapla.jawn.core;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -24,6 +26,7 @@ import net.javapla.jawn.core.internal.mvc.MvcFilterPopulator;
 import net.javapla.jawn.core.internal.reflection.ClassFactory;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.ClassMeta;
+import net.javapla.jawn.core.internal.reflection.MiniFileSystem;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
@@ -391,23 +394,29 @@ public class Jawn implements Route.Filtering, Injection {
                 
                 dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes);
             };
-            PackageWatcher watcher = new PackageWatcher(jawn, reloader);
             
-            // start the watcher
+            
             try {
+                WatchService watchService = FileSystems.getDefault().newWatchService();
+                PackageWatcher watcher = new PackageWatcher(watchService, MiniFileSystem.newMiniFileSystem(), jawn, reloader);
+            
+                // start the watcher
                 watcher.start();
+                
+                
+                // clean up when shutting the whole thing down
+                dynamicInstance.onShutdown(() -> {
+                    try {
+                        if (watcher != null)
+                            watcher.close();
+                    } catch (IOException e) {
+                        logger.error("Closing " + PackageWatcher.class, e);
+                    }
+                });
             } catch (IOException | InterruptedException e) {
                 logger.error("Starting " + PackageWatcher.class, e);
             }
             
-            // clean up when shutting the whole thing down
-            dynamicInstance.onShutdown(() -> {
-                try {
-                    watcher.close();
-                } catch (IOException e) {
-                    logger.error("Closing " + PackageWatcher.class, e);
-                }
-            });
             
             //instance = dynamicInstance;
         }

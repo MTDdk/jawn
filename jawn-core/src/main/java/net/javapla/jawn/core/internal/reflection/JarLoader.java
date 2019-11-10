@@ -19,12 +19,12 @@ public class JarLoader implements AutoCloseable {
     private final String scannedPath;
     private final ArrayList<JarFileTuple> jarfiles;
     
-    public JarLoader(final String scannedPath) throws ZipException, IOException {
+    public JarLoader(final ClassLoader classLoader, final String scannedPath) throws ZipException, IOException {
         this.scannedPath = scannedPath;
         jarfiles = new ArrayList<>();
         
         
-        Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(scannedPath);
+        Enumeration<URL> resources = classLoader.getResources(scannedPath);
         while (resources.hasMoreElements()) {
             URL resource = (URL) resources.nextElement();
             

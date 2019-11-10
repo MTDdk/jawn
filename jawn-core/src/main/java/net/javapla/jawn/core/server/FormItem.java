@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Optional;
@@ -72,12 +71,12 @@ public interface FormItem extends Closeable {
     /**
      * Saves content of this item to a file.
      *
-     * @param path to file
+     * @param output to file
      * @throws IOException
      */
-    default void saveTo(String path) throws IOException {
+    default void saveTo(File output) throws IOException {
         File file = file().orElseThrow(() -> new IOException("No file found for " + name()));
-        Files.copy(file.toPath(), Paths.get(path), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(file.toPath(), output.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
     @Override

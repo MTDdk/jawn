@@ -31,8 +31,8 @@ final class JsonParserEngine implements ParserEngine {
 
     @Override
     public <T> T invoke(InputStream stream, Class<T> clazz) throws Up.ParsableError {
-        try (InputStream s = stream ) {
-            return mapper.readValue(s, clazz);
+        try (stream) {
+            return mapper.readValue(stream, clazz);
         } catch (IOException e) {
             throw new Up.ParsableError(e);
         }
