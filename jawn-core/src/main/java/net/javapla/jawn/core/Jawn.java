@@ -101,7 +101,7 @@ public class Jawn implements Route.Filtering, Injection {
     
     //MVC route classes
     protected Route.Filtering controller(final Class<?> routeClass) {
-        return mvcFilters.computeIfAbsent(routeClass.getName(), s -> new MvcFilterPopulator(routeClass));
+        return mvcFilters.computeIfAbsent(routeClass.getName(), s -> {logger.info("Using [{}] as controller", s); return new MvcFilterPopulator(routeClass);});
     }
     
     /**
@@ -119,6 +119,18 @@ public class Jawn implements Route.Filtering, Injection {
      */
     protected void controllers(final Package path) {
         controllers(path.getName());
+    }
+    
+    /**
+     * Look for MVC controllers at the standard package by convention.
+     * <p>
+     * I.e.: The 'controllers' package next to this implementor of {@link Jawn}
+     * 
+     * <p>
+     * This is just a short-hand for <code>controllers(this.getClass().getPackageName() + ".controllers");</code> 
+     */
+    protected void controllers() {
+        controllers(this.getClass().getPackageName() + ".controllers");
     }
     
     protected Assets assets() {
