@@ -92,10 +92,6 @@ public class StreamUtil {
                 return ((BufferedReader) in).lines().collect(Collectors.joining("\n"));
             }
             
-            if (in instanceof CharArrayStringReader) {
-                return in.toString();
-            }
-            
             char[] buffer = new char[_16KB];
             StringBuilder sb = new StringBuilder();
     

@@ -99,7 +99,7 @@ public class ViewTemplateLoader {
     }
     
     public void render(final Context context, ThrowingConsumer<Writer> render, Consumer<Exception> errorOccurred) throws Up.ViewError {
-        try (final CharArrayList writer = new CharArrayList(8192)/*stream.getWriter()*/) {
+        try (final CharArrayList writer = new CharArrayList(32_768)) {
             render.accept(writer);
             
             context.resp().send(writer.toCharBuffer());

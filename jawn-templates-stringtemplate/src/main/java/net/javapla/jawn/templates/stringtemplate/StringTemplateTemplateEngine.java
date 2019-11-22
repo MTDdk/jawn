@@ -29,8 +29,8 @@ import net.javapla.jawn.core.renderers.template.config.Site;
 import net.javapla.jawn.core.renderers.template.config.SiteProvider;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfig;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfigProvider;
+import net.javapla.jawn.core.util.CharArrayList;
 import net.javapla.jawn.core.util.Modes;
-import net.javapla.jawn.core.util.StringBuilderWriter;
 import net.javapla.jawn.templates.stringtemplate.rewrite.FastSTGroup;
 
 @Singleton
@@ -122,7 +122,6 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
                 log.warn(error.errors.toString());
         });
 
-
     }
     
     @Override
@@ -171,7 +170,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
      * @return The rendered template if exists, or empty string */
     private final String writeContentTemplate(final ST contentTemplate, final Map<String, Object> values, final ErrorBuffer error, boolean inErrorState) {
         if (contentTemplate != null) { // it has to be possible to use a layout without defining a template
-            try (Writer sw = new StringBuilderWriter(4096)) {
+            try (Writer sw = new CharArrayList(32_768)) {
             
                 final ErrorBuffer templateErrors = new ErrorBuffer();
                 writeContentTemplate(contentTemplate, sw, values/*, language*/, templateErrors);

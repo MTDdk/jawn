@@ -71,7 +71,22 @@ public final class CharArrayList extends Writer {
         System.arraycopy(c, off, buf, count, len);
         count = newcount;
     }
-
+    
+    @Override
+    public void write(String str, int off, int len) throws IOException {
+        int newcount = count + len;
+        if (newcount > buf.length) {
+            buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
+        }
+        str.getChars(off, off + len, buf, count);
+        count = newcount;
+    }
+    
+    @Override
+    public void write(String str) throws IOException {
+        write(str, 0, str.length());
+    }
+    
     /**
      * Resets the buffer so that you can use it again without
      * throwing away the already allocated buffer.
