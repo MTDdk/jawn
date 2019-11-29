@@ -1,0 +1,19 @@
+apply plugin: 'java'
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  // Framework
+  implementation project(':jawn-core')
+  
+  // Connection pool
+  implementation 'com.zaxxer:HikariCP:3.4.1'
+  
+  
+  
+  // DB Driver for testing
+  testImplementation 'org.postgresql:postgresql:42.2.8'
+}
+
