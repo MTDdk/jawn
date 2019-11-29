@@ -20,6 +20,21 @@ public class CollectionUtil {
         map.put(key, value);
         return map;
     }
+    
+    public static final <K, V> Map<K, V> map(K key, V value, K key2, V value2) {
+        Map<K, V> map = new HashMap<>();
+        map.put(key, value);
+        map.put(key2, value2);
+        return map;
+    }
+    
+    public static final <K, V> Map<K, V> map(K key, V value, K key2, V value2, K key3, V value3) {
+        Map<K, V> map = new HashMap<>();
+        map.put(key, value);
+        map.put(key2, value2);
+        map.put(key3, value3);
+        return map;
+    }
 
     /**
      * Converting a list into a map. This implementation uses a {@linkplain TreeMap} which ensures

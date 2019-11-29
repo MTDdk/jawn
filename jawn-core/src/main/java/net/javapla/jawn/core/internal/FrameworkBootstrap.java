@@ -74,6 +74,11 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
                 public Modes mode() {
                     return mode;
                 }
+                
+                @Override
+                public Config configuration() {
+                    return frameworkConfig;
+                }
 
                 @Override
                 public void onStartup(Runnable task) {
@@ -275,7 +280,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         Config frameworkConfig = ConfigImpl.framework(mode);
         try {
             Config userConfig = ConfigImpl.user(mode);
-            ((ConfigImpl) frameworkConfig).merge(userConfig);
+            return ((ConfigImpl) frameworkConfig).merge(userConfig);
         } catch (Up.IO ignore) {} //Resource 'jawn.properties' was not found
         
         return frameworkConfig;

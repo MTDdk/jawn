@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.Modes;
@@ -38,14 +39,17 @@ public interface Config {
     }
     
     String get(final String name);
-    Config set(final String name, final String value);
+    
+    
+    // We probably want to keep this immutable
+    /*Config set(final String name, final String value);
     
     default Config set(final String name, final int value) {
         return set(name, String.valueOf(value));
     }
     default Config set(final String name, final boolean value) {
         return set(name, String.valueOf(value));
-    }
+    }*/
     
     default Optional<String> getOptionally(final String name) {
         return Optional.ofNullable(get(name));
@@ -122,12 +126,39 @@ public interface Config {
     default long getDurationOrDie(final String name, final TimeUnit unit) throws RuntimeException {
         return getDurationOptionally(name, unit).orElseThrow(exception.apply(name));
     }
-    
+
     Set<Map.Entry<String, String>> entrySet();
     
-    /*private boolean _contains(String name) {
-        return props.containsKey(modeLowerCased + name) || props.containsKey(name);
-    }*/
+    Set<String> keys();
+    
+    /**
+     * Answers if the partial path / start of a given key is present in this configuration.
+     * <p>
+     * E.g.: db.local could translate to
+     * <ul>
+     * <li>db.local.url
+     * <li>db.local.port
+     * <li>db.local.driver
+     * </ul>
+     * <p>Might <b>not</b> be optimised at all for many lookups..!
+     * @param partialPath
+     * @return
+     */
+    default boolean hasPath(String partialPath) {
+        return keys().parallelStream().filter(s -> s.startsWith(partialPath)).findAny().isPresent();
+    }
+    
+    /**
+     * Same functionality as {@link #hasPath(String)}
+     * <p>Might also very much not be optimised
+     * 
+     * @param partialPath
+     * @return
+     */
+    default Set<String> keysOf(String partialPath) {
+        return keys().parallelStream().filter(s -> s.startsWith(partialPath)).collect(Collectors.toSet());
+    }
+    
     
     final class ParseOptions {
         final ClassLoader classLoader;
@@ -168,6 +199,12 @@ public interface Config {
     }
     
     final class PropertiesLoader {
+        public static Properties parseMap(final Map<String, String> properties) {
+            Properties p = new Properties();
+            properties.forEach(p::put);
+            return p;
+        }
+        
         public static Properties parseResourse(final String file, final ParseOptions options) {
             
             URL resource = options.classLoader().getResource(file);

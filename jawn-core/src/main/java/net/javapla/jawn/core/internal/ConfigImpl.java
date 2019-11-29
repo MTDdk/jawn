@@ -16,22 +16,31 @@ final class ConfigImpl implements Config {
     
     private final Properties props;
     
-    private Modes mode;
-    private String modeLowerCased;
+    private final Modes mode;
+    private final String modeLowerCased;
 
     private ConfigImpl(final Properties props) {
-        this.props = props;
-        setMode(Modes.DEV);
+        this(Modes.DEV, props);
     }
     
-    private Config lowerCase() {
-        modeLowerCased = mode.name().toLowerCase() + '.';
-        return this;
+    private ConfigImpl(final Modes mode, final Properties props) {
+        this.props = props;
+        this.mode = mode;
+        this.modeLowerCased = mode.name().toLowerCase() + '.';
+    }
+    
+    static Config parse(final Map<String, String> properties) {
+        Properties p = PropertiesLoader.parseMap(properties);
+        return new ConfigImpl(p);
+    }
+    
+    static Config parse(final Modes mode, final Map<String, String> properties) {
+        return parse(properties);
     }
     
     static Config parse(final Modes mode, final String file) {
         Properties properties = PropertiesLoader.parseResourse(file, ParseOptions.defaults());
-        return new ConfigImpl(properties).setMode(mode);
+        return new ConfigImpl(mode, properties);
     }
     
     static Config framework(final Modes mode) {
@@ -47,41 +56,49 @@ final class ConfigImpl implements Config {
     }
     
     static Config empty(final Modes mode) {
-        return new ConfigImpl(new Properties()).setMode(mode);
+        return new ConfigImpl(mode, new Properties());
     }
     
+    /*@Override
+    public Config set(String name, String value) {
+        props.put(name, value);
+        props.put(modeLowerCased + name, value);
+        return this;
+    }*/
+    
+    /**
+     * Returns a new {@link ConfigImpl}, which overrides the properties of <b>this</b> with those of <b>that</b>
+     * @param that
+     */
+    Config merge(final Config that) {
+        Properties thisCloned = (Properties) this.props.clone();
+        that.entrySet().parallelStream().forEach(e -> thisCloned.setProperty(e.getKey(), e.getValue()));
+        return new ConfigImpl(that.getMode(), thisCloned);
+    }
+
     @Override
     public Modes getMode() {
         return mode;
     }
     
-    Config setMode(Modes mode) {
+    /*private Config setMode(Modes mode) {
         this.mode = mode;
         lowerCase();
         return this;
-    }
+    }*/
     
     @Override
     public String get(final String name) {
         return props.containsKey(modeLowerCased + name) ? props.getProperty(modeLowerCased + name) : props.getProperty(name);
     }
     
-    @Override
+    /*@Override
     public Config set(String name, String value) {
         props.put(name, value);
         props.put(modeLowerCased + name, value);
         return this;
-    }
+    }*/
     
-    /**
-     * Overrides the properties of <b>this</b> with those of <b>that</b>
-     * @param that
-     */
-    void merge(final Config that) {
-        that.entrySet().parallelStream().forEach(e -> props.setProperty(e.getKey(), e.getValue()));
-        setMode(that.getMode());
-    }
-
     @Override
     public Set<Entry<String, String>> entrySet() {
         Function<Map.Entry<Object, Object>,Map.Entry<String,String>> convert = 
@@ -90,7 +107,9 @@ final class ConfigImpl implements Config {
         return props.entrySet().parallelStream().map(convert).collect(Collectors.toSet());
     }
     
-    /*private boolean _contains(String name) {
-        return props.containsKey(modeLowerCased + name) || props.containsKey(name);
-    }*/
+    @Override
+    public Set<String> keys() {
+        return props.stringPropertyNames();
+    }
+    
 }

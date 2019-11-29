@@ -10,6 +10,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.javapla.jawn.core.Config;
+import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.Modes;
 
 public class ConfigImplTest {
@@ -34,6 +35,16 @@ public class ConfigImplTest {
     public void parseWithoutExtention() {
         Config config = ConfigImpl.parse(Modes.DEV, "jawn_defaults_test");
         assertThat(config).isNotNull();
+    }
+    
+    @Test
+    public void parseMap() {
+        Config config = ConfigImpl.parse(Modes.DEV, CollectionUtil.map("key1","value1","dev.key2","value2","prod.key3","value3"));
+        
+        assertThat(config.isDev()).isTrue();
+        assertThat(config.get("key1")).isNotNull();
+        assertThat(config.get("key2")).isEqualTo("value2");
+        assertThat(config.get("key3")).isNull(); // Because Modes.DEV
     }
     
     @Test
@@ -91,19 +102,20 @@ public class ConfigImplTest {
     
     @Test
     public void merge() {
-        Config conf1 = ConfigImpl.empty();
-        Config conf2 = ConfigImpl.empty();
+        Config conf1 = ConfigImpl.parse(CollectionUtil.map("test", "test"));
+        Config conf2 = ConfigImpl.parse(CollectionUtil.map("test", "overridden", 
+                                                           "extra", "3"));
         
-        conf1.set("test", "test");
-        conf2.set("test", "overridden");
-        conf2.set("extra", "3");
+        Config merge = ((ConfigImpl) conf1).merge(conf2);
         
+        
+        assertThat(merge.get("test")).isEqualTo("overridden");
+        assertThat(merge.get("extra")).isNotNull();
+        
+        // nothing should have been overridden
+        assertThat(conf1.get("test")).isEqualTo("test");
         assertThat(conf1.get("extra")).isNull();
-        
-        ((ConfigImpl) conf1).merge(conf2);
-        
-        assertThat(conf1.get("test")).isEqualTo("overridden");
-        assertThat(conf1.get("extra")).isNotNull();
+        assertThat(conf2.get("test")).isEqualTo("overridden");
     }
     
     @Test
@@ -113,9 +125,22 @@ public class ConfigImplTest {
         
         assertThat(conf1.getMode()).isEqualTo(Modes.DEV);
         
-        ((ConfigImpl) conf1).merge(conf2);
+        Config merge = ((ConfigImpl) conf1).merge(conf2);
         
-        assertThat(conf1.getMode()).isEqualTo(Modes.TEST);
+        assertThat(conf1.getMode()).isEqualTo(Modes.DEV);
+        assertThat(merge.getMode()).isEqualTo(conf2.getMode());
+    }
+    
+    @Test
+    public void hasPartialPath() {
+        assertThat(config.hasPath("application")).isTrue();
+        assertThat(config.hasPath("database.local")).isTrue();
+    }
+    
+    @Test
+    public void keysOfPartialPath() {
+        assertThat(config.keysOf("database")).hasSize(6);
+        assertThat(config.keysOf("database.local")).hasSize(3);
     }
     
 }
