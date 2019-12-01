@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.internal;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -39,7 +40,7 @@ final class ContextImpl implements Context {
     private final Injector injector;
     private Route route;
     
-    private final HashMap<String, Cookie> cookies = new HashMap<>();
+    private HashMap<String, Cookie> cookies;
     private HashMap<String, Object> attributes;
     //private LinkedList<File> files;
     
@@ -49,8 +50,6 @@ final class ContextImpl implements Context {
         this.sresp = resp;
         
         this.req = new Context.Request() {
-            final MediaType contentType = sreq.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
-            final Charset cs = contentType.params().get(MediaType.CHARSET_PARAMETER) == null ? charset : Charset.forName(contentType.params().get(MediaType.CHARSET_PARAMETER));
             
             @Override
             public HttpMethod httpMethod() {
@@ -100,12 +99,13 @@ final class ContextImpl implements Context {
             
             @Override
             public MediaType contentType() {
-                return contentType;
+                return sreq.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
             }
             
             @Override
             public Charset charset() {
-                return cs;
+                String charsetName = contentType().params().get(MediaType.CHARSET_PARAMETER);
+                return charsetName == null ? charset : Charset.forName(charsetName);
             }
             
             @Override
@@ -147,7 +147,7 @@ final class ContextImpl implements Context {
                     ParserEngine engine = engineManager.getParserEngineForContentType(contentType());
                     
                     if (engine == null) {
-                        return Value.of(new String(sreq.bytes(), cs)).to(type);
+                        return Value.of(new String(sreq.bytes(), charset())).to(type);
                         
                         // sreq.bytes()/in() might be empty
                         // Clearly we got some body data at this point, but content-type might just be (unknowingly) wrongly set.
@@ -157,7 +157,7 @@ final class ContextImpl implements Context {
                     return engine.invoke(sreq.in(), type);
                 }
                 
-                return Value.of(new String(sreq.bytes(), cs)).to(type);
+                return Value.of(new String(sreq.bytes(), charset())).to(type);
             }
             
             @Override
@@ -169,7 +169,7 @@ final class ContextImpl implements Context {
         
         this.resp = new Context.Response() {
             private MediaType contentType;
-            private Charset cs;
+            private Charset cs = charset;
             
             @Override
             public Status status() {
@@ -224,6 +224,8 @@ final class ContextImpl implements Context {
             
             @Override
             public Response cookie(final Cookie cookie) {
+                instantiateCookies();
+                
                 String name = cookie.name();
                 // clear cookie?
                 if (cookie.maxAge() == 0) {
@@ -265,6 +267,11 @@ final class ContextImpl implements Context {
             @Override
             public void send(final CharSequence seq) throws Exception {
                 resp.send(charset().encode(CharBuffer.wrap(seq)));
+            }
+            
+            @Override
+            public OutputStream outputStream() {
+                return resp.outputStream();
             }
             
             @Override
@@ -390,7 +397,7 @@ final class ContextImpl implements Context {
     }
     
     private void writeCookies() {
-        if (!cookies.isEmpty()) {
+        if (cookies != null && !cookies.isEmpty()) {
             List<String> setCookie = cookies.values().stream().map(Cookie::toString).collect(Collectors.toList());
             sresp.header("Set-Cookie", setCookie);
             cookies.clear();
@@ -399,6 +406,9 @@ final class ContextImpl implements Context {
     
     private void instantiateAttributes() {
         if (attributes == null) attributes = new HashMap<>(5);
+    }
+    private void instantiateCookies() {
+        if (cookies == null) cookies = new HashMap<>(5);
     }
     /*private void addFile(final File file) {
         if (files == null) files = new LinkedList<>();

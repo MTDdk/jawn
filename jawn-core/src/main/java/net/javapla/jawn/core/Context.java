@@ -1,6 +1,7 @@
 package net.javapla.jawn.core;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -58,6 +59,8 @@ public interface Context /*extends Injection*/ {
         void send(CharBuffer buf) throws Exception;
 
         void send(CharSequence seq) throws Exception;
+        
+        OutputStream outputStream();
 
         boolean committed();
 
@@ -85,7 +88,7 @@ public interface Context /*extends Injection*/ {
         String ip();
         
         String path();
-
+        
         String context();
         
         Charset charset();
@@ -122,6 +125,10 @@ public interface Context /*extends Injection*/ {
          * @return The length, in bytes, of the request body and made available by the input stream, or -1 if the length is not known
          */
         long length();
+
+        default String fullPath() {
+            return queryString().map(q -> path() + '?' + q).orElse(path());
+        }
 
     }
     
