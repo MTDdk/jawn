@@ -17,9 +17,9 @@ import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Context.Request;
 import net.javapla.jawn.core.DeploymentInfo;
-import net.javapla.jawn.core.Handler;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.util.Constants;
@@ -38,7 +38,7 @@ public class AssetHandlerTest {
 
     @Test
     public void handle() {
-        Handler css = new AssetHandler(di);
+        Route.Handler css = new AssetHandler(di);
         
         Request request = mock(Context.Request.class);
         Context context = mock(Context.class);
@@ -54,7 +54,7 @@ public class AssetHandlerTest {
     
     @Test
     public void handle_without_care() {
-        Handler css = new AssetHandler(di);
+        Route.Handler css = new AssetHandler(di);
         
         Request request = mock(Context.Request.class);
         Context context = mock(Context.class);
@@ -69,7 +69,7 @@ public class AssetHandlerTest {
     
     @Test
     public void handle_svg() {
-        Handler img = new AssetHandler(di);
+        Route.Handler img = new AssetHandler(di);
         
         Request request = mock(Context.Request.class);
         Context context = mock(Context.class);
@@ -85,7 +85,7 @@ public class AssetHandlerTest {
 
     @Test
     public void lastModified() {
-        Handler css = new AssetHandler(di).lastModified(true);
+        Route.Handler css = new AssetHandler(di).lastModified(true);
         
         Request request = mock(Context.Request.class);
         Context context = mock(Context.class);
@@ -99,7 +99,7 @@ public class AssetHandlerTest {
     
     @Test
     public void etag() {
-        Handler css = new AssetHandler(di).etag(true);
+        Route.Handler css = new AssetHandler(di).etag(true);
         
         Request request = mock(Context.Request.class);
         Context context = mock(Context.class);
@@ -113,7 +113,7 @@ public class AssetHandlerTest {
     
     @Test
     public void maxAge() {
-        Handler css = new AssetHandler(di).maxAge(Assets.ONE_WEEK_SECONDS);
+        Route.Handler css = new AssetHandler(di).maxAge(Assets.ONE_WEEK_SECONDS);
         
         Request request = mock(Context.Request.class);
         Context context = mock(Context.class);

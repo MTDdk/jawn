@@ -13,6 +13,6 @@ public class SomeRandomClass {
     
     public static Result before(Context c, Route.Chain ch) {
         System.out.println("some output");
-        return ch.next();
+        return ch.next(c);
     }
 }

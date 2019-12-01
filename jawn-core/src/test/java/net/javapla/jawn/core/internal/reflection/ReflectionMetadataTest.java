@@ -4,9 +4,9 @@ import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.Test;
 
-import net.javapla.jawn.core.Handler;
 import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Route.Handler;
 import test.classlocator.LocatableClass1;
 import test.classlocator.TestJawnClass;
 

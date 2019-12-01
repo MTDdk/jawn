@@ -13,22 +13,23 @@ import net.javapla.jawn.core.Route.Filter;
 @Singleton
 public class LogRequestTimingFilter implements Filter {
     private final static Logger logger = LoggerFactory.getLogger(LogRequestTimingFilter.class.getSimpleName());
+    private final static String filterName = LogRequestTimingFilter.class.getName();
 
     @Override
     public Result before(final Context context, final Chain chain) {
         // filters are NOT thread safe!
-        context.attribute(getClass().getName(), time());
+        context.attribute(filterName, time());
         
-        return chain.next();
+        return chain.next(context);
     }
 
     @Override
     public Result after(final Context context, final Result result) {
-        context.attribute(getClass().getName(), Long.class).ifPresent(time -> {
+        context.attribute(filterName, Long.class).ifPresent(time -> {
             String processingTime = String.valueOf(time() - time);
             context.resp().header("X-Request-Processing-Time", processingTime);
             
-            logger.info("Processed request in: {} milliseconds, path: {}{} , method: {}", processingTime, context.req().path(), context.req().queryString().map(q -> "?"+q).orElse(""), context.req().httpMethod());
+            logger.info("Processed request in: {} milliseconds, path: {} , method: {}", processingTime, context.req().fullPath(), context.req().httpMethod());
         });
         
         return result;

@@ -12,8 +12,6 @@ import org.junit.Test;
 
 import com.google.inject.Injector;
 
-import net.javapla.jawn.core.Route.Chain;
-
 public class RouteFilterPopulatorTest {
     
     private static Injector injector;
@@ -55,9 +53,9 @@ public class RouteFilterPopulatorTest {
         
         j.filter(new Route.Filter() { //filter1
             @Override
-            public Result before(Context context, Chain chain) {
+            public Result before(Context context, Route.Chain chain) {
                 executionOrder[0] = System.nanoTime();
-                return chain.next();
+                return chain.handle(context);
             }
             @Override
             public Result after(Context context, Result result) {
@@ -67,9 +65,9 @@ public class RouteFilterPopulatorTest {
         });
         j.filter(new Route.Filter() { //filter2
             @Override
-            public Result before(Context context, Chain chain) {
+            public Result before(Context context, Route.Chain chain) {
                 executionOrder[1] = System.nanoTime();
-                return chain.next();
+                return chain.handle(context);
             }
             @Override
             public Result after(Context context, Result result) {
@@ -79,9 +77,9 @@ public class RouteFilterPopulatorTest {
         });
         j.filter(new Route.Filter() { //filter3
             @Override
-            public Result before(Context context, Chain chain) {
+            public Result before(Context context, Route.Chain chain) {
                 executionOrder[2] = System.nanoTime();
-                return chain.next();
+                return chain.handle(context);
             }
             @Override
             public Result after(Context context, Result result) {
@@ -123,7 +121,7 @@ public class RouteFilterPopulatorTest {
     
     static class F implements Route.Filter {
         @Override
-        public Result before(Context context, Chain chain) {
+        public Result before(Context context, Route.Chain chain) {
             return null;
         }
 
@@ -135,7 +133,7 @@ public class RouteFilterPopulatorTest {
     
     static class B implements Route.Before {
         @Override
-        public Result before(Context context, Chain chain) {
+        public Result before(Context context, Route.Chain chain) {
             return null;
         }
     }

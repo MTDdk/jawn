@@ -141,7 +141,7 @@ public class Jawn implements Route.Filtering, Injection {
     // ****************
     // Router
     // ****************
-    protected Route.Filtering get(final String path, final Handler handler) {
+    protected Route.Filtering get(final String path, final Route.Handler handler) {
         return _get(path, handler);
     }
     
@@ -153,7 +153,7 @@ public class Jawn implements Route.Filtering, Injection {
         return get(path, () -> result);
     }
     
-    private Route.Filtering _get(final String path,  final Handler handler) {
+    private Route.Filtering _get(final String path,  final Route.Handler handler) {
         return _addRoute(HttpMethod.GET, path, handler);
     }
     
@@ -166,16 +166,16 @@ public class Jawn implements Route.Filtering, Injection {
         return _post(path, handler);
     }
     
-    protected Route.Filtering post(final String path, final Handler handler) {
+    protected Route.Filtering post(final String path, final Route.Handler handler) {
         return _post(path, handler);
     }
     
-    private Route.Filtering _post(final String path,  final Handler handler) {
+    private Route.Filtering _post(final String path,  final Route.Handler handler) {
         return _addRoute(HttpMethod.POST, path, handler);
     }
     
     // PUT
-    protected Route.Filtering put(final String path, final Handler handler) {
+    protected Route.Filtering put(final String path, final Route.Handler handler) {
         return _put(path, handler);
     }
     
@@ -187,12 +187,12 @@ public class Jawn implements Route.Filtering, Injection {
         return put(path, () -> result);
     }
     
-    private Route.Filtering _put(final String path, final Handler handler) {
+    private Route.Filtering _put(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.PUT, path, handler);
     }
     
     // DELETE
-    protected Route.Filtering delete(final String path, final Handler handler) {
+    protected Route.Filtering delete(final String path, final Route.Handler handler) {
         return _delete(path, handler);
     }
     
@@ -204,12 +204,12 @@ public class Jawn implements Route.Filtering, Injection {
         return delete(path, () -> result);
     }
     
-    private Route.Filtering _delete(final String path, final Handler handler) {
+    private Route.Filtering _delete(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.DELETE, path, handler);
     }
     
     // HEAD
-    protected Route.Filtering head(final String path, final Handler handler) {
+    protected Route.Filtering head(final String path, final Route.Handler handler) {
         return _head(path, handler);
     }
     
@@ -221,12 +221,12 @@ public class Jawn implements Route.Filtering, Injection {
         return head(path, () -> result);
     }
     
-    private Route.Filtering _head(final String path, final Handler handler) {
+    private Route.Filtering _head(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.HEAD, path, handler);
     }
     
     // OPTIONS
-    protected Route.Filtering options(final String path, final Handler handler) {
+    protected Route.Filtering options(final String path, final Route.Handler handler) {
         return _options(path, handler);
     }
     
@@ -238,7 +238,7 @@ public class Jawn implements Route.Filtering, Injection {
         return options(path, () -> result);
     }
     
-    private Route.Filtering _options(final String path, final Handler handler) {
+    private Route.Filtering _options(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.OPTIONS, path, handler);
     }
     
@@ -262,7 +262,7 @@ public class Jawn implements Route.Filtering, Injection {
         return this;
     }
     
-    private Route.Filtering _addRoute(HttpMethod method, String path, Handler handler) {
+    private Route.Filtering _addRoute(HttpMethod method, String path, Route.Handler handler) {
         return routesAndFilters.computeIfAbsent(new Route.Builder(method).path(_pathPrefix(path)).handler(handler), c -> new RouteFilterPopulator());
     }
     

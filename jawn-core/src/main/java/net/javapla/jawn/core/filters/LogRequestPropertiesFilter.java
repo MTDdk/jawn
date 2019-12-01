@@ -24,6 +24,6 @@ public class LogRequestPropertiesFilter implements Route.Before {
         sb.append("ContextPath: ").append(context.req().context()).append("\n");
         sb.append("------------------------------");
         logger.info(sb.toString());
-        return chain.next();
+        return chain.next(context);
     }
 }

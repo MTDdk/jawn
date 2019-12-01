@@ -4,8 +4,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.Test;
 
-import net.javapla.jawn.core.Route.Chain;
-
 public class RouteBuilderTest {
 
     @Test(expected = IllegalArgumentException.class)
@@ -31,8 +29,8 @@ public class RouteBuilderTest {
             .path("/")
             .filter(new Route.Filter() {
                 @Override
-                public Result before(Context context, Chain chain) {
-                    return chain.next();
+                public Result before(Context context, Route.Chain chain) {
+                    return chain.handle(context);
                 }
                 
                 @Override

@@ -13,10 +13,14 @@ import java.util.stream.Stream;
 
 import net.javapla.jawn.core.util.URLCodec;
 
-public interface Route extends Handler {
+public interface Route {
     
-    interface Chain {
-        Result next(/*Context context*/);
+    interface Chain extends Handler {
+        Result next(Context context);
+        
+        default Result handle(Context context) {
+            return next(context);
+        }
     }
 
     interface Filter extends Before, After { }
@@ -29,11 +33,39 @@ public interface Route extends Handler {
          *          The context for the request
          */
         Result before(Context context, Chain chain);
+        
+        default Before then(Before next) {
+            return (ctx, handler) -> {
+                return before(ctx, c -> next.before(c, handler));
+            };
+        }
+        
+        default Handler then(Handler next) {
+            return ctx -> {
+                return before(ctx, next::handle);
+            };
+        }
     }
     
+    @FunctionalInterface
+    interface Handler {
+        Result handle(Context context);
+        
+        default Handler then(After after) {
+            return ctx -> {
+                return after.after(ctx, handle(ctx));
+            };
+        }
+    }
     
     interface After {
         Result after(final Context context, final Result result);
+        
+        default After then(After next) {
+            return (ctx, result) -> {
+                return next.after(ctx, after(ctx, result));
+            };
+        }
     }
     
     /**
@@ -45,10 +77,10 @@ public interface Route extends Handler {
      * The goal of the <code>complete</code> handler is to probably cleanup request object and log
      * responses.
      */
-    interface PostResponse {
+    /*interface PostResponse {
         //TODO not implemented, yet
         void handle(Context context, Optional<Throwable> cause);
-    }
+    }*/
     
     interface MethodHandler extends Handler {
         
@@ -83,7 +115,7 @@ public interface Route extends Handler {
             return before((c,ch) -> handler.handle(c));
         }
         default Filtering before(final Runnable handler) {
-            return before((c,ch) -> {handler.run(); return ch.next();});
+            return before((c,ch) -> {handler.run(); return ch.handle(c);});
         }
         default Filtering before(final Supplier<Result> handler) {
             return before((c,ch) -> handler.get());
@@ -139,10 +171,10 @@ public interface Route extends Handler {
             return this;
         }
         
-        public Builder handler(final ZeroArgHandler handler) {
+        /*public Builder handler(final ZeroArgHandler handler) {
             this.handler = handler;
             return this;
-        }
+        }*/
         
         public Builder filter(final Filter filter) {
             this.before.add(filter);
@@ -198,16 +230,51 @@ public interface Route extends Handler {
             return this;
         }
         
+        private Handler _befores(final Handler handler, final Before[] befores) {
+            final Handler h;
+            if (befores != null) {
+                Before before = befores[0];
+                for (int i = 1; i < befores.length; i++) {
+                    before = before.then(befores[i]);
+                }
+                h = before.then(handler);
+            } else {
+                h = handler;
+            }
+            
+            return h.then((ctx, r) -> {if (r == null) throw new Up.BadResult("The execution of the route itself rendered no result"); return r;});
+        }
+        
+        private Handler _build(final Handler handler, final Before[] befores, final After[] afters) {
+            if (handler == null) return ctx -> { throw new Up.BadResult("The execution of the route itself rendered no result"); };
+            
+            final Handler h = _befores(handler, befores);
+            
+            if (afters == null) return h;
+            
+            After after = afters[0];
+            for (int i = 1; i < afters.length; i++) {
+                after = after.then(afters[i]);
+            }
+            
+            final After a = after;
+            return ctx -> a
+                .then((c, r) -> {if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result"); return r;})
+                .after(ctx, h.handle(ctx));
+        }
+        
         public Route build() {
             if (uri == null) throw new NullPointerException("Path is null");
             
             return new Route() {
-                private final Handler routehandler = handler;
+                //private final Handler routehandler = handler;
                 private final ArrayList<String> parameters = parseParameters(uri);
                 private final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
                 
                 private final Before[] befores = before.isEmpty() && globalBefore.isEmpty() ? null : Stream.concat(globalBefore.stream(), before.stream()).toArray(Before[]::new);
                 private final After[] afters = after.isEmpty() && globalAfter.isEmpty() ? null : Stream.concat(after.stream(), globalAfter.stream()).toArray(After[]::new);
+                
+                private final Handler routehandler = _build(handler, befores, afters);
                 
                 @Override
                 public HttpMethod method() {
@@ -219,7 +286,7 @@ public interface Route extends Handler {
                     return uri;
                 }
                 
-                @Override
+                //@Override
                 public Result handle(final Context context) {
                     return routehandler.handle(context);
                 }
@@ -361,13 +428,15 @@ public interface Route extends Handler {
         }
     }
     
+    Result handle(Context context);
+    
     /**
      * @return Current HTTP method.
      */
     HttpMethod method();
     
     Before[] before();
-
+    
     After[] after();
 
     boolean isUrlFullyQualified();

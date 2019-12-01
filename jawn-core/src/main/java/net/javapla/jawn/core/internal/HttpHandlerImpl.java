@@ -1,7 +1,6 @@
 package net.javapla.jawn.core.internal;
 
 import java.nio.charset.Charset;
-import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,14 +9,10 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.MediaType;
-import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.Route.After;
-import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
@@ -62,7 +57,9 @@ final class HttpHandlerImpl implements HttpHandler {
             context.route(route);
             
             
-            _handle(context, route, (result) -> runner.execute(result, context));
+            //_handle(context, route, (result) -> runner.execute(result, context));
+            runner.execute(route.handle(context), context);
+            
         
         } catch (Up.RouteMissing e) {
             // 404
@@ -92,47 +89,49 @@ final class HttpHandlerImpl implements HttpHandler {
         
     }
     
-    static Result _handle(final Context context, final Route route, final Consumer<Result> runner) {
-        Result result = null;
-        int i = 0;
+//    static void _handle(final Context context, final Route route, final Consumer<Result> runner) {
+//        runner.accept(route.handle(context));
         
-        //TODO after having moved the handling of befores and afters in here again
-        // some design choices needs to be reconsidered. 
-        
-        
-        // Before filters
-        final Before[] befores = route.before();
-        if (befores != null) {
-            do {
-                result = befores[i].before(context, () -> null);
-            } while (result == null && ++i < befores.length);
-        }
-        
-        // Execute
-        if (result == null) {
-            result = route.handle(context);
-            if (result == null) throw new Up.BadResult("The execution of the route itself rendered no result");
-            
-            // Execute handler
-            //runner.execute(result, context);
-            runner.accept(result);
-        }
-        
-        // After filters
-        final After[] afters = route.after();
-        if (afters != null) {
-            Result r = result; // <-- TODO like this
-            for (i = 0; i < afters.length; i++) {
-                r = afters[i].after(context, r);
-            }
-            
-            // TODO and this
-            if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result");
-            /*if (r != null) */result = r;
-        }
-        
-        return result;
-    }
+//        Result result = null;
+//        int i = 0;
+//        
+//        //TODO after having moved the handling of befores and afters in here again
+//        // some design choices needs to be reconsidered.
+//        
+//        
+//        // Before filters
+//        final Before[] befores = route.before();
+//        if (befores != null) {
+//            do {
+//                result = befores[i].before(context, (c) -> null);
+//            } while (result == null && ++i < befores.length);
+//        }
+//        
+//        // Execute
+//        if (result == null) {
+//            result = route.handle(context);
+//            if (result == null) throw new Up.BadResult("The execution of the route itself rendered no result");
+//            
+//            // Execute handler
+//            //runner.execute(result, context);
+//            runner.accept(result);
+//        }
+//        
+//        // After filters
+//        final After[] afters = route.after();
+//        if (afters != null) {
+//            Result r = result; // <-- TODO like this
+//            for (i = 0; i < afters.length; i++) {
+//                r = afters[i].after(context, r);
+//            }
+//            
+//            // TODO and this
+//            if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result");
+//            /*if (r != null) */result = r;
+//        }
+//        
+//        return result;
+//    }
     
     /*private static String normaliseURI(final String uri) {
         return uri.length() == 0 ? "/" : uri;

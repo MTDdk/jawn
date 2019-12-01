@@ -8,14 +8,14 @@ import org.slf4j.LoggerFactory;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
-import net.javapla.jawn.core.Handler;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 
-public class AssetHandler implements Handler {
+public class AssetHandler implements Route.Handler {
 
     private final static Logger logger = LoggerFactory.getLogger(AssetHandler.class.getSimpleName());
     private final static MediaType SVG = MediaType.byExtension("svg").get();
