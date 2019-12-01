@@ -36,10 +36,8 @@ final class UndertowRequest implements ServerRequest {
         if (!TMP_DIR.toFile().exists()) TMP_DIR.toFile().mkdirs();
     }
     
-
     private final HttpServerExchange exchange;
     private final String path;
-    private final Runnable blocking;
     private final HttpMethod method;
     
     private FormData form;
@@ -49,8 +47,6 @@ final class UndertowRequest implements ServerRequest {
     public UndertowRequest(final HttpServerExchange exchange) {
         this.exchange = exchange;
         this.path = URLCodec.decode(exchange.getRequestPath(), StandardCharsets.UTF_8);
-        
-        this.blocking = () -> {if(!this.exchange.isBlocking()) this.exchange.startBlocking();};
         
         this.method = HttpMethod.getMethod(exchange.getRequestMethod().toString(), () -> formData());
     }
@@ -145,10 +141,10 @@ final class UndertowRequest implements ServerRequest {
 
     @Override
     public InputStream in() throws IOException {
-        blocking.run();
+        blocking();
         return exchange.getInputStream();
     }
-
+    
     @Override
     public String ip() {
         return Optional.ofNullable(exchange.getSourceAddress())
@@ -168,6 +164,8 @@ final class UndertowRequest implements ServerRequest {
         exchange.dispatch(executor, runnable);
     }
     
+    private void blocking() { if(!this.exchange.isBlocking()) this.exchange.startBlocking(); }
+
     private FormData parseForm() {
         if (form == null) {
             form = new FormData(0);
@@ -176,13 +174,13 @@ final class UndertowRequest implements ServerRequest {
                 String value = exchange.getRequestHeaders().getFirst("Content-Type");
                 if (value != null) {
                     if (value.startsWith(MediaType.FORM.name())) {
-                        blocking.run();
+                        blocking();
                         form = new FormEncodedDataDefinition()
                                 .setDefaultEncoding(charset)
                                 .create(exchange)
                                 .parseBlocking();
                     } else if (value.startsWith(MediaType.MULTIPART.name())) {
-                        blocking.run();
+                        blocking();
                         form = new MultiPartParserDefinition()
                                 .setTempFileLocation(TMP_DIR)
                                 .setDefaultEncoding(charset)

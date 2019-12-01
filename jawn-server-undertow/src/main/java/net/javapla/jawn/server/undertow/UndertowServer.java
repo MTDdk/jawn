@@ -44,7 +44,7 @@ public final class UndertowServer implements Server {
             
             // from ActFramework
             //.setServerOption(UndertowOptions.BUFFER_PIPELINED_DATA, true)
-            //.setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
+            .setServerOption(UndertowOptions.ALWAYS_SET_DATE, true)
             .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
             ;
         
@@ -86,29 +86,28 @@ public final class UndertowServer implements Server {
         
         
         int undertow_minimum = 2;//may not be less than 2 because of the inner workings of Undertow
-        int ioThreads, workerThreads;
+        int ioThreads;//, workerThreads;
         switch (config.performance()) {
             case HIGHEST:
-                ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum);
-                workerThreads = ioThreads * 8;
-                serverBuilder.setBufferSize(1024 * 16);
+                //ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum);
+                //serverBuilder.setIoThreads(ioThreads);
+                //serverBuilder.setWorkerThreads(32);
                 break;
             default:
             case MINIMUM:
                 ioThreads = undertow_minimum;
-                workerThreads = ioThreads;
+                serverBuilder.setIoThreads(ioThreads);
+                serverBuilder.setWorkerThreads(ioThreads);
+                serverBuilder.setSocketOption(Options.BACKLOG, config.backlog());
                 break;
             case CUSTOM:
                 ioThreads = Math.max(config.ioThreads(), undertow_minimum);
-                workerThreads = ioThreads * 8;
+                serverBuilder.setIoThreads(ioThreads);
+                serverBuilder.setWorkerThreads(ioThreads * 8);
+                serverBuilder.setSocketOption(Options.BACKLOG, config.backlog());
                 break;
         }
         
-        serverBuilder.setIoThreads(ioThreads);
-        serverBuilder.setWorkerThreads(workerThreads);
-        
-        serverBuilder.setSocketOption(Options.BACKLOG, config.backlog());
-        serverBuilder.setSocketOption(Options.WORKER_IO_THREADS, ioThreads);
     }
 
 }

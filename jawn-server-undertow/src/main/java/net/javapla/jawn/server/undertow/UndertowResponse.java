@@ -30,16 +30,14 @@ import net.javapla.jawn.core.server.ServerResponse;
 
 final class UndertowResponse implements ServerResponse {
     
+    
     private final HttpServerExchange exchange;
-    private final Runnable blocking;
     
     private volatile boolean endExchange = true;
-    
     private boolean streamCreated = false;
 
     public UndertowResponse(final HttpServerExchange exchange) {
         this.exchange = exchange;
-        this.blocking = () -> {if(!this.exchange.isBlocking()) this.exchange.startBlocking();};
     }
 
     @Override
@@ -139,11 +137,11 @@ final class UndertowResponse implements ServerResponse {
     public Writer writer(final Charset charset) {
         return new OutputStreamWriter(outputStream(), charset);
     }
-
+    
     @Override
     public OutputStream outputStream() {
         streamCreated = true;
-        blocking.run();
+        blocking();
         return exchange.getOutputStream();
     }
 
@@ -152,6 +150,8 @@ final class UndertowResponse implements ServerResponse {
         return streamCreated;
     }
     
+    private void blocking() { if(!this.exchange.isBlocking()) this.exchange.startBlocking(); }
+
     static class ChunkedStream implements IoCallback, Runnable {
 
         private ReadableByteChannel source;
