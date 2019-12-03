@@ -299,8 +299,8 @@ public class ActionParameterTest {
 
     private Context sendStringBody(String body) throws Exception {
         ServerRequest request = mock(ServerRequest.class);
-        when(request.header("Content-Length")).thenReturn(Optional.of(String.valueOf(body.length())));
-        when(request.header("Content-Type")).thenReturn(Optional.of(MediaType.TEXT.name()));
+        when(request.header("Content-Length")).thenReturn(Value.of(String.valueOf(body.length())));
+        when(request.header("Content-Type")).thenReturn(Value.of(MediaType.TEXT.name()));
         when(request.bytes()).thenCallRealMethod();
         when(request.in()).thenReturn(new ByteArrayInputStream(body.getBytes()));
 

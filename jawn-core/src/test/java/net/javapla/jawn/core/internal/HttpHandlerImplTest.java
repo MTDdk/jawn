@@ -5,7 +5,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -16,6 +15,7 @@ import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
 
@@ -33,7 +33,7 @@ public class HttpHandlerImplTest {
         
         ServerRequest request = mock(ServerRequest.class);
         when(request.path()).thenReturn("/test");
-        when(request.header("Content-Type")).thenReturn(Optional.of(MediaType.JSON.name()));
+        when(request.header("Content-Type")).thenReturn(Value.of(MediaType.JSON.name()));
         when(request.method()).thenReturn(HttpMethod.GET);
         
         // ends up in a NullPointerE

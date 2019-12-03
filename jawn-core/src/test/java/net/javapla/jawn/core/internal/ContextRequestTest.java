@@ -5,7 +5,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 import org.junit.Test;
 
@@ -13,6 +12,7 @@ import com.google.inject.Injector;
 
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
 
@@ -21,7 +21,7 @@ public class ContextRequestTest {
     @Test
     public void contentType() {
         ServerRequest request = mock(ServerRequest.class);
-        when(request.header("Content-Type")).thenReturn(Optional.of("text/html; charset=utf-16"));
+        when(request.header("Content-Type")).thenReturn(Value.of("text/html; charset=utf-16"));
         
         ContextImpl context = new ContextImpl(request, mock(ServerResponse.class), StandardCharsets.UTF_8, mock(DeploymentInfo.class), mock(Injector.class));
         

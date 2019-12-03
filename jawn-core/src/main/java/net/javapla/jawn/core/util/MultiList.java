@@ -125,4 +125,8 @@ public class MultiList<T> {
         return parts.toString();
     }
     
+    
+    public static <T> MultiList<T> empty() {
+        return new MultiList<>();
+    }
 }

@@ -47,6 +47,14 @@ public interface Value extends Iterable<Value> { // SimpleValue
         //return toOptional().map(Double::parseDouble).orElse(fallback);//toOptional(Double.class).orElse(fallback);
     }
     
+    default double doubleValue(final Function<Double, Double> mapper, final double fallback) {
+        try {
+            return mapper.apply(doubleValue());
+        } catch (Up.ParsableError e) {
+            return fallback;
+        }
+    }
+    
     default int intValue() {
         return simpleValue(Integer::parseInt, int.class);
     }
@@ -55,6 +63,22 @@ public interface Value extends Iterable<Value> { // SimpleValue
         //return map((s) -> (Integer::parseInt)).orElse(fallback);
         try {
             return intValue();
+        } catch (Up.ParsableError e) {
+            return fallback;
+        }
+    }
+    
+    /**
+     * Applies the <code>mapper</code> to the {@link #intValue()}, if a value is present.
+     * Otherwise returns the <code>fallback</code>
+     * 
+     * @param fallback
+     * @param mapper
+     * @return
+     */
+    default int intValue(final Function<Integer, Integer> mapper, final int fallback) {
+        try {
+            return mapper.apply(intValue());
         } catch (Up.ParsableError e) {
             return fallback;
         }
@@ -81,6 +105,14 @@ public interface Value extends Iterable<Value> { // SimpleValue
         //return toOptional().map(Long::parseLong).orElse(fallback);
     }
     
+    default long longValue(final Function<Long, Long> mapper, final long fallback) {
+        try {
+            return mapper.apply(longValue());
+        } catch (Up.ParsableError e) {
+            return fallback;
+        }
+    }
+    
     private <T extends Number> T simpleValue(final Function<String, T> callback, Class<T> type) {
         try {
             return callback.apply(value());
@@ -97,6 +129,14 @@ public interface Value extends Iterable<Value> { // SimpleValue
     
     default String value(final String fallback) {
         return toOptional().orElse(fallback);
+    }
+    
+    default <T> T value(final Function<String, T> mapper, final T fallback) {
+        try {
+            return mapper.apply(value());
+        } catch (Up.ParsableError e) {
+            return fallback;
+        }
     }
     
     default <T extends Enum<T>> T toEnum(final Class<T> type) {
@@ -171,6 +211,10 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
+    default Value orElse(Value other) {
+        return isPresent() ? this : other;
+    }
+    
     default <U> Optional<U> map(Function<String, U> mapper) {
         if (!isPresent()) {
             return Optional.empty();
@@ -235,6 +279,10 @@ public interface Value extends Iterable<Value> { // SimpleValue
         return opt.map(StringValue::new).orElse(new StringValue());
     }
     
+    static Value of(final Value value) {
+        return value;
+    }
+    
     static Value of(final Value ... valuables) {
         return new ListValue(Arrays.asList(valuables));
     }
@@ -244,7 +292,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
     }
     
     
-    class StringValue implements Value {
+    final class StringValue implements Value {
         private final String value;
         
         public StringValue() {
@@ -273,7 +321,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
-    class ListValue implements Value {
+    final class ListValue implements Value {
         
         private final List<Value> valuables;
 

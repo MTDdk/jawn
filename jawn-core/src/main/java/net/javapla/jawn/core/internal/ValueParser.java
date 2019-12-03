@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.internal;
 
-import java.lang.reflect.Type;
 import java.util.Collection;
 
 import net.javapla.jawn.core.Up;
@@ -12,7 +11,7 @@ public abstract class ValueParser {
 
     @SuppressWarnings("unchecked")
     public static <T> T to(Value value, Class<T> type) {
-        return (T) value(value, type, type);
+        return (T) value(value, type/*, type*/);
     }
     
     /*public static Object to(Value value, Type type) {
@@ -20,7 +19,7 @@ public abstract class ValueParser {
     }*/
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private static <T> Object value(Value value, Class<T> raw, Type type) {
+    private static <T> Object value(Value value, Class<T> raw/*, Type type*/) {
         if (raw == Value.class) return value;
         
         // is this really enough as long as we are comparing java.lang.* ?
@@ -48,7 +47,7 @@ public abstract class ValueParser {
     public static <C extends Collection<T>, T> C toCollection(Value value, Class<T> type, Collection<T> collection) {
         for (Value v : value) {
             if (v.isPresent())
-                collection.add((T) value(v, type, type));
+                collection.add((T) value(v, type/*, type*/));
         }
         
         return (C) collection;
