@@ -102,11 +102,11 @@ public class ConfigImplTest {
     
     @Test
     public void merge() {
-        Config conf1 = ConfigImpl.parse(CollectionUtil.map("test", "test"));
-        Config conf2 = ConfigImpl.parse(CollectionUtil.map("test", "overridden", 
+        ConfigImpl conf1 = ConfigImpl.parse(CollectionUtil.map("test", "test"));
+        ConfigImpl conf2 = ConfigImpl.parse(CollectionUtil.map("test", "overridden", 
                                                            "extra", "3"));
         
-        Config merge = ((ConfigImpl) conf1).merge(conf2);
+        Config merge = conf1.merge(conf2);
         
         
         assertThat(merge.get("test")).isEqualTo("overridden");
@@ -120,12 +120,12 @@ public class ConfigImplTest {
     
     @Test
     public void mergeWithDifferentModes() {
-        Config conf1 = ConfigImpl.empty();
-        Config conf2 = ConfigImpl.empty(Modes.TEST);
+        ConfigImpl conf1 = ConfigImpl.empty();
+        ConfigImpl conf2 = ConfigImpl.empty(Modes.TEST);
         
         assertThat(conf1.getMode()).isEqualTo(Modes.DEV);
         
-        Config merge = ((ConfigImpl) conf1).merge(conf2);
+        Config merge = conf1.merge(conf2);
         
         assertThat(conf1.getMode()).isEqualTo(Modes.DEV);
         assertThat(merge.getMode()).isEqualTo(conf2.getMode());
@@ -138,9 +138,17 @@ public class ConfigImplTest {
     }
     
     @Test
+    public void hasPartialPath_with_differentModes() {
+        assertThat(config.hasPath("database.local.extra")).isTrue();
+        assertThat(config.get("database.local.extra")).isEqualTo("extravalue");
+        
+        assertThat(ConfigImpl.parse(Modes.TEST, "jawn_defaults_test.properties").get("database.local.extra")).isEqualTo("extravaluetest");
+    }
+    
+    @Test
     public void keysOfPartialPath() {
-        assertThat(config.keysOf("database")).hasSize(6);
-        assertThat(config.keysOf("database.local")).hasSize(3);
+        assertThat(config.keysOf("database")).hasSize(7);
+        assertThat(config.keysOf("database.local")).hasSize(4);
     }
     
 }

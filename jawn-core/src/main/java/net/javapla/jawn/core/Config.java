@@ -127,8 +127,6 @@ public interface Config {
         return getDurationOptionally(name, unit).orElseThrow(exception.apply(name));
     }
 
-    Set<Map.Entry<String, String>> entrySet();
-    
     Set<String> keys();
     
     /**

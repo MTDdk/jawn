@@ -277,10 +277,10 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
     }
     
     private Config readConfigurations(final Modes mode) {
-        Config frameworkConfig = ConfigImpl.framework(mode);
+        ConfigImpl frameworkConfig = ConfigImpl.framework(mode);
         try {
-            Config userConfig = ConfigImpl.user(mode);
-            return ((ConfigImpl) frameworkConfig).merge(userConfig);
+            ConfigImpl userConfig = ConfigImpl.user(mode);
+            return frameworkConfig.merge(userConfig);
         } catch (Up.IO ignore) {} //Resource 'jawn.properties' was not found
         
         return frameworkConfig;
