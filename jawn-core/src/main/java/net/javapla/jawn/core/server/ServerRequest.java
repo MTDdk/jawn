@@ -9,6 +9,7 @@ import java.util.concurrent.Executor;
 
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
+import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.StreamUtil;
 
@@ -28,13 +29,19 @@ public interface ServerRequest {
         List<String> list = queryParams().list(name);
         return list == null ? Collections.emptyList() : list;
     }
-    default Optional<String> queryParam(String name) {
-        return Optional.ofNullable(queryParams().first(name));
+    default Value queryParam(String name) {
+        return Value.of(queryParams().first(name));
+        //return Optional.ofNullable(queryParams().first(name));
     }
     
     MultiList<String> headers();
-    List<String> headers(String name);
-    Optional<String> header(final String name);
+    default List<String> headers(String name) {
+        List<String> list = headers().list(name);
+        return list == null ? Collections.emptyList() : list;
+    }
+    default Value header(final String name) {
+        return Value.of(headers().first(name));
+    }
     
     List<Cookie> cookies();
     

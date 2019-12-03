@@ -6,7 +6,6 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -108,17 +107,6 @@ final class UndertowRequest implements ServerRequest {
         }
         
         return headers;
-    }
-
-    @Override
-    public List<String> headers(String name) {
-        List<String> list = headers().list(name);
-        return list == null ? Collections.emptyList() : list;
-    }
-
-    @Override
-    public Optional<String> header(String name) {
-        return Optional.ofNullable(headers().first(name));
     }
 
     @Override
