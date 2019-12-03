@@ -158,18 +158,27 @@ public class DeploymentInfo {
         
         
         // Else try to read from resources
-        if (!resourceRoots.isEmpty()) {
-            for (URL resourceRoot : resourceRoots) {
-                try {
-                    return new URL(resourceRoot, WEBAPP_FOLDER_NAME + '/' + path).openStream();
-                } catch (IOException e) { }
-            }
-        }
+        try {
+            return resourceURL(path).openStream();
+        } catch (IOException ignore) { }
         
         // Perhaps mark the resource as not found for later lookup
         
         
         throw new NoSuchFileException(real);
+    }
+    
+    private URL resourceURL(final String path) throws NoSuchFileException {
+        String p = assertStartSlash(path);
+        if (!resourceRoots.isEmpty()) {
+            for (URL resourceRoot : resourceRoots) {
+                try {
+                    return new URL(resourceRoot, WEBAPP_FOLDER_NAME + p);
+                } catch (IOException e) { }
+            }
+        }
+        
+        throw new NoSuchFileException(p);
     }
     
     public BufferedReader resourceAsReader(final String path) throws NoSuchFileException {
@@ -201,23 +210,19 @@ public class DeploymentInfo {
         
         
         // Else try to read from resources
-        if (!resourceRoots.isEmpty()) {
-            for (URL resourceRoot : resourceRoots) {
-                try {
-                    URL url = new URL(resourceRoot, WEBAPP_FOLDER_NAME + '/' + path);
-                    
-                    File file = new File(url.getPath());
-                    if (file.canRead()) {
-                        return file.lastModified();
-                    }
-                    
-                    // FileUrlConnection opens an inputstream on #getLastModified, whereas JarURLConnection does not
-                    // So we do not use #openConnection when we know/assume the resource to be a simple file on the filesystem
-                    long l = url.openConnection().getLastModified();
-                    if (l > 0) return l;
-                } catch (IOException e) { } 
+        try {
+            URL url = resourceURL(path);
+
+            File file = new File(url.getPath());
+            if (file.canRead()) {
+                return file.lastModified();
             }
-        }
+
+            // FileUrlConnection opens an inputstream on #getLastModified, whereas JarURLConnection does not
+            // So we do not use #openConnection when we know/assume the resource to be a simple file on the filesystem
+            long l = url.openConnection().getLastModified();
+            if (l > 0) return l;
+        } catch (IOException ignore) { }
         
         return -1;
     }
