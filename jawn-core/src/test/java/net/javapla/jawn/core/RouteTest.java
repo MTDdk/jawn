@@ -54,9 +54,9 @@ public class RouteTest {
         boolean[] executed = new boolean[3];
         Route handler = new Route.Builder(HttpMethod.GET).
             path("/")
-            .handler((c) -> { executed[0]=true; return Results.noContent(); })
-            .before((c,ch) -> Results.ok())
-            .before((c,ch) -> { executed[2]=true; return Results.notFound(); })
+            .handler((c) -> { executed[0]=true; return Results.noContent(); }) //  not called, because before#1
+            .before((c,ch) -> Results.ok()) // before#1
+            .before((c,ch) -> { executed[2]=true; return Results.notFound(); }) // not called, because before#1 returns a result instead of calling the chain 
             .after((c,r) -> {executed[1] = true; return r; })
             .build();
         
