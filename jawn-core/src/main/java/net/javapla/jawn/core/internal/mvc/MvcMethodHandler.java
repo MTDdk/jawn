@@ -26,8 +26,8 @@ public class MvcMethodHandler implements Route.MethodHandler {
     public MvcMethodHandler(final Method method, final Class<?> routeClass, final ActionParameterProvider provider, final Injector injector) {
         this.method = method;
         this.routeClass = routeClass;
-        this.provider = provider;
         this.key = Key.get(routeClass);
+        this.provider = provider;
         this.injector = injector;
     }
     
@@ -84,6 +84,7 @@ public class MvcMethodHandler implements Route.MethodHandler {
     //might be its own class
     private Object[] _provideParameters(final Method action, final Context context) {
         final List<ActionParameter> params = provider.parameters(action);
+        if (params.isEmpty()) return new Object[0];
         
         final Object[] arguments = new Object[params.size()];
         for (int i = 0; i < arguments.length; i++) {

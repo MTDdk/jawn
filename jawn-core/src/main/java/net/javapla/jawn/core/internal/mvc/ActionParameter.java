@@ -84,7 +84,7 @@ public class ActionParameter {
     final Parameter parameter;
     final String name;
     final Type/*Literal<?>*/ type;
-    final boolean optional, list, set;
+    final boolean optional, list, set, value;
     final CalculateValue strategy;
 
     public ActionParameter(final Parameter parameter, final String name) {
@@ -94,6 +94,7 @@ public class ActionParameter {
         this.optional = parameter.getType() == Optional.class;
         this.list = parameter.getType() == List.class;
         this.set = parameter.getType() == Set.class;
+        this.value = parameter.getType() == Value.class;
         
         
         // look for annotations first
@@ -168,6 +169,8 @@ public class ActionParameter {
                     return value.toList(childOrContainer(param.type));
                 } else if (param.set) {
                     return value.toSet(childOrContainer(param.type));
+                } else if (param.value) {
+                    return value;
                 }
                 
                 return value.to(childOrContainer(param.type));
@@ -180,6 +183,8 @@ public class ActionParameter {
                     return List.of();
                 } else if (param.set) {
                     return Set.of();
+                } else if (param.value) {
+                    return value;
                 }
             }
             
