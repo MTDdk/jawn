@@ -12,7 +12,7 @@ import java.util.Arrays;
  * Non-synchronised version of {@link CharArrayWriter} 
  *
  */
-public final class CharArrayList extends Writer {
+public final class AsyncCharArrayWriter extends Writer {
     /**
      * The buffer where data is stored.
      */
@@ -26,7 +26,7 @@ public final class CharArrayList extends Writer {
     /**
      * Creates a new CharArrayWriter.
      */
-    public CharArrayList() {
+    public AsyncCharArrayWriter() {
         this(32);
     }
 
@@ -36,10 +36,9 @@ public final class CharArrayList extends Writer {
      * @param initialSize  an int specifying the initial buffer size.
      * @exception IllegalArgumentException if initialSize is negative
      */
-    public CharArrayList(int initialSize) {
+    public AsyncCharArrayWriter(int initialSize) {
         if (initialSize < 0) {
-            throw new IllegalArgumentException("Negative initial size: "
-                                               + initialSize);
+            throw new IllegalArgumentException("Negative initial size: " + initialSize);
         }
         buf = new char[initialSize];
     }
@@ -49,9 +48,8 @@ public final class CharArrayList extends Writer {
      */
     public void write(int c) {
         int newcount = count + 1;
-        if (newcount > buf.length) {
-            buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
-        }
+        ensureBuffer(newcount);
+        
         buf[count] = (char)c;
         count = newcount;
     }
@@ -65,9 +63,8 @@ public final class CharArrayList extends Writer {
             return;
         }
         int newcount = count + len;
-        if (newcount > buf.length) {
-            buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
-        }
+        ensureBuffer(newcount);
+        
         System.arraycopy(c, off, buf, count, len);
         count = newcount;
     }
@@ -75,9 +72,8 @@ public final class CharArrayList extends Writer {
     @Override
     public void write(String str, int off, int len) throws IOException {
         int newcount = count + len;
-        if (newcount > buf.length) {
-            buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
-        }
+        ensureBuffer(newcount);
+        
         str.getChars(off, off + len, buf, count);
         count = newcount;
     }
@@ -85,6 +81,12 @@ public final class CharArrayList extends Writer {
     @Override
     public void write(String str) throws IOException {
         write(str, 0, str.length());
+    }
+    
+    private void ensureBuffer(int newcount) {
+        if (newcount > buf.length) {
+            buf = Arrays.copyOf(buf, Math.max(buf.length << 1, newcount));
+        }
     }
     
     /**

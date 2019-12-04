@@ -85,7 +85,7 @@ public final class URLCodec {
     public static String encode(final String s, final Charset charset) {
         boolean needToChange = false;
         StringBuilder out = new StringBuilder(s.length()); // MTD: Using StringBuilder instead of the much slower StringBuffer
-        CharArrayList charArrayWriter = new CharArrayList(); // MTD: non-synchronised CharArrayWriter
+        AsyncCharArrayWriter charArrayWriter = new AsyncCharArrayWriter(); // MTD: non-synchronised CharArrayWriter
 
         for (int i = 0; i < s.length();) {
             int c = (int) s.charAt(i);

@@ -3,7 +3,7 @@ package net.javapla.jawn.core.renderers.template;
 import java.io.IOException;
 import java.io.Reader;
 
-import net.javapla.jawn.core.util.StringBuilderReader;
+import net.javapla.jawn.core.util.AsyncBufferedReader;
 
 /**
  * This is purposefully not optimised for speed, as it only ought to be
@@ -24,7 +24,7 @@ class NoNewLineReader {
 
     public NoNewLineReader(Reader in) throws IOException {
         // load the file
-        try (StringBuilderReader reader = new StringBuilderReader(in)) {
+        try (AsyncBufferedReader reader = new AsyncBufferedReader(in)) {
             final StringBuilder bob = new StringBuilder(EXPECTED_LINE_LENGTH);
             
             reader.lines(true).forEach(line -> trim(bob, line));
@@ -43,7 +43,7 @@ class NoNewLineReader {
      * However, skip the extra space if the line starts with a tag start '&lt;', as the previous line
      * probably ended anyway.
      * 
-     * At this point in the execution we know that \r and \n are removed completely (due to {@linkplain StringBuilderReader}),
+     * At this point in the execution we know that \r and \n are removed completely (due to {@linkplain AsyncBufferedReader}),
      * so we only need to look at the spaces surrounding the line.
      * 
      * @see {@linkplain String#trim()}

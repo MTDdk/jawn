@@ -18,7 +18,7 @@ import java.util.stream.StreamSupport;
  * 
  * @author MTD
  */
-public class StringBuilderReader extends Reader {
+public class AsyncBufferedReader extends Reader {
     
     private Reader in;
     
@@ -49,7 +49,7 @@ public class StringBuilderReader extends Reader {
      *
      * @exception  IllegalArgumentException  If {@code sz <= 0}
      */
-    public StringBuilderReader(Reader in, int sz) {
+    public AsyncBufferedReader(Reader in, int sz) {
         super(in);
         if (sz <= 0)
             throw new IllegalArgumentException("Buffer size <= 0");
@@ -63,7 +63,7 @@ public class StringBuilderReader extends Reader {
      *
      * @param  in   A Reader
      */
-    public StringBuilderReader(Reader in) {
+    public AsyncBufferedReader(Reader in) {
         this(in, defaultCharBufferSize);
     }
     

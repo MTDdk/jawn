@@ -17,7 +17,7 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
-import net.javapla.jawn.core.util.CharArrayList;
+import net.javapla.jawn.core.util.AsyncCharArrayWriter;
 import net.javapla.jawn.core.util.Modes;
 
 @Singleton
@@ -99,7 +99,7 @@ public class ViewTemplateLoader {
     }
     
     public void render(final Context context, ThrowingConsumer<Writer> render, Consumer<Exception> errorOccurred) throws Up.ViewError {
-        try (final CharArrayList writer = new CharArrayList(32_768)) {
+        try (final AsyncCharArrayWriter writer = new AsyncCharArrayWriter(32_768)) {
             render.accept(writer);
             
             context.resp().send(writer.toCharBuffer());
