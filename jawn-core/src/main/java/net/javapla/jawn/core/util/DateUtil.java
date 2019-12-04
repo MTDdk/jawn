@@ -32,6 +32,8 @@ public abstract class DateUtil {
     private static final String RFC1123_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z";
 
     private static final AtomicReference<String> cachedDateString = new AtomicReference<>();
+    
+    private DateUtil() {}
 
     /**
      * 

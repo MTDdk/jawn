@@ -150,9 +150,9 @@ public abstract class ConvertUtil {
             super(message, cause);
         }
 
-        public ConversionException(Throwable cause) {
+        /*public ConversionException(Throwable cause) {
             super(cause.getMessage(), cause);
-        }
+        }*/
     }
     
 }

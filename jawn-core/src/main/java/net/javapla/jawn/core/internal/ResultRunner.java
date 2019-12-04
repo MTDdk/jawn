@@ -13,7 +13,7 @@ import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Status;
 
 @Singleton
-/*final*/ class ResultRunner {
+final class ResultRunner {
     
     private final RendererEngineOrchestrator engines;
     

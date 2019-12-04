@@ -17,11 +17,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.stream.Collectors;
 
-public class StreamUtil {
+public abstract class StreamUtil {
     
     public static final int _4KB = 4096;
     public static final int _8KB = 8192;
     public static final int _16KB = 16384;
+    
+    private StreamUtil() {}
 
     /**
      * Reads contents of the input stream fully and returns it as byte array.
@@ -96,7 +98,7 @@ public class StreamUtil {
             StringBuilder sb = new StringBuilder();
     
             for (int x = in.read(buffer); x != -1; x = in.read(buffer)) {
-                sb.append(buffer, 0, x).append("\n");
+                sb.append(buffer, 0, x);//.append("\n");
             }
             return sb.toString();
         }

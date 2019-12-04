@@ -21,12 +21,29 @@ public class StringUtilTest {
         
         assertEquals("favicon.ico", StringUtil.underscore("favicon.ico"));
     }
+    
+    @Test
+    public void camelcase() {
+        assertEquals("aliceInWonderland", StringUtil.camelize("alice_in_wonderland", false));
+        assertEquals("AliceInWonderland", StringUtil.camelize("alice_in_wonderland"));
+        assertEquals("AliceInWonderLand", StringUtil.camelize("alice_in_wonder_land"));
+        assertEquals("AliceInWonderLanD", StringUtil.camelize("alice_in_wonder_lan_d"));
+        
+        assertEquals("favicon.ico", StringUtil.camelize("favicon.ico", false));
+    }
 
     @Test
     public void decapitalize() {
         assertEquals("alice", StringUtil.decapitalize("Alice"));
         assertEquals("aliceIn", StringUtil.decapitalize("AliceIn"));
         assertEquals("aliceInWonderland", StringUtil.decapitalize("AliceInWonderland"));
+    }
+    
+    @Test
+    public void capitalize() {
+        assertEquals("Alice", StringUtil.capitalize("alice"));
+        assertEquals("AliceIn", StringUtil.capitalize("aliceIn"));
+        assertEquals("AliceInWonderland", StringUtil.capitalize("aliceInWonderland"));
     }
  
     @Test

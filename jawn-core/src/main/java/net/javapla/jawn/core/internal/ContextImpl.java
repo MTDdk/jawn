@@ -375,9 +375,9 @@ final class ContextImpl implements Context {
     }
     
     void end() {
-        if (!sresp.committed()) {
-            writeCookies();
-        }
+        /*if (!sresp.committed()) {
+            writeCookies(); // seems to be called already in 'readyResponse'
+        }*/
         
         // something, something, content-length header .. ?
         /*sresp.header("Content-Length").or(() -> sresp.header("Transfer-Encoding")).ifPresent(header -> {

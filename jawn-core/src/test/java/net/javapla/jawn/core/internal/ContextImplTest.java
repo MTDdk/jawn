@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -31,5 +32,17 @@ public class ContextImplTest {
         assertThat(value.isPresent()).isFalse();
     }
     
+    @Test
+    public void attributes() {
+        ContextImpl context = new ContextImpl(mock(ServerRequest.class), mock(ServerResponse.class), StandardCharsets.UTF_8, mock(DeploymentInfo.class), mock(Injector.class));
+        
+        context.attribute("at", "14");
+        
+        assertThat(context.attribute("at").get()).isEqualTo("14");
+        assertThat(context.attribute("nothing").isPresent()).isFalse();
+        assertThat(context.attribute("at", String.class).get()).isEqualTo("14");
+        
+        assertThrows(ClassCastException.class, () -> context.attribute("at", Double.class));
+    }
 
 }

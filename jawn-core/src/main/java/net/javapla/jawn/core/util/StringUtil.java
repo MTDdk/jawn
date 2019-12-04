@@ -1,12 +1,9 @@
 package net.javapla.jawn.core.util;
 
-import java.util.Collection;
 import java.util.NoSuchElementException;
-import java.util.StringJoiner;
 import java.util.StringTokenizer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -72,38 +69,38 @@ public abstract class StringUtil {
         callbackPerSubstring.accept(input.substring(lastMark, len));
     }
     
-    /**
-     * Joins the items in collection with a delimiter.
-     *
-     * @param collection - collection of items to join.
-     * @param delimiter delimiter to insert between elements of collection.
-     * @return string with collection elements separated by delimiter. There is no trailing delimiter in the string.
-     */
-    public static String join(Collection<?> collection, String delimiter){
-        if(collection.size() == 0) return "";
-        return collection
-                    .stream()
-                    .filter(o -> o != null)
-                    .map(o -> o.toString())
-                    .collect(Collectors.joining(delimiter));
-    }
-    
-    /**
-     * Joins the items in collection with a delimiter.
-     *
-     * @param collection - collection of items to join.
-     * @param delimiter delimiter to insert between elements of collection.
-     * @return string with collection elements separated by delimiter. There is no trailing delimiter in the string.
-     */
-    public static String join(String delimiter, String... collection){
-        if (collection.length == 0) return "";
-        
-        StringJoiner sj = new StringJoiner(delimiter);
-        for (String string : collection) {
-            sj.add(string);
-        }
-        return sj.toString();
-    }
+//    /**
+//     * Joins the items in collection with a delimiter.
+//     *
+//     * @param collection - collection of items to join.
+//     * @param delimiter delimiter to insert between elements of collection.
+//     * @return string with collection elements separated by delimiter. There is no trailing delimiter in the string.
+//     */
+//    public static String join(Collection<?> collection, String delimiter){
+//        if(collection.size() == 0) return "";
+//        return collection
+//                    .stream()
+//                    .filter(o -> o != null)
+//                    .map(o -> o.toString())
+//                    .collect(Collectors.joining(delimiter));
+//    }
+//    
+//    /**
+//     * Joins the items in collection with a delimiter.
+//     *
+//     * @param collection - collection of items to join.
+//     * @param delimiter delimiter to insert between elements of collection.
+//     * @return string with collection elements separated by delimiter. There is no trailing delimiter in the string.
+//     */
+//    public static String join(String delimiter, String... collection){
+//        if (collection.length == 0) return "";
+//        
+//        StringJoiner sj = new StringJoiner(delimiter);
+//        for (String string : collection) {
+//            sj.add(string);
+//        }
+//        return sj.toString();
+//    }
     
     /**
      * Generates a camel case version of a phrase from underscore.
@@ -140,22 +137,22 @@ public abstract class StringUtil {
         return capitalizeFirstChar? result :result.substring(0, 1).toLowerCase() + result.substring(1);            
     }
     
-    /**
-     * Extracts the first part of a camel_cased string.
-     * 
-     * @param camelcased A camel_cased string that may or may not start with an upper cased letter.
-     * @return "get" from "getVideo" or "post" from "postVideoUpload" or "Get" from "GetVideo"
-     */
-    public static String firstPartOfCamelCase(String camelcased) {
-        // by starting to count before the isUpperCase-check,
-        // we do not care if the strings starts with a lower- or uppercase
-        int end = 0;
-        while (++end < camelcased.length()) {
-            if (Character.isUpperCase(camelcased.charAt(end)))
-                break;
-        }
-        return camelcased.substring(0,end);
-    }
+//    /**
+//     * Extracts the first part of a camel_cased string.
+//     * 
+//     * @param camelcased A camel_cased string that may or may not start with an upper cased letter.
+//     * @return "get" from "getVideo" or "post" from "postVideoUpload" or "Get" from "GetVideo"
+//     */
+//    public static String firstPartOfCamelCase(String camelcased) {
+//        // by starting to count before the isUpperCase-check,
+//        // we do not care if the strings starts with a lower- or uppercase
+//        int end = 0;
+//        while (++end < camelcased.length()) {
+//            if (Character.isUpperCase(camelcased.charAt(end)))
+//                break;
+//        }
+//        return camelcased.substring(0,end);
+//    }
 
     /**
      * Capitalizes a word  - only a first character is converted to upper case.

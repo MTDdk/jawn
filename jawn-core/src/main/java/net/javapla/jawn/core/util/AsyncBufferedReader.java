@@ -53,6 +53,7 @@ public class AsyncBufferedReader extends Reader {
         super(in);
         if (sz <= 0)
             throw new IllegalArgumentException("Buffer size <= 0");
+        
         this.in = in;
         cb = new char[sz];
         nextChar = nChars = 0;
@@ -188,32 +189,12 @@ public class AsyncBufferedReader extends Reader {
         nextChar += n;
         return n;
     }
-
-
-    /**
-     * Tells whether this stream supports the mark() operation, which it does.
-     */
+    
     @Override
     public boolean markSupported() {
         return true;
     }
 
-    /**
-     * Marks the present position in the stream.  Subsequent calls to reset()
-     * will attempt to reposition the stream to this point.
-     *
-     * @param readAheadLimit   Limit on the number of characters that may be
-     *                         read while still preserving the mark. An attempt
-     *                         to reset the stream after reading characters
-     *                         up to this limit or beyond may fail.
-     *                         A limit value larger than the size of the input
-     *                         buffer will cause a new buffer to be allocated
-     *                         whose size is no smaller than limit.
-     *                         Therefore large values should be used with care.
-     *
-     * @exception  IllegalArgumentException  If {@code readAheadLimit < 0}
-     * @exception  IOException  If an I/O error occurs
-     */
     @Override
     public void mark(int readAheadLimit) throws IOException {
         if (readAheadLimit < 0) {
@@ -227,12 +208,6 @@ public class AsyncBufferedReader extends Reader {
         }
     }
 
-    /**
-     * Resets the stream to the most recent mark.
-     *
-     * @exception  IOException  If the stream has never been marked,
-     *                          or if the mark has been invalidated
-     */
     @Override
     public void reset() throws IOException {
         synchronized (lock) {
@@ -261,7 +236,7 @@ public class AsyncBufferedReader extends Reader {
     }
     
     /** Checks to make sure that the stream has not been closed */
-    private void ensureOpen() throws IOException {
+    protected void ensureOpen() throws IOException {
         if (in == null)
             throw new IOException("Stream closed");
     }
