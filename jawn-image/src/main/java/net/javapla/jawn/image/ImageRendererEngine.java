@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.image;
+package net.javapla.jawn.image;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -17,7 +17,8 @@ import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.renderers.RendererEngine;
 
 @Singleton
-class ImageRendererEngine implements /*Stream*/RendererEngine {
+public class ImageRendererEngine implements /*Stream*/RendererEngine {
+ // TODO ImageRendererEngine needs to be thoroughly thought through as well
 
     @Override
     public void invoke(Context context, Object obj) throws Exception {

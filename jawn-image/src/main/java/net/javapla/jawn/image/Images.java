@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.image;
+package net.javapla.jawn.image;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;

@@ -1,0 +1,15 @@
+apply plugin: 'java'
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  // Framework
+  implementation project(':jawn-core')
+  
+  
+  //ImgScalr (image manipulation)
+  implementation 'org.imgscalr:imgscalr-lib:4.2'
+}
+
