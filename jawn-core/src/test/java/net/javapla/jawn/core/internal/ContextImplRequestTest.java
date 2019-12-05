@@ -16,7 +16,7 @@ import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
 
-public class ContextRequestTest {
+public class ContextImplRequestTest {
 
     @Test
     public void contentType() {

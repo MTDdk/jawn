@@ -187,7 +187,7 @@ public interface Config {
         }
         
         public ParseOptions charset(Charset charset) {
-            if (charset.equals(charset)) return this;
+            if (this.charset.equals(charset)) return this;
             return new ParseOptions(classLoader, charset);
         }
         
@@ -197,6 +197,8 @@ public interface Config {
     }
     
     final class PropertiesLoader {
+        private PropertiesLoader() {}
+        
         public static Properties parseMap(final Map<String, String> properties) {
             Properties p = new Properties();
             properties.forEach(p::put);

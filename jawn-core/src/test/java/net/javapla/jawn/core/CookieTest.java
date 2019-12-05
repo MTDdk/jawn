@@ -49,18 +49,28 @@ public class CookieTest {
     @Test
     public void httpOnly() {
         Cookie cookie = Cookie.builder("jawncookie", "value").httpOnly().build();
+        assertThat(cookie.httpOnly()).isTrue();
         assertThat(cookie.toString()).isEqualTo("jawncookie=value;Version=1;Path=/;HttpOnly");
     }
     
     @Test
     public void secure() {
         Cookie cookie = Cookie.builder("jawncookie", "value").secure().build();
+        assertThat(cookie.secure()).isTrue();
         assertThat(cookie.toString()).isEqualTo("jawncookie=value;Version=1;Path=/;Secure");
+    }
+    
+    @Test
+    public void domain() {
+        Cookie cookie = Cookie.builder("jawncookie", "value").domain(".javapla.net").build();
+        assertThat(cookie.domain()).isEqualTo(".javapla.net");
+        assertThat(cookie.toString()).isEqualTo("jawncookie=value;Version=1;Path=/;Domain=.javapla.net");
     }
     
     @Test
     public void maxAgeEpoch() {
         Cookie cookie = Cookie.builder("jawncookie", "value").maxAge(0).build();
+        assertThat(cookie.maxAge()).isEqualTo(0);;
         assertThat(cookie.toString()).isEqualTo("jawncookie=value;Version=1;Path=/;Max-Age=0;Expires=Thu, 01 Jan 1970 00:00:00 GMT");
     }
     
@@ -78,5 +88,14 @@ public class CookieTest {
     @Test(expected = IllegalArgumentException.class)
     public void nullChecksValue() {
         Cookie.builder("name", null);
+    }
+    
+    @Test
+    public void builder() {
+        Cookie cookie = Cookie.builder("name", "value").build();
+        assertThat(cookie.path()).isEqualTo("/");
+        
+        cookie = Cookie.builder(cookie).path("/test").build();
+        assertThat(cookie.path()).isEqualTo("/test");
     }
 }

@@ -359,7 +359,8 @@ public class Jawn implements Route.Filtering, Injection {
             try {
                 bootstrap.getInjector().getInstance(Server.class).stop();
             } catch (Exception ignore) {
-                // Ignore NPE. At this point the server REALLY should be possible to find
+                // Ignore NPE. Either the server REALLY should be possible to find, OR we are calling
+                // #stop because no server were to be found at all in #start
             }
             bootstrap.shutdown();
         });

@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.renderers;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
@@ -14,6 +15,7 @@ import com.google.inject.Module;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
@@ -38,6 +40,32 @@ public class RendererEngineOrchestratorTest {
         assertThat(engine.hasRendererEngineForContentType(MediaType.XML)).isTrue();
     }
     
+    @Test
+    public void contentTypes() {
+        assertThat(engine.getContentTypes()).containsAllOf(MediaType.TEXT, MediaType.PLAIN, MediaType.XML, MediaType.JSON);
+    }
+    
+    @Test
+    public void shouldThrow_when_ridiculousMediaType() {
+        assertThrows(Up.BadMediaType.class, () -> engine.getRendererEngineForContentType(MediaType.valueOf("test/test"), engine -> {}));
+    }
+    
+    @Test
+    public void logEngines() {
+        StringBuilder bob = new StringBuilder();
+        
+        ((RendererEngineOrchestratorImpl)engine).logEngines(bob::append);
+        
+        bob.trimToSize();
+        String result = bob.toString();
+        
+        assertThat(result).contains("Registered template engines");
+        assertThat(result).contains(MediaType.TEXT.name());
+        assertThat(result).contains(MediaType.PLAIN.name());
+        assertThat(result).contains(MediaType.XML.name());
+        assertThat(result).contains(MediaType.JSON.name());
+    }
+
     @Test
     public void rendererGetsRegistered() {
         

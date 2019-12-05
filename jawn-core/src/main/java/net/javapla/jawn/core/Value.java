@@ -132,9 +132,10 @@ public interface Value extends Iterable<Value> { // SimpleValue
     }
     
     default <T> T value(final Function<String, T> mapper, final T fallback) {
+        if (!isPresent()) return fallback;
         try {
             return mapper.apply(value());
-        } catch (Up.ParsableError e) {
+        } catch (Exception e) {
             return fallback;
         }
     }

@@ -17,9 +17,7 @@ public enum HttpMethod {
     public static final String AJAX_METHOD_PARAMETER = "_method";
     
     @FunctionalInterface
-    public interface MultiListFormItemSupplier {
-        MultiList<FormItem> get();
-    }
+    public interface MultiListFormItemSupplier extends Supplier<MultiList<FormItem>> {}
     
     /** Detects an HTTP method from a request. */
     public static HttpMethod getMethod(final CharSequence requestMethod, Supplier<MultiList<? extends CharSequence>> params) {
@@ -27,7 +25,7 @@ public enum HttpMethod {
     }
     
     /** Detects an HTTP method from a request. */
-    public static HttpMethod getMethod(final CharSequence requestMethod, MultiListFormItemSupplier params) {
+    public static HttpMethod getMethod(final CharSequence requestMethod, MultiListFormItemSupplier params) { // we need MultiListFormItemSupplier or else it clashes with the other getMethod(String, Supplier)
         return _getMethod(requestMethod, () -> 
                                             params
                                                 .get()

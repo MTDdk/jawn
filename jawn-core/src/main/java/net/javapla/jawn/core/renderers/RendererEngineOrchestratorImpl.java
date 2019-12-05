@@ -73,7 +73,7 @@ final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator
         this.contentTypeToRendererEngineMap = Collections.unmodifiableMap(map);
         
         if (log.isDebugEnabled())
-            logEngines();
+            logEngines(log::debug);
     }
     
     @Override
@@ -113,7 +113,7 @@ final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator
         }
     }
     
-    private void logEngines() {
+    void logEngines(Consumer<String> logger) {
         Set<MediaType> types = getContentTypes();
 
         int maxContentTypeLen = 0;
@@ -130,13 +130,13 @@ final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator
         int borderLen = 6 + maxContentTypeLen + maxParserEngineLen;
         String border = StringUtil.padEnd("", borderLen, '-');
 
-        log.debug(border);
-        log.debug("Registered template engines");
-        log.debug(border);
+        logger.accept(border);
+        logger.accept("Registered template engines");
+        logger.accept(border);
 
         for (MediaType contentType : types) {
             RendererEngine engine = contentTypeToRendererEngineMap.get(contentType).get();
-            log.debug("{}  =>  {}", StringUtil.padEnd(contentType.name(), maxContentTypeLen, ' '), engine.getClass().getName());
+            logger.accept(StringUtil.padEnd(contentType.name(), maxContentTypeLen, ' ') + "  =>  " + engine.getClass().getName());
         }
     }
 

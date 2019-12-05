@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
@@ -10,6 +11,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.javapla.jawn.core.Config;
+import net.javapla.jawn.core.Config.ParseOptions;
 import net.javapla.jawn.core.util.CollectionUtil;
 import net.javapla.jawn.core.util.Modes;
 
@@ -38,6 +40,13 @@ public class ConfigImplTest {
     }
     
     @Test
+    public void parseWithOptions() {
+        Config config = ConfigImpl.parse(Modes.DEV, "jawn_defaults_test", ParseOptions.defaults().charset(StandardCharsets.ISO_8859_1).classLoader(this.getClass().getClassLoader()));
+        assertThat(config).isNotNull();
+        assertThat(config.getInt("application.someint")).isEqualTo(200);
+    }
+    
+    @Test
     public void parseMap() {
         Config config = ConfigImpl.parse(Modes.DEV, CollectionUtil.map("key1","value1","dev.key2","value2","prod.key3","value3"));
         
@@ -54,9 +63,12 @@ public class ConfigImplTest {
         assertThat(config.getOrDie("application.charset")).isEqualTo("UTF-8");
     }
     
-    @Test(expected = RuntimeException.class)
+    @Test
     public void failOnMissingKey() {
-        config.getOrDie("application.bogus");
+        assertThrows(RuntimeException.class, () -> config.getOrDie("application.bogus"));
+        assertThrows(RuntimeException.class, () -> config.getDurationOrDie("application.bogus"));
+        assertThrows(RuntimeException.class, () -> config.getDurationOrDie("application.bogus", TimeUnit.SECONDS));
+        assertThrows(RuntimeException.class, () -> config.getBooleanOrDie("application.bogus"));
     }
     
     @Test

@@ -3,6 +3,7 @@ package net.javapla.jawn.core;
 import java.text.MessageFormat;
 
 public abstract class Results {
+    private Results() {}
     
     public static Result status(final Status status) {
         return new Result().status(status);

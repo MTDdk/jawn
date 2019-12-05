@@ -32,11 +32,17 @@ final class ConfigImpl implements Config {
     }
     
     static ConfigImpl parse(final Modes mode, final Map<String, String> properties) {
-        return parse(properties);
+        Properties p = PropertiesLoader.parseMap(properties);
+        return new ConfigImpl(mode, p);
     }
     
     static ConfigImpl parse(final Modes mode, final String file) {
         Properties properties = PropertiesLoader.parseResourse(file, ParseOptions.defaults());
+        return new ConfigImpl(mode, properties);
+    }
+    
+    static ConfigImpl parse(final Modes mode, final String file, final ParseOptions options) {
+        Properties properties = PropertiesLoader.parseResourse(file, options);
         return new ConfigImpl(mode, properties);
     }
     

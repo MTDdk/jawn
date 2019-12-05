@@ -21,6 +21,7 @@ import net.javapla.jawn.core.util.StreamUtil;
 public class DeploymentInfoTest {
     
     static Charset charset = StandardCharsets.UTF_8;
+    static Optional<String> WEBAPP_PATH = Optional.of(Paths.get("src", "test", "resources", "webapp").toString());
 
     @Test
     public void contextPath() {
@@ -79,7 +80,7 @@ public class DeploymentInfoTest {
     @Test
     public void asResource() throws IOException {
         Config config = mock(Config.class);
-        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(Paths.get("src", "test", "resources", "webapp").toString()));
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
         
         InputStream input = di.resourceAsStream("css/dummy.css");
@@ -90,7 +91,7 @@ public class DeploymentInfoTest {
     @Test (expected = NoSuchFileException.class)
     public void missingResource() throws IOException {
         Config config = mock(Config.class);
-        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(Paths.get("src", "test", "resources", "webapp").toString()));
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
         
         di.resourceAsStream("css/unavailable.css"); // should throw
@@ -99,7 +100,7 @@ public class DeploymentInfoTest {
     @Test
     public void resourceExists() {
         Config config = mock(Config.class);
-        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(Paths.get("src", "test", "resources", "webapp").toString()));
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
         
         assertThat(di.resourceExists("css/dummy.css")).isTrue();
@@ -108,7 +109,7 @@ public class DeploymentInfoTest {
     @Test
     public void resourceNotExists() {
         Config config = mock(Config.class);
-        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(Paths.get("src", "test", "resources", "webapp").toString()));
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
         
         assertThat(di.resourceExists("css/unavailable.css")).isFalse();
@@ -117,7 +118,7 @@ public class DeploymentInfoTest {
     @Test
     public void jarResources() throws IOException {
         Config config = mock(Config.class);
-        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(Paths.get("src", "test", "resources", "webapp").toString()));
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
         di.addResourceRoot(new URL("jar:file:" + Paths.get("src", "test", "resources", "test-jawn-templates.jar").toAbsolutePath() + "!/"));
         

@@ -209,6 +209,10 @@ public class Cookie {
         return new Builder(name, value);
     }
     
+    public static Cookie.Builder builder(Cookie cookie) {
+        return new Builder(cookie);
+    }
+    
     public static class Builder {
         private final String name;
         private String value;
