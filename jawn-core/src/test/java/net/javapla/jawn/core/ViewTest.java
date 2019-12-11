@@ -60,7 +60,7 @@ public class ViewTest {
         View view = View.from(Results.notFound());
         
         assertThat(view.status).isEqualTo(Status.NOT_FOUND);
-        assertThat(view.contentType().get()).isEqualTo(MediaType.HTML);
+        assertThat(view.contentType()).isEqualTo(MediaType.HTML);
     }
     
     @Test

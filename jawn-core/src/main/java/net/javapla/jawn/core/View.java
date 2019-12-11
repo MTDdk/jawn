@@ -30,8 +30,8 @@ public class View extends Result {
     protected View(Result result) {
         this();
         this.charset = result.charset;
-        this.headers.putAll(result.headers());
         this.status = result.status;
+        this.headers = result.headers;//.putAll(result.headers());
     }
     
     public View put(final String name, final Object value) {

@@ -12,7 +12,7 @@ public class Result {
     /**
      * Http status code
      */
-    protected Status status;
+    protected Status status = Status.OK;
     
     /**
      * Something like: "text/html" or "application/json"
@@ -40,10 +40,10 @@ public class Result {
     // TODO README: using a hashmap of course prevents us from having multiple values for a single header
     // this could be implemented with a map<string, object> instead, where object CAN be an iterable,
     // and as such set a list of values in the response
-    protected final Map<String, String> headers = new HashMap<>();
+    protected Map<String, String> headers;
     
-    public Optional<Status> status() {
-        return Optional.ofNullable(status);
+    public Status status() {
+        return status;
     }
     
     public Result status(final int status) {
@@ -51,15 +51,17 @@ public class Result {
     }
     
     public Result status(final Status status) {
+        if (status == null) throw new IllegalArgumentException("Status may not be null");
         this.status = status;
         return this;
     }
     
-    public Optional<MediaType> contentType() {
-        return Optional.ofNullable(contentType);
+    public MediaType contentType() {
+        return /*Optional.ofNullable*/(contentType);
     }
     
     public Result contentType(final MediaType type) {
+        if (type == null) throw new IllegalArgumentException("ContentType may not be null");
         this.contentType = type;
         return this;
     }
@@ -81,7 +83,7 @@ public class Result {
         return Optional.ofNullable(charset);
     }
     
-    public Result charset(Charset cs) {
+    public Result charset(final Charset cs) {
         this.charset = cs;
         return this;
     }
@@ -90,11 +92,13 @@ public class Result {
         return charset(Charset.forName(cs));
     }
     
-    public Map<String, String> headers() {
-        return Collections.unmodifiableMap(headers);
+    public Optional<Map<String, String>> headers() {
+        if (headers == null) return Optional.empty();
+        return Optional.of(Collections.unmodifiableMap(headers));
     }
     
     public Result header(final String name, final String value) {
+        if (headers == null) headers = new HashMap<>();
         headers.put(name, value);
         return this;
     }

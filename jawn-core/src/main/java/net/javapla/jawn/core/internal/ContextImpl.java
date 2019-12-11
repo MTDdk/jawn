@@ -20,7 +20,6 @@ import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
-import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Value;
@@ -174,6 +173,12 @@ final class ContextImpl implements Context {
             @Override
             public Status status() {
                 return Status.valueOf(resp.statusCode());
+            }
+            
+            @Override
+            public Response status(int statusCode) {
+                resp.statusCode(statusCode);
+                return this;
             }
             
             @Override
@@ -355,29 +360,10 @@ final class ContextImpl implements Context {
                 .orElse(Value.empty());
     }
     
-    // README could probably just as well be handled by ResultRunner
-    void readyResponse(final Result result) {
-        if (sresp.committed()) return;
-        
-        result.contentType()
-            .map(MediaType::name).ifPresent(resp::contentType);
-        
-        sresp.statusCode(result.status()
-            .map(Status::value).orElse(200));
-        
-        result.charset()
-            .ifPresent(resp::charset);
-        
-        result.headers()
-            .forEach(sresp::header);
-        
-        writeCookies();
-    }
-    
     void end() {
-        /*if (!sresp.committed()) {
-            writeCookies(); // seems to be called already in 'readyResponse'
-        }*/
+        if (!sresp.committed()) {
+            writeCookies(); 
+        }
         
         // something, something, content-length header .. ?
         /*sresp.header("Content-Length").or(() -> sresp.header("Transfer-Encoding")).ifPresent(header -> {
@@ -391,6 +377,7 @@ final class ContextImpl implements Context {
         /*if (files != null) {
             files.forEach(File::delete);
         }*/
+        end();
     }
     
     private void writeCookies() {

@@ -73,7 +73,7 @@ public class HttpHandlerImplTest {
         
         verify(routeHandler, times(1)).handle(any(Context.class));
         
-        verify(response, times(1)).committed();
+        verify(response, times(2)).committed();
         verify(response, times(1)).end();
     }
 }

@@ -2,6 +2,7 @@ package net.javapla.jawn.core.internal;
 
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 
@@ -53,10 +55,12 @@ public class ResultRunnerTest {
             .contentType(mediaType);
         
         runner.execute(result, context);
-        verify(response, times(1)).end();
+        //verify(response, times(1)).end();
+        verify(response, times(1)).header(anyString(), anyString());
     }
 
     @Test
+    @Ignore("No longer necessary as Result#contentType no longer accepts null")
     public void execute_without_MediaType() {
         ServerResponse response = mock(ServerResponse.class);
         

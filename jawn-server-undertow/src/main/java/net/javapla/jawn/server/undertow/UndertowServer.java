@@ -89,8 +89,8 @@ public final class UndertowServer implements Server {
         int ioThreads;//, workerThreads;
         switch (config.performance()) {
             case HIGHEST:
-                //ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum);
-                //serverBuilder.setIoThreads(ioThreads);
+                ioThreads = Math.max(Runtime.getRuntime().availableProcessors() * 2, undertow_minimum);
+                serverBuilder.setIoThreads(ioThreads);
                 //serverBuilder.setWorkerThreads(32);
                 break;
             default:

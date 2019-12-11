@@ -62,7 +62,7 @@ public class AssetHandler implements Route.Handler {
         _cacheControl(result);
         
         
-        if (result.contentType().get().matches(SVG)) {
+        if (result.contentType().matches(SVG)) {
             result.header("mime-type","image/svg+xml");
             result.header("Content-Disposition", "");
         }

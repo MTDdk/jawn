@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.renderers;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import com.google.inject.Singleton;
 
@@ -12,10 +13,12 @@ final class TextRendererEngine implements RendererEngine {
 
     @Override
     public final void invoke(final Context context, final Object obj) throws Exception {
-        if (obj instanceof String) {
-            context.resp().send( (String)obj );
+        if (obj instanceof ByteBuffer) {
+            context.resp().send( (ByteBuffer) obj);
+        } else if (obj instanceof String) {
+            context.resp().send( (String) obj );
         } else if (obj instanceof byte[]) {
-            context.resp().send((byte[]) obj);
+            context.resp().send( (byte[]) obj);
         } else if (obj instanceof InputStream) {
             new StreamRendererEngine().invoke(context, obj);
         } else {

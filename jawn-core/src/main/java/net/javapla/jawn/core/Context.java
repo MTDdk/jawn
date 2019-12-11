@@ -19,6 +19,8 @@ public interface Context /*extends Injection*/ {
         
         Status status();
         
+        Response status(int statusCode);
+        
         Response header(String name, String value);
         
         Optional<String> header(String name);

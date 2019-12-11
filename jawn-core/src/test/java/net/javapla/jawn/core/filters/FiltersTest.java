@@ -28,7 +28,7 @@ public class FiltersTest {
         
         LogRequestPropertiesFilter filter = new LogRequestPropertiesFilter();
         Result result = filter.before(context, chain);
-        assertThat(result.status().get().value()).isEqualTo(222);
+        assertThat(result.status().value()).isEqualTo(222);
     }
     
     @Test
@@ -44,7 +44,7 @@ public class FiltersTest {
         
         LogRequestTimingFilter filter = new LogRequestTimingFilter();
         Result result = filter.before(context, chain);
-        assertThat(result.status().get().value()).isEqualTo(223);
+        assertThat(result.status().value()).isEqualTo(223);
         
         Result after = filter.after(context, result);
         assertThat(after.toString()).isEqualTo(result.toString());

@@ -4,13 +4,11 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.HttpMethod;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
-import net.javapla.jawn.core.HttpMethod;
-import net.javapla.jawn.core.MediaType;
-import net.javapla.jawn.core.Result;
-import net.javapla.jawn.core.Status;
 
 @Singleton
 final class ResultRunner {
@@ -23,24 +21,35 @@ final class ResultRunner {
     }
     
     
-    void execute(final Result result, final ContextImpl context) throws Up.BadMediaType {
+    void execute(final Result result, final Context context) throws Up.BadMediaType {
         
-        context.readyResponse(result);
+        //context.readyResponse(result);
+        readyResponse(result, context);
     
         if (HttpMethod.HEAD == context.req().httpMethod()) {
-            context.end();
+            //context.end();
             return;
         }
         
         result.renderable().ifPresent(renderable -> {
-            final MediaType type = result
-                .contentType()
-                .orElseThrow(() -> new Up(Status.NOT_ACCEPTABLE, "Could not find any suitable way to serve you your content"));
-            
-            engines.getRendererEngineForContentType(type, engine -> invoke(engine, context, renderable));
+            engines.getRendererEngineForContentType(result.contentType(), engine -> invoke(engine, context, renderable));
         });
         
-        context.end();
+        //context.end(); // TODO could this be placed in context.done() ?
+    }
+    
+    private void readyResponse(final Result result, final Context context) {
+        if (!context.resp().committed()) {
+            context.resp().contentType(result.contentType());
+            
+            context.resp().status(result.status().value());
+            
+            result.charset()
+                .ifPresent(context.resp()::charset);
+            
+            result.headers().
+                ifPresent(map -> map.forEach(context.resp()::header));
+        }
     }
     
     private void invoke(final RendererEngine engine, final Context context, final Object renderable) {

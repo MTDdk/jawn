@@ -1,12 +1,11 @@
 package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public class RouteTest {
@@ -26,8 +25,8 @@ public class RouteTest {
         Result result = handler.handle(context);
         
         assertThat(called.get()).isFalse();
-        assertThat(result.status().isPresent()).isTrue();
-        result.status().ifPresentOrElse(status -> assertThat(status.value()).isEqualTo(200), Assert::fail);
+        assertThat(result.status()).isNotNull();
+        assertThat(result.status().value()).isEqualTo(200);
     }
     
     @Test
@@ -45,8 +44,8 @@ public class RouteTest {
         
         // assert
         assertThat(called.get()).isTrue();
-        assertThat(result.status().isPresent()).isTrue();
-        result.status().ifPresentOrElse(status -> assertThat(status.value()).isEqualTo(200), Assert::fail);
+        assertThat(result.status()).isNotNull();
+        assertThat(result.status().value()).isEqualTo(200);
     }
 
     @Test
@@ -68,7 +67,7 @@ public class RouteTest {
         assertThat(executed[0]).isFalse();
         assertThat(executed[1]).isTrue();
         assertThat(executed[2]).isFalse();
-        assertThat(result.status().get()).isEqualTo(Status.OK);
+        assertThat(result.status()).isEqualTo(Status.OK);
     }
 
     @Test

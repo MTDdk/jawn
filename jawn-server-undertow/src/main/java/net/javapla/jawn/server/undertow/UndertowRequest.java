@@ -25,7 +25,6 @@ import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.util.MultiList;
-import net.javapla.jawn.core.util.URLCodec;
 
 final class UndertowRequest implements ServerRequest {
     
@@ -45,7 +44,7 @@ final class UndertowRequest implements ServerRequest {
 
     public UndertowRequest(final HttpServerExchange exchange) {
         this.exchange = exchange;
-        this.path = URLCodec.decode(exchange.getRequestPath(), StandardCharsets.UTF_8);
+        this.path = /*URLCodec.decode(*/exchange.getRequestPath()/*, StandardCharsets.UTF_8)*/;
         
         this.method = HttpMethod.getMethod(exchange.getRequestMethod().toString(), () -> formData());
     }

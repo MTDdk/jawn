@@ -30,7 +30,6 @@ import net.javapla.jawn.core.server.ServerResponse;
 
 final class UndertowResponse implements ServerResponse {
     
-    
     private final HttpServerExchange exchange;
     
     private volatile boolean endExchange = true;
