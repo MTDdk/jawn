@@ -1,4 +1,4 @@
-package net.javapla.jawn.image;
+package net.javapla.jawn.core.renderers;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -14,10 +14,9 @@ import com.google.inject.Singleton;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
-import net.javapla.jawn.core.renderers.RendererEngine;
 
 @Singleton
-public class ImageRendererEngine implements /*Stream*/RendererEngine {
+class ImageRendererEngine implements /*Stream*/RendererEngine {
  // TODO ImageRendererEngine needs to be thoroughly thought through as well
 
     @Override
@@ -44,7 +43,9 @@ public class ImageRendererEngine implements /*Stream*/RendererEngine {
             //super.invoke(context, obj);
             context.resp().send((InputStream)obj);
         } else if (obj instanceof File) {
-            context.resp().send(new FileInputStream((File)obj));
+            try (InputStream s = new FileInputStream((File)obj)) {
+                context.resp().send(s);
+            }
         }
 
     }
