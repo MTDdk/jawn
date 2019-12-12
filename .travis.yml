@@ -10,4 +10,4 @@ git:
   depth: 1
 branches:
   only:
-  - master
+  - 1.0.x
