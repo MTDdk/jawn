@@ -9,6 +9,6 @@ dependencies {
   implementation project(':jawn-core')
   
   // Server
-  implementation 'io.undertow:undertow-core:2.0.22.Final'
+  implementation 'io.undertow:undertow-core:2.0.28.Final'
 }
 
