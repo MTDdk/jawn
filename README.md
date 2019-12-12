@@ -20,4 +20,4 @@ If you ever want to try this framework out for yourself or in the wild, do not h
 
 ## Latest version
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.javapla.jawn/jawn-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.javapla.jawn/jawn-core)
-[![Build Status](https://travis-ci.org/MTDdk/jawn.svg?branch=master)](https://travis-ci.org/MTDdk/jawn)
+[![Build Status](https://travis-ci.org/MTDdk/jawn.svg?branch=1.0.x)](https://travis-ci.org/MTDdk/jawn)
