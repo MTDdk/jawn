@@ -2,6 +2,7 @@ package net.javapla.jawn.core.internal;
 
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -90,7 +91,10 @@ public class ResultRunnerTest {
         
         runner.execute(result, context);
         
-        verify(response, times(1)).end();
+        //verify(response, times(1)).end();
+        verify(response, times(1)).committed();
+        verify(response, times(1)).header(anyString(), anyString());
+        verify(response, times(1)).statusCode(anyInt());
         verify(engine, times(0)).getRendererEngineForContentType(any(MediaType.class), any());
     }
     
