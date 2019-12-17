@@ -152,12 +152,14 @@ class SiteConfigurationReader {
         // prepending with '/' makes the resource not depending on the URL it is called from
         result.insert(0, '/'); // length 1
         
-        long lastModified = deploymentInfo.resourceLastModified(result.toString());
-        if (lastModified > -1) {//resolved.exists() /*&& resolved.canRead()*/) { // TODO at this point we actually could do some minification as well
+        try {
+            long lastModified = deploymentInfo.resourceLastModified(result.toString());
+            //if (lastModified > -1) {//resolved.exists() /*&& resolved.canRead()*/) { // TODO at this point we actually could do some minification as well
             result.append("?v="); // length 3
             result.append(lastModified); // length 13
             return result.toString();
-        } else {
+            //}
+        } catch (NoSuchFileException e) {
             // log.debug("File not found:: " + resolved + " - Perhaps a spelling error?"); // README: this is frankly mostly for testing purposes - probably should be omitted all together
             return result.toString();
         }

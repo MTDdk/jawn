@@ -1,7 +1,7 @@
 package net.javapla.jawn.core.internal;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +49,13 @@ public class AssetHandler implements Route.Handler {
     public Result handle(Context context) {
         final String path = context.req().path();
         
-        final File file = new File(deploymentInfo.getRealPath(path));
-        if (!file.canRead()) {
-            return Results.notFound();
-        }
+        long lastModified;
+        try { 
+            lastModified = deploymentInfo.resourceLastModified(path); 
+        } catch (NoSuchFileException e) { return Results.notFound(); }
         
         final Result result = Results.ok().contentType(MediaType.byPath(path).orElse(MediaType.OCTET_STREAM));
         
-        long lastModified = file.lastModified();
         if (_etag(result, lastModified, context)) return result.status(Status.NOT_MODIFIED);
         if (_lastModified(result, lastModified, context)) return result.status(Status.NOT_MODIFIED);
         _cacheControl(result);

@@ -147,6 +147,19 @@ public class DeploymentInfo {
         return stripContextPath(contextPath, contextPathLength, path);
     }
     
+    public File resourceAsFile(final String path) throws NoSuchFileException {
+        final String real = getRealPath(path);
+        
+        // Read from file system
+        final File f = new File(real);
+        if (f.exists() && f.canRead()) {
+            return f;
+        }
+        
+        // Else try to read from resources
+        return new File(resourceURL(path).getPath());
+    }
+    
     public InputStream resourceAsStream(final String path) throws NoSuchFileException {
         final String real = getRealPath(path);
         
@@ -201,7 +214,7 @@ public class DeploymentInfo {
         }
     }
     
-    public long resourceLastModified(final String path) {
+    public long resourceLastModified(final String path) throws NoSuchFileException {
         final String real = getRealPath(path);
         
         // Read from file system
@@ -224,7 +237,7 @@ public class DeploymentInfo {
             if (l > 0) return l;
         } catch (IOException ignore) { }
         
-        return -1;
+        throw new NoSuchFileException(real);
     }
     
     private File file(String realPath) {

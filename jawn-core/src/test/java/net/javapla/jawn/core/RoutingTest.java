@@ -1,9 +1,11 @@
 package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.NoSuchFileException;
 import java.util.List;
 
 import org.junit.BeforeClass;
@@ -19,7 +21,8 @@ public class RoutingTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         DeploymentInfo di = mock(DeploymentInfo.class);
-        when(di.getRealPath("")).thenReturn("");
+        //when(di.getRealPath(eq(""))).thenReturn("");
+        when(di.resourceAsFile(eq(""))).thenThrow(NoSuchFileException.class);
         
         injector = mock(Injector.class);
         when(injector.getInstance(DeploymentInfo.class)).thenReturn(di);

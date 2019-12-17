@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.internal;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,6 +28,7 @@ public class AssetRouterTest {
     public static void setUpBeforeClass() throws Exception {
         di = mock(DeploymentInfo.class);
         when(di.getRealPath("")).thenReturn(resources);
+        when(di.resourceAsFile(eq(""))).thenCallRealMethod();
     }
 
     @Test
