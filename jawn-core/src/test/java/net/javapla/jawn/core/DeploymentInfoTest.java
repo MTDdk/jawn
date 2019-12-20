@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -88,6 +89,18 @@ public class DeploymentInfoTest {
         assertThat(read).isEqualTo("body { height: 73px; }");
     }
     
+    /*@Test
+    public void asFile() throws IOException {
+        Config config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
+        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        
+        File file = di.resourceAsFile("/css/dummy.css");
+        
+        String read = Files.readAllLines(file.toPath()).get(0);
+        assertThat(read).isEqualTo("body { height: 73px; }");
+    }*/
+    
     @Test (expected = NoSuchFileException.class)
     public void missingResource() throws IOException {
         Config config = mock(Config.class);
@@ -116,7 +129,7 @@ public class DeploymentInfoTest {
     }
     
     @Test
-    public void jarResources() throws IOException {
+    public void jarViewResources() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
@@ -125,4 +138,66 @@ public class DeploymentInfoTest {
         assertThat(di.resourceLastModified("views/system/404.st")).isGreaterThan(0l);
         assertThat(di.resourceExists("views/system/404.st")).isTrue();
     }
+    
+    @Test
+    public void jarCssResourceAsFile() throws IOException {
+        Config config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
+        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        di.addResourceRoot(new URL("jar:file:" + Paths.get("src", "test", "resources", "test-jawn-templates.jar").toAbsolutePath() + "!/"));
+        
+        BufferedReader file = di.resourceAsReader("/resourcecss/resourcedummy.css");
+        
+        String read = StreamUtil.read(file);
+        assertThat(read).isEqualTo("body { height: 73px; }");
+    }
+    
+    @Test
+    public void externalResourceAsFile() throws IOException {
+        Config config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
+        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        di.addResourceRoot(new URL("file:" + Paths.get("src", "test", "resources", "external", "webapp").toAbsolutePath()));
+        
+        BufferedReader input = di.resourceAsReader("externaljs/externaldummy.js");
+        
+        String read = StreamUtil.read(input);
+        assertThat(read).isEqualTo("console.log('test');");
+    }
+
+    @Test
+    public void listResourceNames() throws IOException {
+        Config config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
+        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        
+        Object[] names = di.listResources("").toArray();
+        
+        assertThat(names).asList().containsExactly("favicon.ico","favicon-red.ico","img","views","css","js");
+    }
+    
+    @Test
+    public void listResourceNamesIncludingExternalDirs() throws IOException {
+        Config config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
+        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        di.addResourceRoot(new URL("file:" + Paths.get("src", "test", "resources", "external", "webapp").toAbsolutePath()));
+        
+        Object[] names = di.listResources("").toArray();
+        
+        assertThat(names).asList().containsExactly("favicon.ico","favicon-red.ico","img","views","css","js","externaljs");
+    }
+    
+    @Test
+    public void listResourceNamesIncludingJars() throws IOException {
+        Config config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
+        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        di.addResourceRoot(new URL("jar:file:" + Paths.get("src", "test", "resources", "test-jawn-templates.jar").toAbsolutePath() + "!/"));
+        
+        Object[] names = di.listResources("").toArray();
+        
+        assertThat(names).asList().containsExactly("favicon.ico","favicon-red.ico","img","views","css","js","resourcecss");
+    }
+    
 }

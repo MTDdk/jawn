@@ -22,8 +22,7 @@ public class RouteFilterPopulatorTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
         DeploymentInfo di = mock(DeploymentInfo.class);
-        //when(di.getRealPath(eq(""))).thenReturn("");
-        when(di.resourceAsFile(eq(""))).thenThrow(NoSuchFileException.class);
+        when(di.listResources(eq(""))).thenThrow(NoSuchFileException.class);
         
         injector = mock(Injector.class);
         //when(injector.getInstance(DeploymentInfo.class)).thenReturn(di);

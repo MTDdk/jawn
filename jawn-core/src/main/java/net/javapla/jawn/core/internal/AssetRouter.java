@@ -1,12 +1,9 @@
 package net.javapla.jawn.core.internal;
 
-import java.io.File;
 import java.nio.file.NoSuchFileException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -33,7 +30,7 @@ public abstract class AssetRouter {
      */
     
     public static List<Route.Builder> assets(final DeploymentInfo deploymentInfo, final Assets.Impl assets) {
-        Set<String> paths = findExclusionPaths(deploymentInfo);
+        Set<String> paths = findAssetPaths(deploymentInfo);
         logger.debug("Letting the server take care of providing resources from: {}", paths);
         
         
@@ -66,33 +63,22 @@ public abstract class AssetRouter {
             .collect(Collectors.toList());
     }
 
-    private static Set<String> findExclusionPaths(final DeploymentInfo deploymentInfo) throws Up.IO {
-        final Set<String> exclusions = new TreeSet<String>(); // Actually sorts the paths, which is not appreciated by the application and not even used anywhere
+    private static Set<String> findAssetPaths(final DeploymentInfo deploymentInfo) throws Up.IO {
+        final Set<String> assets = new TreeSet<String>(); // Actually sorts the paths, which is not appreciated by the application and not even used anywhere
         
-        Supplier<Set<String>> empty = () -> {
+        
+        List<String> collect = null;
+        try {
+            collect = deploymentInfo.listResources("").collect(Collectors.toList());
+        } catch (NoSuchFileException e) { }
+
+        
+        if (collect == null || collect.isEmpty()) { 
             // Whenever this is empty it might just be because someone forgot to add the 'webapp' folder to the distribution
             // OR the framework is used without the need for serving files (such as views).
             logger.info(AssetRouter.class.getName() + " did not find any files in webapp - not serving any files then");
-            return exclusions;
-        };
-        
-        
-        File webapp;// = new File(url.getPath());
-        try { 
-            webapp = deploymentInfo.resourceAsFile(""); 
-        } catch (NoSuchFileException e) { return empty.get(); }
-        
-        if (webapp.exists() && !webapp.canRead()) {
-            // It means that the server cannot read files at all
-            throw new Up.IO( AssetRouter.class.getName() + " cannot read files. Reason is unknown");
+            return assets;
         }
-        
-        String[] paths = webapp.list();
-        List<String> collect = null;
-        if (webapp.exists() && paths != null)
-            collect = Arrays.asList(paths);
-        
-        if (!webapp.exists() || collect == null || collect.isEmpty()) { return empty.get(); }
         
         
         Set<String> resourcePaths = new TreeSet<>(collect);//servletContext.getResourcePaths("/");
@@ -109,12 +95,12 @@ public abstract class AssetRouter {
             if (path.charAt(0) != '/')
                 path = '/' + path;
             
-            // remove the last slash
+            // remove trailing slash
             if (path.charAt(path.length()-1) == '/')
                 path = path.substring(0, path.length()-1);
-            exclusions.add(path);
+            assets.add(path);
         }
         
-        return exclusions;
+        return assets;
     }
 }

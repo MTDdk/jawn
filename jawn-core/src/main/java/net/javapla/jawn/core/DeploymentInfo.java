@@ -7,12 +7,21 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.stream.Stream;
 
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StringUtil;
@@ -104,20 +113,23 @@ public class DeploymentInfo {
      * @return a String specifying the real path, or null if the translation cannot be performed
      */
     public String getRealPath(final String path) {
+        return _getPath(path).toAbsolutePath().toString();
+    }
+    
+    private Path _getPath(final String path) {
+        
+        if (path == null) return null;
+        if (path.startsWith(webappPath)) return Paths.get(webappPath + path);
         
         
-    	if (path == null) return null;
-    	if (path.startsWith(webappPath)) return path;
-
-    	
-    	String p = assertStartSlash(path);
-    	
-    	// if there is a contextPath and path starts with contextPath, remove the contextPath
+        String p = assertStartSlash(path);
+        
+        // if there is a contextPath and path starts with contextPath, remove the contextPath
         if (isContextPathSet && p.startsWith(contextPath)) 
             p = p.substring(contextPath.length());
-
         
-        return Paths.get(webappPath + p).toAbsolutePath().toString();
+        
+        return Paths.get(webappPath + p);
     }
     
     public String getContextPath() {
@@ -147,7 +159,7 @@ public class DeploymentInfo {
         return stripContextPath(contextPath, contextPathLength, path);
     }
     
-    public File resourceAsFile(final String path) throws NoSuchFileException {
+    /*public File resourceAsFile(final String path) throws NoSuchFileException {
         final String real = getRealPath(path);
         
         // Read from file system
@@ -157,7 +169,92 @@ public class DeploymentInfo {
         }
         
         // Else try to read from resources
-        return new File(resourceURL(path).getPath());
+        return new File(resourceURL(path).getPath()); // <-- a File cannot be translated into something from a jar
+    }*/
+    
+    public URL resourceAsURL(final String path) throws NoSuchFileException {
+        final String real = getRealPath(path);
+        
+        // Read from file system
+        final File f = new File(real);
+        if (f.exists() && f.canRead()) {
+            try {
+                return f.toURI().toURL();
+            } catch (IllegalArgumentException | MalformedURLException e) { }
+        }
+        
+        
+        // Else try to read from resources
+        return resourceURL(path);
+    }
+    
+    /**
+     * Returns an array of strings naming the files and directories in the directory denoted by this abstract pathname.
+     * 
+     * @param path
+     * @return
+     * @throws NoSuchFileException
+     */
+    public Stream<String> listResources(final String path) throws NoSuchFileException {
+        Path real = _getPath(path);
+        
+        Stream<String> stream = null;
+        
+        // Read from file system
+        final File f = real.toFile();//new File(real);
+        if (f.exists() && f.canRead()) {
+            stream = Stream.of(f.list());//Stream.of(f.listFiles()).map(File::toPath);
+        }
+        
+        // And try to read from resources
+        List<URL> urls = resourceURLs(path);
+        
+        if (urls.isEmpty()) {
+            if (stream != null) return stream;
+            else throw new NoSuchFileException(real.toString());
+        }
+        
+        // Handle URL
+        for (URL url : urls) {
+            
+            if (url.getProtocol().equals("file")) {
+                
+                File file = new File(url.getPath());
+                if (file.canRead()) {
+                    stream = (stream == null) ? Stream.of(file.list()) : Stream.concat(stream, Stream.of(file.list())).distinct();
+                }
+                
+            } else {
+                
+                Stream<String> resourceStream = handleJarUrl(path, url);
+                if (resourceStream != null) {
+                    stream = (stream == null) ? resourceStream : Stream.concat(stream, resourceStream).distinct();
+                }
+            }
+        }
+        
+        if (stream != null) return stream;
+        
+        throw new NoSuchFileException(real.toString());
+    }
+    
+    private Stream<String> handleJarUrl(String path, URL url) {
+        try {
+            FileSystem fs = FileSystems.newFileSystem(url.toURI(), Collections.<String, Object>emptyMap());
+            
+            int numberOfPathParts = StringUtil.split(assertStartSlash(path),'/').length;
+            
+            Stream<String> resourceStream = 
+                Files.walk(fs.getPath(WEBAPP_FOLDER_NAME + path), 1)//.filter( p -> { System.out.println(p); return true; })
+                .filter(p -> p.getNameCount() > numberOfPathParts) // /webapp/{path} is a part of the stream and should be filtered away
+                .map(p -> p.subpath(numberOfPathParts, p.getNameCount())) // /webapp/{path}/{resource}, and we want to not have "/webapp/{path}" as part of the path
+                .map(Path::toString)
+                ;
+            
+            return resourceStream;
+        } catch (IOException | URISyntaxException ignore) { }
+        
+        return null;
     }
     
     public InputStream resourceAsStream(final String path) throws NoSuchFileException {
@@ -181,8 +278,8 @@ public class DeploymentInfo {
         throw new NoSuchFileException(real);
     }
     
-    private URL resourceURL(final String path) throws NoSuchFileException {
-        String p = assertStartSlash(path);
+    private URL resourceURL(final String file) throws NoSuchFileException {
+        String p = assertStartSlash(file);
         if (!resourceRoots.isEmpty()) {
             for (URL resourceRoot : resourceRoots) {
                 try {
@@ -192,6 +289,19 @@ public class DeploymentInfo {
         }
         
         throw new NoSuchFileException(p);
+    }
+    
+    private List<URL> resourceURLs(final String path) {
+        String p = assertStartSlash(path);
+        ArrayList<URL> urls = new ArrayList<>();
+        if (!resourceRoots.isEmpty()) {
+            for (URL resourceRoot : resourceRoots) {
+                try {
+                    urls.add(new URL(resourceRoot, WEBAPP_FOLDER_NAME + p));
+                } catch (IOException e) { }
+            }
+        }
+        return urls;
     }
     
     public BufferedReader resourceAsReader(final String path) throws NoSuchFileException {
@@ -225,14 +335,16 @@ public class DeploymentInfo {
         // Else try to read from resources
         try {
             URL url = resourceURL(path);
-
-            File file = new File(url.getPath());
-            if (file.canRead()) {
-                return file.lastModified();
-            }
-
+            
             // FileUrlConnection opens an inputstream on #getLastModified, whereas JarURLConnection does not
             // So we do not use #openConnection when we know/assume the resource to be a simple file on the filesystem
+            if (url.getProtocol().equals("file")) {
+                File file = new File(url.getPath());
+                if (file.canRead()) {
+                    return file.lastModified();
+                }
+            }
+
             long l = url.openConnection().getLastModified();
             if (l > 0) return l;
         } catch (IOException ignore) { }

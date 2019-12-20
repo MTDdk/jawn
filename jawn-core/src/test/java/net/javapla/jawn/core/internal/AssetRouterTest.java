@@ -5,9 +5,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,14 +21,12 @@ import net.javapla.jawn.core.Route.Builder;
 
 public class AssetRouterTest {
     
-    private static String resources = Paths.get("src", "test", "resources", "webapp").toString();
     private static DeploymentInfo di;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         di = mock(DeploymentInfo.class);
-        when(di.getRealPath("")).thenReturn(resources);
-        when(di.resourceAsFile(eq(""))).thenCallRealMethod();
+        when(di.listResources(eq(""))).thenReturn(Stream.of("/img", "js", "css", "favicon.ico", "favicon-red.ico"));
     }
 
     @Test
