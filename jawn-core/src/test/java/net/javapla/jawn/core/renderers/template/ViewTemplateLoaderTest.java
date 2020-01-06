@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.renderers;
+package net.javapla.jawn.core.renderers.template;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;

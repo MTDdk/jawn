@@ -22,18 +22,22 @@ import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.internal.renderers.RendererEngineOrchestratorImplTest;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
 
 public class HttpHandlerImplTest {
     
-    static Injector injector = Guice.createInjector();
-    static ResultRunner runner = injector.getInstance(ResultRunner.class);
-
+    static Injector injector;
+    static ResultRunner runner;
     static DeploymentInfo di;
     
     @BeforeClass
     public static void beforeClass() throws Exception {
+        injector = Guice.createInjector(RendererEngineOrchestratorImplTest.rendererModule());
+        runner = injector.getInstance(ResultRunner.class);
+        
+        
         di = mock(DeploymentInfo.class);
         when(di.getRealPath("")).thenReturn("");
         when(di.stripContextPath(anyString())).then(returnsFirstArg());

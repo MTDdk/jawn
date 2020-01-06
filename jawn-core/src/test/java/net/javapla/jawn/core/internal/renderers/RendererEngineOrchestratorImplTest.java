@@ -20,7 +20,7 @@ import net.javapla.jawn.core.internal.renderers.RendererEngineOrchestratorImpl;
 import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
-public class RendererEngineOrchestratorTest {
+public class RendererEngineOrchestratorImplTest {
     
     private static RendererEngineOrchestrator engine;
     
@@ -103,6 +103,16 @@ public class RendererEngineOrchestratorTest {
     }
     
     private static RendererEngineOrchestrator engine(Module ... modules) {
-        return Guice.createInjector(modules).getInstance(RendererEngineOrchestrator.class);
+        Module m = rendererModule();
+        if (modules.length == 0) return Guice.createInjector(m).getInstance(RendererEngineOrchestrator.class);
+        
+        Module[] a = new Module[modules.length + 1];
+        a[0] = m;
+        System.arraycopy(modules, 0, a, 1, modules.length);
+        return Guice.createInjector(a).getInstance(RendererEngineOrchestrator.class);
+    }
+    
+    public static Module rendererModule() {
+        return binder -> { binder.bind(RendererEngineOrchestrator.class).to(RendererEngineOrchestratorImpl.class); };
     }
 }
