@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -239,9 +240,21 @@ public class DeploymentInfo {
     }
     
     private Stream<String> handleJarUrl(String path, URL url) {
+        FileSystem fs;
+        
         try {
-            FileSystem fs = FileSystems.newFileSystem(url.toURI(), Collections.<String, Object>emptyMap());
-            
+            fs = FileSystems.getFileSystem(url.toURI());
+        } catch (FileSystemNotFoundException e) {
+            try {
+                fs = FileSystems.newFileSystem(url.toURI(), Collections.<String, Object>emptyMap());
+            } catch (IOException | URISyntaxException e1) {
+                return null;
+            }
+        } catch (URISyntaxException e) {
+            return null;
+        }
+        
+        try {
             int numberOfPathParts = StringUtil.split(assertStartSlash(path),'/').length;
             
             Stream<String> resourceStream = 
@@ -252,7 +265,7 @@ public class DeploymentInfo {
                 ;
             
             return resourceStream;
-        } catch (IOException | URISyntaxException ignore) { }
+        } catch (IOException ignore) { }
         
         return null;
     }
