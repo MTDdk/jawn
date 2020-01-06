@@ -79,7 +79,7 @@ public class DeploymentInfoTest {
     }
     
     @Test
-    public void asResource() throws IOException {
+    public void resourceAsStream() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
@@ -157,6 +157,32 @@ public class DeploymentInfoTest {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
         DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        di.addResourceRoot(new URL("file:" + Paths.get("src", "test", "resources", "external", "webapp").toAbsolutePath()));
+        
+        BufferedReader input = di.resourceAsReader("externaljs/externaldummy.js");
+        
+        String read = StreamUtil.read(input);
+        assertThat(read).isEqualTo("console.log('test');");
+    }
+    
+    /*@Test
+    public void asFile() throws IOException {
+        Config config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
+        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        
+        File file = di.resourceAsFile("/css/dummy.css");
+        
+        String read = Files.readAllLines(file.toPath()).get(0);
+        assertThat(read).isEqualTo("body { height: 73px; }");
+    }*/
+    
+    @Test
+    public void multipleResourceRoots_should_failOverToNext() throws IOException {
+        Config config = mock(Config.class);
+        when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
+        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        di.addResourceRoot(new URL("file:" + Paths.get(WEBAPP_PATH.get()).toAbsolutePath())); // this does not have the resource, so it should fail-over to the next root
         di.addResourceRoot(new URL("file:" + Paths.get("src", "test", "resources", "external", "webapp").toAbsolutePath()));
         
         BufferedReader input = di.resourceAsReader("externaljs/externaldummy.js");

@@ -283,7 +283,10 @@ public class DeploymentInfo {
         if (!resourceRoots.isEmpty()) {
             for (URL resourceRoot : resourceRoots) {
                 try {
-                    return new URL(resourceRoot, WEBAPP_FOLDER_NAME + p);
+                    URL url = new URL(resourceRoot, WEBAPP_FOLDER_NAME + p);
+                    if (url.openConnection().getContentLengthLong() > 0) { // the resource exists
+                        return url;
+                    }
                 } catch (IOException e) { }
             }
         }

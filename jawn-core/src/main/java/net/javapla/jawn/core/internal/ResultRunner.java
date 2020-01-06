@@ -21,7 +21,7 @@ final class ResultRunner {
     }
     
     
-    void execute(final Result result, final Context context) throws Up.BadMediaType {
+    void execute(final Result result, final Context context) throws Up.BadMediaType, Up.ViewError {
         //if (context.resp().committed()) return;
         
         //context.readyResponse(result);
