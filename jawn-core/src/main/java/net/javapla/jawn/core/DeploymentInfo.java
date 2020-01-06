@@ -242,18 +242,20 @@ public class DeploymentInfo {
     private Stream<String> handleJarUrl(String path, URL url) {
         FileSystem fs;
         
+        // Try to load the FileSystem, and create if not already loaded
         try {
             fs = FileSystems.getFileSystem(url.toURI());
         } catch (FileSystemNotFoundException e) {
             try {
                 fs = FileSystems.newFileSystem(url.toURI(), Collections.<String, Object>emptyMap());
             } catch (IOException | URISyntaxException e1) {
-                return null;
+                return null; // Nothing can be done, apparently
             }
         } catch (URISyntaxException e) {
             return null;
         }
         
+        // Run through the resources within this FileSystem at the provided path
         try {
             int numberOfPathParts = StringUtil.split(assertStartSlash(path),'/').length;
             
