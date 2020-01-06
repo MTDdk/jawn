@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.renderers;
+package net.javapla.jawn.core.internal.renderers;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -19,16 +19,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.internal.renderers.JsonRendererEngine;
-import net.javapla.jawn.core.parsers.JsonMapperProvider;
+import net.javapla.jawn.core.internal.renderers.XmlRendererEngine;
+import net.javapla.jawn.core.internal.renderers.JsonRendererEngineTest.T;
+import net.javapla.jawn.core.parsers.XmlMapperProvider;
 
-public class JsonRendererEngineTest {
+public class XmlRendererEngineTest {
     
-    static JsonRendererEngine engine;
+    static XmlRendererEngine engine;
     
     @BeforeClass
     public static void beforeClass() throws Exception {
-        engine = new JsonRendererEngine(new JsonMapperProvider().get());
+        engine = new XmlRendererEngine(new XmlMapperProvider().get());
     }
     
     private Context context;
@@ -44,7 +45,7 @@ public class JsonRendererEngineTest {
 
     @Test
     public void invokeByteArray() throws Exception {
-        byte[] o = "{\"key\":\"testing string\"}".getBytes();
+        byte[] o = "<T><key>testing string</key></T>".getBytes();
         
         engine.invoke(context, o);
         
@@ -57,7 +58,7 @@ public class JsonRendererEngineTest {
     
     @Test
     public void invokeString() throws Exception {
-        String o = "{\"key\":\"testing string\"}";
+        String o = "<T><key>testing string</key></T>";
         
         when(response.charset()).thenReturn(StandardCharsets.UTF_16);
         
@@ -77,15 +78,9 @@ public class JsonRendererEngineTest {
         engine.invoke(context, o);
         
         verify(response, never()).send(anyString());
-        verify(response, times(1)).send(eq("{\"key\":\"testing string\"}".getBytes()));
+        verify(response, times(1)).send(eq("<T><key>testing string</key></T>".getBytes()));
         verify(response, never()).send(any(ByteBuffer.class));
         verify(response, never()).send(any(CharBuffer.class));
         verify(response, never()).send(any(InputStream.class));
-    }
-
-    static class T {
-        public String key;
-        public T() {}
-        public T(String t) { key = t; }
     }
 }
