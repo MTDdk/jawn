@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.renderers;
+package net.javapla.jawn.core.internal.renderers;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -14,6 +14,7 @@ import com.google.inject.Singleton;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.renderers.RendererEngine;
 
 @Singleton
 class ImageRendererEngine implements /*Stream*/RendererEngine {

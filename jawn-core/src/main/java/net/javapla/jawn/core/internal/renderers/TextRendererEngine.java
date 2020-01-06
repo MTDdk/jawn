@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.renderers;
+package net.javapla.jawn.core.internal.renderers;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -7,6 +7,7 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.renderers.RendererEngine;
 
 @Singleton
 final class TextRendererEngine implements RendererEngine {

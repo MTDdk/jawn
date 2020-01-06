@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Value;
+import net.javapla.jawn.core.internal.renderers.TextRendererEngine;
 
 public class TextRendererEngineTest {
     

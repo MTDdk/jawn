@@ -27,6 +27,7 @@ import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.reflection.ClassFactory;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
+import net.javapla.jawn.core.internal.renderers.RendererEngineOrchestratorImpl;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
@@ -265,7 +266,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         binder.bind(ObjectMapper.class).toProvider(JsonMapperProvider.class).in(Singleton.class);
         binder.bind(XmlMapper.class).toProvider(XmlMapperProvider.class).in(Singleton.class);
         binder.bind(ParserEngineManager.class).in(Singleton.class);
-        binder.bind(RendererEngineOrchestrator.class).in(Singleton.class);
+        binder.bind(RendererEngineOrchestrator.class).to(RendererEngineOrchestratorImpl.class).in(Singleton.class);
         
         // Framework
         binder.bind(Router.class).toInstance(router);

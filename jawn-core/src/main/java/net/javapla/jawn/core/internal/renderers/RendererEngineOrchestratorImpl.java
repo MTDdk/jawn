@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.renderers;
+package net.javapla.jawn.core.internal.renderers;
 
 import java.text.MessageFormat;
 import java.util.Collections;
@@ -20,10 +20,12 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.renderers.RendererEngine;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 import net.javapla.jawn.core.util.StringUtil;
 
 @Singleton
-final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator {
+public final class RendererEngineOrchestratorImpl implements RendererEngineOrchestrator {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     

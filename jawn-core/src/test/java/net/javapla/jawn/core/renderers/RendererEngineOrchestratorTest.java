@@ -16,6 +16,7 @@ import com.google.inject.Module;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.internal.renderers.RendererEngineOrchestratorImpl;
 import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 

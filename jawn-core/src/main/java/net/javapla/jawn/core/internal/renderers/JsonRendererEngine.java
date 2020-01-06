@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.renderers;
+package net.javapla.jawn.core.internal.renderers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.renderers.RendererEngine;
 
 @Singleton
 final class JsonRendererEngine implements RendererEngine {

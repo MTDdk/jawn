@@ -20,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.internal.renderers.StreamRendererEngine;
 
 public class StreamRendererEngineTest {
 
