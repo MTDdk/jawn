@@ -2,11 +2,21 @@ package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.AdditionalAnswers.returnsSecondArg;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
+
+import net.javapla.jawn.core.Route.After;
+import net.javapla.jawn.core.Route.Before;
+import net.javapla.jawn.core.Route.Handler;
 
 public class RouteTest {
     
@@ -68,6 +78,40 @@ public class RouteTest {
         assertThat(executed[1]).isTrue();
         assertThat(executed[2]).isFalse();
         assertThat(result.status()).isEqualTo(Status.OK);
+    }
+    
+    @Test
+    public void executionOrder() {
+        Before before = mock(Route.Before.class);
+        when(before.then(any(Route.Handler.class))).thenCallRealMethod();
+        when(before.before(any(Context.class), any(Route.Chain.class))).then(AdditionalAnswers.answer((Context c, Route.Chain ch) -> ch.next(c)));
+        
+        Handler handler = mock(Route.Handler.class);
+        when(handler.handle(any(Context.class))).thenReturn(Results.ok());
+        when(handler.then(any(Route.After.class))).thenCallRealMethod();
+        
+        After after = mock(Route.After.class);
+        when(after.after(any(Context.class),any(Result.class))).then(returnsSecondArg());
+        when(after.then(any(Route.After.class))).thenCallRealMethod();
+        
+        Context context = mock(Context.class);
+        
+        
+        // execute
+        Route route = new Route.Builder(HttpMethod.GET).
+            path("/")
+            .before(before)
+            .handler(handler)
+            .after(after)
+            .build();
+        /*Result result = */route.handle(context);
+
+        
+        // verify
+        InOrder inOrder = Mockito.inOrder(before, handler, after);
+        inOrder.verify(before).before(any(Context.class), any(Route.Chain.class));
+        inOrder.verify(handler).handle(any(Context.class));
+        inOrder.verify(after).after(any(Context.class), any(Result.class));
     }
 
     @Test

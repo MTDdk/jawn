@@ -12,8 +12,8 @@ import net.javapla.jawn.core.Route.Filter;
 
 @Singleton
 public class LogRequestTimingFilter implements Filter {
-    private final static Logger logger = LoggerFactory.getLogger(LogRequestTimingFilter.class.getSimpleName());
     private final static String filterName = LogRequestTimingFilter.class.getName();
+    private final static Logger logger = LoggerFactory.getLogger(filterName);
 
     @Override
     public Result before(final Context context, final Chain chain) {

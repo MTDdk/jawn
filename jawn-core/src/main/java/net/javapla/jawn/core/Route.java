@@ -11,10 +11,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.util.URLCodec;
 
 public interface Route {
     
+    @FunctionalInterface
     interface Chain extends Handler {
         Result next(Context context);
         
@@ -22,16 +24,11 @@ public interface Route {
             return next(context);
         }
     }
-
+    
     interface Filter extends Before, After { }
     
+    @FunctionalInterface
     interface Before {
-        /**
-         * Execute the filter
-         * 
-         * @param context
-         *          The context for the request
-         */
         Result before(Context context, Chain chain);
         
         default Before then(Before next) {
@@ -58,6 +55,14 @@ public interface Route {
         }
     }
     
+    /**
+     * Currently, this is called after the {@link Result} has been calculated (either by {@link Handler} or overridden by {@link Before},
+     * and <b>not</b> after the entire response has been sent.
+     * 
+     * <p>This pattern makes it possible to still make changes to the result before executing by a {@link RendererEngine}.
+     * <br>E.g.: manipulating headers.
+     */
+    @FunctionalInterface
     interface After {
         Result after(final Context context, final Result result);
         
@@ -77,10 +82,10 @@ public interface Route {
      * The goal of the <code>complete</code> handler is to probably cleanup request object and log
      * responses.
      */
-    /*interface PostResponse {
+    interface PostResponse {
         //TODO not implemented, yet
         void handle(Context context, Optional<Throwable> cause);
-    }*/
+    }
     
     interface MethodHandler extends Handler {
         

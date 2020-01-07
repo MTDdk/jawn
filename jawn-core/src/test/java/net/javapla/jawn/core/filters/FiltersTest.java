@@ -1,7 +1,6 @@
 package net.javapla.jawn.core.filters;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -13,14 +12,12 @@ import net.javapla.jawn.core.Context.Response;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.Route.Chain;
 
 public class FiltersTest {
 
     @Test
     public void logRequestProperties() {
-        Chain chain = mock(Route.Chain.class);
-        when(chain.next(any(Context.class))).thenReturn(Results.status(222));
+        Route.Chain chain = c -> Results.status(222);
         
         Context context = mock(Context.class);
         Request request = mock(Context.Request.class);
@@ -33,8 +30,7 @@ public class FiltersTest {
     
     @Test
     public void logRequestTiming() {
-        Chain chain = mock(Route.Chain.class);
-        when(chain.next(any(Context.class))).thenReturn(Results.status(223));
+        Route.Chain chain = c -> Results.status(223);
         
         Request request = mock(Context.Request.class);
         Response response = mock(Context.Response.class);
@@ -49,5 +45,4 @@ public class FiltersTest {
         Result after = filter.after(context, result);
         assertThat(after.toString()).isEqualTo(result.toString());
     }
-
 }
