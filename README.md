@@ -1,4 +1,3 @@
-# java-web-planet
 ```
      ____.  _____  __      _________   
     |    | /  _  \/  \    /  \      \  
@@ -7,11 +6,26 @@
 \________\____|__  /\__/\  /\____|__  /
   web framework  \/      \/         \/ http://www.javapla.net
 ```
+# Continue being lazy, almost drowsy
 
-**java-web-planet** strives to be a simple library for web MVC development. 
+**jawn** strives to be a super simple and productive framework for web development. 
 
-It is abbreviated "**jawn**", which is a homophone of "yawn", as this project is supposed to be so simple to use
-that you can do it almost in your sleep.
+```java
+import net.javapla.jawn.core.Jawn;
+
+public class App extends Jawn {
+  
+  {
+    get("/", Results.text("Up and running!"));
+    get("/json", Results.json(new Object()));
+  }
+
+  public static void main(String[] args) {
+    run(App.class, args);
+  }
+}
+```
+
 
 ## Documentation
 Head over to the **[wiki](https://github.com/MTDdk/jawn/wiki)** for a thorough walk-through.
