@@ -54,7 +54,7 @@ public class DeploymentInfo {
 		
 		this.charset = charset;
 		
-		this.resourceRoots = new ArrayList<>();
+		this.resourceRoots = new ArrayList<>(1);
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         try {
             Enumeration<URL> resources = cl.getResources(WEBAPP_FOLDER_NAME); // should this be "webappPath" or fixed to always point at framework internal resources?
@@ -64,6 +64,7 @@ public class DeploymentInfo {
                     resourceRoots.add(url);
                 }
             }
+            resourceRoots.trimToSize();
         } catch (IOException ignore) { }
 	}
 	
@@ -311,7 +312,7 @@ public class DeploymentInfo {
     
     private List<URL> resourceURLs(final String path) {
         String p = assertStartSlash(path);
-        ArrayList<URL> urls = new ArrayList<>();
+        ArrayList<URL> urls = new ArrayList<>(4);
         if (!resourceRoots.isEmpty()) {
             for (URL resourceRoot : resourceRoots) {
                 try {
@@ -319,6 +320,7 @@ public class DeploymentInfo {
                 } catch (IOException e) { }
             }
         }
+        urls.trimToSize();
         return urls;
     }
     

@@ -342,7 +342,7 @@ public interface Route {
         }
         
         private static ArrayList<String> parseParameters(final String uri) {
-            ArrayList<String> params = new ArrayList<>();
+            ArrayList<String> params = new ArrayList<>(2);
             
             Matcher m = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(uri);
         
@@ -352,6 +352,7 @@ public interface Route {
                 // will return "file".
                 params.add(m.group(1));
             }
+            params.trimToSize();
             
             return params;
         }

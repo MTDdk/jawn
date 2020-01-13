@@ -166,7 +166,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
     
     
     default <T> List<T> toList(final Class<T> type) {
-        return ValueParser.toCollection(this, type, new ArrayList<T>());
+        return ValueParser.toCollection(this, type, new ArrayList<T>(4));
     }
     
     default Set<String> toSet() {
@@ -174,7 +174,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
     }
     
     default <T> Set<T> toSet(final Class<T> type) {
-        return ValueParser.toCollection(this, type, new HashSet<T>());
+        return ValueParser.toCollection(this, type, new HashSet<T>(4));
     }
     
     default Optional<String> toOptional() {
