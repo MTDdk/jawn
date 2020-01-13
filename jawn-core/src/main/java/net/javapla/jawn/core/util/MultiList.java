@@ -39,7 +39,7 @@ public class MultiList<T> {
     
     @SafeVarargs
     public final MultiList<T> put(final String key, T... param) {
-        parts.putIfAbsent(key, new ArrayList<T>());
+        parts.putIfAbsent(key, new ArrayList<T>(1));
         
         for (T p : param) {
             parts.get(key).add(p);
@@ -49,7 +49,7 @@ public class MultiList<T> {
     }
     
     public final MultiList<T> put(final String key, Collection<T> params) {
-        parts.putIfAbsent(key, new ArrayList<T>());
+        parts.putIfAbsent(key, new ArrayList<T>(1));
         
         for (T p : params) {
             parts.get(key).add(p);
@@ -59,7 +59,7 @@ public class MultiList<T> {
     }
     
     public final MultiList<T> put(final String key, T param) {
-        parts.putIfAbsent(key, new ArrayList<T>());
+        parts.putIfAbsent(key, new ArrayList<T>(1));
         parts.get(key).add(param);
         
         return this;

@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipException;
@@ -37,10 +36,11 @@ public class JarLoader implements AutoCloseable {
             String jarFileName = extractJarFileFromClassPathFilename(jarFile);
             jarfiles.add(new JarFileTuple(jarFileName, new JarFile(jarFileName)));
         }
+        jarfiles.trimToSize();
     }
 
     public Enumeration<URL> getResourcesFromJarFile() {
-        final List<URL> retval = new ArrayList<>();
+        final ArrayList<URL> retval = new ArrayList<>(jarfiles.size());
         
         for (JarFileTuple jarFile : jarfiles) {
             final Enumeration<JarEntry> e = jarFile.file.entries();

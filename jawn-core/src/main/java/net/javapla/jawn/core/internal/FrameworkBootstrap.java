@@ -53,7 +53,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
 
     
     public FrameworkBootstrap() {
-        userPlugins = new ArrayList<>();
+        userPlugins = new ArrayList<>(1);
     }
     
     public synchronized void boot(final Modes mode, final ServerConfig.Impl serverConfig, final Function<Injector,List<Route>> routes) {
@@ -96,6 +96,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
             
             // Makes it possible for users to override single framework-specific implementations
             userPlugins.stream().forEach(plugin -> plugin.bootstrap(pluginConfig));
+            userPlugins.clear(); // their use has expired
         };
         
         //Module userModule = userModule(mode);
@@ -337,7 +338,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
     }
     
     private String getCauseMessage(Throwable throwable) {
-        List<Throwable> list = new ArrayList<Throwable>();
+        List<Throwable> list = new ArrayList<Throwable>(2);
         while (throwable != null && list.contains(throwable) == false) {
             list.add(throwable);
             throwable = throwable.getCause();

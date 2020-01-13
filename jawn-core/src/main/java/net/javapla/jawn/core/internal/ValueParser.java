@@ -33,10 +33,10 @@ public abstract class ValueParser {
         
         // Should not be necessary as long as we have Value#toList + #toSet
         /*if (List.class.isAssignableFrom(raw)) {
-            return toCollection(value, parameterizedType0(type), new ArrayList<T>());
+            return toCollection(value, parameterizedType0(type), new ArrayList<T>(2));
         }
         if (Set.class.isAssignableFrom(raw)) {
-            return toCollection(value, parameterizedType0(type), new LinkedHashSet<T>());
+            return toCollection(value, parameterizedType0(type), new LinkedHashSet<T>(2));
         }*/
         
         

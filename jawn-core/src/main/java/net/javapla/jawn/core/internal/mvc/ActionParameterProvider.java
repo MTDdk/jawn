@@ -28,7 +28,7 @@ public class ActionParameterProvider {
         Parameter[] parameters = action.getParameters();
         if (parameters.length == 0) return Collections.emptyList();
         
-        ArrayList<ActionParameter> list = new ArrayList<>();
+        ArrayList<ActionParameter> list = new ArrayList<>(2);
         for (Parameter p : parameters) {
             list.add(new ActionParameter(p, name(p)));
         }

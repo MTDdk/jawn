@@ -49,7 +49,7 @@ final class Router {
         if (route == null) {
             // The trie did not have any for us..
             // Have a look in the custom routes then
-            for (var r : routes) {
+            for (Route r : routes) {
                 if (r.matches(requestUri)) {
                     if (r.method() != httpMethod && HttpMethod.HEAD != httpMethod) throw new Up.RouteFoundWithDifferentMethod(httpMethod);
                     
