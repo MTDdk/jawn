@@ -328,6 +328,11 @@ final class ContextImpl implements Context {
         return attribute(name).map(type::cast);
     }
     
+    @Override
+    public void removeAttribute(final String name) {
+        attributes.remove(name);
+    }
+    
     /* Context should not be responsible of this
      * @Override
     public <T> T require(final Key<T> key) {

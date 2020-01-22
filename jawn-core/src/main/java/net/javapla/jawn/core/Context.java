@@ -137,9 +137,12 @@ public interface Context /*extends Injection*/ {
     Request req();
     Response resp();
     Value param(String name);
+    
     void attribute(String name, Object value);
     Optional<Object> attribute(String name);
     <T> Optional<T> attribute(String name, Class<T> type);
+    void removeAttribute(String name);
+    
     
     /**
      * Returns a String containing the real path for a given virtual path. For example, the path "/index.html" returns
