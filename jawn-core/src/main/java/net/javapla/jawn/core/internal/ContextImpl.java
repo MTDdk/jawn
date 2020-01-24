@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -93,7 +94,10 @@ final class ContextImpl implements Context {
             
             @Override
             public Map<String, Cookie> cookies() {
-                return sreq.cookies().stream().collect(Collectors.toMap(Cookie::name, cookie -> cookie));
+                List<Cookie> list = sreq.cookies();
+                instantiateCookies(list.size());
+                list.stream().forEach(c -> cookies.put(c.name(), c));
+                return cookies;
             }
             
             @Override
@@ -229,7 +233,7 @@ final class ContextImpl implements Context {
             
             @Override
             public Response cookie(final Cookie cookie) {
-                instantiateCookies();
+                instantiateCookies(5);
                 
                 String name = cookie.name();
                 // clear cookie?
@@ -330,7 +334,7 @@ final class ContextImpl implements Context {
     
     @Override
     public void removeAttribute(final String name) {
-        attributes.remove(name);
+        if (attributes != null) attributes.remove(name);
     }
     
     /* Context should not be responsible of this
@@ -396,8 +400,8 @@ final class ContextImpl implements Context {
     private void instantiateAttributes() {
         if (attributes == null) attributes = new HashMap<>(5);
     }
-    private void instantiateCookies() {
-        if (cookies == null) cookies = new HashMap<>(5);
+    private void instantiateCookies(int initial) {
+        if (cookies == null) cookies = new LinkedHashMap<>(initial);
     }
     /*private void addFile(final File file) {
         if (files == null) files = new LinkedList<>();

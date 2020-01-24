@@ -22,6 +22,7 @@ import com.google.inject.Singleton;
 import com.google.inject.Stage;
 
 import net.javapla.jawn.core.Config;
+import net.javapla.jawn.core.Crypto;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
@@ -261,6 +262,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         binder.bind(Config.class).toInstance(config);
         binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, charset, serverConfig.context()));
         binder.bind(ViewTemplateLoader.class).in(Singleton.class);
+        binder.bind(Crypto.class).to(CryptoImpl.class).in(Singleton.class);
         //binder.bind(Injection.class).toInstance(this);
         
         // Marshallers

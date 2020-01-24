@@ -5,7 +5,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface Session {
+    
+    /** Context attribute name */
+    String NAME = "jawnsession";
 
+    
     String getId();
     
     Value get(String name);
@@ -61,20 +65,24 @@ public interface Session {
      */
     void invalidate();
     
-    Instant creationTime();
+    Instant created();
     
-    Instant lastAccessedTime();
+    Instant lastAccessed();
     
     
     
-    static Session create(Context context, String id) {
-        return create(context, id, new ConcurrentHashMap<>()); 
+    static Session create(final Context context, final String id) {
+        return create(context, id, Instant.now()); 
     }
     
-    static Session create(final Context context, final String id, final Map<String, String> attributes) {
+    static Session create(final Context context, final String id, final Instant createdTime) {
+        return create(context, id, createdTime, new ConcurrentHashMap<>()); 
+    }
+    
+    static Session create(final Context context, final String id, final Instant createdTime, final Map<String, String> attributes) {
         return new Session() {
             
-            
+            private Instant lastAccessed = Instant.now();
 
             @Override
             public String getId() {
@@ -88,12 +96,14 @@ public interface Session {
 
             @Override
             public Session put(String name, String value) {
-                return null;
+                attributes.put(name, value);
+                updateState();
+                return this;
             }
 
             @Override
             public Value remove(String name) {
-                return null;
+                return Value.of(attributes.remove(name));
             }
 
             @Override
@@ -104,24 +114,29 @@ public interface Session {
             @Override
             public Session clear() {
                 attributes.clear();
+                updateState();
                 return this;
             }
 
             @Override
             public void invalidate() {
-                //context.removeAttribute();
+                context.removeAttribute(NAME);
+                attributes.clear();
             }
 
             @Override
-            public Instant creationTime() {
-                return null;
+            public Instant created() {
+                return createdTime;
             }
 
             @Override
-            public Instant lastAccessedTime() {
-                return null;
+            public Instant lastAccessed() {
+                return lastAccessed;
             }
             
+            private void updateState() {
+                lastAccessed = Instant.now();
+            }
         };
     }
 }

@@ -280,6 +280,18 @@ public abstract class StringUtil {
         uri = uri.replaceAll("[^a-zA-Z0-9\\._-]+", replace);
         return uri;
     }
+    
+    // README: To be extracted into some utility or abstract?
+    public static String hex(final byte[] bytes) {
+        final char[] hexCode = "0123456789abcdef".toCharArray();
+        char[] r = new char[bytes.length << 1];
+        int index = 0;
+        for (byte b : bytes) {
+            r[index++] = hexCode[(b >> 4) & 0xF];
+            r[index++] = hexCode[(b & 0xF)];
+        }
+        return new String(r);
+    }
 
     public static final Function<String, String> NOT_BLANK = v -> {
         if (blank(v)) throw new NoSuchElementException();
