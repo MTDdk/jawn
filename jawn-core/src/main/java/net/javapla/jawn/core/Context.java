@@ -25,6 +25,8 @@ public interface Context /*extends Injection*/ {
         
         Optional<String> header(String name);
         
+        Response removeHeader(String name);
+
         Optional<MediaType> contentType();
         
         Response contentType(MediaType type);

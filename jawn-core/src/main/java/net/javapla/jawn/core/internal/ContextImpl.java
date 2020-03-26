@@ -197,6 +197,12 @@ final class ContextImpl implements Context {
             }
             
             @Override
+            public Response removeHeader(final String name) {
+                resp.removeHeader(name);
+                return this;
+            }
+            
+            @Override
             public Optional<MediaType> contentType() {
                 return Optional.ofNullable(contentType);
             }
@@ -346,6 +352,24 @@ final class ContextImpl implements Context {
     @Override
     public Path realPath(final String file) { // Do we even need this method?
         return Paths.get(injector.getInstance(DeploymentInfo.class).getRealPath(file));
+    }
+    
+    /**
+     * IP address of the requesting client.
+     * If the IP of the request seems to come from a local proxy,
+     * then the X-Forwarded-For header is returned.
+     *
+     * @return IP address of the requesting client.
+     */
+    //@Override //TODO
+    public String remoteIP(){
+        String remoteAddr = req.ip();
+        
+        // This could be a list of proxy IPs, which the developer could
+        // provide via some configuration
+        if ("127.0.0.1".equals(remoteAddr) || "0:0:0:0:0:0:0:1".equals(remoteAddr)) 
+            remoteAddr = req.header("X-Forwarded-For").value("localhost");
+        return remoteAddr;
     }
     
     void route(final Route route) {
