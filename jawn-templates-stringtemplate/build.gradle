@@ -1,7 +1,9 @@
-apply plugin: 'java'
+plugins {
+  id 'java-library'
+}
 
 repositories {
-  mavenCentral()
+  jcenter()
 }
 
 dependencies {
