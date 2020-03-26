@@ -25,66 +25,66 @@ public interface Value extends Iterable<Value> { // SimpleValue
      * {@link Boolean#parseBoolean(String)} always returns either <code>true</code> or <code>false</code>
      * regardless of input
      * 
-     * <i>(That is why no <code>booleanValue(default)</code> exists)</i>
+     * <i>(That is why no <code>asBoolean(default)</code> exists)</i>
      * 
      * @see Boolean#parseBoolean
      * @return
      */
-    default boolean booleanValue() {
+    default boolean asBoolean() {
         return Boolean.parseBoolean(value());
     }
     
-    default double doubleValue() {
+    default double asDouble() {
         return simpleValue(Double::parseDouble, double.class);
     }
     
-    default double doubleValue(final double fallback) {
+    default double asDouble(final double fallback) {
         try {
-            return doubleValue();
+            return asDouble();
         } catch (Up.ParsableError e) {
             return fallback;
         }
         //return toOptional().map(Double::parseDouble).orElse(fallback);//toOptional(Double.class).orElse(fallback);
     }
     
-    default double doubleValue(final Function<Double, Double> mapper, final double fallback) {
+    default double asDouble(final Function<Double, Double> mapper, final double fallback) {
         try {
-            return mapper.apply(doubleValue());
+            return mapper.apply(asDouble());
         } catch (Up.ParsableError e) {
             return fallback;
         }
     }
     
-    default int intValue() {
+    default int asInt() {
         return simpleValue(Integer::parseInt, int.class);
     }
     
-    default int intValue(final int fallback) {
+    default int asInt(final int fallback) {
         //return map((s) -> (Integer::parseInt)).orElse(fallback);
         try {
-            return intValue();
+            return asInt();
         } catch (Up.ParsableError e) {
             return fallback;
         }
     }
     
     /**
-     * Applies the <code>mapper</code> to the {@link #intValue()}, if a value is present.
+     * Applies the <code>mapper</code> to the {@link #asInt()}, if a value is present.
      * Otherwise returns the <code>fallback</code>
      * 
      * @param fallback
      * @param mapper
      * @return
      */
-    default int intValue(final Function<Integer, Integer> mapper, final int fallback) {
+    default int asInt(final Function<Integer, Integer> mapper, final int fallback) {
         try {
-            return mapper.apply(intValue());
+            return mapper.apply(asInt());
         } catch (Up.ParsableError e) {
             return fallback;
         }
     }
     
-    default long longValue() {
+    default long asLong() {
         try {
             return Long.valueOf(value());
         } catch (NumberFormatException e) {
@@ -96,18 +96,18 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
-    default long longValue(final long fallback) {
+    default long asLong(final long fallback) {
         try {
-            return longValue();
+            return asLong();
         } catch (Up.ParsableError e) {
             return fallback;
         }
         //return toOptional().map(Long::parseLong).orElse(fallback);
     }
     
-    default long longValue(final Function<Long, Long> mapper, final long fallback) {
+    default long asLong(final Function<Long, Long> mapper, final long fallback) {
         try {
-            return mapper.apply(longValue());
+            return mapper.apply(asLong());
         } catch (Up.ParsableError e) {
             return fallback;
         }
@@ -128,7 +128,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
     }
     
     default String value(final String fallback) {
-        return toOptional().orElse(fallback);
+        return asOptional().orElse(fallback);
     }
     
     default <T> T value(final Function<String, T> mapper, final T fallback) {
@@ -140,7 +140,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
-    default <T extends Enum<T>> T toEnum(final Class<T> type) {
+    default <T extends Enum<T>> T asEnum(final Class<T> type) {
         EnumSet<T> set = EnumSet.allOf(type);
         return set
             .stream()
@@ -149,7 +149,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
             .orElseGet(() -> java.lang.Enum.valueOf(type, value()));
     }
     
-    default <T> T to(Class<T> type) {
+    default <T> T as(Class<T> type) {
         return ValueParser.to(this, type);
     }
     
@@ -158,26 +158,26 @@ public interface Value extends Iterable<Value> { // SimpleValue
         return ValueParser.to(this, type);
     }*/
     
-    default List<String> toList() {
+    default List<String> asList() {
         if (isPresent())
             return Collections.singletonList(value());
         return Collections.emptyList();
     }
     
     
-    default <T> List<T> toList(final Class<T> type) {
+    default <T> List<T> asList(final Class<T> type) {
         return ValueParser.toCollection(this, type, new ArrayList<T>(4));
     }
     
-    default Set<String> toSet() {
+    default Set<String> asSet() {
         return Collections.singleton(value());
     }
     
-    default <T> Set<T> toSet(final Class<T> type) {
+    default <T> Set<T> asSet(final Class<T> type) {
         return ValueParser.toCollection(this, type, new HashSet<T>(4));
     }
     
-    default Optional<String> toOptional() {
+    default Optional<String> asOptional() {
         if (!isPresent()) return Optional.empty();
         try {
             return Optional.of(value());
@@ -186,7 +186,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
-    default <T> Optional<T> toOptional(final Class<T> type) {
+    default <T> Optional<T> asOptional(final Class<T> type) {
         //if (type.isPrimitive()) throw new IllegalArgumentException("Primitive types are not allowed in type parameters: " + type);
         if (!isPresent()) return Optional.empty();
         try {
@@ -208,7 +208,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
     
     default <T> void ifPresent(final Class<T> type, Consumer<T> action) {
         if (isPresent()) {
-            action.accept(to(type));
+            action.accept(as(type));
         }
     }
     
@@ -336,12 +336,12 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
 
         @Override
-        public List<String> toList() {
+        public List<String> asList() {
             return valuables.stream().map(Value::value).collect(Collectors.toList());
         }
 
         @Override
-        public Set<String> toSet() {
+        public Set<String> asSet() {
             return valuables.stream().map(Value::value).collect(Collectors.toSet());
         }
 

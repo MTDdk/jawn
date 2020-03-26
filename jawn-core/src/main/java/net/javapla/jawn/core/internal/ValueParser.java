@@ -24,12 +24,12 @@ public abstract class ValueParser {
         
         // is this really enough as long as we are comparing java.lang.* ?
         if (raw == String.class) return value.value();
-        if (raw == int.class || raw == Integer.class) return value.intValue();
-        if (raw == long.class || raw == Long.class) return value.longValue();
-        if (raw == boolean.class || raw == Boolean.class) return value.booleanValue();
-        if (raw == double.class || raw == Double.class) return value.doubleValue();
+        if (raw == int.class || raw == Integer.class) return value.asInt();
+        if (raw == long.class || raw == Long.class) return value.asLong();
+        if (raw == boolean.class || raw == Boolean.class) return value.asBoolean();
+        if (raw == double.class || raw == Double.class) return value.asDouble();
         
-        if (Enum.class.isAssignableFrom(raw)) return value.toEnum((Class<? extends Enum>) raw);
+        if (Enum.class.isAssignableFrom(raw)) return value.asEnum((Class<? extends Enum>) raw);
         
         // Should not be necessary as long as we have Value#toList + #toSet
         /*if (List.class.isAssignableFrom(raw)) {

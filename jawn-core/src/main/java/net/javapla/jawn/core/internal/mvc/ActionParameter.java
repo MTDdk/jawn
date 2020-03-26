@@ -164,16 +164,16 @@ public class ActionParameter {
             if (value.isPresent()) {
                 
                 if (param.optional) {
-                    return value.toOptional(childOrContainer(param.type));
+                    return value.asOptional(childOrContainer(param.type));
                 } else if (param.list) {
-                    return value.toList(childOrContainer(param.type));
+                    return value.asList(childOrContainer(param.type));
                 } else if (param.set) {
-                    return value.toSet(childOrContainer(param.type));
+                    return value.asSet(childOrContainer(param.type));
                 } else if (param.value) {
                     return value;
                 }
                 
-                return value.to(childOrContainer(param.type));
+                return value.as(childOrContainer(param.type));
                 
             } else {
                 

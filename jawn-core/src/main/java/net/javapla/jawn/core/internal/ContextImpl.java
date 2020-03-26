@@ -150,7 +150,7 @@ final class ContextImpl implements Context {
                     ParserEngine engine = engineManager.getParserEngineForContentType(contentType());
                     
                     if (engine == null) {
-                        return Value.of(new String(sreq.bytes(), charset())).to(type);
+                        return Value.of(new String(sreq.bytes(), charset())).as(type);
                         
                         // sreq.bytes()/in() might be empty
                         // Clearly we got some body data at this point, but content-type might just be (unknowingly) wrongly set.
@@ -160,7 +160,7 @@ final class ContextImpl implements Context {
                     return engine.invoke(sreq.in(), type);
                 }
                 
-                return Value.of(new String(sreq.bytes(), charset())).to(type);
+                return Value.of(new String(sreq.bytes(), charset())).as(type);
             }
             
             @Override

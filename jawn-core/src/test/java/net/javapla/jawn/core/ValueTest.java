@@ -29,7 +29,7 @@ public class ValueTest {
     @Test
     public void asOptional() {
         Value value = Value.of("4000");
-        Optional<String> optional = value.toOptional();
+        Optional<String> optional = value.asOptional();
         
         assertThat(optional).isInstanceOf(Optional.class);
         assertThat(optional.get()).isEqualTo("4000");
@@ -38,7 +38,7 @@ public class ValueTest {
     @Test
     public void asTypedOptional() {
         Value value = Value.of("4000");
-        Optional<Long> optional = value.toOptional(long.class);
+        Optional<Long> optional = value.asOptional(long.class);
         
         assertThat(optional).isInstanceOf(Optional.class);
         assertThat(optional.get()).isEqualTo(4000);
@@ -47,56 +47,56 @@ public class ValueTest {
     @Test
     public void emptyOptional() {
         Value value = Value.of((String)null);
-        assertThat(value.toOptional().isPresent()).isFalse();
+        assertThat(value.asOptional().isPresent()).isFalse();
         
         value = Value.of("");
-        assertThat(value.toOptional().isPresent()).isFalse();
+        assertThat(value.asOptional().isPresent()).isFalse();
     }
     
     @Test
     public void asInt() {
         Value value = Value.of("400");
-        assertThat(value.intValue()).isEqualTo(400);
-        assertThat(value.intValue(333)).isEqualTo(400);
-        assertThat(value.intValue(i -> i/4, 333)).isEqualTo(100);
+        assertThat(value.asInt()).isEqualTo(400);
+        assertThat(value.asInt(333)).isEqualTo(400);
+        assertThat(value.asInt(i -> i/4, 333)).isEqualTo(100);
     }
 
     @Test
     public void asDouble() {
         Value value = Value.of("4000.3");
-        assertThat(value.doubleValue()).isEqualTo(4000.3);
-        assertThat(value.doubleValue(333)).isEqualTo(4000.3);
-        assertThat(value.doubleValue(i -> i-1000, 333)).isEqualTo(3000.3);
+        assertThat(value.asDouble()).isEqualTo(4000.3);
+        assertThat(value.asDouble(333)).isEqualTo(4000.3);
+        assertThat(value.asDouble(i -> i-1000, 333)).isEqualTo(3000.3);
     }
     
     @Test
     public void asLong() {
         Value value = Value.of("4000000004");
-        assertThat(value.longValue()).isEqualTo(4_000_000_004l);
-        assertThat(value.longValue(333)).isEqualTo(4_000_000_004l);
-        assertThat(value.longValue(i -> i/4,333)).isEqualTo(1_000_000_001l);
+        assertThat(value.asLong()).isEqualTo(4_000_000_004l);
+        assertThat(value.asLong(333)).isEqualTo(4_000_000_004l);
+        assertThat(value.asLong(i -> i/4,333)).isEqualTo(1_000_000_001l);
     }
     
     @Test
     public void dateAsEpoch() {
-        assertThat(Value.of("Fri, 22 Nov 2019 13:42:41 GMT").longValue()).isEqualTo(1574430161000l);
+        assertThat(Value.of("Fri, 22 Nov 2019 13:42:41 GMT").asLong()).isEqualTo(1574430161000l);
         
-        assertThrows(Up.ParsableError.class, () -> Value.of("Thu, 22 Nov 2019 13:42:41 GMT").longValue());// <-- was a Friday, not Thursday
-        assertThrows(Up.ParsableError.class, () -> Value.of("22 Nov 2019 13:42:41 GMT").longValue()); // <-- only RFC-1123; https://tools.ietf.org/html/rfc1123
+        assertThrows(Up.ParsableError.class, () -> Value.of("Thu, 22 Nov 2019 13:42:41 GMT").asLong());// <-- was a Friday, not Thursday
+        assertThrows(Up.ParsableError.class, () -> Value.of("22 Nov 2019 13:42:41 GMT").asLong()); // <-- only RFC-1123; https://tools.ietf.org/html/rfc1123
     }
     
     @Test
     public void withFallback() {
         Value value = Value.of("4000.3");
-        assertThat(value.intValue(333)).isEqualTo(333);
-        assertThat(value.intValue(i -> i*3, 333)).isEqualTo(333);
+        assertThat(value.asInt(333)).isEqualTo(333);
+        assertThat(value.asInt(i -> i*3, 333)).isEqualTo(333);
         
-        assertThat(value.longValue(333)).isEqualTo(333);
-        assertThat(value.longValue(i -> i*3, 333)).isEqualTo(333);
+        assertThat(value.asLong(333)).isEqualTo(333);
+        assertThat(value.asLong(i -> i*3, 333)).isEqualTo(333);
         
         value = Value.of("cake");
-        assertThat(value.doubleValue(333)).isEqualTo(333d);
-        assertThat(value.doubleValue(i -> i*3, 333)).isEqualTo(333d);
+        assertThat(value.asDouble(333)).isEqualTo(333d);
+        assertThat(value.asDouble(i -> i*3, 333)).isEqualTo(333d);
 
         assertThat(Value.empty().value("fallback")).isEqualTo("fallback");
         assertThat(Value.of("false").value(Integer::parseInt, 333)).isEqualTo(333);
@@ -106,33 +106,33 @@ public class ValueTest {
     
     @Test
     public void unparsable() {
-        assertThrows(Up.ParsableError.class, () -> Value.of("false").intValue());
-        assertThrows(Up.ParsableError.class, () -> Value.of("false").doubleValue());
+        assertThrows(Up.ParsableError.class, () -> Value.of("false").asInt());
+        assertThrows(Up.ParsableError.class, () -> Value.of("false").asDouble());
     }
     
     @Ignore(value = "It is no longer illegal to use primitive types")
     @Test(expected = IllegalArgumentException.class)
     public void primitiveNotAllowedAsGeneric() {
         Value value = Value.of("4000");
-        value.toOptional(int.class);
+        value.asOptional(int.class);
     }
     
     @Test
     public void asList() {
         //new ValueImpl(engine, new ListParsable("aa", "bb")).toList();
-        assertThat(Value.of("aa", "bb").toList()).containsExactly("aa", "bb");
+        assertThat(Value.of("aa", "bb").asList()).containsExactly("aa", "bb");
         assertThat(Value.of("aa", "bb").value()).isEqualTo("aa");
         
-        assertThat(Value.of("single item").toList()).containsExactly("single item");
-        assertThat(Value.of("1", "2", "33").toList(Integer.class)).containsExactly(1, 2, 33);
+        assertThat(Value.of("single item").asList()).containsExactly("single item");
+        assertThat(Value.of("1", "2", "33").asList(Integer.class)).containsExactly(1, 2, 33);
     }
     
     @Test
     public void asSet() {
-        assertThat(Value.of("aa", "bb", "bb", "cc").toSet()).containsExactly("aa", "bb", "cc");
+        assertThat(Value.of("aa", "bb", "bb", "cc").asSet()).containsExactly("aa", "bb", "cc");
         
-        assertThat(Value.of("single item").toSet()).containsExactly("single item");
-        assertThat(Value.of("1","2", "2", "33").toSet(Integer.class)).containsExactly(1, 2, 33);
+        assertThat(Value.of("single item").asSet()).containsExactly("single item");
+        assertThat(Value.of("1","2", "2", "33").asSet(Integer.class)).containsExactly(1, 2, 33);
     }
     
     @Test
@@ -142,7 +142,7 @@ public class ValueTest {
     
     @Test
     public void emptyList() {
-        List<String> list = Value.of(((String)null)).toList();
+        List<String> list = Value.of(((String)null)).asList();
         assertThat(list).isEmpty();
     }
     
@@ -192,13 +192,13 @@ public class ValueTest {
     @Test
     public void asEnum() {
         Value value = Value.of("A");
-        assertThat(value.toEnum(LETTER.class)).isEqualTo(LETTER.A);
+        assertThat(value.asEnum(LETTER.class)).isEqualTo(LETTER.A);
     }
     
     @Test
     public void asEnumList() {
         Value value = Value.of("A", "B");
-        List<LETTER> list = value.toList(LETTER.class);
+        List<LETTER> list = value.asList(LETTER.class);
         
         //List<LETTER> list = ValueImpl.of(Parsable.of("A", "B")).toList(LETTER.class);
         assertThat(list).containsExactly(LETTER.A, LETTER.B);
