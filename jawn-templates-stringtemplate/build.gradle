@@ -7,7 +7,7 @@ repositories {
 dependencies {
 
   // Framework
-  implementation project(':jawn-core')
+  api project(':jawn-core')
 	
 	//Template Engine
 	//StringTemplate

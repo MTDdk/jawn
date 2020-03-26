@@ -6,7 +6,7 @@ repositories {
 
 dependencies {
   // Framework
-  implementation project(':jawn-core')
+  api project(':jawn-core')
   
   // Server
   String netty = '4.1.39.Final'

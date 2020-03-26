@@ -6,7 +6,7 @@ repositories {
 
 dependencies {
   // Framework
-  implementation project(':jawn-core')
+  api project(':jawn-core')
   
   
   //ImgScalr (image manipulation)
