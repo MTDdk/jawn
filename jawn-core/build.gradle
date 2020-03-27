@@ -37,7 +37,7 @@ dependencies {
   //api 'net.jodah:expiringmap:0.5.9'
 
   // https://mvnrepository.com/artifact/org.ow2.asm/asm
-  implementation 'org.ow2.asm:asm:7.0' // use byte-buddy instead https://github.com/raphw/byte-buddy
+  implementation 'org.ow2.asm:asm:7.3.1' // use byte-buddy instead https://github.com/raphw/byte-buddy
   
 
   //Logging
