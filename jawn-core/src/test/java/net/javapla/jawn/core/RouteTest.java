@@ -7,6 +7,7 @@ import static org.mockito.AdditionalAnswers.returnsSecondArg;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
@@ -139,4 +140,15 @@ public class RouteTest {
         assertThrows(Up.BadResult.class, () -> handler.handle(context));
     }
 
+    @Test
+    public void pathWithVariable_shouldNot_matchRoot() {
+        Route route = new Route.Builder(HttpMethod.GET).path("/{name}").build();
+        assertThat(route.matches("/")).isFalse();
+        assertThat(route.matches("/cookie-monster")).isTrue();
+        assertThat(route.matches("/1234")).isTrue();
+        
+        Map<String, String> params = route.getPathParametersEncoded("/cookie-monster");
+        assertThat(params.containsKey("name")).isTrue();
+        assertThat(params.get("name")).isEqualTo("cookie-monster");
+    }
 }

@@ -30,7 +30,7 @@ public class RouteBuilderTest {
             .filter(new Route.Filter() {
                 @Override
                 public Result before(Context context, Route.Chain chain) {
-                    return chain.handle(context);
+                    return chain.next(context);
                 }
                 
                 @Override

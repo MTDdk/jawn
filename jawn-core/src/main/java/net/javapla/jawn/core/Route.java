@@ -17,12 +17,12 @@ import net.javapla.jawn.core.util.URLCodec;
 public interface Route {
     
     @FunctionalInterface
-    interface Chain extends Handler {
+    interface Chain /*extends Handler*/ {// TODO the next() and handle() is quite confusing when used in filters. Perhaps ditch one of these interfaces
         Result next(Context context);
         
-        default Result handle(Context context) {
+        /*default Result handle(Context context) {
             return next(context);
-        }
+        }*/
     }
     
     interface Filter extends Before, After { }
@@ -120,7 +120,7 @@ public interface Route {
             return before((c,ch) -> handler.handle(c));
         }
         default Filtering before(final Runnable handler) {
-            return before((c,ch) -> {handler.run(); return ch.handle(c);});
+            return before((c,ch) -> {handler.run(); return ch.next(c);});
         }
         default Filtering before(final Supplier<Result> handler) {
             return before((c,ch) -> handler.get());
@@ -149,7 +149,7 @@ public interface Route {
         /**
          * This regex matches everything in between path slashes.
          */
-        private final static String VARIABLE_ROUTES_DEFAULT_REGEX = "([^/]*)";
+        private final static String VARIABLE_ROUTES_DEFAULT_REGEX = "([^/]+)";
         
         private final HttpMethod method;
         private String uri;
@@ -358,7 +358,10 @@ public interface Route {
         }
         
         /**
-         * Gets a raw uri like "/{name}/id/*" and returns "/([^/]*)/id/*."
+         * Gets a raw uri like "/{name}/id/*" and returns "/([^/]+)/id/.*"
+         * 
+         * Used to be "/([^/]*)/id/.*", but that made a path like "/{name}"
+         * be matched to root, "/".
          *
          * Also handles regular expressions if defined inside routes:
          * For instance "/users/{username: [a-zA-Z][a-zA-Z_0-9]}" becomes
@@ -367,7 +370,7 @@ public interface Route {
          * @return The converted regex with default matching regex - or the regex
          *          specified by the user.
          */
-        private static String convertRawUriToRegex(final String rawUri) {
+        private static String convertRawUriToRegex(final String rawUri) { 
 
             Matcher matcher = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(rawUri);
 

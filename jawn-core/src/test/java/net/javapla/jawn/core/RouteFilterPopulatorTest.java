@@ -57,7 +57,7 @@ public class RouteFilterPopulatorTest {
             @Override
             public Result before(Context context, Route.Chain chain) {
                 executionOrder[0] = System.nanoTime();
-                return chain.handle(context);
+                return chain.next(context);
             }
             @Override
             public Result after(Context context, Result result) {
@@ -69,7 +69,7 @@ public class RouteFilterPopulatorTest {
             @Override
             public Result before(Context context, Route.Chain chain) {
                 executionOrder[1] = System.nanoTime();
-                return chain.handle(context);
+                return chain.next(context);
             }
             @Override
             public Result after(Context context, Result result) {
@@ -81,7 +81,7 @@ public class RouteFilterPopulatorTest {
             @Override
             public Result before(Context context, Route.Chain chain) {
                 executionOrder[2] = System.nanoTime();
-                return chain.handle(context);
+                return chain.next(context);
             }
             @Override
             public Result after(Context context, Result result) {
