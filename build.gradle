@@ -40,6 +40,8 @@ subprojects {
   repositories { mavenCentral() }
     
   dependencies {
+    implementation 'com.google.guava:guava:28.2-jre'
+    
     //Test across all submodules
     testImplementation ('junit:junit:4.13-rc-1') {
       exclude module: 'hamcrest-core'
@@ -49,8 +51,8 @@ subprojects {
     testImplementation 'org.junit.platform:junit-platform-runner:1.5.2'*/
     
     //testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.2'
-    testImplementation 'org.mockito:mockito-core:2.23.4'
-    testImplementation ('com.google.truth:truth:0.43')  {
+    testImplementation 'org.mockito:mockito-core:3.3.3'
+    testImplementation ('com.google.truth:truth:1.0.1')  {
       exclude module: 'guava' // We import it elsewhere to be concise in the versioning
       exclude module: 'junit'
     }

@@ -84,14 +84,7 @@ public class MvcRouterTest {
         List<Route> routes = builders.stream().map(Route.Builder::build).collect(Collectors.toList());
         
         assertThat(routes)
-            .comparingElementsUsing(new Correspondence<Route, String>() {
-                @Override
-                public boolean compare(Route actual, String expected) {
-                    return actual.path().equals(expected);
-                }
-                
-                public String toString() { return null; }
-            })
+            .comparingElementsUsing(Correspondence.from( (Route actual, String expected) -> actual.path().equals(expected), "equal"))
             .containsExactly("/two","/two/second");
     }
     

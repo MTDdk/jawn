@@ -134,7 +134,7 @@ public class ActionParameterTest {
         Object result = actionParameter.value(context);
         assertThat(result).isNotNull();
         assertThat(result).isInstanceOf(Context.Request.class);
-        assertThat(result).isSameAs(request);
+        assertThat(result).isSameInstanceAs(request);
     }
 
     @Test
@@ -149,7 +149,7 @@ public class ActionParameterTest {
         Object result = actionParameter.value(context);
         assertThat(result).isNotNull();
         assertThat(result).isInstanceOf(Context.Response.class);
-        assertThat(result).isSameAs(response);
+        assertThat(result).isSameInstanceAs(response);
     }
 
     @Test

@@ -120,7 +120,7 @@ public class ActionParameter {
     
     @Override
     public String toString() {
-        return MessageFormat.format("param[{0}] nanme[{1}] type[{2}] opt[{3}]", parameter, name, type, optional);
+        return MessageFormat.format("param[{0}] name[{1}] type[{2}] opt[{3}]", parameter, name, type, optional);
     }
 
     private static final CalculateValue param() {

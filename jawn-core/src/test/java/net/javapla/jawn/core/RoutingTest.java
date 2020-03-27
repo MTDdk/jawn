@@ -64,15 +64,5 @@ public class RoutingTest {
     }
 
     
-    Correspondence<Route, String> routePathComparer = new Correspondence<Route, String>() {
-        @Override
-        public boolean compare(Route actual, String expected) {
-            return actual.path().equals(expected);
-        }
-
-        @Override
-        public String toString() {
-            return null;
-        }
-    };
+    Correspondence<Route, String> routePathComparer = Correspondence.from((Route actual, String expected) -> actual.path().equals(expected), "");
 }

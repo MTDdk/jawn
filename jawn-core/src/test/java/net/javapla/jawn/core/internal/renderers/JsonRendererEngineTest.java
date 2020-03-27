@@ -19,7 +19,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.internal.renderers.JsonRendererEngine;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 
 public class JsonRendererEngineTest {

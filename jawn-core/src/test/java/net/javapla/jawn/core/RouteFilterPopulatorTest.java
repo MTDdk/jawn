@@ -99,7 +99,7 @@ public class RouteFilterPopulatorTest {
         // by asking if the executionOrder is ordered,
         // then the before/after-relation will be established according to
         // how the ordering of the filters *should* be 
-        assertThat(executionOrder).asList().isOrdered();
+        assertThat(executionOrder).asList().isInOrder();
     }
 
     

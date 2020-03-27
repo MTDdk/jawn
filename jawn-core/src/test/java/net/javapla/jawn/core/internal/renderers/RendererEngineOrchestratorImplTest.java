@@ -16,7 +16,6 @@ import com.google.inject.Module;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
-import net.javapla.jawn.core.internal.renderers.RendererEngineOrchestratorImpl;
 import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
@@ -43,7 +42,7 @@ public class RendererEngineOrchestratorImplTest {
     
     @Test
     public void contentTypes() {
-        assertThat(engine.getContentTypes()).containsAllOf(MediaType.TEXT, MediaType.PLAIN, MediaType.XML, MediaType.JSON);
+        assertThat(engine.getContentTypes()).containsAtLeast(MediaType.TEXT, MediaType.PLAIN, MediaType.XML, MediaType.JSON);
     }
     
     @Test

@@ -28,7 +28,7 @@ public class ParserEngineMangerTest {
         
     @Test
     public void registeredEngines() {
-        assertThat(engine.getContentTypes()).containsAllIn(new MediaType[] {MediaType.XML,MediaType.JSON});
+        assertThat(engine.getContentTypes()).containsAtLeast(MediaType.XML,MediaType.JSON);
     }
 
     @Test
