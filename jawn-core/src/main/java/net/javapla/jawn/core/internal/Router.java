@@ -49,14 +49,25 @@ final class Router {
         if (route == null) {
             // The trie did not have any for us..
             // Have a look in the custom routes then
+            boolean matchMade = false;
             for (Route r : routes) {
                 if (r.matches(requestUri)) {
-                    if (r.method() != httpMethod && HttpMethod.HEAD != httpMethod) throw new Up.RouteFoundWithDifferentMethod(httpMethod);
+                    
+                    if (r.method() == httpMethod || HttpMethod.HEAD == httpMethod) {
+                        trie.insert(requestUri, r); // cache it for later fast look-up
+                        return r;
+                    }
+                    
+                    matchMade = true;
+                    
+                    /*if (r.method() != httpMethod && HttpMethod.HEAD != httpMethod) throw new Up.RouteFoundWithDifferentMethod(httpMethod);
                     
                     trie.insert(requestUri, r); // cache it for later fast look-up
-                    return r;
+                    return r;*/
                 }
             }
+            
+            if (matchMade) throw new Up.RouteFoundWithDifferentMethod(httpMethod);
         }
         
         if (route == null) throw new Up.RouteMissing(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);

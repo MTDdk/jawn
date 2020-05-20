@@ -46,6 +46,24 @@ public class RouterTest {
         } catch (Up.RouteFoundWithDifferentMethod e) {}
     }
     
+    @Test
+    public void sameComplexPathNotSameMethod() {
+        List<Route> routes = Arrays.asList(
+            new Route.Builder(HttpMethod.GET).path("/v1/first/more/{id}").build(), 
+            new Route.Builder(HttpMethod.POST).path("/v1/first/more/{id}").build()
+        );
+        
+        Router router = new Router(routes);
+        
+        router.retrieve(HttpMethod.POST, "/v1/first/more/73"); // should NOT throw
+        router.retrieve(HttpMethod.GET, "/v1/first/more/71"); // should NOT throw
+        
+        try {
+            router.retrieve(HttpMethod.DELETE, "/v1/first/more/67");
+            fail();
+        } catch (Up.RouteFoundWithDifferentMethod e) {}
+    }
+    
      @Test
      public void headShouldAlwaysWork() {
          List<Route> routes = Arrays.asList(
@@ -62,6 +80,25 @@ public class RouterTest {
          assertThat(route).isNotNull();
          
          route = router.retrieve(HttpMethod.HEAD, "/delete");
+         assertThat(route).isNotNull();
+     }
+     
+     @Test
+     public void headShouldAlwaysWork_alsoWithComplexPaths() {
+         List<Route> routes = Arrays.asList(
+             new Route.Builder(HttpMethod.GET).path("/first/complex/{id}").build(),
+             new Route.Builder(HttpMethod.DELETE).path("/delete/complex/{id}").build()
+         );
+         
+         Router router = new Router(routes);
+         
+         Route route = router.retrieve(HttpMethod.GET, "/first/complex/73");
+         assertThat(route).isNotNull();
+         
+         route = router.retrieve(HttpMethod.HEAD, "/first/complex/11");
+         assertThat(route).isNotNull();
+         
+         route = router.retrieve(HttpMethod.HEAD, "/delete/complex/13");
          assertThat(route).isNotNull();
      }
      
