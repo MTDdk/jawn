@@ -2,6 +2,7 @@ package net.javapla.jawn.core.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.google.inject.Singleton;
 
@@ -43,35 +44,45 @@ final class Router {
     
     Route retrieve(final HttpMethod httpMethod, final String requestUri) throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod {
         
-        // first, take a look in the trie
-        Route route = trie.findExact(requestUri, httpMethod);
+        Route route;
         
-        if (route == null) {
-            // The trie did not have any for us..
-            // Have a look in the custom routes then
-            boolean matchMade = false;
-            for (Route r : routes) {
-                if (r.matches(requestUri)) {
-                    
-                    if (r.method() == httpMethod || HttpMethod.HEAD == httpMethod) {
-                        trie.insert(requestUri, r); // cache it for later fast look-up
-                        return r;
-                    }
-                    
-                    matchMade = true;
-                    
-                    /*if (r.method() != httpMethod && HttpMethod.HEAD != httpMethod) throw new Up.RouteFoundWithDifferentMethod(httpMethod);
-                    
-                    trie.insert(requestUri, r); // cache it for later fast look-up
-                    return r;*/
-                }
+        try {
+            // first, take a look in the trie
+            route = trie.findExact(requestUri, httpMethod);
+            
+            if (route == null) {
+                // The trie did not have any for us..
+                // Have a look in the custom routes then
+                return goThroughCustom(httpMethod, requestUri, () -> new Up.RouteMissing(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri));
             }
             
-            if (matchMade) throw new Up.RouteFoundWithDifferentMethod(httpMethod);
+            return route;
+            
+        } catch (Up.RouteFoundWithDifferentMethod e) {
+            
+            return goThroughCustom(httpMethod, requestUri, () -> e);
+            
+            // Not even the custom routes had any,
+            // so it seems the original assessment of "route found" was correct,
+            // which is why we re-throw Up
+        }
+    }
+    
+    private Route goThroughCustom(final HttpMethod httpMethod, final String requestUri, Supplier<Up> throwThisIfNothingFound) throws Up {
+        for (Route r : routes) {
+            if (r.matches(requestUri)) {
+                
+                if (r.method() == httpMethod || HttpMethod.HEAD == httpMethod) {
+                    trie.insert(requestUri, r); // cache it for later fast look-up
+                    return r;
+                }
+                
+                // so we actually found something
+                throwThisIfNothingFound = () -> new Up.RouteFoundWithDifferentMethod(httpMethod);
+            }
         }
         
-        if (route == null) throw new Up.RouteMissing(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri);
-        return route;
+        throw throwThisIfNothingFound.get();
     }
     
     Router compileRoutes(final List<Route> routes) {
@@ -266,6 +277,8 @@ final class Router {
             }
             
             public Route get(HttpMethod method) throws Up.RouteFoundWithDifferentMethod {
+                // This *should* only be applicable if the Trie is used outside of the context of this Router
+                // I.e. as an isolated library
                 if (routes[method.ordinal()] == null) {
                     if (end) throw new Up.RouteFoundWithDifferentMethod(method);
                 }

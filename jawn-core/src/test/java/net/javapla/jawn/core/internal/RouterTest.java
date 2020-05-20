@@ -55,8 +55,11 @@ public class RouterTest {
         
         Router router = new Router(routes);
         
-        router.retrieve(HttpMethod.POST, "/v1/first/more/73"); // should NOT throw
-        router.retrieve(HttpMethod.GET, "/v1/first/more/71"); // should NOT throw
+        Route route = router.retrieve(HttpMethod.POST, "/v1/first/more/73"); // should NOT throw
+        assertThat(route).isNotNull();
+        
+        route = router.retrieve(HttpMethod.GET, "/v1/first/more/73"); // should NOT throw
+        assertThat(route).isNotNull();
         
         try {
             router.retrieve(HttpMethod.DELETE, "/v1/first/more/67");
