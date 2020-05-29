@@ -10,5 +10,4 @@ git:
   depth: 1
 branches:
   only:
-  - 1.0.x
-  - 1.1.x
+  - 1.x.x
