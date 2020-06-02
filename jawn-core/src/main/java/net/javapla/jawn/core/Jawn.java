@@ -30,6 +30,7 @@ import net.javapla.jawn.core.internal.reflection.MiniFileSystem;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
+import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.server.ServerConfig.Performance;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.ConvertUtil;
@@ -241,6 +242,20 @@ public class Jawn implements Route.Filtering, Injection {
     private Route.Filtering _options(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.OPTIONS, path, handler);
     }
+    
+    // WebSockets
+    protected void ws(final String path, WebSocket.Initialiser initialiser) {
+        // WebSocketHandler
+        Route.Handler handler = (ctx) -> {
+            boolean webSocket = ctx.req().header("Upgrade").value("").equalsIgnoreCase("websocket");
+            if (webSocket) {
+                ctx.upgrade(initialiser);
+            }
+            
+            return Results.status(Status.ACCEPTED);//TODO
+        };
+    }
+    
     
     // PATH
     /**

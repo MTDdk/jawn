@@ -81,16 +81,16 @@ public interface ServerRequest {
     
     //boolean secure();
     
-//    /**
-//     * Upgrade the request to something else...like a web socket.
-//     *
-//     * @param type Upgrade type.
-//     * @param <T> Upgrade type.
-//     * @return A instance of the upgrade.
-//     * @throws Exception If the upgrade fails or it is un-supported.
-//     * @see NativeWebSocket
-//     */
-    //<T> T upgrade(Class<T> type) throws Exception;
+    /**
+     * Upgrade the request to something else...like a web socket.
+     *
+     * @param type Upgrade type.
+     * @param <T> Upgrade type.
+     * @return A instance of the upgrade.
+     * @throws Exception If the upgrade fails or it is un-supported.
+     * @see ServerWebSocket
+     */
+    /*<T> T*/ServerRequest upgrade(/*Class<T> type*/ WebSocket.Initialiser initialiser) /*throws Exception*/;
     
     void startAsync(final Executor executor, final Runnable runnable);
     

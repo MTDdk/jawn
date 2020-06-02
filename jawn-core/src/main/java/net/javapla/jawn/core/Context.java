@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import net.javapla.jawn.core.server.FormItem;
+import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 
 public interface Context /*extends Injection*/ {
@@ -165,4 +166,10 @@ public interface Context /*extends Injection*/ {
      * @return a Path specifying the real path, or null if the translation cannot be performed
      */
     Path realPath(String file);
+    
+    
+    /**
+     * Websockets
+     */
+    //Context upgrade(WebSocket.Initialiser initialiser);
 }

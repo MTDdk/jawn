@@ -13,17 +13,20 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
+import io.undertow.Handlers;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
+import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 
 final class UndertowRequest implements ServerRequest {
@@ -149,6 +152,20 @@ final class UndertowRequest implements ServerRequest {
     @Override
     public void startAsync(Executor executor, Runnable runnable) {
         exchange.dispatch(executor, runnable);
+    }
+    
+    //@Override
+    public boolean isInIoThread() {
+        return exchange.isInIoThread();
+    }
+    
+    @Override
+    public UndertowRequest upgrade(Context.Request req, WebSocket.Initialiser initialiser) {
+        Handlers.websocket((exchange, channel) -> {
+            UndertowWebSocket ws = new UndertowWebSocket(this, channel);
+            initialiser.init(req, ws);
+        });
+        return this;
     }
     
     private void blocking() { if(!this.exchange.isBlocking()) this.exchange.startBlocking(); }

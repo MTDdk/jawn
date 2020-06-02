@@ -29,6 +29,8 @@ import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
+import net.javapla.jawn.core.server.WebSocket;
+import net.javapla.jawn.core.server.WebSocket.Initialiser;
 import net.javapla.jawn.core.util.MultiList;
 
 final class ContextImpl implements Context {
@@ -353,6 +355,12 @@ final class ContextImpl implements Context {
     public Path realPath(final String file) { // Do we even need this method?
         return Paths.get(injector.getInstance(DeploymentInfo.class).getRealPath(file));
     }
+    
+    /*@Override
+    public Context upgrade(WebSocket.Initialiser initialiser) {
+        sreq.upgrade(initialiser)
+        return null;
+    }*/
     
     /**
      * IP address of the requesting client.
