@@ -317,7 +317,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
         @Override
         public String toString() {
             return value != null
-                ? String.format("StringValue[%s]", value)
+                ? String.format("%s[%s]", this.getClass().getSimpleName(), value)
                 : "Value.empty";
         }
     }

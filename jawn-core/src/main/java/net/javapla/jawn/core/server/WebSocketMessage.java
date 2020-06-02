@@ -15,9 +15,9 @@ public interface WebSocketMessage extends Value {
             
             @Override
             public boolean isPresent() {
-                return false;
+                return true;
             }
         };
     }
-    
+
 }

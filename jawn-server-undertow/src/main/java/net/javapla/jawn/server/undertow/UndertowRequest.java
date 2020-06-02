@@ -13,6 +13,8 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
+import org.xnio.XnioWorker;
+
 import io.undertow.Handlers;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
@@ -24,6 +26,7 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.WebSocket;
@@ -155,17 +158,26 @@ final class UndertowRequest implements ServerRequest {
     }
     
     //@Override
-    public boolean isInIoThread() {
+    boolean isInIoThread() {
         return exchange.isInIoThread();
     }
     
+    Executor worker() {
+        return exchange.getConnection().getWorker();
+    }
+    
     @Override
-    public UndertowRequest upgrade(Context.Request req, WebSocket.Initialiser initialiser) {
-        Handlers.websocket((exchange, channel) -> {
-            UndertowWebSocket ws = new UndertowWebSocket(this, channel);
-            initialiser.init(req, ws);
-        });
-        return this;
+    public void upgrade(Context.Request req, WebSocket.Initialiser initialiser) {
+        try {
+            Handlers.websocket((exchange, channel) -> {
+                UndertowWebSocket ws = new UndertowWebSocket(this, channel);
+                initialiser.init(req, ws);
+                ws.fireConnect();
+            }).handleRequest(exchange);
+        } catch (Exception e) {
+            throw Up.IO.because(e);
+        }
+        //return this;
     }
     
     private void blocking() { if(!this.exchange.isBlocking()) this.exchange.startBlocking(); }

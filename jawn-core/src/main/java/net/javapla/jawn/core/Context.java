@@ -135,6 +135,10 @@ public interface Context /*extends Injection*/ {
             return queryString().map(q -> path() + '?' + q).orElse(path());
         }
 
+        /**
+         * Websockets
+         */
+        void upgrade(WebSocket.Initialiser initialiser);
     }
     
     Request req();

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Value;
@@ -90,7 +91,7 @@ public interface ServerRequest {
      * @throws Exception If the upgrade fails or it is un-supported.
      * @see ServerWebSocket
      */
-    /*<T> T*/ServerRequest upgrade(/*Class<T> type*/ WebSocket.Initialiser initialiser) /*throws Exception*/;
+    /*<T> T*/void upgrade(/*Class<T> type*/Context.Request req, WebSocket.Initialiser initialiser) /*throws Exception*/;
     
     void startAsync(final Executor executor, final Runnable runnable);
     

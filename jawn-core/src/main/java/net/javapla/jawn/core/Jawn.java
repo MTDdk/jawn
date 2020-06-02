@@ -249,11 +249,16 @@ public class Jawn implements Route.Filtering, Injection {
         Route.Handler handler = (ctx) -> {
             boolean webSocket = ctx.req().header("Upgrade").value("").equalsIgnoreCase("websocket");
             if (webSocket) {
-                ctx.upgrade(initialiser);
+                ctx.req().upgrade(initialiser);
+            }
+            if (!ctx.resp().committed()) {
+                return Results.status(Status.NOT_FOUND);
             }
             
-            return Results.status(Status.ACCEPTED);//TODO
+            return Results.status(Status.OK/*ACCEPTED*/);//TODO
         };
+        
+        _addRoute(HttpMethod.WS, path, handler);
     }
     
     

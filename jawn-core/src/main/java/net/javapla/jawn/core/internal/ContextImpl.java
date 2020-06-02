@@ -30,7 +30,6 @@ import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
 import net.javapla.jawn.core.server.WebSocket;
-import net.javapla.jawn.core.server.WebSocket.Initialiser;
 import net.javapla.jawn.core.util.MultiList;
 
 final class ContextImpl implements Context {
@@ -170,6 +169,10 @@ final class ContextImpl implements Context {
                 return sreq.header("Content-Length").map(Long::parseLong).orElse(-1l);
             }
             
+            @Override
+            public void upgrade(WebSocket.Initialiser initialiser) {
+                sreq.upgrade(this, initialiser);
+            }
         };
         
         this.resp = new Context.Response() {

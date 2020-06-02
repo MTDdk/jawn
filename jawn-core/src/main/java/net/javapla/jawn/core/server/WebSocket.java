@@ -31,10 +31,10 @@ public interface WebSocket {
     int MAX_BUFFER_SIZE = 131_072;
     
     
-    Context context();
+    //Context context();
     
     
-    default WebSocket attribute(String name, Object value) {
+    /*default WebSocket attribute(String name, Object value) {
         context().attribute(name, value);
         return this;
     }
@@ -43,7 +43,7 @@ public interface WebSocket {
     }
     default <T> Optional<T> attribute(String name, Class<T> type) {
         return context().attribute(name, type);
-    }
+    }*/
     
     
     
@@ -68,10 +68,10 @@ public interface WebSocket {
     List<WebSocket> sessions();
     
     
-    WebSocket render(Object value, boolean broadcast);
+    /*WebSocket render(Object value, boolean broadcast);
     default WebSocket render(Object value) {
         return render(value, false);
-    }
+    }*/
     
     
     WebSocket close(WebSocketCloseStatus status);

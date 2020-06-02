@@ -93,6 +93,10 @@ public class Up extends RuntimeException {
         public IO(final String msg) {
             super(Status.SERVER_ERROR, msg);
         }
+        
+        public static Up.IO because(Throwable e) {
+            return new IO(e);
+        }
     }
     
     public static class RouteMissing extends Up {
@@ -173,5 +177,12 @@ public class Up extends RuntimeException {
      */
     private static String message(final String reason, final int status, final String tail) {
         return reason + "(" + status + ")" + (tail == null ? "" : ": " + tail);
+    }
+    
+    public static boolean isFatal(Throwable x) {
+        return x instanceof InterruptedException
+            || x instanceof LinkageError
+            || x instanceof ThreadDeath
+            || x instanceof VirtualMachineError;
     }
 }
