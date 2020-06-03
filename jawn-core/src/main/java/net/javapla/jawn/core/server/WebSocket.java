@@ -1,14 +1,13 @@
 package net.javapla.jawn.core.server;
 
 import java.util.List;
-import java.util.Optional;
 
 import net.javapla.jawn.core.Context;
 
 public interface WebSocket {
     
     interface Initialiser {
-        void init(Context.Request req, WebSocketConfigurer init);
+        void init(Context.Request req, Listener init);
     }
 
     interface OnConnect {
@@ -25,6 +24,16 @@ public interface WebSocket {
     
     interface OnError {
         void onError(WebSocket ws, Throwable cause);
+    }
+    
+    interface Listener {
+        Listener onConnect(WebSocket.OnConnect callback);
+        
+        Listener onMessage(WebSocket.OnMessage callback);
+        
+        Listener onError(WebSocket.OnError callback);
+        
+        Listener onClose(WebSocket.OnClose callback);
     }
     
     /** Max message size for websocket (13k) */

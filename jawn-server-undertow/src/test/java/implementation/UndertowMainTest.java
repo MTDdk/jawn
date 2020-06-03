@@ -1,14 +1,19 @@
 package implementation;
 
-import implementation.controllers.TestController;
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.filters.LogRequestTimingFilter;
 import net.javapla.jawn.core.server.ServerConfig.Performance;
+import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.Modes;
 
-public class JawnMainTest extends Jawn {
+public class UndertowMainTest extends Jawn {
     
     {
         mode(Modes.DEV);
@@ -25,15 +30,43 @@ public class JawnMainTest extends Jawn {
         get("/path/{.*}", ctx -> Results.text(ctx.req().path()));
         
         get("/", Results.view()/*.path("system")*//*.template("404").layout(null)*/);
-        
+
         //mvc(TestController.class);
         controllers("implementation.controllers");
         
         filter(LogRequestTimingFilter.class);
+        
+        
+        
+        
+        AtomicInteger counter = new AtomicInteger(0);
+        Timer t = new Timer();
+        
+        ArrayList<WebSocket> wss = new ArrayList<>();
+        t.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                int count = counter.incrementAndGet();
+                wss.forEach(ws -> ws.send("something + " + count + "  "+ ws.hashCode()));
+            } 
+        }, 600, 1200);
+        
+        ws("/ws/{id}", (req, init) -> {
+            int id = req.pathParam("id").asInt();
+            
+            init.onConnect(ws -> {
+                System.out.println("connected ["+ id +"]");
+                if (id == 7)
+                    wss.add(ws);
+            });
+            init.onMessage((ws, message) -> System.out.println(message.value()));
+            init.onClose((ws, status) -> { System.out.println("closed ["+id+"]"); wss.remove(ws); });
+        });
+        
     }
 
     public static void main(String[] args) {
-        run(JawnMainTest.class, args);
+        run(UndertowMainTest.class, args);
     }
 
 }

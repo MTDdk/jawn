@@ -18,20 +18,13 @@ import io.undertow.websockets.core.CloseMessage;
 import io.undertow.websockets.core.WebSocketCallback;
 import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
-import io.undertow.websockets.spi.WebSocketHttpExchange;
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.WebSocket;
-import net.javapla.jawn.core.server.WebSocket.OnClose;
-import net.javapla.jawn.core.server.WebSocket.OnConnect;
-import net.javapla.jawn.core.server.WebSocket.OnError;
-import net.javapla.jawn.core.server.WebSocket.OnMessage;
 import net.javapla.jawn.core.server.WebSocketCloseStatus;
-import net.javapla.jawn.core.server.WebSocketConfigurer;
 import net.javapla.jawn.core.server.WebSocketMessage;
 
-public class UndertowWebSocket extends AbstractReceiveListener implements WebSocketConfigurer, WebSocket, WebSocketCallback<Void> {
+public class UndertowWebSocket extends AbstractReceiveListener implements WebSocket.Listener, WebSocket, WebSocketCallback<Void> {
     
     private static final ConcurrentMap<String, List<WebSocket>> ALL = new ConcurrentHashMap<>();
     
@@ -55,27 +48,27 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
         this.key = req.path(); // ctx.getRoute().getPattern();
     }
 
-    /* WebSocketConfigurer */
+    /* WebSocket.Configurer */
     @Override
-    public WebSocketConfigurer onConnect(WebSocket.OnConnect callback) {
+    public WebSocket.Listener onConnect(WebSocket.OnConnect callback) {
         this.onConnectCallback = callback;
         return this;
     }
 
     @Override
-    public WebSocketConfigurer onMessage(WebSocket.OnMessage callback) {
+    public WebSocket.Listener onMessage(WebSocket.OnMessage callback) {
         this.onMessageCallback = callback;
         return this;
     }
 
     @Override
-    public WebSocketConfigurer onError(WebSocket.OnError callback) {
+    public WebSocket.Listener onError(WebSocket.OnError callback) {
         this.onErrorCallback = callback;
         return this;
     }
 
     @Override
-    public WebSocketConfigurer onClose(WebSocket.OnClose callback) {
+    public WebSocket.Listener onClose(WebSocket.OnClose callback) {
         this.onCloseCallback = callback;
         return this;
     }
@@ -156,6 +149,11 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     protected long getMaxBinaryBufferSize() {
         return WebSocket.MAX_BUFFER_SIZE;
     }
+    
+    /*@Override
+    protected void onFullBinaryMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {
+        super.onFullBinaryMessage(channel, message);
+    }*/
     
     @Override
     protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) throws IOException {

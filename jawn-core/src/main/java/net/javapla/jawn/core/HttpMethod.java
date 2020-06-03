@@ -12,7 +12,7 @@ import net.javapla.jawn.core.util.StringUtil;
  * @author MTD
  */
 public enum HttpMethod {
-    GET, POST, PUT, DELETE, HEAD, OPTIONS/*, PATCH, CONNECT, TRACE*/, WS;
+    GET, POST, PUT, DELETE, HEAD, OPTIONS/*, PATCH, CONNECT, TRACE*//*, WS*/;
     
     public static final String AJAX_METHOD_PARAMETER = "_method";
     

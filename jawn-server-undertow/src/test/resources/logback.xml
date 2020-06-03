@@ -5,8 +5,9 @@
             <pattern>%d{HH:mm:ss.SSS} [%-8.8thread] %-5level %-20logger{30} - %msg%n</pattern>
         </encoder>
     </appender>
+    
+    <logger name="io.undertow.websocket" level="INFO" additivity="false" />
 
-    <!-- Disables all logging -->
     <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>

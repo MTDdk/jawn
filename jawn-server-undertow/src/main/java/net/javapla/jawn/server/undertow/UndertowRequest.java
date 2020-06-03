@@ -13,8 +13,6 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-import org.xnio.XnioWorker;
-
 import io.undertow.Handlers;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;

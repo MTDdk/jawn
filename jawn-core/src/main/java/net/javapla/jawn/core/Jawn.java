@@ -255,10 +255,10 @@ public class Jawn implements Route.Filtering, Injection {
                 return Results.status(Status.NOT_FOUND);
             }
             
-            return Results.status(Status.OK/*ACCEPTED*/);//TODO
+            return Results.status(Status.OK/*ACCEPTED*/);//.contentType(MediaType.JSON);//TODO
         };
         
-        _addRoute(HttpMethod.WS, path, handler);
+        _addRoute(HttpMethod.GET, path, handler);
     }
     
     

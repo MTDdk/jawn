@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.server;
 
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Value;
 
 public interface WebSocketMessage extends Value {
