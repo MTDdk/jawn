@@ -1,8 +1,4 @@
-package net.javapla.jawn.core.server;
-
-import java.util.List;
-
-import net.javapla.jawn.core.Context;
+package net.javapla.jawn.core;
 
 public interface WebSocket {
     
@@ -56,25 +52,27 @@ public interface WebSocket {
     
     
     
-    WebSocket send(String message, boolean broadcast);
+    /*WebSocket send(String message, boolean broadcast);
     WebSocket send(byte[] message, boolean broadcast);
     default WebSocket send(String message) {
         return send(message, false);
     }
     default WebSocket send(byte[] message) {
         return send(message, false);
-    }
+    }*/
+    WebSocket send(String message);
+    WebSocket send(byte[] message);
 
     
     boolean isOpen();
     
-    /**
-     * Websockets connected to the same path.
-     * Does not include current websocket.
-     * 
-     * @return connected websockets or empty
-     */
-    List<WebSocket> sessions();
+//    /**
+//     * Websockets connected to the same path.
+//     * Does not include current websocket.
+//     * 
+//     * @return connected websockets or empty
+//     */
+//    List<WebSocket> sessions();
     
     
     /*WebSocket render(Object value, boolean broadcast);

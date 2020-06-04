@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Status;
+import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.filters.LogRequestTimingFilter;
 import net.javapla.jawn.core.server.ServerConfig.Performance;
-import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.Modes;
 
 public class UndertowMainTest extends Jawn {
@@ -55,12 +55,19 @@ public class UndertowMainTest extends Jawn {
             int id = req.pathParam("id").asInt();
             
             init.onConnect(ws -> {
-                System.out.println("connected ["+ id +"]");
+                System.out.println("connected ["+ id +"]   " + ws.hashCode());
                 if (id == 7)
                     wss.add(ws);
+                if (id == 73) {
+                    t.schedule(new TimerTask() {
+                        @Override
+                        public void run() {ws.close();}
+                    }, 8000);
+                }
+                    
             });
             init.onMessage((ws, message) -> System.out.println(message.value()));
-            init.onClose((ws, status) -> { System.out.println("closed ["+id+"]"); wss.remove(ws); });
+            init.onClose((ws, status) -> { System.out.println("closed ["+id+"]   " + ws.hashCode()); wss.remove(ws); });
         });
         
     }

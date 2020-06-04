@@ -2,13 +2,6 @@ package net.javapla.jawn.server.undertow;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -19,19 +12,19 @@ import io.undertow.websockets.core.WebSocketCallback;
 import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.WebSocket;
+import net.javapla.jawn.core.WebSocketCloseStatus;
+import net.javapla.jawn.core.WebSocketMessage;
 import net.javapla.jawn.core.server.Server;
-import net.javapla.jawn.core.server.WebSocket;
-import net.javapla.jawn.core.server.WebSocketCloseStatus;
-import net.javapla.jawn.core.server.WebSocketMessage;
 
 public class UndertowWebSocket extends AbstractReceiveListener implements WebSocket.Listener, WebSocket, WebSocketCallback<Void> {
     
-    private static final ConcurrentMap<String, List<WebSocket>> ALL = new ConcurrentHashMap<>();
+    //private static final ConcurrentMap<String, List<WebSocket>> ALL = new ConcurrentHashMap<>();
     
     private final UndertowRequest req;
     private final WebSocketChannel channel;
     private final boolean dispatch;
-    private final String key;
+    //private final String key;
     private final CountDownLatch ready = new CountDownLatch(1);
 
     private WebSocket.OnConnect onConnectCallback;
@@ -45,7 +38,7 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
         this.req = req;
         this.channel = channel;
         this.dispatch = req.isInIoThread();
-        this.key = req.path(); // ctx.getRoute().getPattern();
+        //this.key = req.path(); // ctx.getRoute().getPattern();
     }
 
     /* WebSocket.Configurer */
@@ -75,45 +68,55 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
 
     /* WebSocket */
     @Override
-    public WebSocket send(String message, boolean broadcast) {
-        return send(message.getBytes(StandardCharsets.UTF_8), broadcast);
-    }
-
-    @Override
-    public WebSocket send(byte[] message, boolean broadcast) {
-        if (broadcast) {
-            List<WebSocket> list = ALL.get(key);
-            if (list != null) {
-                list.forEach(ws -> ws.send(message, false));
+    public WebSocket send(String message/*, boolean broadcast*/) {
+        if (isOpen()) {
+            try {
+                WebSockets.sendText(message, channel, this);
+            } catch (Throwable e) {
+                onError(channel, e);
             }
         } else {
-            if (isOpen()) {
-                try {
-                    WebSockets.sendText(ByteBuffer.wrap(message), channel, this);
-                } catch (Throwable e) {
-                    onError(channel, e);
-                }
-            } else {
-                onError(channel, new IllegalStateException("Attemp to send a message on a closed web socket"));
-            }
+            onError(channel, new IllegalStateException("Attemp to send a message on a closed web socket"));
         }
         
         return this;
     }
 
     @Override
-    public boolean isOpen() {
-        return channel.isOpen();
+    public WebSocket send(byte[] message/*, boolean broadcast*/) {
+        /*if (broadcast) {
+            List<WebSocket> list = ALL.get(key);
+            if (list != null) {
+                list.forEach(ws -> ws.send(message, false));
+            }
+        } else {*/
+            if (isOpen()) {
+                try {
+                    WebSockets.sendBinary(ByteBuffer.wrap(message), channel, this);
+                } catch (Throwable e) {
+                    onError(channel, e);
+                }
+            } else {
+                onError(channel, new IllegalStateException("Attemp to send a message on a closed web socket"));
+            }
+        //}
+        
+        return this;
     }
 
     @Override
+    public boolean isOpen() {
+        return channel.isOpen() && !channel.isCloseFrameSent();
+    }
+
+    /*@Override
     public List<WebSocket> sessions() {
         List<WebSocket> list = ALL.get(key);
         if (list == null) return Collections.emptyList();
         ArrayList<WebSocket> result = new ArrayList<>(list);
         result.remove(this);
         return result;
-    }
+    }*/
 
     /*@Override
     public WebSocket render(Object value, boolean broadcast) {
@@ -183,6 +186,8 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     
     @Override
     protected void onCloseMessage(CloseMessage cm, WebSocketChannel channel) {
+        if (!isOpen()) return;
+        
         handleClose(
             WebSocketCloseStatus
                 .valueOf(cm.getCode())
@@ -190,18 +195,24 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     }
     
     private void handleClose(WebSocketCloseStatus status) {
+        
+        WebSockets.sendClose(status.code(), status.reason(), channel, this);
+        
         try {
+            
             if (onCloseCallback != null) {
                 onCloseCallback.onClose(this, status);
             }
+            
         } catch (Throwable e) {
             onError(channel, e);
-        } finally {
+        } /*finally {
             removeSession(this);
-        }
+          }*/
+        
     }
     
-    private void addSession(UndertowWebSocket ws) {
+    /*private void addSession(UndertowWebSocket ws) {
         ALL.computeIfAbsent(ws.key, k -> new CopyOnWriteArrayList<>()).add(ws);
     }
     
@@ -210,12 +221,12 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
         if (list != null) {
             list.remove(ws);
         }
-    }
+    }*/
     
     void fireConnect() {
         // fire only once
         try {
-            addSession(this);
+            //addSession(this);
             // read from config
             long timeout = 5;
             if (timeout > 0) {

@@ -24,12 +24,12 @@ import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Value;
+import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
-import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 
 final class ContextImpl implements Context {

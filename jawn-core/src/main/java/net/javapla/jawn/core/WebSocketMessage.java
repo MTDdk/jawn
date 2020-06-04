@@ -1,6 +1,4 @@
-package net.javapla.jawn.core.server;
-
-import net.javapla.jawn.core.Value;
+package net.javapla.jawn.core;
 
 public interface WebSocketMessage extends Value {
     

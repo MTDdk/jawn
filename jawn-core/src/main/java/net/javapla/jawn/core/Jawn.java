@@ -30,7 +30,6 @@ import net.javapla.jawn.core.internal.reflection.MiniFileSystem;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
-import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.server.ServerConfig.Performance;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.ConvertUtil;

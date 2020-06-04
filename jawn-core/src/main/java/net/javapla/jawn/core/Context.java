@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import net.javapla.jawn.core.server.FormItem;
-import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 
 public interface Context /*extends Injection*/ {
