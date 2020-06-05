@@ -1,8 +1,8 @@
 package net.javapla.jawn.core.util;
 
-public abstract class TimeUtil {
+public abstract class DurationReader {
     
-    private TimeUtil() { }
+    private DurationReader() { }
 
     /**
      * Parses a duration to seconds.

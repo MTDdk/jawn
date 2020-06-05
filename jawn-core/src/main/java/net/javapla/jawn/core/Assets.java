@@ -2,7 +2,7 @@ package net.javapla.jawn.core;
 
 import java.time.Duration;
 
-import net.javapla.jawn.core.util.TimeUtil;
+import net.javapla.jawn.core.util.DurationReader;
 
 public interface Assets {
     
@@ -52,10 +52,10 @@ public interface Assets {
     }
     
     /**
-     * @param duration {@link TimeUtil#seconds(String)}
+     * @param duration {@link DurationReader#seconds(String)}
      * @return
      */
     default Assets maxAge(String duration) {
-        return maxAge(TimeUtil.seconds(duration));
+        return maxAge(DurationReader.seconds(duration));
     }
 }
