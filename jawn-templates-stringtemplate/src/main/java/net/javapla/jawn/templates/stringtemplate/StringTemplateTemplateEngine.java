@@ -20,6 +20,7 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
 import net.javapla.jawn.core.renderers.template.TemplateRendererEngine;
@@ -30,7 +31,6 @@ import net.javapla.jawn.core.renderers.template.config.SiteProvider;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfig;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfigProvider;
 import net.javapla.jawn.core.util.AsyncCharArrayWriter;
-import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.templates.stringtemplate.rewrite.FastSTGroup;
 
 @Singleton

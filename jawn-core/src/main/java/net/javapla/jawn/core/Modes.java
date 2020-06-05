@@ -1,5 +1,7 @@
-package net.javapla.jawn.core.util;
+package net.javapla.jawn.core;
 
+import net.javapla.jawn.core.util.Constants;
+import net.javapla.jawn.core.util.StringUtil;
 
 public enum Modes {
 

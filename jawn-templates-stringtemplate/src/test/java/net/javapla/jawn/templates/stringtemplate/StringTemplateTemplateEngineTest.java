@@ -21,6 +21,7 @@ import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Context.Response;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.View;
 import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
@@ -28,7 +29,6 @@ import net.javapla.jawn.core.renderers.template.config.Site;
 import net.javapla.jawn.core.renderers.template.config.SiteProvider;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfigProvider;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.Modes;
 
 public class StringTemplateTemplateEngineTest {
     

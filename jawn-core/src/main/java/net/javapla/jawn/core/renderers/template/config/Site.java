@@ -2,7 +2,7 @@ package net.javapla.jawn.core.renderers.template.config;
 
 import java.text.MessageFormat;
 
-import net.javapla.jawn.core.util.Modes;
+import net.javapla.jawn.core.Modes;
 
 public class Site {
 

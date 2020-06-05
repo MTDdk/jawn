@@ -2,10 +2,10 @@ package implementation.controllers;
 
 import com.google.inject.Inject;
 
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.mvc.POST;
 import net.javapla.jawn.core.mvc.Path;
 import net.javapla.jawn.core.mvc.ViewController;
-import net.javapla.jawn.core.util.Modes;
 
 @Path("/test")
 @Path("/kage")

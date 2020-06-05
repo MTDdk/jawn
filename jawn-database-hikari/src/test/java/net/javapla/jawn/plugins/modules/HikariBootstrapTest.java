@@ -19,9 +19,9 @@ import com.google.inject.name.Names;
 import com.zaxxer.hikari.HikariDataSource;
 
 import net.javapla.jawn.core.Config;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.util.CollectionUtil;
-import net.javapla.jawn.core.util.Modes;
 import net.javapla.jawn.database.DatabaseConfigurationReaderTest;
 
 public class HikariBootstrapTest {

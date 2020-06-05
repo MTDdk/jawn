@@ -15,9 +15,9 @@ import org.junit.Test;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.Modes;
 
 public class ViewTemplateLoaderTest {
     

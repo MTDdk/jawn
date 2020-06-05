@@ -24,6 +24,7 @@ import com.google.inject.Stage;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Crypto;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.reflection.ClassFactory;
@@ -39,7 +40,6 @@ import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.Modes;
 
 public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to FrameworkEngine
     private final Logger logger = LoggerFactory.getLogger(getClass().getName());
@@ -289,7 +289,13 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         return frameworkConfig;
     }
     
-    private void/*ModuleBootstrap[]*/ readRegisteredPlugins(ApplicationConfig config, String pluginsPackage) {
+    private void readRegisteredPlugins(ApplicationConfig config, String pluginsPackage) {
+        // TODO
+        // At this point we have the class of the module, and can use the ClassLoader of this class
+        // to gain access to its resources. In doing this it *should* be possible to have specific 
+        // property files per module. They might, though, need to be within the module specific package
+        // and not a part of the 'resources' folder. Testing ensues.
+        // https://stackoverflow.com/questions/52571067/how-to-get-access-multiple-resource-files-with-the-same-name
         try {
             ClassLocator locator = new ClassLocator(pluginsPackage);
             /*return*/ locateAll(locator,  ModuleBootstrap.class, impl -> impl.bootstrap(config));

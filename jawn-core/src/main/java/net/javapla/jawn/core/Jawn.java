@@ -33,7 +33,6 @@ import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.server.ServerConfig.Performance;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.ConvertUtil;
-import net.javapla.jawn.core.util.Modes;
 
 public class Jawn implements Route.Filtering, Injection {
     

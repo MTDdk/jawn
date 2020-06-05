@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.util;
+package net.javapla.jawn.core;
 
 import static org.junit.Assert.*;
 
@@ -7,6 +7,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import net.javapla.jawn.core.Modes;
+import net.javapla.jawn.core.util.Constants;
 
 public class ModesTest {
 

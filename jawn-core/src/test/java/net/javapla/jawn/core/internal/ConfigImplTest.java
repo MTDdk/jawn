@@ -11,9 +11,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.javapla.jawn.core.Config;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Config.ParseOptions;
 import net.javapla.jawn.core.util.CollectionUtil;
-import net.javapla.jawn.core.util.Modes;
 
 public class ConfigImplTest {
     

@@ -17,10 +17,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.Modes;
 
 public class SiteProviderTest {
     

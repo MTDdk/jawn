@@ -15,10 +15,10 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
 import net.javapla.jawn.core.util.AsyncCharArrayWriter;
-import net.javapla.jawn.core.util.Modes;
 
 @Singleton
 public class ViewTemplateLoader {
