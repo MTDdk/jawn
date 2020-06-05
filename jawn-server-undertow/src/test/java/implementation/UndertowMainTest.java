@@ -66,6 +66,7 @@ public class UndertowMainTest extends Jawn {
                 }
                     
             });
+            init.onError((ws, throwable) -> throwable.printStackTrace());
             init.onMessage((ws, message) -> System.out.println(message.value()));
             init.onClose((ws, status) -> { System.out.println("closed ["+id+"]   " + ws.hashCode()); wss.remove(ws); });
         });

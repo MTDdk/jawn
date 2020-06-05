@@ -20,6 +20,7 @@ import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
+import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
@@ -38,6 +39,7 @@ final class UndertowRequest implements ServerRequest {
         if (!TMP_DIR.toFile().exists()) TMP_DIR.toFile().mkdirs();
     }
     
+    private final Config config;
     private final HttpServerExchange exchange;
     private final String path;
     private final HttpMethod method;
@@ -46,7 +48,8 @@ final class UndertowRequest implements ServerRequest {
     private MultiList<String> params;
     private MultiList<String> headers;
 
-    public UndertowRequest(final HttpServerExchange exchange) {
+    public UndertowRequest(final Config config, final HttpServerExchange exchange) {
+        this.config = config;
         this.exchange = exchange;
         this.path = /*URLCodec.decode(*/exchange.getRequestPath()/*, StandardCharsets.UTF_8)*/;
         
@@ -168,7 +171,7 @@ final class UndertowRequest implements ServerRequest {
     public void upgrade(Context.Request req, WebSocket.Initialiser initialiser) {
         try {
             Handlers.websocket((exchange, channel) -> {
-                UndertowWebSocket ws = new UndertowWebSocket(this, channel);
+                UndertowWebSocket ws = new UndertowWebSocket(config, this, channel);
                 initialiser.init(req, ws);
                 ws.fireConnect();
             }).handleRequest(exchange);

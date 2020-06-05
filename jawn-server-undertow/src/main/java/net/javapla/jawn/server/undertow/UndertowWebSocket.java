@@ -11,6 +11,7 @@ import io.undertow.websockets.core.CloseMessage;
 import io.undertow.websockets.core.WebSocketCallback;
 import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
+import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.WebSocketCloseStatus;
@@ -21,6 +22,7 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     
     //private static final ConcurrentMap<String, List<WebSocket>> ALL = new ConcurrentHashMap<>();
     
+    private final Config config;
     private final UndertowRequest req;
     private final WebSocketChannel channel;
     private final boolean dispatch;
@@ -34,7 +36,8 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     
     
 
-    public UndertowWebSocket(UndertowRequest req, WebSocketChannel channel) {
+    public UndertowWebSocket(Config config, UndertowRequest req, WebSocketChannel channel) {
+        this.config = config;
         this.req = req;
         this.channel = channel;
         this.dispatch = req.isInIoThread();
@@ -106,7 +109,7 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
 
     @Override
     public boolean isOpen() {
-        return channel.isOpen() && !channel.isCloseFrameSent();
+        return channel.isOpen();// && !channel.isCloseFrameSent();
     }
 
     /*@Override
@@ -125,6 +128,7 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
 
     @Override
     public WebSocket close(WebSocketCloseStatus status) {
+        //System.out.println("close(WebSocketCloseStatus status)");
         handleClose(status);
         return this;
     }
@@ -138,19 +142,20 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     @Override
     public void onError(WebSocketChannel channel, Void context, Throwable throwable) {
         // TODO log this as an error, or perhaps just call the other #onError
-        System.err.println("Websocket exception: " + req.path() + " -> " + throwable);
+        //System.err.println("Websocket exception: " + req.path() + " -> " + throwable);
+        onError(channel, throwable);
     }
 
     
     /* AbstractReceiveListener */
     @Override
     protected long getMaxTextBufferSize() {
-        return WebSocket.MAX_BUFFER_SIZE;
+        return config.getMemorySize("server.ws.max_text_message_size");//WebSocket.MAX_BUFFER_SIZE;
     }
     
     @Override
     protected long getMaxBinaryBufferSize() {
-        return WebSocket.MAX_BUFFER_SIZE;
+        return config.getMemorySize("server.ws.max_binary_missage_size");//WebSocket.MAX_BUFFER_SIZE;
     }
     
     /*@Override
@@ -171,6 +176,7 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     protected void onError(WebSocketChannel channel, Throwable throwable) {
         //
         if (Server.connectionResetByPeer(throwable) || Up.isFatal(throwable)) {
+            //System.out.println("onError(WebSocketChannel channel, Throwable throwable)");
             handleClose(WebSocketCloseStatus.SERVER_ERROR);
         }
         
@@ -186,7 +192,8 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     
     @Override
     protected void onCloseMessage(CloseMessage cm, WebSocketChannel channel) {
-        if (!isOpen()) return;
+        //System.out.println("onCloseMessage(CloseMessage cm, WebSocketChannel channel)");
+        //if (channel.isCloseFrameSent()) return;
         
         handleClose(
             WebSocketCloseStatus
@@ -196,7 +203,8 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     
     private void handleClose(WebSocketCloseStatus status) {
         
-        WebSockets.sendClose(status.code(), status.reason(), channel, this);
+        if (!channel.isCloseFrameSent())
+            WebSockets.sendClose(status.code(), status.reason(), channel, this);
         
         try {
             
@@ -228,9 +236,9 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
         try {
             //addSession(this);
             // read from config
-            long timeout = 5;
+            long timeout = config.getDuration("server.ws.idle_timeout", TimeUnit.MILLISECONDS);
             if (timeout > 0) {
-                channel.setIdleTimeout(TimeUnit.MINUTES.toMillis(timeout));
+                channel.setIdleTimeout(timeout);
             }
             if (onConnectCallback != null) {
                 dispatch(webSocketTask(() -> onConnectCallback.onConnect(this), true));
@@ -258,7 +266,6 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
     
     private void dispatch(Runnable task) {
         if (dispatch) {
-            //TODO
             req.worker().execute(task);
         } else {
             task.run();
