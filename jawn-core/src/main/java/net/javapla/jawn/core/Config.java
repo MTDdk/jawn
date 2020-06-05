@@ -16,8 +16,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.Modes;
-import net.javapla.jawn.core.util.TimeUtil;
+import net.javapla.jawn.core.util.DurationReader;
+import net.javapla.jawn.core.util.MemorySizeReader;
 
 public interface Config {
 
@@ -104,11 +104,11 @@ public interface Config {
     }
     
     default Duration getDuration(final String name) {
-        return Duration.ofSeconds(TimeUtil.seconds(get(name)));
+        return Duration.ofSeconds(DurationReader.seconds(get(name)));
     }
     
     default Optional<Duration> getDurationOptionally(final String name) {
-        return getOptionally(name).map( value -> Duration.ofSeconds(TimeUtil.seconds(value)));
+        return getOptionally(name).map( value -> Duration.ofSeconds(DurationReader.seconds(value)));
     }
     
     default Duration getDurationOrDie(final String name) throws RuntimeException {
@@ -116,15 +116,19 @@ public interface Config {
     }
     
     default long getDuration(final String name, final TimeUnit unit) {
-        return unit.convert(TimeUtil.seconds(get(name)), TimeUnit.SECONDS);
+        return unit.convert(DurationReader.seconds(get(name)), TimeUnit.SECONDS);
     }
     
     default Optional<Long> getDurationOptionally(final String name, final TimeUnit unit) {
-        return getOptionally(name).map( value -> unit.convert(TimeUtil.seconds(value), TimeUnit.SECONDS));
+        return getOptionally(name).map( value -> unit.convert(DurationReader.seconds(value), TimeUnit.SECONDS));
     }
     
     default long getDurationOrDie(final String name, final TimeUnit unit) throws RuntimeException {
         return getDurationOptionally(name, unit).orElseThrow(exception.apply(name));
+    }
+
+    default long getMemorySize(final String name) throws IllegalArgumentException {
+        return MemorySizeReader.bytes(get(name));
     }
 
     Set<String> keys();
