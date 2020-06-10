@@ -18,7 +18,7 @@ import net.javapla.jawn.core.WebSocketCloseStatus;
 import net.javapla.jawn.core.WebSocketMessage;
 import net.javapla.jawn.core.server.Server;
 
-public class UndertowWebSocket extends AbstractReceiveListener implements WebSocket.Listener, WebSocket, WebSocketCallback<Void> {
+class UndertowWebSocket extends AbstractReceiveListener implements WebSocket.Listener, WebSocket, WebSocketCallback<Void> {
     
     //private static final ConcurrentMap<String, List<WebSocket>> ALL = new ConcurrentHashMap<>();
     
@@ -141,8 +141,6 @@ public class UndertowWebSocket extends AbstractReceiveListener implements WebSoc
 
     @Override
     public void onError(WebSocketChannel channel, Void context, Throwable throwable) {
-        // TODO log this as an error, or perhaps just call the other #onError
-        //System.err.println("Websocket exception: " + req.path() + " -> " + throwable);
         onError(channel, throwable);
     }
 

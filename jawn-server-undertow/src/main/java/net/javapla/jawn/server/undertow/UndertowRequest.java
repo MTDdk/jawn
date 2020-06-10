@@ -31,7 +31,7 @@ import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.util.MultiList;
 
-final class UndertowRequest implements ServerRequest {
+class UndertowRequest implements ServerRequest {
     
     // TODO should be instantiated in the core module instead of a server module
     private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/);
