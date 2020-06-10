@@ -73,10 +73,11 @@ public class UntertowWebSocketTest {
 
     @Test
     public void onFullTextMessage() throws IOException {
+        String data = "{ \"person\":{\"name\":\"cookie monster\"} }";
         
         // setup
         BufferedTextMessage text = mock(BufferedTextMessage.class);
-        when(text.getData()).thenReturn("{ \"person\":{\"name\":\"cookie monster\"} }");
+        when(text.getData()).thenReturn(data);
         
         WebSocket.OnMessage message = mock(WebSocket.OnMessage.class);
         
@@ -91,6 +92,6 @@ public class UntertowWebSocketTest {
         // assert
         ArgumentCaptor<WebSocketMessage> captor = ArgumentCaptor.forClass(WebSocketMessage.class);
         verify(message, times(1)).onMessage(any(UndertowWebSocket.class), captor.capture());
-        assertThat(captor.getValue().value()).isEqualTo("cookie monster");
+        assertThat(captor.getValue().value()).isEqualTo(data);
     }
 }
