@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -96,6 +97,28 @@ public class ResultRunnerTest {
         verify(response, times(1)).header(anyString(), anyString());
         verify(response, times(1)).statusCode(anyInt());
         verify(engine, times(0)).getRendererEngineForContentType(any(MediaType.class), any());
+    }
+    
+    @Test
+    public void execute_with_cookies() {
+        
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.method()).thenReturn(HttpMethod.HEAD);
+        ServerResponse response = mock(ServerResponse.class);
+        
+        ContextImpl context = TestHelper.contextImpl(request, response, StandardCharsets.UTF_8, mock(DeploymentInfo.class), mock(Injector.class));
+        RendererEngineOrchestrator engine = mock(RendererEngineOrchestrator.class);
+        
+        // execute
+        ResultRunner runner = new ResultRunner(engine);
+        context.resp().cookie("k", "v");
+        
+        runner.execute(Results.status(401), context);
+        
+        
+        // assert
+        verify(response, times(1)).header(eq("Set-Cookie"), anyList());
+        verify(response, times(1)).statusCode(eq(401));
     }
     
     @Test
