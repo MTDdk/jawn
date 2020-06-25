@@ -134,6 +134,10 @@ public interface Context /*extends Injection*/ {
             return queryString().map(q -> path() + '?' + q).orElse(path());
         }
 
+        /**
+         * Websockets
+         */
+        void upgrade(WebSocket.Initialiser initialiser);
     }
     
     Request req();
@@ -165,4 +169,10 @@ public interface Context /*extends Injection*/ {
      * @return a Path specifying the real path, or null if the translation cannot be performed
      */
     Path realPath(String file);
+    
+    
+    /**
+     * Websockets
+     */
+    //Context upgrade(WebSocket.Initialiser initialiser);
 }

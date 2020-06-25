@@ -6,8 +6,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import net.javapla.jawn.core.Config;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.util.Constants;
-import net.javapla.jawn.core.util.Modes;
 
 final class ConfigImpl implements Config {
     

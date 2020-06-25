@@ -75,8 +75,8 @@ public final class UndertowServer implements Server {
         return Optional.ofNullable(server.getWorker());
     }
     
-    private static final io.undertow.server.HttpHandler createHandler(final HttpHandler dispatcher) {
-        return new UndertowHandler(dispatcher);
+    private final io.undertow.server.HttpHandler createHandler(final HttpHandler dispatcher) {
+        return new UndertowHandler(conf, dispatcher);
     }
     
     private static void configureServerPerformance(Builder serverBuilder, ServerConfig.Impl config) {

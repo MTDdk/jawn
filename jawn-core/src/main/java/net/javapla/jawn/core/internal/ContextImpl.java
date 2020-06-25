@@ -24,6 +24,7 @@ import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Value;
+import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.server.FormItem;
@@ -168,6 +169,10 @@ final class ContextImpl implements Context {
                 return sreq.header("Content-Length").map(Long::parseLong).orElse(-1l);
             }
             
+            @Override
+            public void upgrade(WebSocket.Initialiser initialiser) {
+                sreq.upgrade(this, initialiser);
+            }
         };
         
         this.resp = new Context.Response() {
@@ -353,6 +358,12 @@ final class ContextImpl implements Context {
     public Path realPath(final String file) { // Do we even need this method?
         return Paths.get(injector.getInstance(DeploymentInfo.class).getRealPath(file));
     }
+    
+    /*@Override
+    public Context upgrade(WebSocket.Initialiser initialiser) {
+        sreq.upgrade(initialiser)
+        return null;
+    }*/
     
     /**
      * IP address of the requesting client.

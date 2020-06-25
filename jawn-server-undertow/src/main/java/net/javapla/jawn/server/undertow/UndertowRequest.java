@@ -13,20 +13,25 @@ import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
+import io.undertow.Handlers;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HeaderValues;
+import net.javapla.jawn.core.Config;
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.util.MultiList;
 
-final class UndertowRequest implements ServerRequest {
+class UndertowRequest implements ServerRequest {
     
     // TODO should be instantiated in the core module instead of a server module
     private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/);
@@ -34,6 +39,7 @@ final class UndertowRequest implements ServerRequest {
         if (!TMP_DIR.toFile().exists()) TMP_DIR.toFile().mkdirs();
     }
     
+    private final Config config;
     private final HttpServerExchange exchange;
     private final String path;
     private final HttpMethod method;
@@ -42,7 +48,8 @@ final class UndertowRequest implements ServerRequest {
     private MultiList<String> params;
     private MultiList<String> headers;
 
-    public UndertowRequest(final HttpServerExchange exchange) {
+    public UndertowRequest(final Config config, final HttpServerExchange exchange) {
+        this.config = config;
         this.exchange = exchange;
         this.path = /*URLCodec.decode(*/exchange.getRequestPath()/*, StandardCharsets.UTF_8)*/;
         
@@ -149,6 +156,29 @@ final class UndertowRequest implements ServerRequest {
     @Override
     public void startAsync(Executor executor, Runnable runnable) {
         exchange.dispatch(executor, runnable);
+    }
+    
+    //@Override
+    boolean isInIoThread() {
+        return exchange.isInIoThread();
+    }
+    
+    Executor worker() {
+        return exchange.getConnection().getWorker();
+    }
+    
+    @Override
+    public void upgrade(Context.Request req, WebSocket.Initialiser initialiser) {
+        try {
+            Handlers.websocket((exchange, channel) -> {
+                UndertowWebSocket ws = new UndertowWebSocket(config, this, channel);
+                initialiser.init(req, ws);
+                ws.fireConnect();
+            }).handleRequest(exchange);
+        } catch (Exception e) {
+            throw Up.IO.because(e);
+        }
+        //return this;
     }
     
     private void blocking() { if(!this.exchange.isBlocking()) this.exchange.startBlocking(); }

@@ -18,9 +18,9 @@ import org.junit.Test;
 
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.server.ServerConfig;
-import net.javapla.jawn.core.util.Modes;
 
 public class FrameworkBootstrapTest {
     

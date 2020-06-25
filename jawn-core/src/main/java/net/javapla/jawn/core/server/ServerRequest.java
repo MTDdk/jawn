@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Value;
+import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.StreamUtil;
 
@@ -81,16 +83,16 @@ public interface ServerRequest {
     
     //boolean secure();
     
-//    /**
-//     * Upgrade the request to something else...like a web socket.
-//     *
-//     * @param type Upgrade type.
-//     * @param <T> Upgrade type.
-//     * @return A instance of the upgrade.
-//     * @throws Exception If the upgrade fails or it is un-supported.
-//     * @see NativeWebSocket
-//     */
-    //<T> T upgrade(Class<T> type) throws Exception;
+    /**
+     * Upgrade the request to something else...like a web socket.
+     *
+     * @param type Upgrade type.
+     * @param <T> Upgrade type.
+     * @return A instance of the upgrade.
+     * @throws Exception If the upgrade fails or it is un-supported.
+     * @see ServerWebSocket
+     */
+    /*<T> T*/void upgrade(/*Class<T> type*/Context.Request req, WebSocket.Initialiser initialiser) /*throws Exception*/;
     
     void startAsync(final Executor executor, final Runnable runnable);
     

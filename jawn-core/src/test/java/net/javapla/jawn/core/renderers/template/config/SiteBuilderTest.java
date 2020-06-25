@@ -3,8 +3,8 @@ package net.javapla.jawn.core.renderers.template.config;
 import org.junit.Assert;
 import org.junit.Test;
 
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.util.CollectionUtil;
-import net.javapla.jawn.core.util.Modes;
 
 public class SiteBuilderTest {
     

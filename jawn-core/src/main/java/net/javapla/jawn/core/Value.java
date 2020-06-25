@@ -140,6 +140,13 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
+    /**
+     * Simply another name for {@link #value()}
+     */
+    default String asString() {
+        return value();
+    }
+    
     default <T extends Enum<T>> T asEnum(final Class<T> type) {
         EnumSet<T> set = EnumSet.allOf(type);
         return set
@@ -317,7 +324,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
         @Override
         public String toString() {
             return value != null
-                ? String.format("StringValue[%s]", value)
+                ? String.format("%s[%s]", this.getClass().getSimpleName(), value)
                 : "Value.empty";
         }
     }

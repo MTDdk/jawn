@@ -5,13 +5,15 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.Protocols;
+import net.javapla.jawn.core.Config;
 
 class UndertowHandler implements HttpHandler {
 
-    
+    private final Config config;
     private final net.javapla.jawn.core.server.HttpHandler dispatcher;
 
-    UndertowHandler(final net.javapla.jawn.core.server.HttpHandler dispatcher) {
+    UndertowHandler(final Config config, final net.javapla.jawn.core.server.HttpHandler dispatcher) {
+        this.config = config;
         this.dispatcher = dispatcher;
     }
 
@@ -27,7 +29,7 @@ class UndertowHandler implements HttpHandler {
             return;
         }
         
-        dispatcher.handle(new UndertowRequest(exchange), new UndertowResponse(exchange));
+        dispatcher.handle(new UndertowRequest(config, exchange), new UndertowResponse(exchange));
     }
 
 }

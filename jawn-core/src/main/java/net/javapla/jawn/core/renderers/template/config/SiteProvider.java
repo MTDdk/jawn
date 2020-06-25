@@ -8,8 +8,8 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.View;
-import net.javapla.jawn.core.util.Modes;
 
 /**
  * Empirical evidence tells us that caching the SiteConfiguration has a significant impact on performance in high load use.

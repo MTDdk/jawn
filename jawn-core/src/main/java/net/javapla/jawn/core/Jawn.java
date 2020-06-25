@@ -33,7 +33,6 @@ import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.server.ServerConfig.Performance;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.core.util.ConvertUtil;
-import net.javapla.jawn.core.util.Modes;
 
 public class Jawn implements Route.Filtering, Injection {
     
@@ -241,6 +240,25 @@ public class Jawn implements Route.Filtering, Injection {
     private Route.Filtering _options(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.OPTIONS, path, handler);
     }
+    
+    // WebSockets
+    protected void ws(final String path, WebSocket.Initialiser initialiser) {
+        // WebSocketHandler
+        Route.Handler handler = (ctx) -> {
+            boolean webSocket = ctx.req().header("Upgrade").value("").equalsIgnoreCase("websocket");
+            if (webSocket) {
+                ctx.req().upgrade(initialiser);
+            }
+            if (!ctx.resp().committed()) {
+                return Results.status(Status.NOT_FOUND);
+            }
+            
+            return Results.status(Status.OK/*ACCEPTED*/);//.contentType(MediaType.JSON);//TODO
+        };
+        
+        _addRoute(HttpMethod.GET, path, handler);
+    }
+    
     
     // PATH
     /**
