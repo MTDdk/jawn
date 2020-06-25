@@ -405,9 +405,9 @@ final class ContextImpl implements Context {
     }
     
     void end() {
-        //if (!sresp.committed()) {
+        if (!sresp.committed()) {
             writeCookies(); 
-        //}
+        }
         
         // something, something, content-length header .. ?
         /*sresp.header("Content-Length").or(() -> sresp.header("Transfer-Encoding")).ifPresent(header -> {
@@ -424,7 +424,7 @@ final class ContextImpl implements Context {
         end();
     }
     
-    private void writeCookies() {
+    /*private*/ void writeCookies() {
         if (cookies != null && !cookies.isEmpty()) {
             List<String> setCookie = cookies.values().stream().map(Cookie::toString).collect(Collectors.toList());
             sresp.header("Set-Cookie", setCookie);

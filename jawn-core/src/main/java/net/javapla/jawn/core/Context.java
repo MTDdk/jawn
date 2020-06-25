@@ -170,9 +170,4 @@ public interface Context /*extends Injection*/ {
      */
     Path realPath(String file);
     
-    
-    /**
-     * Websockets
-     */
-    //Context upgrade(WebSocket.Initialiser initialiser);
 }

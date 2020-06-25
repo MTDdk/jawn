@@ -21,7 +21,7 @@ final class ResultRunner {
     }
     
     
-    void execute(final Result result, final Context context) throws Up.BadMediaType, Up.ViewError {
+    void execute(final Result result, final ContextImpl context) throws Up.BadMediaType, Up.ViewError {
         //if (context.resp().committed()) return;
         
         //context.readyResponse(result);
@@ -39,7 +39,7 @@ final class ResultRunner {
         //context.end(); // TODO could this be placed in context.done() ?
     }
     
-    private void readyResponse(final Result result, final Context context) {
+    private void readyResponse(final Result result, final ContextImpl context) {
         if (!context.resp().committed()) {
             context.resp().contentType(result.contentType());
             
@@ -50,6 +50,8 @@ final class ResultRunner {
             
             result.headers().
                 ifPresent(map -> map.forEach(context.resp()::header));
+            
+            context.writeCookies();
         }
     }
     

@@ -55,7 +55,7 @@ final class UndertowResponse implements ServerResponse {
     @Override
     public void header(String name, List<String> values) {
         HeaderMap headers = exchange.getResponseHeaders();
-        headers.putAll(HttpString.tryFromString(name), Collections.unmodifiableList(values));
+        headers.putAll(HttpString.tryFromString(name), /*Collections.unmodifiableList(*/values/*)*/);
     }
 
     @Override
