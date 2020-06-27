@@ -134,6 +134,9 @@ public class Images {
         
         byte[] asBytes();
         
+        BufferedImage asBufferedImage();
+        
+        
         /**
          * Creates a {@link Result} that can be used to send this image
          * 
@@ -142,10 +145,12 @@ public class Images {
          */
         Result asResult();
         
-        //void save(Path path);
+        Image save(Path path) throws Up.IO;
+        
+        void flush();
     }
     
-    public Image image(final FormItem item) throws Up.IO {
+    public static Image image(final FormItem item) throws Up.IO {
         try {
             return image(ImageIO.read(item.file().orElseThrow()), ImageFormat.fromFileName(item.fileName().get()));
         } catch (IOException e) {
@@ -161,7 +166,7 @@ public class Images {
         }
     }
     
-    public Image image(final InputStream stream, final ImageFormat format) throws Up.IO {
+    public static Image image(final InputStream stream, final ImageFormat format) throws Up.IO {
         try {
             return image(ImageIO.read(stream), format);
         } catch (IOException e) {
@@ -169,7 +174,7 @@ public class Images {
         }
     }
     
-    public Image image(final byte[] bytes, final ImageFormat format) throws Up.IO {
+    public static Image image(final byte[] bytes, final ImageFormat format) throws Up.IO {
         try {
             return image(ImageIO.read(new ByteArrayInputStream(bytes)), format);
         } catch (IOException e) {
@@ -177,7 +182,7 @@ public class Images {
         }
     }
     
-    public Image image(final Path path) throws Up.IO {
+    public static Image image(final Path path) throws Up.IO {
         try {
             String file = path.getFileName().toString();
             String name = file.substring(0, file.lastIndexOf('.'));
@@ -188,7 +193,7 @@ public class Images {
         }
     }
     
-    public Image image(final BufferedImage img, final ImageFormat format) {
+    public static Image image(final BufferedImage img, final ImageFormat format) {
         
         return new Image() {
             private BufferedImage image = img;
@@ -318,6 +323,27 @@ public class Images {
                 } catch (IOException e) {
                     throw new Up.IO(e); // this is not really an IO error..
                 }
+            }
+            
+            @Override
+            public BufferedImage asBufferedImage() {
+                return image;
+            }
+            
+            @Override
+            public Image save(Path path) throws Up.IO {
+                try {
+                    // does not overwrite
+                    ImageIO.write(image, format.name().toLowerCase(), Files.newOutputStream(path, StandardOpenOption.CREATE));
+                    return this;
+                } catch (IOException e) {
+                    throw new Up.IO(e);
+                }
+            }
+            
+            @Override
+            public void flush() {
+                image.flush();
             }
             
             @Override
