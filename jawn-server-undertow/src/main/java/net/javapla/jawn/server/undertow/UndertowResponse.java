@@ -122,7 +122,7 @@ final class UndertowResponse implements ServerResponse {
         }*/
         
         // this is a noop when response has been set, still call it...
-        if (endExchange) {
+        if (endExchange || streamCreated) {
             exchange.endExchange();
         }
     }

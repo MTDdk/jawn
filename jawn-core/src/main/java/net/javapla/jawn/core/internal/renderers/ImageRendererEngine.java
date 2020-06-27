@@ -43,7 +43,9 @@ class ImageRendererEngine implements /*Stream*/RendererEngine {
         } else if (obj instanceof InputStream) {
             //super.invoke(context, obj);
             try (InputStream s = (InputStream) obj) {
-                context.resp().send(s);
+                //context.resp().send(s);
+                ((InputStream) obj).transferTo(context.resp().outputStream());
+                //context.resp().outputStream().close();
             }
         } else if (obj instanceof File) {
             try (InputStream s = new FileInputStream((File)obj)) {
