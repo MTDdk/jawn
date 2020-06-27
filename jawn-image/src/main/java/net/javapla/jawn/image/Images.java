@@ -6,6 +6,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -170,6 +173,17 @@ public class Images {
         try {
             return image(ImageIO.read(new ByteArrayInputStream(bytes)), format);
         } catch (IOException e) {
+            throw new Up.IO(e); // this is not really an IO error..
+        }
+    }
+    
+    public Image image(final Path path) throws Up.IO {
+        try {
+            String file = path.getFileName().toString();
+            String name = file.substring(0, file.lastIndexOf('.'));
+            
+            return image(ImageIO.read(Files.newInputStream(path, StandardOpenOption.READ)), ImageFormat.fromFileName(name));
+        } catch (IllegalArgumentException | IOException e) {
             throw new Up.IO(e); // this is not really an IO error..
         }
     }
