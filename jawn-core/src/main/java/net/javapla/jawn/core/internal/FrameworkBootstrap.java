@@ -166,7 +166,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         return userModule;
     }*/
     
-    public void reboot___strap(final Function<Injector,List<Route>> routes/*, com.google.inject.Module userModule*/) {
+    public void reboot___strap(final Function<Injector,List<Route>> routes, FrameworkBootstrap newbootstrap/*, com.google.inject.Module userModule*/) {
         if (injector == null) throw new RuntimeException(this.getClass().getSimpleName() + " not initialised");
         
         /*
@@ -176,6 +176,8 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         
         Router router = injector.getInstance(Router.class);
         router.recompileRoutes(routes.apply(injector));
+        
+        newbootstrap.injector = injector;
     }
     
     public Injector getInjector() {

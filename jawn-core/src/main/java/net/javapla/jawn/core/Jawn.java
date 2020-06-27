@@ -423,7 +423,7 @@ public class Jawn implements Route.Filtering, Injection {
                 // then we might be able to reload the entire application in order to correctly set up
                 // the Guice dependencies
                 
-                dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes);
+                dynamicInstance.bootstrap.reboot___strap(newJawnInstance::buildRoutes, newJawnInstance.bootstrap);
             };
             
             

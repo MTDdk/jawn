@@ -120,7 +120,7 @@ public class FrameworkBootstrapTest {
         when(nroutes.apply(any(Injector.class))).thenReturn(List.of());
         
         framework.boot(Modes.TEST, serverConfig, routes);
-        framework.reboot___strap(nroutes);
+        framework.reboot___strap(nroutes, new FrameworkBootstrap());
         
         verify(nroutes, times(1)).apply(framework.injector);
     }
