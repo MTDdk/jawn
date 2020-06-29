@@ -385,6 +385,33 @@ public class Jawn implements Route.Filtering, Injection {
     }
     
     /**
+     * Tries to instantiate the calling class as a subclass of {@link Jawn},
+     * and start the server from this
+     * 
+     * @param args
+     */
+    @SuppressWarnings("unchecked")
+    public static final void run(final String ... args) {
+        /* 
+         * https://stackoverflow.com/a/34948763
+         *  - index 0 = Thread
+         *  - index 1 = this
+         *  - index 2 = direct caller, can be self.
+         *  - index 3 ... n = classes and methods that called each other to get to the index 2 and below.
+         */
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        for (int i = 2; i < stack.length; i++) {
+            
+            Class<?> compiledClass = ClassFactory.getCompiledClass(stack[i].getClassName(), false);
+            if (Jawn.class.isAssignableFrom(compiledClass)) {
+                Jawn.run((Class<? extends Jawn>) compiledClass, args);
+                return;
+            }
+        }
+        logger.error("Could not determine a class extending {}, and therefore not able to start a server", Jawn.class);
+    }
+    
+    /**
      * @param jawn
      *          A subclass of Jawn
      * @param args
@@ -526,8 +553,8 @@ public class Jawn implements Route.Filtering, Injection {
         // add global filters to the routes
         globalFilters.populate(injector, (item) -> routes.forEach(r -> r.globalFilter(item)));
         
-        // add assets (without the filters)
-        routes.addAll(AssetRouter.assets(injector.getInstance(DeploymentInfo.class), assets));
+        // add assets (without the global filters)
+        routes.addAll(AssetRouter.assets(injector.getInstance(DeploymentInfo.class), assets, (populator, builder) -> populator.populate(injector, builder::filter)));
         
         // build
         return routes.stream().map(Route.Builder::build).collect(Collectors.toList());

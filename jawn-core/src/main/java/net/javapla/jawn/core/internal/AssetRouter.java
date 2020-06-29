@@ -4,6 +4,7 @@ import java.nio.file.NoSuchFileException;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ public abstract class AssetRouter {
      * - i.e.: Route(/js/*),Route(/css/*),Route(/img/*)
      */
     
-    public static List<Route.Builder> assets(final DeploymentInfo deploymentInfo, final Assets.Impl assets) {
+    public static List<Route.Builder> assets(final DeploymentInfo deploymentInfo, final Assets.Impl assets, final BiConsumer<RouteFilterPopulator, Route.Builder> populate) {
         Set<String> paths = findAssetPaths(deploymentInfo);
         logger.debug("Letting the server take care of providing resources from: {}", paths);
         
@@ -38,10 +39,12 @@ public abstract class AssetRouter {
         return paths
             .stream()
             .map(path -> {
+                Route.Builder builder;
                 
                 // We assume if the path contains a dot '.', it is a file and not a folder
                 if (path.indexOf('.') > 0) {
-                    return new Route.Builder(HttpMethod.GET)
+                    
+                    builder = new Route.Builder(HttpMethod.GET)
                         .path(path)
                         .handler(
                             new AssetHandler(deploymentInfo)
@@ -49,16 +52,24 @@ public abstract class AssetRouter {
                                 .lastModified(assets.lastModified)
                                 .maxAge(assets.maxAge)
                         );
+                    
+                } else {
+                
+                    // This should be a folder then
+                    builder = new Route.Builder(HttpMethod.GET)
+                        .path(path + "/{file: .*}")
+                        .handler(new AssetHandler(deploymentInfo)
+                            .etag(assets.etag)
+                            .lastModified(assets.lastModified)
+                            .maxAge(assets.maxAge)
+                        );
                 }
                 
-                // This should be a folder then
-                return new Route.Builder(HttpMethod.GET)
-                                .path(path + "/{file: .*}")
-                                .handler(new AssetHandler(deploymentInfo)
-                                    .etag(assets.etag)
-                                    .lastModified(assets.lastModified)
-                                    .maxAge(assets.maxAge)
-                                );
+                if (assets.assetFilters.containsKey(path)) {
+                    populate.accept(assets.assetFilters.get(path), builder);
+                }
+                
+                return builder;
             })
             .collect(Collectors.toList());
     }

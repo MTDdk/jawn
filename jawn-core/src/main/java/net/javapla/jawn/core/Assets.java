@@ -1,7 +1,10 @@
 package net.javapla.jawn.core;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+import net.javapla.jawn.core.internal.RouteFilterPopulator;
 import net.javapla.jawn.core.util.DurationReader;
 
 public interface Assets {
@@ -9,9 +12,12 @@ public interface Assets {
     long ONE_WEEK_SECONDS = 60 * 60 * 24 * 7;
     
     final class Impl implements Assets {
+        public final Map<String, RouteFilterPopulator> assetFilters = new LinkedHashMap<>();
+        
         public boolean etag = false;
         public boolean lastModified = false;
         public long maxAge = -1;
+        
         
         @Override
         public Assets etag(boolean activate) {
@@ -30,8 +36,15 @@ public interface Assets {
             this.maxAge = seconds;
             return this;
         }
+        
+        public Route.Filtering filter(final String path) {
+            return assetFilters.computeIfAbsent(path, c -> new RouteFilterPopulator());
+        }
+        
     }
-
+    
+    Route.Filtering filter(String path);
+    
     Assets etag(boolean activate);
     
     Assets lastModified(boolean activate);

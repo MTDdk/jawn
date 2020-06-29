@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,7 +32,8 @@ public class AssetRouterTest {
 
     @Test
     public void readAssetFolders() {
-        List<Builder> assets = AssetRouter.assets(di, new Assets.Impl());
+        @SuppressWarnings("unchecked")
+        List<Builder> assets = AssetRouter.assets(di, new Assets.Impl(), mock(BiConsumer.class));
         assertThat(assets).hasSize(5);
         
         assertThat(assets.stream().map(Route.Builder::build).collect(Collectors.toList()))
