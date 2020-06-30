@@ -1,7 +1,10 @@
 package net.javapla.jawn.core.internal;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -294,12 +297,18 @@ final class ContextImpl implements Context {
                 return resp.outputStream();
             }
             
+            /*@Override
+            public Writer writer() {
+                return writer = new OutputStreamWriter(outputStream(), charset());
+            }*/
+            
             @Override
             public boolean committed() {
                 return resp.committed();
             }
         };
     }
+    //private Writer writer;
     
     @Override
     public Request req() {
@@ -413,7 +422,13 @@ final class ContextImpl implements Context {
         /*sresp.header("Content-Length").or(() -> sresp.header("Transfer-Encoding")).ifPresent(header -> {
             
         });*/
-        
+
+        /*if (writer != null) try {
+            writer.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }*/
         sresp.end();
     }
     

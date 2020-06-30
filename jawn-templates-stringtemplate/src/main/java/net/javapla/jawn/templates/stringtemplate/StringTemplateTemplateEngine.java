@@ -1,6 +1,9 @@
 package net.javapla.jawn.templates.stringtemplate;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,9 +48,9 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     // The StringTemplateGroup actually handles some sort of caching internally
     private final FastSTGroup/*STFastGroupDir*//*STGroupDir*/ group;
     
-    //private final Path templateRootFolder;
     private final boolean useCache;
     private final boolean outputHtmlIndented;
+    private final Modes mode;
     
     @Inject
     public StringTemplateTemplateEngine(TemplateConfigProvider<StringTemplateConfiguration> templateConfig,
@@ -60,6 +63,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         
         useCache = mode != Modes.DEV;//!conf.isDev(); // TODO should be the responsibility of core (i.e.: ViewTemplateLoader + SiteConfigurationReader)
         outputHtmlIndented = mode != Modes.PROD;//!conf.isProd();
+        this.mode = mode;
         
         //this.configReader = configReader;
         this.templateLoader = templateLoader;//new ViewTemplateLoader(info);
@@ -82,50 +86,73 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     public final void invoke(final Context context, final View result) throws Up.ViewError {
         final long time = System.currentTimeMillis();
 
-        final Map<String, Object> values = result.model();
-
         if (! useCache)
             reloadGroup();
 
         //final ErrorBuffer error = new ErrorBuffer();
         final ViewTemplates viewTemplates = templateLoader.load(result, TEMPLATE_ENDING);
         
-        templateLoader.render(context, writer -> {
-            if (!viewTemplates.layoutFound()) { // no layout
-                
-                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
-                writeContentTemplate(template, writer, values);
+//        templateLoader.render(context, writer -> {
+//            
+//            // perhaps layout should always be present, and only template be optional
+//            
+//            /*if (!viewTemplates.layoutFound()) { // no layout
+//                
+//                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
+//                writeContentTemplate(template, writer, values);
+//
+//            } else*/ { // with layout
+//
+//                final ST template;
+//                if (viewTemplates.templateFound()) {
+//                    template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
+//                    //content = writeContentTemplate(template, values, error, false);
+//                } else template = null;//new ST("");
+//
+//                // Get the calling controller and not just rely on the folder for the template.
+//                // An action might specify a template that is not a part of the controller.
+//                //final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
+//                
+//                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
+//                injectValuesIntoLayoutTemplate(layout, context, template, result);
+//
+//                writeTemplate(layout, writer, null);
+//            }
+//            
+//            if (log.isDebugEnabled())
+//                log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
+//            
+////            if (!error.errors.isEmpty() && log.isWarnEnabled())
+////                log.warn(error.errors.toString());
+//        });
+        
+        
+         { //with layout
+        
+            final ST template;
+            if (viewTemplates.templateFound()) {
+                template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
+                //content = writeContentTemplate(template, values, error, false);
+            } else template = null;//new ST("");
 
-            } else { // with layout
+            
+            ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
+            injectValuesIntoLayoutTemplate(layout, context, template, result);
 
-                final ST template;
-                if (viewTemplates.templateFound()) {
-                    template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
-                    //content = writeContentTemplate(template, values, error, false);
-                } else template = null;//new ST("");
-
-                // Get the calling controller and not just rely on the folder for the template.
-                // An action might specify a template that is not a part of the controller.
-                //final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
-                
-                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
-                injectValuesIntoLayoutTemplate(layout, context, template, values/*, controller*/, result);
-
+            try (Writer writer = new OutputStreamWriter(context.resp().outputStream())) {
                 writeTemplate(layout, writer);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            
-            if (log.isDebugEnabled())
-                log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
-            
-//            if (!error.errors.isEmpty() && log.isWarnEnabled())
-//                log.warn(error.errors.toString());
-        });
+        }
+        
+        if (log.isDebugEnabled())
+            log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
 
     }
     
     @Override
     public String invoke(final View view) {
-        final Map<String, Object> values = view.model();
 
         if (! useCache)
             reloadGroup();
@@ -133,24 +160,15 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         final ViewTemplates viewTemplates = templateLoader.load(view, TEMPLATE_ENDING);
         
         return templateLoader.renderAsString(writer -> {
-            if (!viewTemplates.layoutFound()) { // no layout
-                
-                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
-                writeContentTemplate(template, writer, values);
+             { // with layout
 
-            } else { // with layout
-
-                final ST template;
-                if (viewTemplates.templateFound()) {
-                    template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
-                    //content = writeContentTemplate(template, values, error, false);
-                } else template = null;//new ST("");
+                final ST template = 
+                    viewTemplates.templateFound() ? group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template()) : null;
 
                 ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
-                layout.add("site", Site.builder(Modes.DEV).content(template).build());
-                injectTemplateValues(layout, values);
+                injectValuesIntoLayoutTemplate(layout, null, template, view);
 
-                writeTemplate(layout, writer);
+                //writeTemplate(layout, writer);
             }
         });
     }
@@ -203,13 +221,13 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     }
     
     /** Renders template directly to writer */
-    private final void writeContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values/*, final ErrorBuffer error*/) {
+    /*private final void writeContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values) {
         injectTemplateValues(contentTemplate, values);
         
         writeTemplate(contentTemplate, writer);
         //contentTemplate.write(createSTWriter(writer), error);
         //contentTemplate.write(createSTWriter(writer), new Locale(language), error);
-    }
+    }*/
 
     /** Renders template into string
      * @return The rendered template if exists, or empty string */
@@ -245,17 +263,24 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     
     private final void injectValuesIntoLayoutTemplate(
             final ST layoutTemplate, final Context ctx, final ST /*String*/ content, 
-            final Map<String, Object> values, /*final String controller,*/ View view) {
+            final View view) {
         
-        injectTemplateValues(layoutTemplate, values);
+        injectTemplateValues(layoutTemplate, view.model());
         
-        // if the reserved keyword is not even used in the template, then no need to read anything into it
+        // if the reserved keyword 'site' is not even used in the template, then no need to read anything into it
         // README doesn't work like this..
 //        if (layoutTemplate.getAttribute("site") == null) return;
         
 //        SiteConfiguration conf = configReader.read(templateRootFolder, controller.length() > 1 && controller.charAt(0) == '/' ? controller.substring(1) : controller, layoutTemplate.impl.prefix.substring(1), useCache);
 //        Site site = configReader.retrieveSite(ctx, conf, controller + layoutTemplate.impl.prefix, content, useCache);
-        Site site = siteProvider.load(ctx, view, content);
+        
+        Site site;
+        if (ctx != null) {
+            site = siteProvider.load(ctx, view, content);
+        } else {
+            // without context, only a simple 'site' can be built
+            site =  Site.builder(mode).content(content).build();
+        }
         
         // put everything into the reserved keyword
         layoutTemplate.add("site", site);
@@ -277,7 +302,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     
     private final void writeTemplate(final ST layoutTemplate, final Writer writer/*, final ErrorBuffer error*/) {
         try {
-            layoutTemplate.write(createSTWriter(writer)/*, error*/);
+            layoutTemplate.write(createSTWriter(writer));
         } catch (IOException ignore) { 
             // should not actually ever throw anything
         }

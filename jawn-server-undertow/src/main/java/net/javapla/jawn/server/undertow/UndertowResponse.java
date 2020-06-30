@@ -3,13 +3,10 @@ package net.javapla.jawn.server.undertow;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -132,10 +129,10 @@ final class UndertowResponse implements ServerResponse {
         exchange.getResponseHeaders().clear();
     }
 
-    @Override
+    /*@Override
     public Writer writer(final Charset charset) {
         return new OutputStreamWriter(outputStream(), charset);
-    }
+    }*/
     
     @Override
     public OutputStream outputStream() {

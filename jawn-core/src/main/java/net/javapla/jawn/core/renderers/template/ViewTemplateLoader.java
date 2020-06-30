@@ -107,6 +107,7 @@ public class ViewTemplateLoader {
             errorOccurred.accept(e);
             throw new Up.ViewError(e);
         }
+        //context.resp().outputStream()
     }
     
     public void render(final Context context, ThrowingConsumer<Writer> render) throws Up.ViewError {
