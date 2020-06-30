@@ -99,7 +99,7 @@ public class ViewTemplateLoader {
     }
     
     public void render(final Context context, ThrowingConsumer<Writer> render, Consumer<Exception> errorOccurred) throws Up.ViewError {
-        try (final AsyncCharArrayWriter writer = new AsyncCharArrayWriter(32_768)) {
+        try (final AsyncCharArrayWriter writer = new AsyncCharArrayWriter()) {
             render.accept(writer);
             
             context.resp().send(writer.toCharBuffer());
@@ -111,6 +111,16 @@ public class ViewTemplateLoader {
     
     public void render(final Context context, ThrowingConsumer<Writer> render) throws Up.ViewError {
         render(context, render, e -> {});
+    }
+    
+    public String renderAsString(ThrowingConsumer<Writer> renderer) throws Up.ViewError {
+        try (final AsyncCharArrayWriter writer = new AsyncCharArrayWriter()) {
+            renderer.accept(writer);
+            
+            return writer.toString();
+        } catch (Exception e) {
+            throw new Up.ViewError(e);
+        }
     }
 
     public final String getLayoutNameForResult(View view, String suffixOfTemplatingEngine) {

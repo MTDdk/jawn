@@ -17,6 +17,8 @@ public interface TemplateRendererEngine extends RendererEngine {
     }
     
     void invoke(Context context, View viewable);
+    
+    String invoke(View viewable);
 
     /**
      * For instance returns .st, .ftl.html, or .ftl.json.

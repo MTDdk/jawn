@@ -16,7 +16,7 @@ public final class AsyncCharArrayWriter extends Writer {
     /**
      * The buffer where data is stored.
      */
-    protected char buf[];
+    protected char[] buf;
 
     /**
      * The number of chars in the buffer.
@@ -27,7 +27,7 @@ public final class AsyncCharArrayWriter extends Writer {
      * Creates a new CharArrayWriter.
      */
     public AsyncCharArrayWriter() {
-        this(32);
+        this(32_768); // 32M
     }
 
     /**

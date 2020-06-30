@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.stringtemplate.v4.AutoIndentWriter;
 import org.stringtemplate.v4.NoIndentWriter;
 import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STErrorListener;
 import org.stringtemplate.v4.STWriter;
-import org.stringtemplate.v4.misc.ErrorBuffer;
-import org.stringtemplate.v4.misc.ErrorType;
+import org.stringtemplate.v4.misc.ErrorManager;
 import org.stringtemplate.v4.misc.STMessage;
 
 import com.google.inject.Inject;
@@ -30,7 +30,6 @@ import net.javapla.jawn.core.renderers.template.config.Site;
 import net.javapla.jawn.core.renderers.template.config.SiteProvider;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfig;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfigProvider;
-import net.javapla.jawn.core.util.AsyncCharArrayWriter;
 import net.javapla.jawn.templates.stringtemplate.rewrite.FastSTGroup;
 
 @Singleton
@@ -88,14 +87,14 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         if (! useCache)
             reloadGroup();
 
-        final ErrorBuffer error = new ErrorBuffer();
-        final ViewTemplates viewTemplates = templateLoader.load(result, TEMPLATE_ENDING/*, useCache*/);
+        //final ErrorBuffer error = new ErrorBuffer();
+        final ViewTemplates viewTemplates = templateLoader.load(result, TEMPLATE_ENDING);
         
         templateLoader.render(context, writer -> {
             if (!viewTemplates.layoutFound()) { // no layout
                 
                 ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
-                writeContentTemplate(template, writer, values, error);
+                writeContentTemplate(template, writer, values);
 
             } else { // with layout
 
@@ -103,25 +102,57 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
                 if (viewTemplates.templateFound()) {
                     template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
                     //content = writeContentTemplate(template, values, error, false);
-                } else template = new ST("");
+                } else template = null;//new ST("");
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
-                final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
+                //final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
                 
                 ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
-                injectValuesIntoLayoutTemplate(layout, context, template, values, controller, result);
+                injectValuesIntoLayoutTemplate(layout, context, template, values/*, controller*/, result);
 
-                writeTemplate(layout, writer, error);
+                writeTemplate(layout, writer);
             }
             
             if (log.isDebugEnabled())
                 log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
             
-            if (!error.errors.isEmpty() && log.isWarnEnabled())
-                log.warn(error.errors.toString());
+//            if (!error.errors.isEmpty() && log.isWarnEnabled())
+//                log.warn(error.errors.toString());
         });
 
+    }
+    
+    @Override
+    public String invoke(final View view) {
+        final Map<String, Object> values = view.model();
+
+        if (! useCache)
+            reloadGroup();
+
+        final ViewTemplates viewTemplates = templateLoader.load(view, TEMPLATE_ENDING);
+        
+        return templateLoader.renderAsString(writer -> {
+            if (!viewTemplates.layoutFound()) { // no layout
+                
+                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
+                writeContentTemplate(template, writer, values);
+
+            } else { // with layout
+
+                final ST template;
+                if (viewTemplates.templateFound()) {
+                    template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
+                    //content = writeContentTemplate(template, values, error, false);
+                } else template = null;//new ST("");
+
+                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
+                layout.add("site", Site.builder(Modes.DEV).content(template).build());
+                injectTemplateValues(layout, values);
+
+                writeTemplate(layout, writer);
+            }
+        });
     }
     
     @Override
@@ -144,6 +175,19 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         //boolean minimise = mode != Modes.DEV; // probably just as outputHtmlIndented
         
         FastSTGroup group = new FastSTGroup(templateLoader, /*templateRootFolder,*/ config.delimiterStart, config.delimiterEnd/*, minimise*/);
+        group.errMgr = new ErrorManager(new STErrorListener() {
+            @Override
+            public void runTimeError(STMessage msg) { if (log.isWarnEnabled()) log.warn(msg.toString()); }
+            
+            @Override
+            public void internalError(STMessage msg) { if (log.isWarnEnabled()) log.warn(msg.toString()); }
+            
+            @Override
+            public void compileTimeError(STMessage msg) { if (log.isWarnEnabled()) log.warn(msg.toString()); }
+            
+            @Override
+            public void IOError(STMessage msg) { if (log.isWarnEnabled()) log.warn(msg.toString()); }
+        });
         
         // add the user configurations
         config.adaptors.forEach(group::registerModelAdaptor);
@@ -159,21 +203,22 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     }
     
     /** Renders template directly to writer */
-    private final void writeContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values, final ErrorBuffer error) {
+    private final void writeContentTemplate(final ST contentTemplate, final Writer writer, final Map<String, Object> values/*, final ErrorBuffer error*/) {
         injectTemplateValues(contentTemplate, values);
         
-        contentTemplate.write(createSTWriter(writer), error);
+        writeTemplate(contentTemplate, writer);
+        //contentTemplate.write(createSTWriter(writer), error);
         //contentTemplate.write(createSTWriter(writer), new Locale(language), error);
     }
 
     /** Renders template into string
      * @return The rendered template if exists, or empty string */
-    private final String writeContentTemplate(final ST contentTemplate, final Map<String, Object> values, final ErrorBuffer error, boolean inErrorState) {
+    /*private final String writeContentTemplate(final ST contentTemplate, final Map<String, Object> values, final ErrorBuffer error, boolean inErrorState) {
         if (contentTemplate != null) { // it has to be possible to use a layout without defining a template
-            try (Writer sw = new AsyncCharArrayWriter(32_768)) {
+            try (Writer sw = new AsyncCharArrayWriter()) {
             
                 final ErrorBuffer templateErrors = new ErrorBuffer();
-                writeContentTemplate(contentTemplate, sw, values/*, language*/, templateErrors);
+                writeContentTemplate(contentTemplate, sw, values, templateErrors);
                 
                 // handle potential errors
                 if (!templateErrors.errors.isEmpty() && !inErrorState) {
@@ -182,9 +227,9 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
                             log.warn("Reloading GroupDir as we have found a problem during rendering of template \"{}\"\n{}",contentTemplate.getName(), templateErrors.errors.toString());
                             //README when errors occur, try to reload the specified templates and try the whole thing again
                             // this often rectifies the problem
-                            /*reloadGroup();
-                            ST reloadedContentTemplate = readTemplate(contentTemplate.getName());
-                            return writeContentTemplate(reloadedContentTemplate, values, error, true);*/
+                            //reloadGroup();
+                            //ST reloadedContentTemplate = readTemplate(contentTemplate.getName());
+                            //return writeContentTemplate(reloadedContentTemplate, values, error, true);
                         }
                     }
                 }
@@ -196,11 +241,11 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         // We might just need to render the layout
         // A template is not necessarily needed for that
         return "";
-    }
+    }*/
     
     private final void injectValuesIntoLayoutTemplate(
             final ST layoutTemplate, final Context ctx, final ST /*String*/ content, 
-            final Map<String, Object> values, final String controller, View view) {
+            final Map<String, Object> values, /*final String controller,*/ View view) {
         
         injectTemplateValues(layoutTemplate, values);
         
@@ -230,8 +275,12 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         }
     }
     
-    private final void writeTemplate(final ST layoutTemplate, final Writer writer, final ErrorBuffer error) {
-        layoutTemplate.write(createSTWriter(writer), error);
+    private final void writeTemplate(final ST layoutTemplate, final Writer writer/*, final ErrorBuffer error*/) {
+        try {
+            layoutTemplate.write(createSTWriter(writer)/*, error*/);
+        } catch (IOException ignore) { 
+            // should not actually ever throw anything
+        }
     }
     
     private final STWriter createSTWriter(final Writer writer) {

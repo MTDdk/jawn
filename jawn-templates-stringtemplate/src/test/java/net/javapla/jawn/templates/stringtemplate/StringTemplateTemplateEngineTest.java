@@ -59,14 +59,14 @@ public class StringTemplateTemplateEngineTest {
         when(context.resp()).thenReturn(response);
         
         
+        // execute
+        engine.invoke(context, Results.view());
+        
+        
         // verify
         doAnswer(AdditionalAnswers.answerVoid((CharBuffer buffer) -> {
             assertThat(buffer.toString()).isEqualTo("<html><body><div>epic content</div></body></html>");
         })).when(response).send(any(CharBuffer.class));
-        
-        
-        // execute
-        engine.invoke(context, Results.view());
     }
     
     @Test
@@ -76,14 +76,15 @@ public class StringTemplateTemplateEngineTest {
         when(context.resp()).thenReturn(response);
 
         
+        // execute
+        engine.invoke(context, Results.view().layout("additional"));
+        
+        
         // verify
         doAnswer(AdditionalAnswers.answerVoid((CharBuffer buffer) -> {
             assertThat(buffer.toString()).isEqualTo("<html><body>additional<div>epic content</div></body></html>");
         })).when(response).send(any(CharBuffer.class));
         
-        
-        // execute
-        engine.invoke(context, Results.view().layout("additional"));
     }
     
     @Test
@@ -93,14 +94,23 @@ public class StringTemplateTemplateEngineTest {
         when(context.resp()).thenReturn(response);
 
         
+        // execute
+        engine.invoke(context, Results.view().template("injectcontent").put("test", "injected content"));
+
+        
         // verify
         doAnswer(AdditionalAnswers.answerVoid((CharBuffer buffer) -> {
             assertThat(buffer.toString()).isEqualTo("<html><body><div>injected content</div></body></html>");
         })).when(response).send(any(CharBuffer.class));
-        
-        
-        // execute
-        engine.invoke(context, Results.view().template("injectcontent").put("test", "injected content"));
     }
 
+    @Test
+    public void simpleInvoke() {
+        
+        // execute
+        String output = engine.invoke(Results.view().template("injectcontent").layout("index").put("test", "Mail:<br>simple template"));
+        
+        // assert
+        assertThat(output).isEqualTo("<html><body><div>Mail:<br>simple template</div></body></html>");
+    }
 }

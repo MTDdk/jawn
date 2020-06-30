@@ -1,5 +1,6 @@
 package net.javapla.jawn.core;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,5 +91,10 @@ public class View extends Result {
     @Override
     public Result renderable(Object content) {
         throw new UnsupportedOperationException("Not allowed in views, use one of the put methods.");
+    }
+    
+    @Override
+    public String toString() {
+        return MessageFormat.format("status [{0}], type [{1}], char [{2}], model [{3}]", status, contentType, charset, viewModel);
     }
 }
