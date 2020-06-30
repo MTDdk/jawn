@@ -2,7 +2,6 @@ package net.javapla.jawn.templates.stringtemplate;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,8 +45,8 @@ public class StringTemplateTemplateEngineTest {
         
         // Mock the SiteProvider to return a Site with actual content in it
         SiteProvider siteProvider = mock(SiteProvider.class);
-        when(siteProvider.load(any(Context.class), any(View.class), anyString()))
-            .then(AdditionalAnswers.answer((Context ctx, View view, String content) -> Site.builder(Modes.PROD).build().content(content)));
+        when(siteProvider.load(any(Context.class), any(View.class), any()))
+            .then(AdditionalAnswers.answer((Context ctx, View view, Object content) -> Site.builder(Modes.PROD).build().content(content)));
         
         
         engine = new StringTemplateTemplateEngine(new TemplateConfigProvider<StringTemplateConfiguration>(), Modes.PROD, templateLoader, siteProvider);

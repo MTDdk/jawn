@@ -36,7 +36,7 @@ public class SiteProvider {
     }
     
     
-    public Site load(Context ctx, View view, String content) {
+    public Site load(Context ctx, View view, Object content) {
         if (useCache) {
             Site site = cachedSiteObjs.computeIfAbsent(view.path(), path -> {
                 SiteConfiguration conf = confReader.find(view.path());

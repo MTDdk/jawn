@@ -94,23 +94,23 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         templateLoader.render(context, writer -> {
             if (!viewTemplates.layoutFound()) { // no layout
                 
-                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template/*AsReader*/());
+                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
                 writeContentTemplate(template, writer, values, error);
 
             } else { // with layout
 
-                final String content;
+                final ST template;
                 if (viewTemplates.templateFound()) {
-                    ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template/*AsReader*/());
-                    content = writeContentTemplate(template, values, error, false);
-                } else content = "";
+                    template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
+                    //content = writeContentTemplate(template, values, error, false);
+                } else template = new ST("");
 
                 // Get the calling controller and not just rely on the folder for the template.
                 // An action might specify a template that is not a part of the controller.
                 final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
                 
-                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout/*AsReader*/());
-                injectValuesIntoLayoutTemplate(layout, context, content, values, controller, result);
+                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
+                injectValuesIntoLayoutTemplate(layout, context, template, values, controller, result);
 
                 writeTemplate(layout, writer, error);
             }
@@ -199,7 +199,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     }
     
     private final void injectValuesIntoLayoutTemplate(
-            final ST layoutTemplate, final Context ctx, final String content, 
+            final ST layoutTemplate, final Context ctx, final ST /*String*/ content, 
             final Map<String, Object> values, final String controller, View view) {
         
         injectTemplateValues(layoutTemplate, values);

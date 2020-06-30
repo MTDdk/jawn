@@ -10,11 +10,12 @@ public class Site {
                         scripts,
                         styles;
     
-    public String url, content;
+    public String url;
+    public Object content;
     
     public final Modes mode;
     
-    protected Site(final String url, final String title, final String scripts, final String styles, final String content, final Modes mode) {
+    protected Site(final String url, final String title, final String scripts, final String styles, final Object content, final Modes mode) {
         this.url = url;
         this.title = title;
         this.scripts = scripts;
@@ -32,7 +33,7 @@ public class Site {
         return this;
     }
     
-    public Site content(final String content) {
+    public Site content(final Object content) {
         this.content = content;
         return this;
     }
@@ -53,7 +54,7 @@ public class Site {
             scripts,
             styles;
 
-        public String content;
+        public Object content;
 
         public final Modes mode;
         private Builder(final Modes mode) { this.mode = mode; }
@@ -84,7 +85,7 @@ public class Site {
                 this.styles = createStyles(links);
             return this;
         }
-        public Site.Builder content(String content) {
+        public Site.Builder content(Object content) {
             this.content = content;
             return this;
         }
