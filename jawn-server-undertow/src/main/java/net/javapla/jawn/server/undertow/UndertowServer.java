@@ -3,10 +3,12 @@ package net.javapla.jawn.server.undertow;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
+import org.slf4j.LoggerFactory;
 import org.xnio.Options;
 
 import com.google.inject.Inject;
 
+import ch.qos.logback.classic.Level;
 import io.undertow.Undertow;
 import io.undertow.Undertow.Builder;
 import io.undertow.UndertowOptions;
@@ -28,6 +30,10 @@ public final class UndertowServer implements Server {
     UndertowServer(final HttpHandler dispatcher, final Config conf) {
         this.dispatcher = dispatcher;
         this.conf = conf;
+        
+        // Not everything is necessary
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("io.undertow.request.io");
+        logger.setLevel(Level.WARN);
     }
 
     @Override
