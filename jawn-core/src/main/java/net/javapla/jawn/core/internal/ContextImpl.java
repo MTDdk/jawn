@@ -3,7 +3,7 @@ package net.javapla.jawn.core.internal;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -26,6 +26,7 @@ import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.parsers.ParserEngine;
@@ -297,10 +298,11 @@ final class ContextImpl implements Context {
                 return resp.outputStream();
             }
             
-            /*@Override
+            @Override
             public Writer writer() {
-                return writer = new OutputStreamWriter(outputStream(), charset());
-            }*/
+                //setContentType();
+                return writer = new PrintWriter(outputStream(), false, charset());// new OutputStreamWriter(outputStream(), charset()));
+            }
             
             @Override
             public boolean committed() {
@@ -308,7 +310,7 @@ final class ContextImpl implements Context {
             }
         };
     }
-    //private Writer writer;
+    private Writer writer;
     
     @Override
     public Request req() {
@@ -423,12 +425,11 @@ final class ContextImpl implements Context {
             
         });*/
 
-        /*if (writer != null) try {
-            writer.close();
+        if (writer != null) try (Writer w = writer) {
+            writer.flush();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }*/
+            throw Up.IO.because(e);
+        }
         sresp.end();
     }
     
@@ -436,7 +437,7 @@ final class ContextImpl implements Context {
         /*if (files != null) {
             files.forEach(File::delete);
         }*/
-        end();
+        //end();
     }
     
     /*private*/ void writeCookies() {

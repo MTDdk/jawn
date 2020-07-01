@@ -2,11 +2,11 @@ package net.javapla.jawn.templates.stringtemplate;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,6 +27,7 @@ import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 import net.javapla.jawn.core.renderers.template.config.Site;
 import net.javapla.jawn.core.renderers.template.config.SiteProvider;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfigProvider;
+import net.javapla.jawn.core.util.AsyncCharArrayWriter;
 import net.javapla.jawn.core.util.Constants;
 
 public class StringTemplateTemplateEngineTest {
@@ -55,6 +56,9 @@ public class StringTemplateTemplateEngineTest {
     @Test
     public void standardTemplating() throws Exception {
         Response response = mock(Response.class);
+        AsyncCharArrayWriter writer = new AsyncCharArrayWriter(61);
+        when(response.writer()).thenReturn(writer);
+        
         Context context = mock(Context.class);
         when(context.resp()).thenReturn(response);
         
@@ -64,14 +68,20 @@ public class StringTemplateTemplateEngineTest {
         
         
         // verify
-        doAnswer(AdditionalAnswers.answerVoid((CharBuffer buffer) -> {
+        /*doAnswer(AdditionalAnswers.answerVoid((CharBuffer buffer) -> {
             assertThat(buffer.toString()).isEqualTo("<html><body><div>epic content</div></body></html>");
         })).when(response).send(any(CharBuffer.class));
+        verify(response, times(1)).send(any(CharBuffer.class));*/
+        verify(response, times(1)).writer();
+        assertThat(writer.toString()).isEqualTo("<html><body><div>epic content</div></body></html>");
     }
     
     @Test
     public void noTagLeftover() throws Exception {
         Response response = mock(Response.class);
+        AsyncCharArrayWriter writer = new AsyncCharArrayWriter(61);
+        when(response.writer()).thenReturn(writer);
+        
         Context context = mock(Context.class);
         when(context.resp()).thenReturn(response);
 
@@ -81,15 +91,20 @@ public class StringTemplateTemplateEngineTest {
         
         
         // verify
-        doAnswer(AdditionalAnswers.answerVoid((CharBuffer buffer) -> {
+        /*doAnswer(AdditionalAnswers.answerVoid((CharBuffer buffer) -> {
             assertThat(buffer.toString()).isEqualTo("<html><body>additional<div>epic content</div></body></html>");
         })).when(response).send(any(CharBuffer.class));
-        
+        verify(response, times(1)).send(any(CharBuffer.class));*/
+        verify(response, times(1)).writer();
+        assertThat(writer.toString()).isEqualTo("<html><body>additional<div>epic content</div></body></html>");
     }
     
     @Test
     public void inject() throws Exception {
         Response response = mock(Response.class);
+        AsyncCharArrayWriter writer = new AsyncCharArrayWriter(61);
+        when(response.writer()).thenReturn(writer);
+        
         Context context = mock(Context.class);
         when(context.resp()).thenReturn(response);
 
@@ -99,9 +114,12 @@ public class StringTemplateTemplateEngineTest {
 
         
         // verify
-        doAnswer(AdditionalAnswers.answerVoid((CharBuffer buffer) -> {
+        /*doAnswer(AdditionalAnswers.answerVoid((CharBuffer buffer) -> {
             assertThat(buffer.toString()).isEqualTo("<html><body><div>injected content</div></body></html>");
         })).when(response).send(any(CharBuffer.class));
+        verify(response, times(1)).send(any(CharBuffer.class));*/
+        verify(response, times(1)).writer();
+        assertThat(writer.toString()).isEqualTo("<html><body><div>injected content</div></body></html>");
     }
 
     @Test

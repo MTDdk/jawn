@@ -1,9 +1,6 @@
 package net.javapla.jawn.templates.stringtemplate;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -83,94 +80,42 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     }
 
     @Override
-    public final void invoke(final Context context, final View result) throws Up.ViewError {
+    public final void invoke(final Context context, final View view) throws Up.ViewError {
         final long time = System.currentTimeMillis();
 
-        if (! useCache)
-            reloadGroup();
-
-        //final ErrorBuffer error = new ErrorBuffer();
-        final ViewTemplates viewTemplates = templateLoader.load(result, TEMPLATE_ENDING);
-        
-//        templateLoader.render(context, writer -> {
-//            
-//            // perhaps layout should always be present, and only template be optional
-//            
-//            /*if (!viewTemplates.layoutFound()) { // no layout
-//                
-//                ST template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
-//                writeContentTemplate(template, writer, values);
-//
-//            } else*/ { // with layout
-//
-//                final ST template;
-//                if (viewTemplates.templateFound()) {
-//                    template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
-//                    //content = writeContentTemplate(template, values, error, false);
-//                } else template = null;//new ST("");
-//
-//                // Get the calling controller and not just rely on the folder for the template.
-//                // An action might specify a template that is not a part of the controller.
-//                //final String controller = result.path();//TODO TemplateEngineHelper.getControllerForResult(route);
-//                
-//                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
-//                injectValuesIntoLayoutTemplate(layout, context, template, result);
-//
-//                writeTemplate(layout, writer, null);
-//            }
-//            
-//            if (log.isDebugEnabled())
-//                log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
-//            
-////            if (!error.errors.isEmpty() && log.isWarnEnabled())
-////                log.warn(error.errors.toString());
-//        });
-        
-        
-         { //with layout
-        
-            final ST template;
-            if (viewTemplates.templateFound()) {
-                template = group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template());
-                //content = writeContentTemplate(template, values, error, false);
-            } else template = null;//new ST("");
-
-            
-            ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
-            injectValuesIntoLayoutTemplate(layout, context, template, result);
-
-            try (Writer writer = new OutputStreamWriter(context.resp().outputStream())) {
-                writeTemplate(layout, writer);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        final ViewTemplates viewTemplates = templateLoader.load(view, TEMPLATE_ENDING);
+        writeTemplate(assembleTemplate(context, view, viewTemplates), context.resp().writer());
         
         if (log.isDebugEnabled())
-            log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
-
+           log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
+        
     }
     
     @Override
     public String invoke(final View view) {
 
+        return templateLoader.renderAsString(writer -> {
+            writeTemplate(assembleTemplate(null, view, templateLoader.load(view, TEMPLATE_ENDING)), writer);
+        });
+    }
+    
+    private ST assembleTemplate(final Context context, final View view, final ViewTemplates viewTemplates) {
+        
         if (! useCache)
             reloadGroup();
 
-        final ViewTemplates viewTemplates = templateLoader.load(view, TEMPLATE_ENDING);
+        // perhaps layout should always be present, and only template be optional
         
-        return templateLoader.renderAsString(writer -> {
-             { // with layout
+         { // with layout
 
-                final ST template = 
-                    viewTemplates.templateFound() ? group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template()) : null;
+            final ST template = 
+                viewTemplates.templateFound() ? group.getInstanceOf(viewTemplates.templatePath(), viewTemplates.template()) : null;
 
-                ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
-                injectValuesIntoLayoutTemplate(layout, null, template, view);
+            ST layout = group.getInstanceOf(viewTemplates.layoutPath(), viewTemplates.layout());
+            injectValuesIntoLayoutTemplate(layout, context, template, view);
 
-                //writeTemplate(layout, writer);
-            }
-        });
+            return layout;
+        }
     }
     
     @Override

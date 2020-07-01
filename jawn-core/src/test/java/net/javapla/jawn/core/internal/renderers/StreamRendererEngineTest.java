@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.file.Paths;
@@ -37,6 +38,7 @@ public class StreamRendererEngineTest {
     @Before
     public void setUp() throws Exception {
         response = mock(Context.Response.class);
+        when(response.outputStream()).thenReturn(mock(OutputStream.class));
         
         context = mock(Context.class);
         when(context.resp()).thenReturn(response);
@@ -65,7 +67,8 @@ public class StreamRendererEngineTest {
         verify(response, never()).send(any(byte[].class));
         verify(response, never()).send(any(ByteBuffer.class));
         verify(response, never()).send(any(CharBuffer.class));
-        verify(response, times(1)).send(any(InputStream.class));
+        //verify(response, times(1)).send(any(InputStream.class));
+        verify(response, times(1)).outputStream();
     }
     
     @Test
@@ -78,6 +81,7 @@ public class StreamRendererEngineTest {
         verify(response, never()).send(any(byte[].class));
         verify(response, never()).send(any(ByteBuffer.class));
         verify(response, never()).send(any(CharBuffer.class));
-        verify(response, times(1)).send(any(InputStream.class));
+        //verify(response, times(1)).send(any(InputStream.class));
+        verify(response, times(1)).outputStream();
     }
 }

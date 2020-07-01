@@ -36,7 +36,7 @@ final class ResultRunner {
             engines.getRendererEngineForContentType(result.contentType(), engine -> invoke(engine, context, renderable));
         });
         
-        //context.end(); // TODO could this be placed in context.done() ?
+        context.end();
     }
     
     private void readyResponse(final Result result, final ContextImpl context) {

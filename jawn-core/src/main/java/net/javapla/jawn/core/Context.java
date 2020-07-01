@@ -67,7 +67,7 @@ public interface Context /*extends Injection*/ {
         
         OutputStream outputStream();
         
-        //Writer writer();
+        Writer writer();
 
         boolean committed();
 

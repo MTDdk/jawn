@@ -1,9 +1,6 @@
 package net.javapla.jawn.core.internal.renderers;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Arrays;
 
@@ -14,10 +11,9 @@ import com.google.inject.Singleton;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
-import net.javapla.jawn.core.renderers.RendererEngine;
 
 @Singleton
-class ImageRendererEngine implements /*Stream*/RendererEngine {
+class ImageRendererEngine extends StreamRendererEngine {
  // TODO ImageRendererEngine needs to be thoroughly thought through as well
 
     @Override
@@ -40,18 +36,21 @@ class ImageRendererEngine implements /*Stream*/RendererEngine {
 
             ImageIO.write((BufferedImage) obj, extension, context.resp());*/
 
-        } else if (obj instanceof InputStream) {
+        } /*else if (obj instanceof InputStream) {
             //super.invoke(context, obj);
             try (InputStream s = (InputStream) obj) {
                 //context.resp().send(s);
                 ((InputStream) obj).transferTo(context.resp().outputStream());
                 //context.resp().outputStream().close();
+            } catch (IOException e) {
+                context.resp().outputStream().close();
             }
         } else if (obj instanceof File) {
             try (InputStream s = new FileInputStream((File)obj)) {
                 context.resp().send(s);
             }
-        }
+        }*/
+        else super.invoke(context, obj);
 
     }
 

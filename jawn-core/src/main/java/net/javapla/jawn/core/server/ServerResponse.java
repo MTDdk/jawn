@@ -7,7 +7,12 @@ import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public interface ServerResponse {
+    
+    static Logger logger = LoggerFactory.getLogger(ServerResponse.class);
     
     Optional<String> header(final String name);
     List<String> headers(String name);
@@ -25,5 +30,5 @@ public interface ServerResponse {
     void reset();
     //Writer writer(Charset charset);
     OutputStream outputStream();
-    boolean usingStream();
+    //boolean usingStream();
 }
