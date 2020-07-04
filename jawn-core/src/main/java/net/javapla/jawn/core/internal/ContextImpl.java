@@ -151,6 +151,10 @@ final class ContextImpl implements Context {
                 long length = length();
                 
                 if (length > 0) {
+                    if (type == String.class) {
+                        return Value.of(new String(sreq.bytes(), charset())).as(type);
+                    }
+                    
                     ParserEngineManager engineManager = injector.getInstance(ParserEngineManager.class);
                     ParserEngine engine = engineManager.getParserEngineForContentType(contentType());
                     
