@@ -37,17 +37,21 @@ final class ConfigImpl implements Config {
     }
     
     static ConfigImpl parse(final Modes mode, final String file) {
-        Properties properties = PropertiesLoader.parseResourse(file, ParseOptions.defaults());
-        return new ConfigImpl(mode, properties);
+        return parse(mode, file, ParseOptions.defaults());
     }
     
     static ConfigImpl parse(final Modes mode, final String file, final ParseOptions options) {
-        Properties properties = PropertiesLoader.parseResourse(file, options);
+        Properties properties = PropertiesLoader.parseResource(file, options);
+        return new ConfigImpl(mode, properties);
+    }
+    
+    static ConfigImpl parseAll(final Modes mode, final String file) {
+        Properties properties = PropertiesLoader.parseMultipleResources(file, ParseOptions.defaults());
         return new ConfigImpl(mode, properties);
     }
     
     static ConfigImpl framework(final Modes mode) {
-        return parse(mode, Constants.PROPERTIES_FILE_FRAMEWORK);
+        return parseAll(mode, Constants.PROPERTIES_FILE_FRAMEWORK);
     }
     
     static ConfigImpl user(final Modes mode) {
@@ -68,8 +72,8 @@ final class ConfigImpl implements Config {
      */
     Config merge(final ConfigImpl that) {
         Properties thisCloned = (Properties) this.props.clone();
-        that.props.entrySet().parallelStream().forEach(e -> thisCloned.setProperty(e.getKey().toString(), e.getValue().toString()));
-        return new ConfigImpl(that.getMode(), thisCloned);
+        //that.props.entrySet().parallelStream().forEach(e -> thisCloned.setProperty(e.getKey().toString(), e.getValue().toString()));
+        return new ConfigImpl(that.getMode(), PropertiesLoader.merge(that.props, thisCloned));//thisCloned);
     }
 
     @Override
@@ -115,4 +119,8 @@ final class ConfigImpl implements Config {
         return props.entrySet().parallelStream().map(convert).collect(Collectors.toSet());
     }*/
     
+    @Override
+    public String toString() {
+        return props.toString();
+    }
 }

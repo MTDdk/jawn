@@ -87,7 +87,7 @@ public class MediaType implements Comparable<MediaType> {
     // TODO: Perhaps a default/user defined mechanism, like jawn_defaults
     static final Properties mimes = Config
         .PropertiesLoader
-        .parseResourse("mime.properties", ParseOptions.defaults());
+        .parseResource("mime.properties", ParseOptions.defaults());
     
     MediaType(final String type, final String subtype, final Map<String, String> parameters) {
         this(type, subtype, null, createParametersMap(parameters));

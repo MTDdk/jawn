@@ -6,6 +6,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -209,8 +210,48 @@ public interface Config {
             return p;
         }
         
-        public static Properties parseResourse(final String file, final ParseOptions options) {
+        /**
+         * Only String values
+         * 
+         * from => into
+         */
+        public static Properties merge(Properties from, Properties into) {
+            from.entrySet().stream().forEach(e -> into.setProperty((String)e.getKey(), (String)e.getValue()));
+            return into;
+        }
+        
+        public static Properties parseMultipleResources(final String file, final ParseOptions options) {
             
+            Enumeration<URL> resources;
+            try {
+                resources = options.classLoader().getResources(file);
+            } catch (IOException e) {
+                
+                if (!file.endsWith(".properties")) {
+                    try {
+                        resources = options.classLoader().getResources(file + ".properties");
+                    } catch (IOException e1) {
+                        throw Up.IO.because(e);
+                    }
+                } else {
+                    throw Up.IO.because(e);
+                }
+                
+            }
+            
+            
+            Properties all = new Properties();
+            
+            while (resources.hasMoreElements()) {
+                Properties properties = _read(resources.nextElement(), options.charset());
+                merge(properties, all);
+                properties.clear();
+            }
+            
+            return all;
+        }
+        
+        public static Properties parseResource(final String file, final ParseOptions options) {
             URL resource = options.classLoader().getResource(file);
             if (resource != null) return _read(resource, options.charset());
             

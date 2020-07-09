@@ -282,7 +282,10 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
     }
     
     private Config readConfigurations(final Modes mode) {
+        
+        // reads all the property files for every module
         ConfigImpl frameworkConfig = ConfigImpl.framework(mode);
+        
         try {
             ConfigImpl userConfig = ConfigImpl.user(mode);
             return frameworkConfig.merge(userConfig);
