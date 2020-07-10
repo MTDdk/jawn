@@ -29,7 +29,7 @@ public class LogRequestTimingFilter implements Filter {
             String processingTime = String.valueOf(time() - time);
             context.resp().header("X-Request-Processing-Time", processingTime);
             
-            logger.info("Processed request in: {} milliseconds, path: {} , method: {}", processingTime, context.req().fullPath(), context.req().httpMethod());
+            logger.info("Processed request from [{}] in: {} milliseconds, path: {} , method: {}", context.req().remoteIp(), processingTime, context.req().fullPath(), context.req().httpMethod());
         });
         
         return result;
