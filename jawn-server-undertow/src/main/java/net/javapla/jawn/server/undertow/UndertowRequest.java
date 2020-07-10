@@ -26,9 +26,9 @@ import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
-import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
+import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 
 class UndertowRequest implements ServerRequest {

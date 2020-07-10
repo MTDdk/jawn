@@ -22,9 +22,9 @@ import org.xnio.ChannelListener.Setter;
 import io.undertow.websockets.core.BufferedTextMessage;
 import io.undertow.websockets.core.WebSocketChannel;
 import net.javapla.jawn.core.Config;
-import net.javapla.jawn.core.WebSocket;
-import net.javapla.jawn.core.WebSocketMessage;
-import net.javapla.jawn.core.WebSocket.OnConnect;
+import net.javapla.jawn.core.server.WebSocket;
+import net.javapla.jawn.core.server.WebSocketMessage;
+import net.javapla.jawn.core.server.WebSocket.OnConnect;
 
 public class UntertowWebSocketTest {
     

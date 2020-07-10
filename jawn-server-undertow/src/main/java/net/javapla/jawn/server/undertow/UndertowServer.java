@@ -32,7 +32,7 @@ public final class UndertowServer implements Server {
         this.conf = conf;
         
         // Not everything is necessary
-        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("io.undertow.request.io");
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("io.undertow.request");
         logger.setLevel(Level.WARN);
     }
 

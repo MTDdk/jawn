@@ -1,4 +1,4 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.server;
 
 import java.util.Optional;
 

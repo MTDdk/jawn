@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import net.javapla.jawn.core.server.FormItem;
+import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 
 public interface Context /*extends Injection*/ {
@@ -92,7 +93,29 @@ public interface Context /*extends Injection*/ {
 
         Optional<String> queryString();
 
+        /**
+         * IP address of the requester
+         * 
+         * @return The IP of the caller - does not try to translate proxies
+         */
         String ip();
+        
+        /**
+         * IP address of the requesting client.
+         * If the IP of the request seems to come from a local proxy,
+         * then the "X-Forwarded-For" header is returned.
+         *
+         * @return IP address of the requesting client.
+         */
+        default String remoteIp() {
+            String remoteAddr = ip();
+            
+            // This could be a list of proxy IPs, which the developer could
+            // provide via some configuration
+            if ("127.0.0.1".equals(remoteAddr) || "0:0:0:0:0:0:0:1".equals(remoteAddr)) 
+                remoteAddr = header("X-Forwarded-For").value("localhost");
+            return remoteAddr;
+        }
         
         String path();
         

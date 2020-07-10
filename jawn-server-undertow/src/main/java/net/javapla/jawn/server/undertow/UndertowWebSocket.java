@@ -13,10 +13,10 @@ import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Up;
-import net.javapla.jawn.core.WebSocket;
-import net.javapla.jawn.core.WebSocketCloseStatus;
-import net.javapla.jawn.core.WebSocketMessage;
 import net.javapla.jawn.core.server.Server;
+import net.javapla.jawn.core.server.WebSocket;
+import net.javapla.jawn.core.server.WebSocketCloseStatus;
+import net.javapla.jawn.core.server.WebSocketMessage;
 
 class UndertowWebSocket extends AbstractReceiveListener implements WebSocket.Listener, WebSocket, WebSocketCallback<Void> {
     

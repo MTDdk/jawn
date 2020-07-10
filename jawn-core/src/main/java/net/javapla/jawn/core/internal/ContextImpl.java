@@ -28,12 +28,12 @@ import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Value;
-import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.server.FormItem;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
+import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 
 final class ContextImpl implements Context {
@@ -374,29 +374,6 @@ final class ContextImpl implements Context {
         return Paths.get(injector.getInstance(DeploymentInfo.class).getRealPath(file));
     }
     
-    /*@Override
-    public Context upgrade(WebSocket.Initialiser initialiser) {
-        sreq.upgrade(initialiser)
-        return null;
-    }*/
-    
-    /**
-     * IP address of the requesting client.
-     * If the IP of the request seems to come from a local proxy,
-     * then the X-Forwarded-For header is returned.
-     *
-     * @return IP address of the requesting client.
-     */
-    //@Override //TODO
-    public String remoteIP(){
-        String remoteAddr = req.ip();
-        
-        // This could be a list of proxy IPs, which the developer could
-        // provide via some configuration
-        if ("127.0.0.1".equals(remoteAddr) || "0:0:0:0:0:0:0:1".equals(remoteAddr)) 
-            remoteAddr = req.header("X-Forwarded-For").value("localhost");
-        return remoteAddr;
-    }
     
     void route(final Route route) {
         this.route = route;

@@ -11,7 +11,6 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Value;
-import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.StreamUtil;
 

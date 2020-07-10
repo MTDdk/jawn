@@ -1,4 +1,6 @@
-package net.javapla.jawn.core;
+package net.javapla.jawn.core.server;
+
+import net.javapla.jawn.core.Context;
 
 public interface WebSocket {
     

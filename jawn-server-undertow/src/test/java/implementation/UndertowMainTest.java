@@ -9,8 +9,8 @@ import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Status;
-import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.filters.LogRequestTimingFilter;
+import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.server.ServerConfig.Performance;
 
 public class UndertowMainTest extends Jawn {
