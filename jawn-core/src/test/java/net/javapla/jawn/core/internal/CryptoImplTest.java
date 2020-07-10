@@ -14,7 +14,6 @@ import net.javapla.jawn.core.util.Constants;
 
 public class CryptoImplTest {
     
-
     @Test
     public void hashing_with_secret() {
         Config conf = mock(Config.class);
@@ -22,11 +21,11 @@ public class CryptoImplTest {
         Crypto crypto = new CryptoImpl(conf);
         
         assertThat(crypto.hash().SHA256().sign("But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain"))
-            .isEqualTo("1432f1a1e8431c60a7117f831dc5d5c5e5cb00f15105558791ab9f1c3fdbb87a");
+            .isEqualTo("FDLxoehDHGCnEX+DHcXVxeXLAPFRBVWHkaufHD/buHo");
         assertThat(crypto.hash().SHA256().sign("was born and I will give you a complete account of the system"))
-            .isEqualTo("41c32e6e9c69286263a2c7ef42509dc3248c40186172608a6034e9d45658cdba");
+            .isEqualTo("QcMubpxpKGJjosfvQlCdwySMQBhhcmCKYDTp1FZYzbo");
         assertThat(crypto.hash().SHA256().sign("and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness"))
-            .isEqualTo("c8a5013890bccc204086e3923a26cb483f4ac8b31f564067854ef70714992606");
+            .isEqualTo("yKUBOJC8zCBAhuOSOibLSD9KyLMfVkBnhU73BxSZJgY");
     }
     
     @Test
@@ -36,13 +35,13 @@ public class CryptoImplTest {
         String key = "SomeRandomLongString";
         
         assertThat(crypto.hash().SHA256().sign("But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain", key))
-            .isEqualTo("1432f1a1e8431c60a7117f831dc5d5c5e5cb00f15105558791ab9f1c3fdbb87a");
+            .isEqualTo("FDLxoehDHGCnEX+DHcXVxeXLAPFRBVWHkaufHD/buHo");
                 
         assertThat(crypto.hash().SHA256().sign("was born and I will give you a complete account of the system",key))
-            .isEqualTo("41c32e6e9c69286263a2c7ef42509dc3248c40186172608a6034e9d45658cdba");
+            .isEqualTo("QcMubpxpKGJjosfvQlCdwySMQBhhcmCKYDTp1FZYzbo");
                 
         assertThat(crypto.hash().SHA256().sign("and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness",key))
-            .isEqualTo("c8a5013890bccc204086e3923a26cb483f4ac8b31f564067854ef70714992606");
+            .isEqualTo("yKUBOJC8zCBAhuOSOibLSD9KyLMfVkBnhU73BxSZJgY");
     }
     
     @Test(expected = IllegalArgumentException.class)
@@ -112,5 +111,5 @@ public class CryptoImplTest {
         String decrypted = crypto.encrypt().AES().decrypt(encrypted);
         assertThat(decrypted).isEqualTo(stringToEncrypt);
     }
-
+    
 }

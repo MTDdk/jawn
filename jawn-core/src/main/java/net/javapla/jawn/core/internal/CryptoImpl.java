@@ -103,8 +103,8 @@ class CryptoImpl implements Crypto {
                 byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
                 mac.reset();
 
-                // Convert raw bytes to Hex
-                return StringUtil.hex(rawHmac);
+                // Convert raw bytes to base64
+                return Base64.getEncoder().withoutPadding().encodeToString(rawHmac);
                 
             } catch (IllegalStateException e) {
                 logger.error(getHelperLogMessage(), e);
@@ -126,8 +126,8 @@ class CryptoImpl implements Crypto {
                 // Compute the hmac on input data bytes
                 byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
 
-                // Convert raw bytes to Hex
-                return StringUtil.hex(rawHmac);
+                // Convert raw bytes to base64
+                return Base64.getEncoder().withoutPadding().encodeToString(rawHmac); // Using base64 for fewer characters transferred than with hex 
                 
             } catch (IllegalStateException | InvalidKeyException | NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
@@ -164,7 +164,7 @@ class CryptoImpl implements Crypto {
                 // TODO Perhaps some sanitisation of the secret - it seems '-' is illegal
                 
                 if (applicationSecret.length() < keyLength) {
-                    applicationSecret = expandSecret(applicationSecret, keyLength);
+                    applicationSecret = Crypto.expandSecret(applicationSecret, keyLength);
                 }
 
                 try {
@@ -200,7 +200,7 @@ class CryptoImpl implements Crypto {
                 byte[] encrypted = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
 
                 // convert encrypted bytes to string in base64
-                return Base64.getEncoder().encodeToString(encrypted);
+                return Base64.getEncoder()/*getUrlEncoder()*/.encodeToString(encrypted);
 
             } catch (InvalidKeyException ex) {
                 logger.error(getHelperLogMessage(), ex);
@@ -219,7 +219,7 @@ class CryptoImpl implements Crypto {
             if (!secretKeySpec.isPresent()) return data;
 
             // convert base64 encoded string to bytes
-            byte[] decoded = Base64.getDecoder().decode(data);
+            byte[] decoded = Base64.getDecoder()/*getUrlDecoder()*/.decode(data);
             try {
                 // decrypt bytes
                 Cipher cipher = Cipher.getInstance(ALGORITHM);
@@ -238,28 +238,18 @@ class CryptoImpl implements Crypto {
             }
         }
         
-        private String expandSecret(String secret, int neededLength) {
-            StringBuilder bob = new StringBuilder(neededLength);
-            
-            while (bob.length() < neededLength) {
-                if (bob.length() + secret.length() < neededLength) {
-                    bob.append(secret);
-                } else {
-                    bob.append(secret.substring(0, neededLength - bob.length()));
-                    break;
-                }
-            }
-            
-            return bob.toString();
+        @Override
+        public int keyLength() {
+            return keyLength;
         }
-        
     }
     
     private static String getHelperLogMessage() {
         StringBuilder sb = new StringBuilder();
         sb.append("Invalid key provided. Check if application secret is properly set.").append(System.lineSeparator());
         sb.append("You can remove '").append(Constants.PROPERTY_SECURITY_SECRET).append("' key in configuration file ");
-        sb.append("and restart application. We will generate new key for you.");
+        sb.append("and restart application.");
+        //sb.append("and restart application. We will generate new key for you.");
         return sb.toString();
     }
 }

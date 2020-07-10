@@ -10,22 +10,38 @@ public interface Crypto {
     Signers hash();
     Encrypters encrypt();
     
-    public static interface Signers {
+    interface Signers {
         Signer SHA256();
     }
     
-    public static interface Encrypters {
+    interface Encrypters {
         Encrypter AES();
     }
     
-    public static interface Signer {
+    interface Signer {
         String sign(String value);
         String sign(String value, String key);
         int outputLength();
     }
-    public static interface Encrypter {
+    interface Encrypter {
         String encrypt(String data);
         String decrypt(String data);
+        int keyLength();
+    }
+    
+    static String expandSecret(String secret, int neededLength) {
+        StringBuilder bob = new StringBuilder(neededLength);
+        
+        while (bob.length() < neededLength) {
+            if (bob.length() + secret.length() < neededLength) {
+                bob.append(secret);
+            } else {
+                bob.append(secret.substring(0, neededLength - bob.length()));
+                break;
+            }
+        }
+        
+        return bob.toString();
     }
     
     public static abstract class SecretGenerator {
@@ -41,16 +57,24 @@ public interface Crypto {
             RND = r;
         }
         
-        private static final int DEFAULT_SIZE = 33;
+        private static final int DEFAULT_SIZE = 32;
         
-        public static String generate() {
+        public static byte[] generate() {
             return generate(DEFAULT_SIZE);
         }
         
-        public static String generate(final int lengthOfSecret) {
+        public static byte[] generate(final int lengthOfSecret) {
             byte[] bytes = new byte[lengthOfSecret];
             RND.nextBytes(bytes);
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+            return bytes;
+        }
+        
+        public static String generateAndEncode() {
+            return generateAndEncode(DEFAULT_SIZE);
+        }
+        
+        public static String generateAndEncode(final int lengthOfSecret) {
+            return Base64.getEncoder().withoutPadding().encodeToString(generate(lengthOfSecret));
         }
     }
     

@@ -56,6 +56,9 @@ public final class DataCodec {
     }
 
     /**
+     * Encode a hash into cookie value, like: <code>k1=v1&amp;...&amp;kn=vn</code>. Also,
+     * <code>key</code> and <code>value</code> are encoded using {@link URLCodec}.
+     * 
      * @param map the data to encode.
      * @return the encoded data.
      */
