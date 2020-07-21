@@ -57,7 +57,7 @@ public interface Crypto {
             RND = r;
         }
         
-        private static final int DEFAULT_SIZE = 32;
+        public static final int DEFAULT_SIZE = 32;
         
         public static byte[] generate() {
             return generate(DEFAULT_SIZE);
