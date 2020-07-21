@@ -8,6 +8,37 @@ import java.util.stream.Collectors;
 public abstract class ReflectionMetadata {
     private ReflectionMetadata() {}
     
+    /**
+     * Minimised version of {@link #callingClass(Class)}
+     * 
+     * @return Just returns the direct caller without any evaluation to which class it might be
+     */
+    public static final String callingClassName() {
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        return stack[2].getClassName();
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static final <T> Class<T> callingClass(Class<T> assignableFrom) {
+        /* 
+         * https://stackoverflow.com/a/34948763
+         *  - index 0 = Thread
+         *  - index 1 = this
+         *  - index 2 = direct caller, can be self.
+         *  - index 3 ... n = classes and methods that called each other to get to the index 2 and below.
+         */
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        for (int i = 2; i < stack.length; i++) {
+            
+            Class<?> compiledClass = ClassFactory.getCompiledClass(stack[i].getClassName(), false);
+            if (assignableFrom.isAssignableFrom(compiledClass)) {
+                return (Class<T>) compiledClass;
+            }
+        }
+        
+        return null;
+    }
+    
     public static final Optional<Class<?>> getSuperclass(Class<?> cls) {
         return Optional.ofNullable(cls.getSuperclass());
     }

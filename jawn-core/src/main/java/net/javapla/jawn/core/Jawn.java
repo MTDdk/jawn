@@ -28,6 +28,7 @@ import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.ClassMeta;
 import net.javapla.jawn.core.internal.reflection.MiniFileSystem;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
+import net.javapla.jawn.core.internal.reflection.ReflectionMetadata;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.server.WebSocket;
@@ -391,24 +392,14 @@ public class Jawn implements Route.Filtering, Injection {
      * 
      * @param args
      */
-    @SuppressWarnings("unchecked")
     public static final void run(final String ... args) {
-        /* 
-         * https://stackoverflow.com/a/34948763
-         *  - index 0 = Thread
-         *  - index 1 = this
-         *  - index 2 = direct caller, can be self.
-         *  - index 3 ... n = classes and methods that called each other to get to the index 2 and below.
-         */
-        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-        for (int i = 2; i < stack.length; i++) {
-            
-            Class<?> compiledClass = ClassFactory.getCompiledClass(stack[i].getClassName(), false);
-            if (Jawn.class.isAssignableFrom(compiledClass)) {
-                Jawn.run((Class<? extends Jawn>) compiledClass, args);
-                return;
-            }
+        
+        Class<Jawn> caller = ReflectionMetadata.callingClass(Jawn.class);
+        if (caller != null) {
+            Jawn.run((Class<? extends Jawn>) caller, args);
+            return;
         }
+        
         logger.error("Could not determine a class extending {}, and therefore not able to start a server", Jawn.class);
     }
     

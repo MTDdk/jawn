@@ -24,5 +24,21 @@ public class ReflectionMetadataTest {
         assertThat(ReflectionMetadata.isAssignableFrom(Jawn.class, Handler.class)).isFalse();
         assertThat(ReflectionMetadata.isAssignableFrom(LocatableClass1.class, Jawn.class)).isFalse();
     }
+    
+    @Test
+    public void callingClassName() {
+        String name = ReflectionMetadata.callingClassName();
+        assertThat(name.substring(name.lastIndexOf('.') + 1)).isEqualTo("ReflectionMetadataTest");
+    }
 
+    @Test
+    public void callingClass() {
+        assertThat(T.call().getName()).isEqualTo(T.class.getName());
+    }
+    
+    private static class T extends Jawn {
+        public static Class<?> call() {
+            return ReflectionMetadata.callingClass(Jawn.class);
+        }
+    }
 }
