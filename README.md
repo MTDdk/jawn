@@ -6,7 +6,7 @@
 \________\____|__  /\__/\  /\____|__  /
   web framework  \/      \/         \/ http://www.javapla.net
 ```
-# Continue being lazy, almost drowsy
+# Carry on being lazy, almost drowsy
 
 **jawn** strives to be a super simple and productive framework for web development. 
 
@@ -21,7 +21,7 @@ public class App extends Jawn {
   }
 
   public static void main(String[] args) {
-    run(App.class, args);
+    run(args);
   }
 }
 ```
@@ -34,4 +34,4 @@ If you ever want to try this framework out for yourself or in the wild, do not h
 
 ## Latest version
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.javapla.jawn/jawn-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.javapla.jawn/jawn-core)
-[![Build Status](https://travis-ci.org/MTDdk/jawn.svg?branch=1.0.x)](https://travis-ci.org/MTDdk/jawn)
+[![Build Status](https://travis-ci.org/MTDdk/jawn.svg?branch=1.x.x)](https://travis-ci.org/MTDdk/jawn)
