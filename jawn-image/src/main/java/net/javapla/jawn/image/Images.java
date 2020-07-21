@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
@@ -21,11 +22,12 @@ import org.imgscalr.Scalr;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.Up.IO;
 import net.javapla.jawn.core.server.FormItem;
 
 public class Images {
     
-    public enum ImageFormat {
+    public static enum ImageFormat {
         JPG("jpg","jpeg"),GIF("gif"),BMP("bmp"),TIF("tif","tiff"),PNG("png"),WBMP("wbmp");
         
         final String[] names;
@@ -72,6 +74,21 @@ public class Images {
         }
     }
     
+    public static enum ImageQuality {
+        FAST,BALANCED,QUALITY,EXTREME_QUALITY;
+        
+        Scalr.Method toScalr() {
+            switch (this) {
+                case EXTREME_QUALITY: return Scalr.Method.ULTRA_QUALITY;
+                case QUALITY: return Scalr.Method.QUALITY;
+                case FAST: return Scalr.Method.SPEED;
+                case BALANCED:
+                default: return Scalr.Method.BALANCED;
+            }
+            //return Scalr.Method.AUTOMATIC;
+        }
+    }
+    
     public interface Image {
 
         /**
@@ -104,6 +121,7 @@ public class Images {
          * @return this
          */
         Image resize(int width, int height);
+        Image resize(int width, int height, ImageQuality method);
         
         /**
          * Resize the image to a given height, maintaining the original proportions of the image
@@ -113,6 +131,7 @@ public class Images {
          * @return this
          */
         Image resizeToHeight(int size);
+        Image resizeToHeight(int size, ImageQuality method);
         
         /**
          * Resize the image to a given width, maintaining the original proportions of the image
@@ -122,6 +141,7 @@ public class Images {
          * @return this
          */
         Image resizeToWidth(int size);
+        Image resizeToWidth(int size, ImageQuality method);
         
         
         /**
@@ -131,6 +151,9 @@ public class Images {
          * @return this for chaining
          */
         Image reduceQuality(float qualityPercent);
+        
+        Image rotate90clockwise();
+        Image rotate180clockwise();
         
         byte[] asBytes();
         
@@ -146,6 +169,7 @@ public class Images {
         Result asResult();
         
         Image save(Path path) throws Up.IO;
+        Image save(Path path, OpenOption ... options) throws Up.IO;
         
         void flush();
     }
@@ -262,7 +286,12 @@ public class Images {
 
             @Override
             public Image resize(int width, int height) {
-                BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_EXACT, width, height);
+                return resize(width, height, ImageQuality.BALANCED);
+            }
+            
+            @Override
+            public Image resize(int width, int height, ImageQuality method) {
+                BufferedImage resize = Scalr.resize(image, method.toScalr(), Scalr.Mode.FIT_EXACT, width, height);
                 image.flush();
                 image = resize;
                 return this;
@@ -270,8 +299,13 @@ public class Images {
 
             @Override
             public Image resizeToHeight(int size) {
+                return resizeToHeight(size, ImageQuality.BALANCED);
+            }
+            
+            @Override
+            public Image resizeToHeight(int size, ImageQuality method) {
                 if (image.getHeight() < size) return this;
-                BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_TO_HEIGHT, Math.min(size, image.getHeight()));
+                BufferedImage resize = Scalr.resize(image, method.toScalr(), Scalr.Mode.FIT_TO_HEIGHT, Math.min(size, image.getHeight()));
                 image.flush();
                 image = resize;
                 return this;
@@ -279,8 +313,13 @@ public class Images {
 
             @Override
             public Image resizeToWidth(int size) {
+                return resizeToWidth(size, ImageQuality.BALANCED);
+            }
+            
+            @Override
+            public Image resizeToWidth(int size, ImageQuality method) {
                 if (image.getWidth() < size) return this;
-                BufferedImage resize = Scalr.resize(image, Scalr.Mode.FIT_TO_WIDTH, size);
+                BufferedImage resize = Scalr.resize(image, method.toScalr(), Scalr.Mode.FIT_TO_WIDTH, size);
                 image.flush();
                 image = resize;
                 return this;
@@ -313,6 +352,22 @@ public class Images {
                 }
                 return this;
             }
+            
+            @Override
+            public Image rotate90clockwise() {
+                BufferedImage resize = Scalr.rotate(img, Scalr.Rotation.CW_90);
+                image.flush();
+                image = resize;
+                return this;
+            }
+            
+            @Override
+            public Image rotate180clockwise() {
+                BufferedImage resize = Scalr.rotate(img, Scalr.Rotation.CW_180);
+                image.flush();
+                image = resize;
+                return this;
+            }
 
             @Override
             public byte[] asBytes() {
@@ -332,9 +387,14 @@ public class Images {
             
             @Override
             public Image save(Path path) throws Up.IO {
+                // does not overwrite
+                return save(path, StandardOpenOption.CREATE);
+            }
+            
+            @Override
+            public Image save(Path path, OpenOption... options) throws IO {
                 try {
-                    // does not overwrite
-                    ImageIO.write(image, format.name().toLowerCase(), Files.newOutputStream(path, StandardOpenOption.CREATE));
+                    ImageIO.write(image, format.name().toLowerCase(), Files.newOutputStream(path, options));
                     return this;
                 } catch (IOException e) {
                     throw new Up.IO(e);
