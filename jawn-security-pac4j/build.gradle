@@ -1,0 +1,17 @@
+plugins {
+  id 'java-library'
+}
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  // Framework
+  api project(':jawn-core')
+  
+  // pac4j
+  implementation 'org.pac4j:pac4j-core:4.0.3'
+  implementation 'org.pac4j:pac4j-http:4.0.3'
+}
+
