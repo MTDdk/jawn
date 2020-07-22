@@ -20,7 +20,7 @@ public class SecretGeneratorTest {
     public void encode() {
         String generate = Crypto.SecretGenerator.generateAndEncode(32);
         String standard = Crypto.SecretGenerator.generateAndEncode();
-        System.out.println(generate);
+        //System.out.println(generate);
         
         assertThat(generate.length()).isEqualTo(standard.length());
         assertThat(generate).isNotEqualTo(standard);

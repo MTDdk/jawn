@@ -1,5 +1,6 @@
 package net.javapla.jawn.core;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,6 +70,13 @@ public interface Session {
     
     Instant lastAccessed();
     
+    void updateAccess();
+    
+    default boolean isExpired(Duration timeout) {
+        Duration timeElapsed = Duration.between(lastAccessed(), Instant.now());
+        return timeElapsed.compareTo(timeout) > 0;
+    }
+    
     
     
     static Session create(final Context context, final String id) {
@@ -77,6 +85,10 @@ public interface Session {
     
     static Session create(final Context context, final String id, final Instant createdTime) {
         return create(context, id, createdTime, new ConcurrentHashMap<>()); 
+    }
+    
+    static Session create(final Context context, final String id, final Map<String, String> attributes) {
+        return create(context, id, Instant.now(), attributes);
     }
     
     static Session create(final Context context, final String id, final Instant createdTime, final Map<String, String> attributes) {
@@ -134,8 +146,13 @@ public interface Session {
                 return lastAccessed;
             }
             
-            private void updateState() {
+            @Override
+            public void updateAccess() {
                 lastAccessed = Instant.now();
+            }
+            
+            private void updateState() {
+                updateAccess();
             }
         };
     }

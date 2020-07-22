@@ -24,14 +24,14 @@ import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StringUtil;
 
 @Singleton
-class CryptoImpl implements Crypto {
+class CryptoImpl /*implements Crypto*/ {
     private static final Logger logger = LoggerFactory.getLogger(Crypto.class);
     
-    private final Signers signers;
-    private final Encrypters encrypters;
+    /*private final Signers signers;
+    private final Encrypters encrypters;*/
     
-    private final Signer HMAC_SHA256;
-    private final Encrypter AES;
+    private final Crypto.Signer HMACSHA256;
+    private final Crypto.Encrypter AES;
     
     @Inject
     public CryptoImpl(Config config) {
@@ -40,13 +40,13 @@ class CryptoImpl implements Crypto {
             logger.error("The key {} does not exist and encryption will not work properly. Please include it in your {}.", Constants.PROPERTY_SECURITY_SECRET, Constants.PROPERTIES_FILE_USER);
         }
         
-        HMAC_SHA256 = new HmacSHA256(secret);
+        HMACSHA256 = new HmacSHA256(secret);
         AES = new AesEncryption(secret);
         
-        signers = new Signers() {
+        /*signers = new Signers() {
             @Override
             public Signer SHA256() {
-                return HMAC_SHA256;
+                return HMACSHA256;
             }
         };
         
@@ -55,10 +55,10 @@ class CryptoImpl implements Crypto {
             public Encrypter AES() {
                 return AES;
             }
-        };
+        };*/
     }
     
-    @Override
+    /*@Override
     public Signers hash() {
         return signers;
     }
@@ -66,22 +66,21 @@ class CryptoImpl implements Crypto {
     @Override
     public Encrypters encrypt() {
         return encrypters;
-    }
+    }*/
 
-    private static class HmacSHA256 implements Signer {
-        static final String ALGORITHM = "HmacSHA256";
+    private static class HmacSHA256 implements Crypto.Signer {
         private final Mac mac;
         
         private HmacSHA256(Optional<String> secret) {
             try {
                 // Get an hmac_sha256 Mac instance and initialize with the signing key
-                mac = Mac.getInstance(ALGORITHM);
+                mac = Mac.getInstance(Crypto.Signer.HMAC_SHA256);
                 
                 
                 secret.ifPresent(key -> {
                     // Get an hmac_sha256 key from the raw key bytes
                     byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-                    SecretKeySpec signingKey = new SecretKeySpec(keyBytes, ALGORITHM);
+                    SecretKeySpec signingKey = new SecretKeySpec(keyBytes, Crypto.Signer.HMAC_SHA256);
                     
                     try {
                         mac.init(signingKey);
@@ -112,15 +111,15 @@ class CryptoImpl implements Crypto {
             }
         }
         
-        @Override
+        //@Override
         public String sign(String value, String key) {
             try {
                 // Get an hmac_sha1 key from the raw key bytes
                 byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
-                SecretKeySpec signingKey = new SecretKeySpec(keyBytes, ALGORITHM);
+                SecretKeySpec signingKey = new SecretKeySpec(keyBytes, Crypto.Signer.HMAC_SHA256);
 
                 // Get an hmac_sha256 Mac instance and initialize with the signing key
-                Mac mac = Mac.getInstance(ALGORITHM);
+                Mac mac = Mac.getInstance(Crypto.Signer.HMAC_SHA256);
                 mac.init(signingKey);
 
                 // Compute the hmac on input data bytes
@@ -141,7 +140,7 @@ class CryptoImpl implements Crypto {
         
     }
     
-    private static class AesEncryption implements Encrypter {
+    private static class AesEncryption implements Crypto.Encrypter {
         //TODO
         // Use AES/CBC/PKCS7PADDING and create something that correctly uses and stores IVs
         //https://www.owasp.org/index.php/Using_the_Java_Cryptographic_Extensions
@@ -164,7 +163,7 @@ class CryptoImpl implements Crypto {
                 // TODO Perhaps some sanitisation of the secret - it seems '-' is illegal
                 
                 if (applicationSecret.length() < keyLength) {
-                    applicationSecret = Crypto.expandSecret(applicationSecret, keyLength);
+                    //applicationSecret = Crypto.SecretGenerator.expandSecret(applicationSecret, keyLength);
                 }
 
                 try {

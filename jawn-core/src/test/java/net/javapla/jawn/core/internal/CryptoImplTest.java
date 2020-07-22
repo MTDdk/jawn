@@ -14,7 +14,7 @@ import net.javapla.jawn.core.util.Constants;
 
 public class CryptoImplTest {
     
-    @Test
+    /*@Test
     public void hashing_with_secret() {
         Config conf = mock(Config.class);
         when(conf.getOptionally(Constants.PROPERTY_SECURITY_SECRET)).thenReturn(Optional.of("SomeRandomLongString"));
@@ -78,7 +78,7 @@ public class CryptoImplTest {
         String decrypted = crypto.encrypt().AES().decrypt(encrypted);
         assertThat(decrypted).isEqualTo(stringToEncrypt);
     }
-
+    
     @Test
     public void encryption_should_expandSecretWhenTooShort() {
         Config conf = mock(Config.class);
@@ -111,5 +111,5 @@ public class CryptoImplTest {
         String decrypted = crypto.encrypt().AES().decrypt(encrypted);
         assertThat(decrypted).isEqualTo(stringToEncrypt);
     }
-    
+    */
 }
