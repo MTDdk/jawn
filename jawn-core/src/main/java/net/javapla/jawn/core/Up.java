@@ -113,6 +113,14 @@ public class Up extends RuntimeException {
         }
     }
     
+    public static class RouteAlreadyExists extends Up {
+        public final Route route;
+        public RouteAlreadyExists(Route r) {
+            super(Status.ALREADY_REPORTED, "Found " + r);
+            route = r;
+        }
+    }
+    
     private final int statusCode;
     
     public Up(final Status status, final String message, final Throwable cause) {

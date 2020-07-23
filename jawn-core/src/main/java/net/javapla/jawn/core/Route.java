@@ -291,7 +291,7 @@ public interface Route {
                     return uri;
                 }
                 
-                //@Override
+                @Override
                 public Result handle(final Context context) {
                     return routehandler.handle(context);
                 }
@@ -299,6 +299,11 @@ public interface Route {
                 @Override
                 public boolean isUrlFullyQualified() {
                     return parameters.isEmpty();
+                }
+                
+                @Override
+                public String wildcardedPath() {
+                    return convertRawUriToWildcard(uri);
                 }
                 
                 @Override
@@ -403,6 +408,22 @@ public interface Route {
             return stringBuilder.toString();
         }
         
+        private static String convertRawUriToWildcard(final String rawUri) {
+            Matcher matcher = PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE.matcher(rawUri);
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            while (matcher.find()) {
+                // we replace the current namedVariablePartOfRoute group
+                matcher.appendReplacement(stringBuilder, "*");
+            }
+
+            // .. and we append the tail to complete the stringBuffer
+            matcher.appendTail(stringBuilder);
+
+            return stringBuilder.toString();
+        }
+        
         /*private static Map<String, String> mapPathParameters(String requestUri) {
             ArrayList<String> parameters = parseParameters(requestUri);
             
@@ -438,7 +459,7 @@ public interface Route {
     }
     
     Result handle(Context context);
-    
+
     /**
      * @return Current HTTP method.
      */
@@ -449,6 +470,8 @@ public interface Route {
     After[] after();
 
     boolean isUrlFullyQualified();
+    
+    String wildcardedPath();
 
     /**
      * @return Current request path.

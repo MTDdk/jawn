@@ -147,4 +147,43 @@ public class RouterTest {
          route = router.retrieve(HttpMethod.DELETE, "/delete");
          assertThat(route.method()).isEqualTo(HttpMethod.DELETE);
      }
+     
+     @Test
+     public void resemblingRoutes() {
+         // a custom route might *look* like an asset route and get picked before the asset
+         
+         List<Route> routes = Arrays.asList(
+             new Route.Builder(HttpMethod.GET).path("/legit/site").build(),
+             new Route.Builder(HttpMethod.GET).path("/{site}/{slug}").build(), // this might override /css/{file} if found first
+             new Route.Builder(HttpMethod.GET).path("/css/{file: .*}").build(),
+             new Route.Builder(HttpMethod.GET).path("/js/{file: .*}").build()
+         );
+         
+         
+         Router router = new Router(routes);
+         
+         Route css = router.retrieve(HttpMethod.GET, "/css/style.css"); // should definitely return /css/{file}
+         assertThat(css.path()).isEqualTo("/css/{file: .*}");
+         
+         Route js = router.retrieve(HttpMethod.GET, "/js/script.js"); // should definitely return /js/{file}
+         assertThat(js.path()).isEqualTo("/js/{file: .*}");
+         
+         // just to be sure
+         assertThat(router.retrieve(HttpMethod.GET, "/legit/site").path()).isEqualTo("/legit/site");
+     }
+     
+     @Test(expected = Up.RouteAlreadyExists.class)
+     public void notifyWhenRoutesSeemSimilar() {
+         List<Route> routes = Arrays.asList(
+             
+             // these two are close, but not similar
+             new Route.Builder(HttpMethod.GET).path("/css/{file: .*}").build(),
+             new Route.Builder(HttpMethod.GET).path("/{site}/{slug: [a-z]}").build(),
+             
+             // this should break
+             new Route.Builder(HttpMethod.GET).path("/{notsite}/{definitelynotslug: [0-9]+}").build()
+         );
+         
+         new Router(routes);
+     }
 }

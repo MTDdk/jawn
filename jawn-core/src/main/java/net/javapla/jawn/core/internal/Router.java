@@ -51,9 +51,18 @@ final class Router {
             route = trie.findExact(requestUri, httpMethod);
             
             if (route == null) {
-                // The trie did not have any for us..
-                // Have a look in the custom routes then
-                return goThroughCustom(httpMethod, requestUri, () -> new Up.RouteMissing(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri));
+                // try with wildcard search
+                route = trie.findRoute(requestUri.toCharArray(), httpMethod);
+                
+                if (route != null && route.matches(requestUri)) {
+                    
+                    trie.insert(requestUri, route); // cache it for later fast look-up
+                    
+                } else {
+                    // The trie did not have any for us..
+                    // Have a look in the custom routes then
+                    return goThroughCustom(httpMethod, requestUri, () -> new Up.RouteMissing(requestUri, "Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri));
+                }
             }
             
             return route;
@@ -85,12 +94,19 @@ final class Router {
         throw throwThisIfNothingFound.get();
     }
     
-    Router compileRoutes(final List<Route> routes) {
+    Router compileRoutes(final List<Route> routes) throws Up.RouteAlreadyExists {
         
         for (final Route route : routes) {
+            
+            Route lookup = trie.findRoute(route.wildcardedPath().toCharArray(), route.method());
+            if (lookup != null && route.wildcardedPath().equals(lookup.wildcardedPath())) {
+                throw new Up.RouteAlreadyExists(lookup);
+            }
+            
             if (route.isUrlFullyQualified()) {
                 trie.insert(route.path(), route);
             } else {
+                trie.insert(route.wildcardedPath(), route);
                 this.routes.add(route);
             }
         }
