@@ -99,9 +99,11 @@ final class ContextImpl implements Context {
             
             @Override
             public Map<String, Cookie> cookies() {
-                List<Cookie> list = sreq.cookies();
-                instantiateCookies(list.size());
-                list.stream().forEach(c -> cookies.put(c.name(), c));
+                if (cookies == null) {
+                    List<Cookie> list = sreq.cookies();
+                    instantiateCookies(list.size());
+                    list.stream().forEach(c -> cookies.put(c.name(), c));
+                }
                 return cookies;
             }
             
