@@ -24,17 +24,36 @@ final class Router {
         
         //compileRoutes(routes);
         
-        // Right now, we use the _routes_ list for all wildcard routes, 
-        // and we cache the route for each URL that matches the wildcard routes.
-        // This should serve as a quick lookup if we ever stumble upon that same
-        // path again.
-        //
-        // Even though these extra cached routes in the trie should not strain the
-        // memory much, as the trie merely stores references to, perhaps, multiple
-        // route objects, but this behaviour has not been tested throughly in real life
-        // and theoretically we might want to store the wildcard routes AS wildcards
-        // in the trie to minimise stored routes, if the trie ends up storing too many
-        // routes and TrieNodes
+        /*
+         Right now, we use the _routes_ list for all wildcard routes, 
+         and we cache the route for each URL that matches the wildcard routes.
+         This should serve as a quick lookup if we ever stumble upon that same
+         path again.
+        
+         Even though these extra cached routes in the trie should not strain the
+         memory much, as the trie merely stores references to, perhaps, multiple
+         route objects, but this behaviour has not been tested throughly in real life
+         and theoretically we might want to store the wildcard routes AS wildcards
+         in the trie to minimise stored routes, if the trie ends up storing too many
+         routes and TrieNodes
+         
+         
+         UPDATE:
+         Now storing complex routes as simple wildcarded routes.
+         Complex = "/users/{username: [a-zA-Z][a-zA-Z_0-9]}" -> wildcarded = "/users/*"
+         This means that any information regarding the regex of the route is not a part
+         of the lookup in the trie, but will be used when matching after
+         retrieval.
+         
+         Multiple complex routes that ends up with the same wildcarded path, could
+         potentially be handled by having a list of the same wildcarded routes
+         in the trie and simply go through each of them for matching during
+         lookup.
+         Just like the buckets in a HashMap.. which the Trie then essentially
+         would become..
+         - That's for a later iteration
+        */
+        
     }
     
     Router(List<Route> routes) {

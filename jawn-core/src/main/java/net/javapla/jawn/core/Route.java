@@ -414,8 +414,7 @@ public interface Route {
             StringBuilder stringBuilder = new StringBuilder();
 
             while (matcher.find()) {
-                // we replace the current namedVariablePartOfRoute group
-                matcher.appendReplacement(stringBuilder, "*");
+                matcher.appendReplacement(stringBuilder, "*"); // replace with simple wildcard
             }
 
             // .. and we append the tail to complete the stringBuffer
