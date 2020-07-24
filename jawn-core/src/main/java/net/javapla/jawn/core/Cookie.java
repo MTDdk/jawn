@@ -205,6 +205,7 @@ public class Cookie {
         }
     };
     
+    
     public static Cookie.Builder builder(String name, String value) {
         return new Builder(name, value);
     }
@@ -232,7 +233,7 @@ public class Cookie {
 
         public Builder(String name, String value) {
             if (name == null) throw new IllegalArgumentException(Cookie.Builder.class.getSimpleName() + " name");
-            if (value == null) throw new IllegalArgumentException(Cookie.Builder.class.getSimpleName() + " value");
+            //if (value == null) throw new IllegalArgumentException(Cookie.Builder.class.getSimpleName() + " value");
             this.name = name;
             this.value = value;
         }

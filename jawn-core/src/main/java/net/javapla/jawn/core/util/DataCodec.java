@@ -17,6 +17,7 @@
 package net.javapla.jawn.core.util;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -53,6 +54,17 @@ public final class DataCodec {
                 }
             }
         });
+    }
+    
+    /**
+     * Helper for {@link #decode(Map, String)}
+     * @param data the data to decode
+     * @return a map with the decoded data
+     */
+    public static Map<String, String> decode(final String data) {
+        HashMap<String, String> map = new HashMap<>(4);
+        decode(map, data);
+        return map;
     }
 
     /**

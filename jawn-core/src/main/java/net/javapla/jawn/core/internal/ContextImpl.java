@@ -25,6 +25,7 @@ import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Session;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Value;
@@ -363,6 +364,11 @@ final class ContextImpl implements Context {
     @Override
     public void removeAttribute(final String name) {
         if (attributes != null) attributes.remove(name);
+    }
+    
+    @Override
+    public Session session() {
+        return null;
     }
     
     /* Context should not be responsible of this

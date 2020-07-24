@@ -18,7 +18,6 @@ import net.javapla.jawn.core.util.StringUtil;
 
 public interface Crypto {
     
-    
     interface Signer {
         public static final String HMAC_SHA256 = "HmacSHA256";
         
@@ -33,7 +32,7 @@ public interface Crypto {
                 // Get an hmac_sha256 Mac instance
                 mac = Mac.getInstance(HMAC_SHA256);
                 
-                // Get an hmac_sha1 key from the raw key bytes
+                // Get an hmac_sha256 key from the raw key bytes
                 byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
                 SecretKeySpec signingKey = new SecretKeySpec(keyBytes, HMAC_SHA256);
                 

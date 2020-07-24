@@ -1,6 +1,8 @@
 package net.javapla.jawn.core;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -244,6 +246,10 @@ public interface SessionStore {
         final Signer signer = Crypto.Signer.SHA256(secret);
         
         Function<String, Map<String, String>> decoder = value -> {
+            value = new String(
+                Base64.getDecoder().decode(value.getBytes(StandardCharsets.UTF_8)), 
+                StandardCharsets.UTF_8);
+            
             int sep = value.indexOf("|");
             if (sep <= 0) {
                 return null;
@@ -257,14 +263,13 @@ public interface SessionStore {
                 return null;
             }
 
-            HashMap<String, String> attributes = new HashMap<>();
-            DataCodec.decode(attributes, unsign);
-            return attributes;
+            return DataCodec.decode(unsign);
         };
         
         Function<Map<String, String>, String> encoder = attributes -> {
             String encoded = DataCodec.encode(attributes);
-            return signer.sign(encoded) + "|" + encoded;
+            encoded = signer.sign(encoded) + "|" + encoded;
+            return new String(Base64.getEncoder().withoutPadding().encode(encoded.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
         };
         
         return signed(token, decoder, encoder);

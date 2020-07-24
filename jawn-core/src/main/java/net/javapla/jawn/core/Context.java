@@ -175,6 +175,8 @@ public interface Context /*extends Injection*/ {
     <T> Optional<T> attribute(String name, Class<T> type);
     void removeAttribute(String name);
     
+    Session session();
+    
     
     /**
      * Returns a String containing the real path for a given virtual path. For example, the path "/index.html" returns

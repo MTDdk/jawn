@@ -72,7 +72,7 @@ public interface SessionToken {
      * @param name Header name.
      * @return Session Token.
      */
-    static SessionToken header(String name) {
+    static SessionToken headerToken(String name) {
         return new HeaderToken(name);
     }
     
