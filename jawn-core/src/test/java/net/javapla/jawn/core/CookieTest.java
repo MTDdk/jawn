@@ -2,6 +2,7 @@ package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class CookieTest {
@@ -85,6 +86,7 @@ public class CookieTest {
         Cookie.builder(null, "value");
     }
     
+    @Ignore("null value is used by sessions")
     @Test(expected = IllegalArgumentException.class)
     public void nullChecksValue() {
         Cookie.builder("name", null);
