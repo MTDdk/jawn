@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.function.Consumer;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
 
 import net.javapla.jawn.core.Route;
 
@@ -43,7 +44,7 @@ public class RouteFilterPopulator implements Route.Filtering {
         bagOFilters.forEach(item -> {
             if (item instanceof Class<?>) {
                 Class<?> d = (Class<?>)item;
-                Object g = injector.getInstance(d);
+                Object g = injector.getInstance(Key.get(d));//.getInstance( d);
                 consumer.accept(g);
             } else {
                 consumer.accept(item);
