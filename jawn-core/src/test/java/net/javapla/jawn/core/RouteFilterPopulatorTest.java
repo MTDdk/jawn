@@ -13,6 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
 
 public class RouteFilterPopulatorTest {
     
@@ -25,15 +26,21 @@ public class RouteFilterPopulatorTest {
         when(di.listResources(eq(""))).thenThrow(NoSuchFileException.class);
         
         injector = mock(Injector.class);
-        //when(injector.getInstance(DeploymentInfo.class)).thenReturn(di);
+        when(injector.getInstance(DeploymentInfo.class)).thenReturn(di);
         
-        when(injector.getInstance(any(Class.class))).then(c -> {
+        /*when(injector.getInstance(any(Class.class))).then(c -> {
             Class<?> argument = c.getArgument(0);
             
             if (argument.isAssignableFrom(DeploymentInfo.class)) return di;
             
             // in case of F,B,A
             return argument.getDeclaredConstructor().newInstance();
+        });*/
+        when(injector.getInstance(any(Key.class))).then(k -> {
+            Key<?> argument = k.getArgument(0);
+            
+            // in case of F,B,A
+            return argument.getTypeLiteral().getRawType().getDeclaredConstructor().newInstance();
         });
     }
 

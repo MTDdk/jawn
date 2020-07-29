@@ -576,8 +576,9 @@ public class Jawn implements Route.Filtering, Injection {
         globalFilters.populate(injector, (item) -> routes.forEach(r -> r.globalFilter(item)));
         
         // add assets (without the global filters) to the head of the list in order to avoid any confusion with custom routes
-        List<Route.Builder> assetRoutes = AssetRouter.assets(injector.getInstance(DeploymentInfo.class), assets, (populator, builder) -> populator.populate(injector, builder::filter));
-        assetRoutes.forEach(routes::addFirst);
+        AssetRouter
+            .assets(injector.getInstance(DeploymentInfo.class), assets, (populator, builder) -> populator.populate(injector, builder::filter))
+            .forEach(routes::addFirst);
         
         // build
         return routes.stream().map(Route.Builder::build).collect(Collectors.toList());

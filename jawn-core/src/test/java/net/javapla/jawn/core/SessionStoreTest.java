@@ -29,7 +29,7 @@ public class SessionStoreTest {
         
         Session session = store.newSession(context);
         session.put("somekey", "putvalue");
-        store.touchSession(context, session);
+        //store.touchSession(context, session);
         
         verify(response).header(eq(sessionName), eq(signedValue));
         

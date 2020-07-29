@@ -9,12 +9,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.mail.Session;
-
 import com.google.inject.util.Types;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
+import net.javapla.jawn.core.Session;
 import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.mvc.Body;
 import net.javapla.jawn.core.mvc.PathParam;
