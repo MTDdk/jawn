@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.mail.Session;
+
 import com.google.inject.util.Types;
 
 import net.javapla.jawn.core.Context;
@@ -75,6 +77,8 @@ public class ActionParameter {
         /**
          * Session
          */
+        converters.put(Session.class, (ctx, param) -> ctx.session());
+        converters.put(Types.newParameterizedType(Optional.class, Session.class), (ctx, param) -> ctx.sessionOptionally());
         /**
          * Files
          */

@@ -26,6 +26,7 @@ import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Session;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Value;
@@ -43,6 +44,7 @@ final class ContextImpl implements Context {
     private final Response resp;
     private final ServerRequest sreq;
     private final ServerResponse sresp;
+    private final SessionStore sessionStore;
     private final Injector injector;
     private Route route;
     
@@ -50,7 +52,8 @@ final class ContextImpl implements Context {
     private HashMap<String, Object> attributes;
     //private LinkedList<File> files;
     
-    ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset, final DeploymentInfo deploymentInfo, final Injector injector) {
+    ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset, final DeploymentInfo deploymentInfo, final SessionStore sessionStore, final Injector injector) {
+        this.sessionStore = sessionStore;
         this.injector = injector;
         this.sreq = sreq;
         this.sresp = resp;
@@ -352,8 +355,7 @@ final class ContextImpl implements Context {
     
     @Override
     public Optional<Object> attribute(final String name) {
-        if (attributes == null || attributes.isEmpty()) return Optional.empty();
-        return Optional.ofNullable(attributes.get(name));
+        return Optional.ofNullable(attributeOrNull(name));
     }
     
     @Override
@@ -366,9 +368,35 @@ final class ContextImpl implements Context {
         if (attributes != null) attributes.remove(name);
     }
     
+    private Object attributeOrNull(final String name) {
+        if (attributes == null || attributes.isEmpty()) return null;
+        return attributes.get(name);
+    }
+    
     @Override
     public Session session() {
-        return null;
+        Session sesh = sessionOrNull();
+        if (sesh == null) {
+            sesh = sessionStore.newSession(this);
+            attribute(Session.NAME, sesh);
+        }
+        return sesh;
+    }
+    
+    @Override
+    public Optional<Session> sessionOptionally() {
+        return Optional.ofNullable(sessionOrNull());
+    }
+    
+    private Session sessionOrNull() {
+        Session sesh = (Session) attributeOrNull(Session.NAME);
+        if (sesh == null) {
+            sesh = sessionStore.findSession(this);
+            if (sesh != null) {
+                attribute(Session.NAME, sesh);
+            }
+        }
+        return sesh;
     }
     
     /* Context should not be responsible of this

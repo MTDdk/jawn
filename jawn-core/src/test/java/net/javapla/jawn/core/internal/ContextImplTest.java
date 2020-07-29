@@ -13,6 +13,7 @@ import org.junit.Test;
 import com.google.inject.Injector;
 
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
@@ -26,7 +27,7 @@ public class ContextImplTest {
         when(request.queryParam(anyString())).thenCallRealMethod();
         when(request.queryParams()).thenReturn(MultiList.empty());
         
-        ContextImpl context = new ContextImpl(request, mock(ServerResponse.class), StandardCharsets.UTF_8, mock(DeploymentInfo.class), mock(Injector.class));
+        ContextImpl context = new ContextImpl(request, mock(ServerResponse.class), StandardCharsets.UTF_8, mock(DeploymentInfo.class), mock(SessionStore.class), mock(Injector.class));
         
         Value value = context.param("date");
         assertThat(value.isPresent()).isFalse();
@@ -34,7 +35,7 @@ public class ContextImplTest {
     
     @Test
     public void attributes() {
-        ContextImpl context = new ContextImpl(mock(ServerRequest.class), mock(ServerResponse.class), StandardCharsets.UTF_8, mock(DeploymentInfo.class), mock(Injector.class));
+        ContextImpl context = new ContextImpl(mock(ServerRequest.class), mock(ServerResponse.class), StandardCharsets.UTF_8, mock(DeploymentInfo.class), mock(SessionStore.class), mock(Injector.class));
         
         context.attribute("at", "14");
         

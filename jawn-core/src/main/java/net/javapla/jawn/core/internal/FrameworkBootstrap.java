@@ -25,6 +25,7 @@ import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.reflection.ClassFactory;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
@@ -56,14 +57,14 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         userPlugins = new ArrayList<>(1);
     }
     
-    public synchronized void boot(final Modes mode, final ServerConfig.Impl serverConfig, final Function<Injector,List<Route>> routes) {
+    public synchronized void boot(final Modes mode, final ServerConfig.Impl serverConfig, final SessionStore sessionStore, final Function<Injector,List<Route>> routes) {
         if (injector != null) throw new RuntimeException(this.getClass().getSimpleName() + " already initialised");
         
         final Config frameworkConfig = readConfigurations(mode);
         final Router router = new Router(/*routes*/);
         
         final com.google.inject.Module jawnModule = binder -> {
-            registerCoreModules(binder, mode, frameworkConfig, router, serverConfig);
+            registerCoreModules(binder, mode, frameworkConfig, router, serverConfig, sessionStore);
             
             final ApplicationConfig pluginConfig = new ApplicationConfig() {
                 @Override
@@ -249,7 +250,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         }
     }
     
-    protected void registerCoreModules(final Binder binder, final Modes mode, final Config config, final Router router, final ServerConfig.Impl serverConfig) {
+    protected void registerCoreModules(final Binder binder, final Modes mode, final Config config, final Router router, final ServerConfig.Impl serverConfig, final SessionStore sessionStore) {
         
         // supported languages are needed in the creation of the injector
         //properties.setSupportedLanguages(appConfig.getSupportedLanguages());
@@ -263,6 +264,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         binder.bind(Config.class).toInstance(config);
         binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, charset, serverConfig.context()));
         binder.bind(ViewTemplateLoader.class).in(Singleton.class);
+        binder.bind(SessionStore.class).toInstance(sessionStore);
         //binder.bind(Crypto.class).to(CryptoImpl.class).in(Singleton.class);
         //binder.bind(Injection.class).toInstance(this);
         

@@ -30,18 +30,18 @@ class CryptoImpl /*implements Crypto*/ {
     /*private final Signers signers;
     private final Encrypters encrypters;*/
     
-    private final Crypto.Signer HMACSHA256;
-    private final Crypto.Encrypter AES;
+//    private final Crypto.Signer HMACSHA256;
+//    private final Crypto.Encrypter AES;
     
     @Inject
     public CryptoImpl(Config config) {
-        Optional<String> secret = config.getOptionally(Constants.PROPERTY_SECURITY_SECRET);
+        /*Optional<String> secret = config.getOptionally(Constants.PROPERTY_SECURITY_SECRET);
         if (!secret.isPresent()) {
             logger.error("The key {} does not exist and encryption will not work properly. Please include it in your {}.", Constants.PROPERTY_SECURITY_SECRET, Constants.PROPERTIES_FILE_USER);
         }
         
         HMACSHA256 = new HmacSHA256(secret);
-        AES = new AesEncryption(secret);
+        AES = new AesEncryption(secret);*/
         
         /*signers = new Signers() {
             @Override

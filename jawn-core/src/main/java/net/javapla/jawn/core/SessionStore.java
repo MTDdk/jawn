@@ -195,7 +195,7 @@ public interface SessionStore {
                 Session old = sessions.remove(oldId);
                 if (old != null) {
                     String newId = token.generateId();
-                    sessions.put(newId, Session.create(ctx, newId, session.created(), session.data()));
+                    sessions.put(newId, Session.create(this, ctx, newId, session.created(), session.data()));
                 }
                 
             }
@@ -208,7 +208,7 @@ public interface SessionStore {
             }
 
             private Session getOrCreate(Context ctx, String sessionId) {
-                return sessions.computeIfAbsent(sessionId, sid -> Session.create(ctx, sessionId));//new Data(Instant.now(), Instant.now(), new ConcurrentHashMap<>()));
+                return sessions.computeIfAbsent(sessionId, sid -> Session.create(this, ctx, sessionId));//new Data(Instant.now(), Instant.now(), new ConcurrentHashMap<>()));
             }
 
             /*private Session restore(Context ctx, String sessionId, Data data) {
@@ -233,6 +233,14 @@ public interface SessionStore {
         };
     }
 
+    
+    static SessionStore signed(String secret) {
+        return signed(secret, SessionToken.SESSION_COOKIE);
+    }
+    
+    static SessionStore signed(String secret, Cookie cookie) {
+        return signed(secret, SessionToken.cookieToken(cookie));
+    }
     
     /**
      * Creates a session store that uses (un)signed data. Session data is signed it using
@@ -290,7 +298,7 @@ public interface SessionStore {
             @Override
             public Session newSession(Context ctx) {
                 // No id as we do not save the session
-                return Session.create(ctx, null);//.setNew(true);
+                return Session.create(this, ctx, null);//.setNew(true);
             }
 
             @Override
@@ -303,7 +311,7 @@ public interface SessionStore {
                 if (attributes == null || attributes.size() == 0) {
                     return null;
                 }
-                return Session.create(ctx, signed, new HashMap<>(attributes));//.setNew(false);
+                return Session.create(this, ctx, signed, new HashMap<>(attributes));//.setNew(false);
             }
 
             @Override

@@ -20,11 +20,13 @@ import com.google.inject.Injector;
 
 import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.server.ServerConfig;
 
 public class FrameworkBootstrapTest {
     
     static ServerConfig.Impl serverConfig;
+    static SessionStore sessionStore;
     static Function<Injector, List<Route>> routes;
     
     static FrameworkBootstrap framework;
@@ -33,6 +35,7 @@ public class FrameworkBootstrapTest {
     @SuppressWarnings("unchecked")
     public static void setUpBeforeClass() throws Exception {
         serverConfig = new ServerConfig.Impl();
+        sessionStore = mock(SessionStore.class);
         routes = mock(Function.class);
         when(routes.apply(any(Injector.class))).thenReturn(List.of());
     }
@@ -44,8 +47,8 @@ public class FrameworkBootstrapTest {
 
     @Test
     public void alreadyBooted() {
-        framework.boot(Modes.TEST, serverConfig, routes);
-        assertThrows(RuntimeException.class, () -> framework.boot(Modes.TEST, serverConfig, routes));
+        framework.boot(Modes.TEST, serverConfig, sessionStore, routes);
+        assertThrows(RuntimeException.class, () -> framework.boot(Modes.TEST, serverConfig, sessionStore, routes));
     }
     
     @Test
@@ -62,7 +65,7 @@ public class FrameworkBootstrapTest {
             applicationConfig.onShutdown(() -> shutdown.set(true));
         });
         
-        framework.boot(Modes.TEST, serverConfig, routes);
+        framework.boot(Modes.TEST, serverConfig, sessionStore, routes);
         assertThat(called.get()).isTrue();
         assertThat(startup.get()).isTrue();
         assertThat(shutdown.get()).isFalse();
@@ -91,7 +94,7 @@ public class FrameworkBootstrapTest {
         framework.onShutdown(() -> {throw new RuntimeException();} );
         framework.onShutdown(() -> shutdowns[1] = true );
         
-        framework.boot(Modes.TEST, serverConfig, routes);
+        framework.boot(Modes.TEST, serverConfig, sessionStore, routes);
         framework.shutdown();
         
         assertThat(framework.getInjector()).isNull();
@@ -106,7 +109,7 @@ public class FrameworkBootstrapTest {
         framework.onStartup(() -> {throw new RuntimeException();} );
         framework.onStartup(() -> startups[1] = true );
         
-        framework.boot(Modes.TEST, serverConfig, routes);
+        framework.boot(Modes.TEST, serverConfig, sessionStore, routes);
         
         assertThat(framework.getInjector()).isNotNull();
         assertThat(startups[0]).isTrue();
@@ -119,7 +122,7 @@ public class FrameworkBootstrapTest {
         Function<Injector, List<Route>> nroutes = mock(Function.class);
         when(nroutes.apply(any(Injector.class))).thenReturn(List.of());
         
-        framework.boot(Modes.TEST, serverConfig, routes);
+        framework.boot(Modes.TEST, serverConfig, sessionStore, routes);
         framework.reboot___strap(nroutes, new FrameworkBootstrap());
         
         verify(nroutes, times(1)).apply(framework.injector);

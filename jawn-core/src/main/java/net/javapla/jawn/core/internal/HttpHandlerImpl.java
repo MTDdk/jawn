@@ -13,6 +13,7 @@ import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
@@ -29,15 +30,18 @@ final class HttpHandlerImpl implements HttpHandler {
     private final Router router;
     private final ResultRunner runner;
     private final DeploymentInfo deploymentInfo;
+    private final SessionStore sessionStore;
     private final Injector injector;
+
 
     
     @Inject
-    HttpHandlerImpl(final Charset charset, final Router router, final ResultRunner runner, final DeploymentInfo deploymentInfo, final Injector injector) {
+    HttpHandlerImpl(final Charset charset, final Router router, final ResultRunner runner, final DeploymentInfo deploymentInfo, final SessionStore sessionStore, final Injector injector) {
         this.charset = charset;
         this.router = router;
         this.runner = runner;
         this.deploymentInfo = deploymentInfo;
+        this.sessionStore = sessionStore;
         this.injector = injector;
     }
 
@@ -46,7 +50,7 @@ final class HttpHandlerImpl implements HttpHandler {
         //String uri = normaliseURI(context.req().path()); README is this even necessary?
         resp.header("Server", "jawn");
         
-        final ContextImpl context = new ContextImpl(req, resp, charset, deploymentInfo, injector);
+        final ContextImpl context = new ContextImpl(req, resp, charset, deploymentInfo, sessionStore, injector);
         
         // ServerRequest.path() holds the actual path received on the server,
         // so from this point onward the Context.req().path() is preferred, as this

@@ -304,7 +304,7 @@ public class ActionParameterTest {
         when(request.bytes()).thenCallRealMethod();
         when(request.in()).thenReturn(new ByteArrayInputStream(body.getBytes()));
 
-        Context context = TestHelper.contextImpl(request, null, StandardCharsets.UTF_8, null, injector);
+        Context context = TestHelper.contextImpl(request, null, StandardCharsets.UTF_8, null, null, injector);
 
         return context;
     }

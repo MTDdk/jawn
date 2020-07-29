@@ -79,19 +79,19 @@ public interface Session {
     
     
     
-    static Session create(final Context context, final String id) {
-        return create(context, id, Instant.now()); 
+    static Session create(final SessionStore sessionStore, final Context context, final String id) {
+        return create(sessionStore, context, id, Instant.now(), new ConcurrentHashMap<>()); 
     }
     
-    static Session create(final Context context, final String id, final Instant createdTime) {
-        return create(context, id, createdTime, new ConcurrentHashMap<>()); 
+    /*static Session create(final SessionStore sessionStore, final Context context, final String id, final Instant createdTime) {
+        return create(sessionStore, context, id, createdTime, new ConcurrentHashMap<>()); 
+    }*/
+    
+    static Session create(final SessionStore sessionStore, final Context context, final String id, final Map<String, String> attributes) {
+        return create(sessionStore, context, id, Instant.now(), attributes);
     }
     
-    static Session create(final Context context, final String id, final Map<String, String> attributes) {
-        return create(context, id, Instant.now(), attributes);
-    }
-    
-    static Session create(final Context context, final String id, final Instant createdTime, final Map<String, String> attributes) {
+    static Session create(final SessionStore sessionStore, final Context context, final String id, final Instant createdTime, final Map<String, String> attributes) {
         return new Session() {
             
             private Instant lastAccessed = Instant.now();
@@ -115,7 +115,9 @@ public interface Session {
 
             @Override
             public Value remove(String name) {
-                return Value.of(attributes.remove(name));
+                String attr = attributes.remove(name);
+                updateState();
+                return Value.of(attr);
             }
 
             @Override
@@ -129,11 +131,12 @@ public interface Session {
                 updateState();
                 return this;
             }
-
+            
             @Override
-            public void invalidate() {
+            public void invalidate() { // destroy
                 context.removeAttribute(NAME);
                 attributes.clear();
+                sessionStore.deleteSession(context, this);
             }
 
             @Override
@@ -153,6 +156,7 @@ public interface Session {
             
             private void updateState() {
                 updateAccess();
+                sessionStore.touchSession(context, this);
             }
         };
     }

@@ -176,6 +176,10 @@ public interface Context /*extends Injection*/ {
     void removeAttribute(String name);
     
     Session session();
+    Optional<Session> sessionOptionally();
+    default Value session(String name) {
+        return sessionOptionally().map(sesh -> Value.of(sesh.get(name))).orElse(Value.empty());
+    }
     
     
     /**

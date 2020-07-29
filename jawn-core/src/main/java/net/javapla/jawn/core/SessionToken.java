@@ -88,7 +88,9 @@ public interface SessionToken {
 
         @Override
         public String findToken(Context ctx) {
-            return ctx.req().cookies().get(cookie.name()).value();
+            Cookie c = ctx.req().cookies().get(cookie.name());
+            if (c == null) return null;
+            return c.value();
         }
 
         @Override
@@ -127,7 +129,5 @@ public interface SessionToken {
         public void deleteToken(Context ctx, String token) {
             ctx.resp().removeHeader(name);
         }
-        
     }
-    
 }

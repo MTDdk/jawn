@@ -22,6 +22,7 @@ import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.internal.renderers.RendererEngineOrchestratorImplTest;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
@@ -30,11 +31,13 @@ public class HttpHandlerImplTest {
     
     static Injector injector;
     static ResultRunner runner;
+    static SessionStore sessionStore;
     static DeploymentInfo di;
     
     @BeforeClass
     public static void beforeClass() throws Exception {
         injector = Guice.createInjector(RendererEngineOrchestratorImplTest.rendererModule());
+        sessionStore = mock(SessionStore.class);
         runner = injector.getInstance(ResultRunner.class);
         
         
@@ -61,7 +64,7 @@ public class HttpHandlerImplTest {
         
         
         HttpHandlerImpl handler = 
-            new HttpHandlerImpl(StandardCharsets.UTF_8, router, runner, di, injector);
+            new HttpHandlerImpl(StandardCharsets.UTF_8, router, runner, di, sessionStore, injector);
         
         
         ServerRequest request = mock(ServerRequest.class);
