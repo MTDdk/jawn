@@ -58,7 +58,7 @@ public class SiteConfigurationReaderTest {
             .comparingElementsUsing(Correspondence.transforming((SiteConfiguration.Tag tag) -> tag.url, "has url"))
             .containsExactly("/css/style1.css", "/css/style2.css");
         
-        assertThat(conf.styles[1].attr).containsExactly("integrity","#2",   "crossorigin", "none");
+        assertThat(conf.styles[1].attr).containsExactly("integrity","#2", "crossorigin", "none");
     }
     
     @Test
@@ -95,6 +95,18 @@ public class SiteConfigurationReaderTest {
         assertThat(merge.title).isEqualTo(second.title);
         assertThat(merge.scripts).hasLength(first.scripts.length + second.scripts.length);
         assertThat(merge.styles).hasLength(first.styles.length/* + second.styles.length*/); // "second" has no styles
+    }
+    
+    @Test
+    public void mergeForStyles() {
+        SiteConfiguration first = confReader.readSiteFile("");
+        SiteConfiguration second = confReader.readSiteFile("mergablestyle");
+        
+        SiteConfiguration merge = confReader.merge(first, second);
+        
+        assertThat(merge.title).isEqualTo(second.title);
+        assertThat(merge.scripts).hasLength(first.scripts.length/* + second.scripts.length*/); // "second" has no scripts
+        assertThat(merge.styles).hasLength(first.styles.length + second.styles.length);
     }
     
     @Test
@@ -175,6 +187,28 @@ public class SiteConfigurationReaderTest {
         assertThat(SiteConfigurationReader.isLocal("file://something")).isTrue();
         assertThat(SiteConfigurationReader.isLocal("something.css")).isTrue();
         assertThat(SiteConfigurationReader.isLocal("something.js")).isTrue();
+    }
+    
+    @Test
+    public void lastModified() {
+        SiteConfiguration conf = confReader.find("lastmodified");
+        
+        assertThat(conf.styles[0].url).contains("/css/dummy.css?v=");
+    }
+    
+    @Test
+    public void noFile() {
+        SiteConfiguration conf = confReader.readSiteFile("nonono");
+        assertThat(conf.title).isNull();
+        assertThat(conf.styles).isNull();
+        assertThat(conf.scripts).isNull();
+    }
+    
+    @Test
+    public void _toString() {
+        SiteConfiguration conf = confReader.readSiteFile("");
+        
+        assertThat(conf.toString()).contains("Tag /css/style2.css {integrity=#2, crossorigin=none}");
     }
     
     public void faulty() {

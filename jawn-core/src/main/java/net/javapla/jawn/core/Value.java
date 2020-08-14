@@ -1,5 +1,7 @@
 package net.javapla.jawn.core;
 
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -362,6 +364,29 @@ public interface Value extends Iterable<Value> { // SimpleValue
             return valuables.iterator();
         }
         
+    }
+    
+    interface ByteArrayValue extends Value {
+        
+        default String value(Charset charset) {
+            return new String(bytes(), charset);
+        }
+        
+        byte[] bytes();
+        
+        /**
+         * The same as <code>Content-Length</code> header
+         * @return size in bytes
+         */
+        long size();
+        
+        /**
+         * Is the data contained in memory
+         * @return if data is in memory
+         */
+        boolean inMemory();
+        
+        InputStream stream();
     }
     
     static Value empty() {

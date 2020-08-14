@@ -11,9 +11,11 @@ import java.io.InputStream;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 
+import ch.qos.logback.classic.Level;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
 
@@ -23,6 +25,10 @@ public class ParserEngineMangerTest {
     
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        // encourage logging - solely to trigger the logging mechanism
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ParserEngineManager.class.getPackageName());
+        logger.setLevel(Level.DEBUG);
+        
         engine = Guice.createInjector().getInstance(ParserEngineManager.class);
     }
         

@@ -5,7 +5,10 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.xnio.Pooled;
+
 import io.undertow.websockets.core.AbstractReceiveListener;
+import io.undertow.websockets.core.BufferedBinaryMessage;
 import io.undertow.websockets.core.BufferedTextMessage;
 import io.undertow.websockets.core.CloseMessage;
 import io.undertow.websockets.core.WebSocketCallback;
@@ -18,6 +21,7 @@ import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.server.WebSocketCloseStatus;
 import net.javapla.jawn.core.server.WebSocketMessage;
 
+@SuppressWarnings("deprecation")
 class UndertowWebSocket extends AbstractReceiveListener implements WebSocket.Listener, WebSocket, WebSocketCallback<Void> {
     
     //private static final ConcurrentMap<String, List<WebSocket>> ALL = new ConcurrentHashMap<>();
@@ -156,10 +160,19 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket.Lis
         return config.getMemorySize("server.ws.max_binary_missage_size");//WebSocket.MAX_BUFFER_SIZE;
     }
     
-    /*@Override
+    @Override
     protected void onFullBinaryMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {
-        super.onFullBinaryMessage(channel, message);
-    }*/
+        //super.onFullBinaryMessage(channel, message);
+        waitForConnect();
+        
+        if (onMessageCallback != null) {
+            try (Pooled<ByteBuffer[]> pooled = message.getData()) {
+                ByteBuffer merged = WebSockets.mergeBuffers(pooled.getResource());
+                
+                dispatch(webSocketTask(() -> onMessageCallback.onMessage(this, WebSocketMessage.create(merged.array())), false));
+            }
+        }
+    }
     
     @Override
     protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) throws IOException {

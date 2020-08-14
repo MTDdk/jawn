@@ -16,14 +16,16 @@ public class DateHeaderBefore implements Route.Before {
     private String DATE;
     
     public DateHeaderBefore() {
+        DATE = DateUtil.toDateString(Instant.now());
+        
         t.schedule(new TimerTask() {
             @Override
             public void run() {
                 DATE = DateUtil.toDateString(Instant.now());
             }
-        }, 0, 1000);
+        }, 1000, 1000);
     }
-
+    
     @Override
     public Result before(Context context, Chain chain) {
         context.resp().header("Date", DATE);

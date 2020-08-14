@@ -12,8 +12,9 @@ import net.javapla.jawn.core.Route.Filter;
 
 @Singleton
 public class LogRequestTimingFilter implements Filter {
-    private final static String filterName = LogRequestTimingFilter.class.getName();
+    private static final String filterName = LogRequestTimingFilter.class.getName();
     private final static Logger logger = LoggerFactory.getLogger(filterName);
+    static final String X_REQUEST_PROCESSING_TIME = "X-Request-Processing-Time";
 
     @Override
     public Result before(final Context context, final Chain chain) {
@@ -27,7 +28,7 @@ public class LogRequestTimingFilter implements Filter {
     public Result after(final Context context, final Result result) {
         context.attribute(filterName, Long.class).ifPresent(time -> {
             String processingTime = String.valueOf(time() - time);
-            context.resp().header("X-Request-Processing-Time", processingTime);
+            context.resp().header(X_REQUEST_PROCESSING_TIME, processingTime);
             
             logger.info("Processed request from [{}] in: {} milliseconds, path: {} , method: {}", context.req().remoteIp(), processingTime, context.req().fullPath(), context.req().httpMethod());
         });

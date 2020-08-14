@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xnio.IoUtils;
 
 import io.undertow.connector.PooledByteBuffer;
@@ -30,6 +32,8 @@ import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerResponse;
 
 final class UndertowResponse implements ServerResponse, IoCallback {
+    
+    private static Logger logger = LoggerFactory.getLogger(ServerResponse.class);
     
     private final HttpServerExchange exchange;
     

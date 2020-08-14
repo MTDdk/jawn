@@ -48,7 +48,11 @@ public interface ServerConfig {
         private int ioThreads = 1;
         
         private Performance performance = Performance.MINIMUM;
-        private int backlog = -1;
+        private int backlog = BACKLOG_DEFAULT;
+        
+        public Impl() {
+            performance(Performance.MINIMUM);
+        }
         
         
         public int port() {

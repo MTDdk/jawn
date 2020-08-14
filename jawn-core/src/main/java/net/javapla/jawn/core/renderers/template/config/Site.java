@@ -44,7 +44,7 @@ public class Site {
     
     @Override
     public String toString() {
-        return MessageFormat.format("url[{0}] title[{1}] mode[{2}] \nscripts[\n\t{3}] \nstyles[\n\t{4}]", url, title, mode, scripts, styles);
+        return MessageFormat.format("url[{0}] title[{1}] mode[{2}] \nscripts[\n\t{3}\n] \nstyles[\n\t{4}\n]", url, title, mode, scripts, styles);
     }
     
     public static class Builder {

@@ -5,7 +5,6 @@ import com.google.inject.name.Names;
 
 public interface Injection {
 
-    // registry
     <T> T require(Key<T> key);
     
     default <T> T require(final Class<T> type) {

@@ -1,0 +1,8 @@
+{
+	"title": "overrides and has a reference to an actual file",
+	"overrideDefault": true,
+
+	"styles": [
+		{"url": "dummy.css"}
+	]
+}

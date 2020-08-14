@@ -65,7 +65,7 @@ public class FormItemTest {
     }
     
     @Test
-    @Ignore("should be some kind of integration test")
+    @Ignore("should be some kind of integration test") // TODO rewrite FormItem to provide streams instead
     public void saveTo() throws IOException {
         FormItem item = mock(FormItem.class);
         doCallRealMethod().when(item).saveTo(any());
