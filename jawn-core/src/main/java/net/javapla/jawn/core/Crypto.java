@@ -3,6 +3,7 @@ package net.javapla.jawn.core;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -68,6 +69,8 @@ public interface Crypto {
             };
         }
     }
+    
+    
     interface Encrypter {
         String encrypt(String data);
         String decrypt(String data);
@@ -75,35 +78,24 @@ public interface Crypto {
         
         
         static Encrypter AES(String secret) {
-            System.out.println("init AES -----");
-            
             if (StringUtil.blank(secret)) throw new IllegalArgumentException("Your secret key may not be empty");
             
             
             final String ALGORITHM = "AES";
             final String TRANSFORMATION = "AES/ECB/PKCS5Padding";
             //final int AES_KEY_LENGTH_BITS = 128;
-            
             final int secretLength = 16; // AES_KEY_LENGTH_BITS / Byte.SIZE
-            final SecretKeySpec secretKeySpec;
                     
-            // TODO Perhaps some sanitisation of the secret - it seems '-' is illegal
-            // TODO MessageDigest the secret key with SHA-1 before using it, and instead of #expandSecret
-            /*
-            key = myKey.getBytes("UTF-8");
-            sha = MessageDigest.getInstance("SHA-1");
-            key = sha.digest(key);
-            key = Arrays.copyOf(key, 16); 
-            secretKey = new SecretKeySpec(key, "AES");
-             */
-            if (secret.length() < secretLength) {
-                secret = Crypto.SecretGenerator.expandSecret(secret, secretLength);
-            }
-
-            secretKeySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), 0, secretLength, ALGORITHM);
+            
+            MessageDigest digest;
+            try {
+                digest = MessageDigest.getInstance("SHA-1");
+            } catch (NoSuchAlgorithmException ignore) { throw new RuntimeException(ignore); }
+            
+            final byte[] key = digest.digest(secret.getBytes(StandardCharsets.UTF_8));
+            final SecretKeySpec secretKeySpec = new SecretKeySpec(key, 0, secretLength, ALGORITHM);
 
             //logger.info("AES encryption is using {} / {} bit.", keySpec.get().getAlgorithm(), maxKeyLengthBits);
-
 
             return new Encrypter() {
 
@@ -195,21 +187,6 @@ public interface Crypto {
         
         public static String generateAndEncode(final int lengthOfSecret) {
             return Base64.getEncoder().withoutPadding().encodeToString(generate(lengthOfSecret));
-        }
-        
-        static String expandSecret(String secret, int neededLength) {
-            StringBuilder bob = new StringBuilder(neededLength);
-            
-            while (bob.length() < neededLength) {
-                if (bob.length() + secret.length() < neededLength) {
-                    bob.append(secret);
-                } else {
-                    bob.append(secret.substring(0, neededLength - bob.length()));
-                    break;
-                }
-            }
-            
-            return bob.toString();
         }
     }
     

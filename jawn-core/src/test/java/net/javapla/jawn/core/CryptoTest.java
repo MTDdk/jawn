@@ -4,45 +4,52 @@ import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.Test;
 
-import net.javapla.jawn.core.Crypto.Encrypter;
-import net.javapla.jawn.core.Crypto.Signer;
-
 public class CryptoTest {
-
+    
     @Test
-    public void expandSecret() {
-        String expanded = Crypto.SecretGenerator.expandSecret("test", 64);
-        assertThat(expanded).hasLength(64);
+    public void encryption() {
+        Crypto.Encrypter aes = Crypto.Encrypter.AES("7NbiXhRxA0RYi7tbRC2vbU1Wu54VoBmjDqPxu0ZdCdgQgL31OOYttQ6dVkl8ZErm");
         
-        expanded = Crypto.SecretGenerator.expandSecret("test", 8);
-        assertThat(expanded).hasLength(8);
-        assertThat(expanded).isEqualTo("testtest");
+        String stringToEncrypt = "But I must explain";
+        String encrypted = aes.encrypt(stringToEncrypt);
+        assertThat(encrypted).isNotEqualTo(stringToEncrypt);
         
-        expanded = Crypto.SecretGenerator.expandSecret("testtest", 4);
-        assertThat(expanded).hasLength(4);
-        assertThat(expanded).isEqualTo("test");
+        String decrypted = aes.decrypt(encrypted);
+        assertThat(decrypted).isEqualTo(stringToEncrypt);
     }
-
+    
     @Test
-    public void test() {
-        Signer sha256 = Crypto.Signer.SHA256("secretkeyblabalbalbalblablablablablablab");
-        System.out.println(sha256.outputLength());
-        String sign = sha256.sign("kagemanden fra otterup");
-        System.out.println(sign);
-        System.out.println(sign.length());
+    public void emptyStringEncryption() {
+        Crypto.Encrypter aes = Crypto.Encrypter.AES("7NbiXhRxA0RYi7tbRC2vbU1Wu54VoBmjDqPxu0ZdCdgQgL31OOYttQ6dVkl8ZErm");
         
-        System.out.println();
+        String stringToEncrypt = "";
+        String encrypted = aes.encrypt(stringToEncrypt);
+        assertThat(encrypted).isNotEqualTo(stringToEncrypt);
         
-        System.out.println(Crypto.Encrypter.AES("datter").keyLength());
-        System.out.println(Crypto.Encrypter.AES("secretdatatat").encrypt("henninghenning") + "  " + Crypto.Encrypter.AES("secretdatatat").encrypt("henninghenning").length());
-        System.out.println(Crypto.Encrypter.AES("secretsecretsecretsecretsecretsecretsecretsecretsecret").encrypt("kagekagekagekage"));
-        
-        Encrypter aes = Crypto.Encrypter.AES("ssshhhhhhhhhhh!!!!");
-        String originalString = "howtodoinjava.com";
-        String encrypt = aes.encrypt(originalString);
-        String decrypt = aes.decrypt(encrypt);
-        System.out.println(encrypt);
-        System.out.println(decrypt);
+        String decrypted = aes.decrypt(encrypted);
+        assertThat(decrypted).isEqualTo(stringToEncrypt);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void fail_when_secretIsBlank() {
+        Crypto.Encrypter.AES("");
+    }
+    
+    @Test
+    public void hashing_with_secret() {
+        Crypto.Signer sha = Crypto.Signer.SHA256("SomeRandomLongString");
+
+        assertThat(sha.sign("But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain"))
+            .isEqualTo("FDLxoehDHGCnEX+DHcXVxeXLAPFRBVWHkaufHD/buHo");
+        assertThat(sha.sign("was born and I will give you a complete account of the system"))
+            .isEqualTo("QcMubpxpKGJjosfvQlCdwySMQBhhcmCKYDTp1FZYzbo");
+        assertThat(sha.sign("and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness"))
+            .isEqualTo("yKUBOJC8zCBAhuOSOibLSD9KyLMfVkBnhU73BxSZJgY");
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void hashing_missing_secretAndKey() {
+        Crypto.Signer.SHA256("").sign("anything");
     }
 
 }
