@@ -16,7 +16,6 @@ import java.util.Optional;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.ArgumentCaptor;
-import org.mockito.stubbing.Answer;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Context.Request;

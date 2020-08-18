@@ -1,9 +1,11 @@
 package net.javapla.jawn.core.util;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -66,5 +68,10 @@ public class StringUtilTest {
         assertTrue(StringUtil.blank(""));
         assertTrue(StringUtil.blank(" "));
         assertFalse(StringUtil.blank("false"));
+    }
+    
+    @Test
+    public void hex() {
+        assertThat(StringUtil.hex("cookie".getBytes(StandardCharsets.UTF_8))).isEqualTo("636f6f6b6965");
     }
 }

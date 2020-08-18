@@ -133,6 +133,24 @@ public class AsyncBufferedReader extends Reader {
             }
         }
     }
+    
+    /**
+     * Reads a line of text.  A line is considered to be terminated by any one
+     * of a line feed ('\n'), a carriage return ('\r'), a carriage return
+     * followed immediately by a line feed, or by reaching the end-of-file
+     * (EOF).
+     *
+     * @return     A String containing the contents of the line, not including
+     *             any line-termination characters, or null if the end of the
+     *             stream has been reached without reading any characters
+     *
+     * @exception  IOException  If an I/O error occurs
+     *
+     * @see java.nio.file.Files#readAllLines
+     */
+    public String readLine() throws IOException {
+        return readLine(false);
+    }
 
 
     @Override
