@@ -178,7 +178,7 @@ public interface Context /*extends Injection*/ {
     Session session();
     Optional<Session> sessionOptionally();
     default Value session(String name) {
-        return sessionOptionally().map(sesh -> Value.of(sesh.get(name))).orElse(Value.empty());
+        return sessionOptionally().map(sesh -> sesh.get(name)).orElse(Value.empty());
     }
     
     

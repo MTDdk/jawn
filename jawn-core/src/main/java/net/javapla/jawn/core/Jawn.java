@@ -3,7 +3,6 @@ package net.javapla.jawn.core;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.WatchService;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -44,13 +43,13 @@ public class Jawn implements Route.Filtering, Injection {
     private final FrameworkBootstrap bootstrap;
     private final ServerConfig.Impl serverConfig;
     private final Assets.Impl assets;
+    private final SessionConfig.Impl sessionConfig;
     
     private final Map<Route.Builder, RouteFilterPopulator> routesAndFilters;
     private final RouteFilterPopulator globalFilters;
     private final HashMap<String, MvcFilterPopulator> mvcFilters;
     private final LinkedList<String> pathPrefix = new LinkedList<>();
     
-    private SessionStore sessionStore = SessionStore.memory();
     
     private Modes mode = Modes.DEV;
 
@@ -58,6 +57,7 @@ public class Jawn implements Route.Filtering, Injection {
         bootstrap = new FrameworkBootstrap();
         serverConfig = new ServerConfig.Impl();
         assets = new Assets.Impl();
+        sessionConfig = new SessionConfig.Impl();
         
         routesAndFilters = new LinkedHashMap<>(); // to maintain insertion order
         globalFilters = new RouteFilterPopulator();
@@ -142,31 +142,7 @@ public class Jawn implements Route.Filtering, Injection {
     }
     
     protected SessionConfig session() {
-        return new SessionConfig() {
-            @Override
-            public SessionConfig memory() {
-                sessionStore = SessionStore.memory();
-                return this;
-            }
-            
-            @Override
-            public SessionConfig memory(Duration timeout) {
-                sessionStore = SessionStore.memory(timeout);
-                return this;
-            }
-            
-            @Override
-            public SessionConfig signed(String secret) {
-                sessionStore = SessionStore.signed(secret);
-                return this;
-            }
-            
-            @Override
-            public SessionConfig store(SessionStore store) {
-                sessionStore = store;
-                return this;
-            }
-        };
+        return sessionConfig;
     }
     
     // ****************
@@ -381,7 +357,7 @@ public class Jawn implements Route.Filtering, Injection {
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
         // bootstrap
-        bootstrap.boot(mode, serverConfig, sessionStore, this::buildRoutes);
+        bootstrap.boot(mode, serverConfig, sessionConfig.sessionStore, this::buildRoutes);
         
         // start server
         try {
