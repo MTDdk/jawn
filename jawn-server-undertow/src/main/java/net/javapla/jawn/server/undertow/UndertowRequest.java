@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import io.undertow.Handlers;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
+import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderMap;
@@ -34,7 +35,7 @@ import net.javapla.jawn.core.util.MultiList;
 class UndertowRequest implements ServerRequest {
     
     // TODO should be instantiated in the core module instead of a server module
-    private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/);
+    static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir")+"/jawn" /*+application name*/);
     static {
         if (!TMP_DIR.toFile().exists()) TMP_DIR.toFile().mkdirs();
     }
@@ -44,7 +45,8 @@ class UndertowRequest implements ServerRequest {
     private final String path;
     private final HttpMethod method;
     
-    private FormData form;
+    //private FormData form;
+    private MultiList<FormItem> form;
     private MultiList<String> params;
     private MultiList<String> headers;
 
@@ -122,15 +124,19 @@ class UndertowRequest implements ServerRequest {
 
     @Override
     public MultiList<FormItem> formData() {
-        MultiList<FormItem> list = new MultiList<>();
+        if (form == null) {
+            MultiList<FormItem> list = new MultiList<>();
+            
+            FormData formData = parseForm();
+            formData.forEach(name -> 
+                formData.get(name).stream()
+                    .forEach(value -> list.put(name, new UndertowFormItem(value, name)))
+            );
+            
+            form = list;
+        }
         
-        FormData form = parseForm();
-        form.forEach(name -> 
-            form.get(name).stream()
-                .forEach(value -> list.put(name, new UndertowFormItem(value, name)))
-        );
-        
-        return list;
+        return form;
     }
 
     @Override
@@ -184,21 +190,22 @@ class UndertowRequest implements ServerRequest {
     private void blocking() { if(!this.exchange.isBlocking()) this.exchange.startBlocking(); }
 
     private FormData parseForm() {
-        if (form == null) {
-            form = new FormData(0);
+        FormData formData = exchange.getAttachment(FormDataParser.FORM_DATA);
+        if (formData == null) {
+            formData = new FormData(0);
             try {
                 String charset = StandardCharsets.UTF_8.name();
                 String value = exchange.getRequestHeaders().getFirst("Content-Type");
                 if (value != null) {
                     if (value.startsWith(MediaType.FORM.name())) {
                         blocking();
-                        form = new FormEncodedDataDefinition()
+                        formData = new FormEncodedDataDefinition()
                                 .setDefaultEncoding(charset)
                                 .create(exchange)
                                 .parseBlocking();
                     } else if (value.startsWith(MediaType.MULTIPART.name())) {
                         blocking();
-                        form = new MultiPartParserDefinition()
+                        formData = new MultiPartParserDefinition()
                                 .setTempFileLocation(TMP_DIR)
                                 .setDefaultEncoding(charset)
                                 .create(exchange)
@@ -207,7 +214,7 @@ class UndertowRequest implements ServerRequest {
                 }
             } catch (IOException ignore) {}
         }
-        return form;
+        return formData;
     }
 
     private static Cookie cookie(final io.undertow.server.handlers.Cookie cookie) {

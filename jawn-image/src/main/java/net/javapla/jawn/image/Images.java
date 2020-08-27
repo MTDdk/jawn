@@ -176,7 +176,7 @@ public class Images {
     
     public static Image image(final FormItem item) throws Up.IO {
         try {
-            return image(ImageIO.read(item.file().orElseThrow()), ImageFormat.fromFileName(item.fileName().get()));
+            return image(ImageIO.read(Files.newInputStream(item.file().orElseThrow())), ImageFormat.fromFileName(item.fileName().get()));
         } catch (IOException e) {
             throw new Up.IO(e); // this is not really an IO error..
         }

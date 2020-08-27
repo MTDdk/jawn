@@ -1,7 +1,13 @@
 package net.javapla.jawn.server.undertow;
 
+import java.nio.charset.StandardCharsets;
+
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.form.FormDataParser;
+import io.undertow.server.handlers.form.FormEncodedDataDefinition;
+import io.undertow.server.handlers.form.FormParserFactory;
+import io.undertow.server.handlers.form.MultiPartParserDefinition;
 import io.undertow.util.HeaderValues;
 import io.undertow.util.Headers;
 import io.undertow.util.Protocols;
@@ -11,10 +17,20 @@ class UndertowHandler implements HttpHandler {
 
     private final Config config;
     private final net.javapla.jawn.core.server.HttpHandler dispatcher;
+    
+    private final FormParserFactory parserFactory;
 
     UndertowHandler(final Config config, final net.javapla.jawn.core.server.HttpHandler dispatcher) {
         this.config = config;
         this.dispatcher = dispatcher;
+        
+        /** Eager body parsing: */
+        parserFactory = FormParserFactory.builder(false)
+            .addParser(new MultiPartParserDefinition(UndertowRequest.TMP_DIR)
+                .setDefaultEncoding(StandardCharsets.UTF_8.name()))
+            .addParser(new FormEncodedDataDefinition()
+                .setDefaultEncoding(StandardCharsets.UTF_8.name()))
+            .build();
     }
 
     @Override
@@ -29,7 +45,15 @@ class UndertowHandler implements HttpHandler {
             return;
         }
         
-        dispatcher.handle(new UndertowRequest(config, exchange), new UndertowResponse(exchange));
+        FormDataParser parser = parserFactory.createParser(exchange);
+        if (parser != null) {
+            parser.parse(this::handle);
+        } else {
+            handle(exchange);
+        }
     }
 
+    private final void handle(final HttpServerExchange exchange) throws Exception {
+        dispatcher.handle(new UndertowRequest(config, exchange), new UndertowResponse(exchange));
+    }
 }

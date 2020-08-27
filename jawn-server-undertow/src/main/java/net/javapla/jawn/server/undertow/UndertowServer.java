@@ -58,6 +58,7 @@ public final class UndertowServer implements Server {
         conf.getBooleanOptionally("server.http2.enabled")
             .ifPresent(b -> builder.setServerOption(UndertowOptions.ENABLE_HTTP2, b));
         
+        
         configureServerPerformance(builder, serverConfig);
         
         server = builder.build();

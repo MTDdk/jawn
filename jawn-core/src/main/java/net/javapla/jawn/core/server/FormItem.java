@@ -1,12 +1,12 @@
 package net.javapla.jawn.core.server;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.Optional;
 
 import net.javapla.jawn.core.util.MultiList;
@@ -36,7 +36,9 @@ public interface FormItem extends Closeable {
      * @return
      * @throws IOException
      */
-    Optional<File> file() throws IOException;
+    Optional<Path> file() throws IOException;
+    
+    Optional<InputStream> stream() throws IOException;
     
     Optional<String> fileName();
     
@@ -52,7 +54,7 @@ public interface FormItem extends Closeable {
      * @return content type of this form field.
      */
     String contentType();
-
+    
 
     /**
      * Reads contents of a file into a byte array at once.
@@ -61,8 +63,8 @@ public interface FormItem extends Closeable {
      * @throws IOException 
      */
     default byte[] bytes() throws IOException {
-        File file = file().orElseThrow(() -> new IOException("No file found for " + name()));
-        try (InputStream stream = Files.newInputStream(file.toPath(), StandardOpenOption.READ)) {
+        InputStream stream = stream().orElseThrow(() -> new IOException("No file found for " + name()));
+        try (stream) {
             return StreamUtil.bytes(stream);
         }
     }
@@ -74,13 +76,36 @@ public interface FormItem extends Closeable {
      * @param output to file
      * @throws IOException
      */
-    default void saveTo(File output) throws IOException {
-        File file = file().orElseThrow(() -> new IOException("No file found for " + name()));
-        Files.copy(file.toPath(), output.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    default void saveTo(Path output) throws IOException {
+        //Path file = file().orElseThrow(() -> new IOException("No file found for " + name()));
+        //Files.copy(file.toPath(), output.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        
+        saveTo(output, StandardCopyOption.REPLACE_EXISTING);
+    }
+    
+    default void saveTo(Path output, CopyOption ... options) throws IOException {
+        if (file().isPresent()) {
+            try {
+                Files.move(file().get(), output, options);
+                return;
+            } catch (IOException e) {
+                // ignore and let the Files.copy, outside
+                // this if block, take over and attempt to copy it
+            }
+        }
+        
+        if (stream().isPresent()) {
+            try (InputStream is = stream().get()) {
+                Files.copy(is, output, options);
+                return;
+            }
+        }
+        
+        throw new IOException("No file found for " + name());
     }
 
     @Override
     default void close() throws IOException {
-        file().ifPresent(file -> file.delete());
+        file().ifPresent(file -> file.toFile().delete());
     }
 }

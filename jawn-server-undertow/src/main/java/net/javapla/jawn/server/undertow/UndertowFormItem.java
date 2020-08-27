@@ -1,7 +1,8 @@
 package net.javapla.jawn.server.undertow;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Optional;
 
 import io.undertow.server.handlers.form.FormData.FormValue;
@@ -32,8 +33,13 @@ final class UndertowFormItem implements FormItem {
     }
 
     @Override
-    public Optional<File> file() throws IOException {
-        return value.isFileItem() ? Optional.of(value.getFileItem().getFile().toFile()) : Optional.empty();
+    public Optional<Path> file() throws IOException {
+        return value.isFileItem() ? Optional.of(value.getFileItem().getFile()) : Optional.empty();
+    }
+    
+    @Override
+    public Optional<InputStream> stream() throws IOException {
+        return value.isFileItem() ? Optional.of(value.getFileItem().getInputStream()) : Optional.empty();
     }
     
     @Override
