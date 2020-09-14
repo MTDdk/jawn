@@ -1,7 +1,10 @@
 package net.javapla.jawn.plugins.modules;
 
+import org.slf4j.LoggerFactory;
+
 import com.zaxxer.hikari.HikariDataSource;
 
+import ch.qos.logback.classic.Level;
 import net.javapla.jawn.core.spi.ApplicationConfig;
 import net.javapla.jawn.core.spi.ModuleBootstrap;
 import net.javapla.jawn.database.DatabaseConfigurationReader;
@@ -15,6 +18,10 @@ public class HikariBootstrap implements ModuleBootstrap {
 
     @Override
     public void bootstrap(ApplicationConfig appConfig) {
+        
+        // Not everything is necessary
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("com.zaxxer.hikari");
+        logger.setLevel(Level.INFO);
         
         DatabaseConfigurationReader.bindInstances(appConfig, this::source);
         
