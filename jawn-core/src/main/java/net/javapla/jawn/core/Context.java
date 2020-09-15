@@ -1,5 +1,6 @@
 package net.javapla.jawn.core;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -148,8 +149,11 @@ public interface Context /*extends Injection*/ {
          * @return The HTTP body
          * @throws Exception If body can't be converted or there is no HTTP body.
          */
-        String body() throws Exception;
         <T> T body(Class<T> type) throws Exception;
+        String body();// throws Exception;
+        
+        InputStream in() throws IOException;
+        byte[] bytes() throws IOException;
         
         /**
          * @return The length, in bytes, of the request body and made available by the input stream, or -1 if the length is not known

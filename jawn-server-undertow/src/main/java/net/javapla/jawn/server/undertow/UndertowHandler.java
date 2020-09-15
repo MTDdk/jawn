@@ -48,7 +48,11 @@ class UndertowHandler implements HttpHandler {
         FormDataParser parser = parserFactory.createParser(exchange);
         if (parser != null) {
             parser.parse(this::handle);
+            //parser.close(); // TODO when to close this?
         } else {
+//            Receiver receiver = exchange.getRequestReceiver();
+//            receiver.receiveFullBytes((ex, bytes) -> );
+//            
             handle(exchange);
         }
     }

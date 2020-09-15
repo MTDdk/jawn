@@ -39,68 +39,73 @@ import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 
 final class ContextImpl implements Context {
-    
-    private final Request req;
-    private final Response resp;
-    private final ServerRequest sreq;
+
+    private final Request        req;
+    private final Response       resp;
+    private final ServerRequest  sreq;
     private final ServerResponse sresp;
-    private final SessionStore sessionStore;
-    private final Injector injector;
-    private Route route;
-    
+    private final SessionStore   sessionStore;
+    private final Injector       injector;
+    private Route                route;
+
     private HashMap<String, Cookie> cookies;
     private HashMap<String, Object> attributes;
-    //private LinkedList<File> files;
-    
-    ContextImpl(final ServerRequest sreq, final ServerResponse resp, final Charset charset, final DeploymentInfo deploymentInfo, final SessionStore sessionStore, final Injector injector) {
+    // private LinkedList<File> files;
+
+    ContextImpl(final ServerRequest sreq,
+                final ServerResponse resp,
+                final Charset charset,
+                final DeploymentInfo deploymentInfo,
+                final SessionStore sessionStore,
+                final Injector injector) {
         this.sessionStore = sessionStore;
         this.injector = injector;
         this.sreq = sreq;
         this.sresp = resp;
-        
+
         this.req = new Context.Request() {
-            
+
             @Override
             public HttpMethod httpMethod() {
                 return sreq.method();
             }
-            
+
             @Override
             public Optional<String> queryString() {
                 String s = sreq.queryString();
                 return s.length() == 0 ? Optional.empty() : Optional.of(s);
             }
-            
+
             @Override
             public String ip() {
                 return sreq.ip();
             }
-            
+
             @Override
             public String path() {
                 return deploymentInfo.stripContextPath(sreq.path());
             }
-            
+
             @Override
             public String context() {
                 return deploymentInfo.getContextPath();
             }
-            
+
             @Override
             public Value header(final String name) {
                 return Value.of(sreq.header(name));
             }
-            
+
             @Override
             public MultiList<String> headers() {
                 return sreq.headers();
             }
-            
+
             @Override
             public List<String> headers(final String name) {
                 return sreq.headers(name);
             }
-            
+
             @Override
             public Map<String, Cookie> cookies() {
                 if (cookies == null) {
@@ -110,54 +115,92 @@ final class ContextImpl implements Context {
                 }
                 return cookies;
             }
-            
+
             @Override
             public MediaType contentType() {
                 return sreq.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
             }
-            
+
             @Override
             public Charset charset() {
                 String charsetName = contentType().params().get(MediaType.CHARSET_PARAMETER);
                 return charsetName == null ? charset : Charset.forName(charsetName);
             }
-            
+
             @Override
             public Value queryParam(final String name) {
                 return Value.of(sreq.queryParam(name));
             }
-            
+
             @Override
             public MultiList<String> queryParams() {
                 return sreq.queryParams();
             }
-            
+
             @Override
             public Value queryParams(final String name) {
                 return Value.of(sreq.queryParams(name));
             }
-            
+
             @Override
             public Value pathParam(final String name) {
                 return Value.of(_pathParam(name));
             }
-            
+
             @Override
             public MultiList<FormItem> formData() {
                 return sreq.formData();
             }
-            
+
+            /*@Override
+            public Body body() {
+                return new Body() {
+                    
+                    @Override
+                    public InputStream stream() {
+                        try {
+                            return sreq.in();
+                        } catch (IOException e) {
+                            throw Up.IO.because(e);
+                        }
+                    }
+                    
+                    @Override
+                    public long size() {
+                        return length();
+                    }
+                    
+                    @Override
+                    public boolean inMemory() {
+                        return false;
+                    }
+                    
+                    @Override
+                    public byte[] bytes() {
+                        try {
+                            return sreq.bytes();
+                        } catch (IOException e) {
+                            throw Up.IO.because(e);
+                        }
+                    }
+                };
+            }*/
+
             @Override
-            public String body() throws Exception {
-                return body(String.class);
+            public String body() {
+                try {
+                    return new String(sreq.bytes(), charset());
+                } catch (IOException e) {
+                    throw Up.IO.because(e);
+                }
             }
-            
+
             @Override
             public <T> T body(final Class<T> type) throws Exception {
                 long length = length();
-                
+
                 if (length > 0) {
-                    if (type == String.class) {
+                    /*if (type == String.class) {
                         return (T) new String(sreq.bytes(), charset());
                     }
                     if (type == InputStream.class) {
@@ -165,68 +208,79 @@ final class ContextImpl implements Context {
                     }
                     if (type == byte[].class) {
                         return (T) sreq.bytes();
-                    }
-                    
+                    }*/
+
                     ParserEngineManager engineManager = injector.getInstance(ParserEngineManager.class);
                     ParserEngine engine = engineManager.getParserEngineForContentType(contentType());
-                    
+
                     if (engine == null) {
                         return Value.of(new String(sreq.bytes(), charset())).as(type);
-                        
+
                         // sreq.bytes()/in() might be empty
-                        // Clearly we got some body data at this point, but content-type might just be (unknowingly) wrongly set.
+                        // Clearly we got some body data at this point, but
+                        // content-type might just be (unknowingly) wrongly set.
                         // Probably should tell the implementor about this..
                     }
-                    
+
                     return engine.invoke(sreq.in(), type);
                 }
-                
-                return Value.of(new String(sreq.bytes(), charset())).as(type);
+
+                return Value.of(body()).as(type);
             }
             
+            @Override
+            public InputStream in() throws IOException {
+                return sreq.in();
+            }
+            
+            @Override
+            public byte[] bytes() throws IOException {
+                return sreq.bytes();
+            }
+
             @Override
             public long length() {
                 return sreq.header("Content-Length").map(Long::parseLong).orElse(-1l);
             }
-            
+
             @Override
             public void upgrade(WebSocket.Initialiser initialiser) {
                 sreq.upgrade(this, initialiser);
             }
         };
-        
+
         this.resp = new Context.Response() {
             private MediaType contentType;
-            private Charset cs = charset;
-            
+            private Charset   cs = charset;
+
             @Override
             public Status status() {
                 return Status.valueOf(resp.statusCode());
             }
-            
+
             @Override
             public Response status(int statusCode) {
                 resp.statusCode(statusCode);
                 return this;
             }
-            
+
             @Override
             public Response header(final String name, final String value) {
                 resp.header(name, value);
                 return this;
             }
-            
+
             @Override
             public Optional<String> header(final String name) {
                 return resp.header(name);
             }
-            
+
             @Override
             public Response removeHeader(final String name) {
                 resp.removeHeader(name);
                 return this;
             }
-            
+
             @Override
             public Optional<MediaType> contentType() {
                 return Optional.ofNullable(contentType);
@@ -238,7 +292,7 @@ final class ContextImpl implements Context {
                 setContentType();
                 return this;
             }
-            
+
             @Override
             public Response charset(final Charset encoding) {
                 cs = encoding;
@@ -250,22 +304,22 @@ final class ContextImpl implements Context {
             public Charset charset() {
                 return cs != null ? cs : req.charset();
             }
-            
+
             private void setContentType() {
                 if (contentType != null) {
-                    resp.header("Content-Type", contentType + (cs != null ? ("; charset=" + cs) : "") );
+                    resp.header("Content-Type", contentType + (cs != null ? ("; charset=" + cs) : ""));
                 }
             }
-            
+
             @Override
             public Response clearCookie(final String name) {
                 return cookie(new Cookie.Builder(name, "").maxAge(0).build());
             }
-            
+
             @Override
             public Response cookie(final Cookie cookie) {
                 instantiateCookies(5);
-                
+
                 String name = cookie.name();
                 // clear cookie?
                 if (cookie.maxAge() == 0) {
@@ -279,106 +333,107 @@ final class ContextImpl implements Context {
                 }
                 return this;
             }
-            
+
             @Override
             public void send(final byte[] bytes) throws Exception {
                 resp.send(bytes);
             }
-            
+
             @Override
             public void send(final InputStream stream) throws Exception {
                 // we could at this point take a look at the following
                 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
                 // req.header("Range")
-                // .. do something where we only read 'end'-'start' amount of bytes of 'stream'
+                // .. do something where we only read 'end'-'start' amount of
+                // bytes of 'stream'
                 resp.send(stream);
             }
-            
+
             @Override
             public void send(final ByteBuffer buf) throws Exception {
                 resp.send(buf);
             }
-            
+
             @Override
             public void send(final CharBuffer buf) throws Exception {
                 resp.send(charset().encode(buf));
             }
-            
+
             @Override
             public void send(final CharSequence seq) throws Exception {
                 resp.send(charset().encode(CharBuffer.wrap(seq)));
             }
-            
+
             @Override
             public OutputStream outputStream() {
                 return resp.outputStream();
             }
-            
+
             @Override
             public Writer writer() {
-                //setContentType();
-                return writer = new PrintWriter(outputStream(), false, charset());// new OutputStreamWriter(outputStream(), charset()));
+                // setContentType();
+                return writer = new PrintWriter(outputStream(), false, charset());// new
+                                                                                  // OutputStreamWriter(outputStream(),
+                                                                                  // charset()));
             }
-            
+
             @Override
             public boolean committed() {
                 return resp.committed();
             }
         };
     }
+
     private Writer writer;
-    
+
     @Override
     public Request req() {
         return req;
     }
-    
+
     @Override
     public Response resp() {
         return resp;
     }
-    
+
     @Override
     public Value param(final String name) {
-        return 
-            Value.of(_pathParam(name))
-                 .orElse(sreq.queryParam(name))
-                 .orElse(_formData(name));
+        return Value.of(_pathParam(name)).orElse(sreq.queryParam(name)).orElse(_formData(name));
     }
-    
+
     /*public Value params() {
         MultiList<String> queryParams = sreq.queryParams();
         MultiList<Optional<String>> formData = req.formData().map(FormItem::value);
         Stream.concat(queryParams, null)        
         return null;
     }*/
-    
+
     @Override
     public void attribute(final String name, final Object value) {
         instantiateAttributes();
         attributes.put(name, value);
     }
-    
+
     @Override
     public Optional<Object> attribute(final String name) {
         return Optional.ofNullable(attributeOrNull(name));
     }
-    
+
     @Override
     public <T> Optional<T> attribute(final String name, final Class<T> type) {
         return attribute(name).map(type::cast);
     }
-    
+
     @Override
     public void removeAttribute(final String name) {
         if (attributes != null) attributes.remove(name);
     }
-    
+
     private Object attributeOrNull(final String name) {
         if (attributes == null || attributes.isEmpty()) return null;
         return attributes.get(name);
     }
-    
+
     @Override
     public Session session() {
         Session sesh = sessionOrNull();
@@ -388,12 +443,12 @@ final class ContextImpl implements Context {
         }
         return sesh;
     }
-    
+
     @Override
     public Optional<Session> sessionOptionally() {
         return Optional.ofNullable(sessionOrNull());
     }
-    
+
     private Session sessionOrNull() {
         Session sesh = (Session) attributeOrNull(Session.NAME);
         if (sesh == null) {
@@ -404,45 +459,40 @@ final class ContextImpl implements Context {
         }
         return sesh;
     }
-    
+
     /* Context should not be responsible of this
      * @Override
     public <T> T require(final Key<T> key) {
         return injector.getProvider(key).get();//injector.require(key);
     }*/
-    
+
     @Override
     public Path realPath(final String file) { // Do we even need this method?
         return Paths.get(injector.getInstance(DeploymentInfo.class).getRealPath(file));
     }
-    
-    
+
     void route(final Route route) {
         this.route = route;
     }
+
     Optional<Route> route() {
         return Optional.ofNullable(route);
     }
-    
+
     Value _pathParam(final String name) {
-        return Value.of(
-                    route().map(route -> route.getPathParametersEncoded(req.path()).get(name))
-                );
+        return Value.of(route().map(route -> route.getPathParametersEncoded(req.path()).get(name)));
     }
-    
+
     Value _formData(final String name) {
-        return sreq
-                .formData(name) // TODO might also merit an annotation in mvc
-                .map(FormItem::value)
-                .map(Value::of)
-                .orElse(Value.empty());
+        return sreq.formData(name) // TODO might also merit an annotation in mvc
+            .map(FormItem::value).map(Value::of).orElse(Value.empty());
     }
-    
+
     void end() {
         if (!sresp.committed()) {
-            writeCookies(); 
+            writeCookies();
         }
-        
+
         // something, something, content-length header .. ?
         /*sresp.header("Content-Length").or(() -> sresp.header("Transfer-Encoding")).ifPresent(header -> {
             
@@ -455,14 +505,14 @@ final class ContextImpl implements Context {
         }
         sresp.end();
     }
-    
+
     void done() {
         /*if (files != null) {
             files.forEach(File::delete);
         }*/
-        //end();
+        // end();
     }
-    
+
     /*private*/ void writeCookies() {
         if (cookies != null && !cookies.isEmpty()) {
             List<String> setCookie = cookies.values().stream().map(Cookie::toString).collect(Collectors.toList());
@@ -470,10 +520,11 @@ final class ContextImpl implements Context {
             cookies.clear();
         }
     }
-    
+
     private void instantiateAttributes() {
         if (attributes == null) attributes = new HashMap<>(5);
     }
+
     private void instantiateCookies(int initial) {
         if (cookies == null) cookies = new LinkedHashMap<>(initial);
     }

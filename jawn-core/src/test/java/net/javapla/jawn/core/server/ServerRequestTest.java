@@ -56,7 +56,7 @@ public class ServerRequestTest {
         
         FormItem password = mock(FormItem.class);
         when(req.formData()).thenReturn(new MultiList<FormItem>().put("name", mock(FormItem.class)).put("password", password));
-        when(password.name()).thenReturn("password");
+        when(password.fieldName()).thenReturn("password");
         when(password.value()).thenReturn(Optional.of("123"));
         
         assertThat(req.formData("nothing").isPresent()).isFalse();

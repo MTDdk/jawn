@@ -5,8 +5,6 @@ import java.util.StringTokenizer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javax.annotation.Nullable;
-
 public abstract class StringUtil {
     private StringUtil() {}
 
@@ -215,7 +213,7 @@ public abstract class StringUtil {
         return value == null || value.trim().isEmpty();
     }
     
-    public static String stringOrNull(@Nullable String value) {
+    public static String stringOrNull(/*@Nullable */String value) {
         return blank(value) ? null : value;
     }
     

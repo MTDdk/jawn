@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD })
-public @interface Consumes {
-    String[] value();
+public @interface Produces {
+    String value();
 }

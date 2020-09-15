@@ -24,7 +24,7 @@ public interface FormItem extends Closeable {
     /**
      * @return form field name
      */
-    String name();
+    String fieldName();
     
     /**
      * @return A string if this is a simple value
@@ -63,7 +63,7 @@ public interface FormItem extends Closeable {
      * @throws IOException 
      */
     default byte[] bytes() throws IOException {
-        InputStream stream = stream().orElseThrow(() -> new IOException("No file found for " + name()));
+        InputStream stream = stream().orElseThrow(() -> new IOException("No file found for " + fieldName()));
         try (stream) {
             return StreamUtil.bytes(stream);
         }
@@ -101,7 +101,7 @@ public interface FormItem extends Closeable {
             }
         }
         
-        throw new IOException("No file found for " + name());
+        throw new IOException("No file found for " + fieldName());
     }
 
     @Override

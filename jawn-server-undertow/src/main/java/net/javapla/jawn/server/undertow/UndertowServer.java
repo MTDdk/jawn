@@ -44,6 +44,7 @@ public final class UndertowServer implements Server {
         final Builder builder = Undertow.builder()
             .setHandler(shutdownHandler)
             .addHttpListener(serverConfig.port(), serverConfig.host())
+            .setBufferSize(serverConfig.bufferSize())
             
             // from undertow-edge benchmark
             .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false) //don't send a keep-alive header for HTTP/1.1 requests, as it is not required

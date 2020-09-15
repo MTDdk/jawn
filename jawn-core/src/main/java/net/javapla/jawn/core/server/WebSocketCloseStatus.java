@@ -2,8 +2,6 @@ package net.javapla.jawn.core.server;
 
 import java.util.Optional;
 
-import javax.annotation.Nullable;
-
 public class WebSocketCloseStatus {
     
     /**
@@ -165,13 +163,13 @@ public class WebSocketCloseStatus {
     private final int code;
     private final String reason;
     
-    public WebSocketCloseStatus(int code, @Nullable String reason) {
+    public WebSocketCloseStatus(int code, /*@Nullable*/ String reason) {
         this.code = code;
         this.reason = reason;
     }
     
     public int code() { return code; }
-    public @Nullable String reason() { return reason; }
+    public /*@Nullable*/ String reason() { return reason; }
     
     public static Optional<WebSocketCloseStatus> valueOf(int code) {
         switch (code) {

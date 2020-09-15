@@ -50,6 +50,8 @@ public interface ServerConfig {
         private Performance performance = Performance.MINIMUM;
         private int backlog = BACKLOG_DEFAULT;
         
+        private int requestBufferSize = 16_384;
+        
         public Impl() {
             performance(Performance.MINIMUM);
         }
@@ -136,6 +138,16 @@ public interface ServerConfig {
             this.backlog = mode.getBacklogValue();
             return this;
         }
+
+
+        @Override
+        public ServerConfig bufferSize(int size) {
+            return null;
+        }
+        public int bufferSize() {
+            return requestBufferSize;
+        }
+        
     }
 
     ServerConfig port(int port);
@@ -157,4 +169,6 @@ public interface ServerConfig {
      */
     ServerConfig backlog(int number);
     ServerConfig performance(Performance mode);
+    
+    ServerConfig bufferSize(int size);
 }

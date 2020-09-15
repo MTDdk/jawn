@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -15,6 +16,23 @@ public class SessionStoreTest {
     
     static String signedValue = "QTEwRjAvcXNibnZ5YVgwMkdNeFdzMG1pU2ozKzhMdXk0aUwxZXkxeUxXNHxzb21la2V5PXB1dHZhbHVl";
     static String sessionName = "x-random-header";
+    
+    @Test
+    @Ignore
+    public void decode() {
+        Context context = mock(Context.class);
+
+        SessionToken token = SessionToken.headerToken(sessionName);
+        SessionStore store = SessionStore.signed("award2021", token);
+        
+        Context.Request request = mock(Context.Request.class);
+        when(request.header(eq(sessionName))).thenReturn(Value.of("bkRpdmpKTmdjMXFqYStuWTgvRGxXakUvcmtRZXpQbUxQTUljVjlLSDgyb3xjYXRlZ29yeT1jbGlwJnVzZXI9Mg"));
+        when(context.req()).thenReturn(request);
+        
+        Session session = store.findSession(context);
+        Map<String, String> data = session.data();
+        System.out.println(data);
+    }
 
     @Test
     public void signed() {

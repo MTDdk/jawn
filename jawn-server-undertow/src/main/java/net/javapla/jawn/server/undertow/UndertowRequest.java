@@ -128,9 +128,12 @@ class UndertowRequest implements ServerRequest {
             MultiList<FormItem> list = new MultiList<>();
             
             FormData formData = parseForm();
-            formData.forEach(name -> 
+            formData.forEach(name -> {
+                System.out.println(name);
+                System.out.println(formData.get(name).getFirst());
                 formData.get(name).stream()
-                    .forEach(value -> list.put(name, new UndertowFormItem(value, name)))
+                    .forEach(value -> list.put(name, new UndertowFormItem(value, name)));
+                }
             );
             
             form = list;

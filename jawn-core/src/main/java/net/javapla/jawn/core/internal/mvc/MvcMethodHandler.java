@@ -13,6 +13,7 @@ import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
+import net.javapla.jawn.core.mvc.Produces;
 
 public class MvcMethodHandler implements Route.MethodHandler {
     
@@ -105,13 +106,23 @@ public class MvcMethodHandler implements Route.MethodHandler {
             return Results.noContent();
         } else {
             // We might need to do some processing based on the return type - but for now it is not used
+            Result r;
             if (method.getReturnType() == Result.class) {
-                return (Result) result;
+                r = (Result) result;
             } else if (method.getReturnType() == View.class) {
-                return (View) result;
+                r = (View) result;
             } else {
-                return Results.ok(result);
+                r = Results.ok(result);
             }
+            
+            // annotations
+            Produces produces = method.getAnnotation(Produces.class);
+            if (produces != null) {
+                //MediaType type = MediaType.valueOf(produces.value()[0]);
+                r.contentType(produces.value());
+            }
+            
+            return r;
         }
     }
     

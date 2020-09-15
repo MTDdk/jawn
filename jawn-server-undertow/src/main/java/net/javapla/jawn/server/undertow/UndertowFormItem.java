@@ -18,12 +18,16 @@ final class UndertowFormItem implements FormItem {
     private final String fieldName;
     
     UndertowFormItem(final FormValue value, final String fieldName) {
+        if (value.isFileItem()) {
+            System.out.println(value.getFileItem().getFile());
+            System.out.println(value.getFileName());
+        }
         this.value = value;
         this.fieldName = fieldName;
     }
 
     @Override
-    public String name() {
+    public String fieldName() {
         return fieldName;
     }
 
