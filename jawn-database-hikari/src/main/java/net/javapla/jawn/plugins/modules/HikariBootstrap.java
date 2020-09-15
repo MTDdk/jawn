@@ -15,6 +15,8 @@ public class HikariBootstrap implements ModuleBootstrap {
     /** Minimum connection pool size. */
     private static final int MINIMUM_POOL_SIZE = 10;
     
+    /** Maximum life span of a connection pool thread. Should be less than that of the database it connects to */
+    private static final int MAX_LIFE_TIME = 600000; // 10 minutes
 
     @Override
     public void bootstrap(ApplicationConfig appConfig) {
@@ -37,6 +39,7 @@ public class HikariBootstrap implements ModuleBootstrap {
         source.setPassword(db.password().get());
         
         source.setMaximumPoolSize(db.maxPoolSize().orElse(Math.max(MINIMUM_POOL_SIZE, Runtime.getRuntime().availableProcessors() * 2 + 1)));
+        source.setMaxLifetime(MAX_LIFE_TIME);
         
         return source;
     }
