@@ -381,13 +381,14 @@ public class DeploymentInfo {
     }
     
     public static final String stripContextPath(final String contextPath, final int contextPathLength, final String requestPath) {
-        if (contextPath.isEmpty() || requestPath.length() <= contextPathLength) return requestPath;
+        if (contextPath.isEmpty() || requestPath.length() < contextPathLength) return requestPath;
         
         // remove from beginning
         for (int c = 0; c < contextPathLength; c++) {
             if (contextPath.charAt(c) != requestPath.charAt(c)) return requestPath;
         }
         
-        return requestPath.substring(contextPathLength);
+        String result;
+        return (result = requestPath.substring(contextPathLength)).isEmpty() ? "/" : result ;
     }
 }

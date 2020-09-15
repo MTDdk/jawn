@@ -71,11 +71,15 @@ public class DeploymentInfoTest {
         
         assertThat(di.stripContextPath("/start_of_path/img/some.jpg")).isEqualTo("/img/some.jpg");
         assertThat(di.stripContextPath("/img/some.jpg")).isEqualTo("/img/some.jpg");
+        assertThat(di.stripContextPath("/start_of_path/")).isEqualTo("/");
+        assertThat(di.stripContextPath("/start_of_path")).isEqualTo("/");
     }
     
     @Test
     public void stripContextPath_static() {
         assertThat(DeploymentInfo.stripContextPath("/ctx", "/ctx/url/jpg.png")).isEqualTo("/url/jpg.png");
+        assertThat(DeploymentInfo.stripContextPath("/ctx", "/ctx/")).isEqualTo("/");
+        assertThat(DeploymentInfo.stripContextPath("/ctx", "/ctx")).isEqualTo("/");
     }
     
     @Test
