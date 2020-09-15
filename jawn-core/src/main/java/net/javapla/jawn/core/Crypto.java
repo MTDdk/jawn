@@ -186,7 +186,7 @@ public interface Crypto {
         }
         
         public static String generateAndEncode(final int lengthOfSecret) {
-            return Base64.getEncoder().withoutPadding().encodeToString(generate(lengthOfSecret));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(generate(lengthOfSecret));
         }
     }
     
