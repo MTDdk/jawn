@@ -16,6 +16,7 @@ import java.util.Optional;
 
 import org.junit.Test;
 
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StreamUtil;
 
@@ -29,7 +30,7 @@ public class DeploymentInfoTest {
         String context = "/start_of_path";
         
         Config config = mock(Config.class);
-        DeploymentInfo di = new DeploymentInfo(config, charset, context);
+        DeploymentInfo di = new DeploymentInfo(config, charset, (ServerConfig.Impl)new ServerConfig.Impl().context(context));
         
         assertThat(di.getContextPath()).isEqualTo(context);
         assertThat(di.translateIntoContextPath("/img/some.jpg")).isEqualTo("/start_of_path/img/some.jpg");
@@ -46,7 +47,7 @@ public class DeploymentInfoTest {
         
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of("webapp"));
-        DeploymentInfo di = new DeploymentInfo(config, charset, context);
+        DeploymentInfo di = new DeploymentInfo(config, charset, (ServerConfig.Impl)new ServerConfig.Impl().context(context));
         
         assertThat(di.getRealPath("start_of_path/real.jpg").toString()).endsWith("webapp/real.jpg");
         assertThat(di.getRealPath("/start_of_path/real.jpg").toString()).endsWith("webapp/real.jpg");
@@ -56,7 +57,7 @@ public class DeploymentInfoTest {
     public void realPath_without_context() {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of("webapp/directory"));
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         
         assertThat(di.getRealPath("/img/real.jpg").toString()).endsWith("webapp/directory/img/real.jpg");
         assertThat(di.getRealPath("img/real.jpg").toString()).endsWith("webapp/directory/img/real.jpg");
@@ -67,7 +68,7 @@ public class DeploymentInfoTest {
         String context = "/start_of_path";
         
         Config config = mock(Config.class);
-        DeploymentInfo di = new DeploymentInfo(config, charset, context);
+        DeploymentInfo di = new DeploymentInfo(config, charset, (ServerConfig.Impl)new ServerConfig.Impl().context(context));
         
         assertThat(di.stripContextPath("/start_of_path/img/some.jpg")).isEqualTo("/img/some.jpg");
         assertThat(di.stripContextPath("/img/some.jpg")).isEqualTo("/img/some.jpg");
@@ -86,7 +87,7 @@ public class DeploymentInfoTest {
     public void resourceAsStream() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         
         InputStream input = di.resourceAsStream("css/dummy.css");
         String read = StreamUtil.read(input);
@@ -109,7 +110,7 @@ public class DeploymentInfoTest {
     public void missingResource() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         
         di.resourceAsStream("css/unavailable.css"); // should throw
     }
@@ -118,7 +119,7 @@ public class DeploymentInfoTest {
     public void resourceExists() {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         
         assertThat(di.resourceExists("css/dummy.css")).isTrue();
     }
@@ -127,7 +128,7 @@ public class DeploymentInfoTest {
     public void resourceNotExists() {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         
         assertThat(di.resourceExists("css/unavailable.css")).isFalse();
     }
@@ -136,7 +137,7 @@ public class DeploymentInfoTest {
     public void jarViewResources() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         di.addResourceRoot(new URL("jar:file:" + Paths.get("src", "test", "resources", "test-jawn-templates.jar").toAbsolutePath() + "!/"));
         
         assertThat(di.resourceLastModified("views/system/404.st")).isGreaterThan(0l);
@@ -147,7 +148,7 @@ public class DeploymentInfoTest {
     public void jarCssResourceAsFile() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         di.addResourceRoot(new URL("jar:file:" + Paths.get("src", "test", "resources", "test-jawn-templates.jar").toAbsolutePath() + "!/"));
         
         BufferedReader file = di.resourceAsReader("/resourcecss/resourcedummy.css");
@@ -160,7 +161,7 @@ public class DeploymentInfoTest {
     public void externalResourceAsFile() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         di.addResourceRoot(new URL("file:" + Paths.get("src", "test", "resources", "external", "webapp").toAbsolutePath()));
         
         BufferedReader input = di.resourceAsReader("externaljs/externaldummy.js");
@@ -185,7 +186,7 @@ public class DeploymentInfoTest {
     public void multipleResourceRoots_should_failOverToNext() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         di.addResourceRoot(new URL("file:" + Paths.get(WEBAPP_PATH.get()).toAbsolutePath())); // this does not have the resource, so it should fail-over to the next root
         di.addResourceRoot(new URL("file:" + Paths.get("src", "test", "resources", "external", "webapp").toAbsolutePath()));
         
@@ -199,7 +200,7 @@ public class DeploymentInfoTest {
     public void listResourceNames() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         
         Object[] names = di.listResources("").toArray();
         
@@ -210,7 +211,7 @@ public class DeploymentInfoTest {
     public void listResourceNamesIncludingExternalDirs() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         di.addResourceRoot(new URL("file:" + Paths.get("src", "test", "resources", "external", "webapp").toAbsolutePath()));
         
         Object[] names = di.listResources("").toArray();
@@ -222,7 +223,7 @@ public class DeploymentInfoTest {
     public void listResourceNamesIncludingJars() throws IOException {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(WEBAPP_PATH);
-        DeploymentInfo di = new DeploymentInfo(config, charset, "");
+        DeploymentInfo di = new DeploymentInfo(config, charset, new ServerConfig.Impl());
         di.addResourceRoot(new URL("jar:file:" + Paths.get("src", "test", "resources", "test-jawn-templates.jar").toAbsolutePath() + "!/"));
         
         Object[] names = di.listResources("").toArray();

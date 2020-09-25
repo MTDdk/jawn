@@ -3,6 +3,7 @@ package net.javapla.jawn.server.undertow;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -156,10 +157,20 @@ class UndertowRequest implements ServerRequest {
                 .orElse(""))
             .orElse("");
     }
-
+    
     @Override
     public String protocol() {
         return exchange.getProtocol().toString();
+    }
+    
+    @Override
+    public String scheme() {
+        return exchange.getRequestScheme();
+    }
+    
+    @Override
+    public InetSocketAddress remoteAddress() {
+        return exchange.getSourceAddress();
     }
 
     @Override

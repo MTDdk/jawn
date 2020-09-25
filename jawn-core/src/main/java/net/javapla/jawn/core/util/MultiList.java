@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Optional;
@@ -107,9 +108,12 @@ public class MultiList<T> {
         return parts.containsKey(key);
     }
     
-    
     public Set<String> keySet() {
         return parts.keySet();
+    }
+    
+    public <K,V> void mapAndConsume(Function<List<T>, V> mapper, BiConsumer<String, V> consumer) {
+        parts.forEach((key, values) -> consumer.accept(key, mapper.apply(values)));
     }
     
     public int size() {

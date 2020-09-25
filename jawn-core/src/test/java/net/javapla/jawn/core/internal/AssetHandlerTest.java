@@ -16,6 +16,7 @@ import net.javapla.jawn.core.Assets;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Context.Request;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
@@ -33,7 +34,7 @@ public class AssetHandlerTest {
     public static void setUpBeforeClass() throws Exception {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(resources));
-        di = new DeploymentInfo(config, StandardCharsets.UTF_8, "");
+        di = new DeploymentInfo(config, StandardCharsets.UTF_8, new ServerConfig.Impl());
     }
 
     @Test

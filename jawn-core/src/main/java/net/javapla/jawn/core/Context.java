@@ -118,6 +118,20 @@ public interface Context /*extends Injection*/ {
             return remoteAddr;
         }
         
+        String remoteAddress();
+
+        /**
+         * Get the request URI scheme.  Normally this is one of {@code http} or {@code https}.
+         *
+         * @return the request URI scheme
+         */
+        String scheme();
+        
+        default boolean isSecure() {
+            String scheme = scheme();
+            return scheme != null && scheme.equalsIgnoreCase("https");
+        }
+        
         String path();
         
         String context();
@@ -141,6 +155,8 @@ public interface Context /*extends Injection*/ {
         Value queryParams(String name);
         
         Value pathParam(String name);
+
+        Map<String, String> pathParams();
 
         MultiList<FormItem> formData();
         
@@ -173,6 +189,22 @@ public interface Context /*extends Injection*/ {
     Request req();
     Response resp();
     Value param(String name);
+    
+    int serverPort();
+    String serverHost();
+    
+    /**
+     * Return the host and port that this request was sent to, in general this will be the value of the <code>Host</code>.
+     * If you run behind a reverse proxy, make sure that it has been configured to send the X-Forwarded-Host header.
+     * 
+     * @return Return the host and port that this request was sent to, in general this will be the value of the <code>Host</code>.
+     */
+    default String serverHostAndPort() {
+        return req()
+            .header("X-Forwarded-Host")
+            .orElse(req().header("Host"))
+            .value(serverHost() + ":" + serverPort());
+    }
     
     void attribute(String name, Object value);
     Optional<Object> attribute(String name);

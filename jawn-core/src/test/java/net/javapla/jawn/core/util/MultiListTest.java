@@ -4,6 +4,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -75,4 +76,37 @@ public class MultiListTest {
         assertThat(empty.isEmpty()).isFalse();
     }
 
+    @Test
+    public void mapAndConsume_string() {
+        MultiList<String> list = new MultiList<>();
+        
+        list.put("key1", "value11", "value12", "value13");
+        list.put("key2", "value21", "value22", "value23");
+        list.put("key3", "value31", "value32", "value33");
+        
+        LinkedHashMap<String, String[]> params = new LinkedHashMap<>();
+        list.mapAndConsume((values) -> values.toArray(String[]::new), params::put);
+        
+        assertThat(params.keySet()).containsExactly("key1","key2","key3");
+        assertThat(params.get("key1")).asList().containsExactly("value11", "value12", "value13");
+        assertThat(params.get("key2")).asList().containsExactly("value21", "value22", "value23");
+        assertThat(params.get("key3")).asList().containsExactly("value31", "value32", "value33");
+    }
+    
+    @Test
+    public void mapAndConsume_int() {
+        MultiList<Integer> list = new MultiList<>();
+        
+        list.put("key1", 11, 12, 13);
+        list.put("key2", 21, 22, 23);
+        list.put("key3", 31, 32, 33);
+        
+        LinkedHashMap<String, String[]> params = new LinkedHashMap<>();
+        list.mapAndConsume((values) -> values.stream().map(String::valueOf).toArray(String[]::new), params::put);
+        
+        assertThat(params.keySet()).containsExactly("key1","key2","key3");
+        assertThat(params.get("key1")).asList().containsExactly("11", "12", "13");
+        assertThat(params.get("key2")).asList().containsExactly("21", "22", "23");
+        assertThat(params.get("key3")).asList().containsExactly("31", "32", "33");
+    }
 }

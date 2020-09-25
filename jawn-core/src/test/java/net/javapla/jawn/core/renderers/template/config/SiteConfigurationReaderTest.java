@@ -18,6 +18,7 @@ import com.google.common.truth.Correspondence;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.util.Constants;
 
 public class SiteConfigurationReaderTest {
@@ -35,7 +36,7 @@ public class SiteConfigurationReaderTest {
         
         config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(resources.toString()));
-        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, "");
+        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, new ServerConfig.Impl());
         
         confReader = new SiteConfigurationReader(objectMapper, di);
     }
@@ -136,7 +137,7 @@ public class SiteConfigurationReaderTest {
     @Test
     public void contextPath() {
         String context = "/somecontextpath";
-        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, context);
+        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, (ServerConfig.Impl)new ServerConfig.Impl().context(context));
         
         SiteConfigurationReader contextPathConfReader = new SiteConfigurationReader(objectMapper, di);
         SiteConfiguration conf = contextPathConfReader.readSiteFile("");

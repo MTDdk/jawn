@@ -24,6 +24,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Stream;
 
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.util.Constants;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -38,21 +39,23 @@ public class DeploymentInfo {
 	private final boolean isContextPathSet;
 	private final int contextPathLength;
 	private final Charset charset;
+	private final ServerConfig.Impl serverConfig;
 	
 	private final ArrayList<URL> resourceRoots;
 
 	
-	public DeploymentInfo(final Config conf, final Charset charset, final String contextPath) {
+	public DeploymentInfo(final Config conf, final Charset charset, final ServerConfig.Impl serverConfig) {
         final String wp = conf.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH).orElse(WEBAPP_FOLDER_NAME);
         final String views = conf.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_TEMPLATES_PATH).orElse(WEBAPP_TEMPLATES_FOLDER_NAME);
 	    
 		this.webappPath = assertNoEndSlash(wp); // is allowed to have start slash, e.g.: /var/www/webapp
 		this.viewsPath = /*webappPath + */assertStartSlash(assertNoEndSlash(views));
-		this.contextPath = assertStartSlash(assertNoEndSlash(contextPath));
+		this.contextPath = assertStartSlash(assertNoEndSlash(serverConfig.context()));
 		this.isContextPathSet = !this.contextPath.isEmpty();
 		this.contextPathLength = this.contextPath.length();
 		
 		this.charset = charset;
+		this.serverConfig = serverConfig;
 		
 		this.resourceRoots = new ArrayList<>(1);
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -136,6 +139,14 @@ public class DeploymentInfo {
     
     public String getContextPath() {
         return contextPath;
+    }
+    
+    public int serverPort() {
+        return serverConfig.port();
+    }
+    
+    public String serverHost() {
+        return serverConfig.host();
     }
     
     public String translateIntoContextPath(String path) {

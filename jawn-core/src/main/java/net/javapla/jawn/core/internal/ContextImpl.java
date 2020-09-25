@@ -10,6 +10,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,6 +45,7 @@ final class ContextImpl implements Context {
     private final Response       resp;
     private final ServerRequest  sreq;
     private final ServerResponse sresp;
+    private final DeploymentInfo deploymentInfo;
     private final SessionStore   sessionStore;
     private final Injector       injector;
     private Route                route;
@@ -58,6 +60,7 @@ final class ContextImpl implements Context {
                 final DeploymentInfo deploymentInfo,
                 final SessionStore sessionStore,
                 final Injector injector) {
+        this.deploymentInfo = deploymentInfo;
         this.sessionStore = sessionStore;
         this.injector = injector;
         this.sreq = sreq;
@@ -80,6 +83,16 @@ final class ContextImpl implements Context {
             public String ip() {
                 return sreq.ip();
             }
+            
+            @Override
+            public String scheme() {
+                return sreq.scheme();
+            }
+            
+            @Override
+            public String remoteAddress() {
+                return sreq.remoteAddress().getHostString();
+            }
 
             @Override
             public String path() {
@@ -90,7 +103,7 @@ final class ContextImpl implements Context {
             public String context() {
                 return deploymentInfo.getContextPath();
             }
-
+            
             @Override
             public Value header(final String name) {
                 return Value.of(sreq.header(name));
@@ -145,6 +158,11 @@ final class ContextImpl implements Context {
             @Override
             public Value pathParam(final String name) {
                 return Value.of(_pathParam(name));
+            }
+            
+            @Override
+            public Map<String, String> pathParams() {
+                return _pathParams();
             }
 
             @Override
@@ -395,6 +413,17 @@ final class ContextImpl implements Context {
     public Response resp() {
         return resp;
     }
+    
+    @Override
+    public int serverPort() {
+        return deploymentInfo.serverPort();
+    }
+    
+    @Override
+    public String serverHost() {
+        String host = deploymentInfo.serverHost();
+        return host.equals("0.0.0.0") ? "localhost" : host;
+    }
 
     @Override
     public Value param(final String name) {
@@ -481,6 +510,13 @@ final class ContextImpl implements Context {
 
     Value _pathParam(final String name) {
         return Value.of(route().map(route -> route.getPathParametersEncoded(req.path()).get(name)));
+    }
+    
+    Map<String, String> _pathParams() {
+        if (route != null) {
+            return route.getPathParametersEncoded(req.path());
+        }
+        return Collections.emptyMap();
     }
 
     Value _formData(final String name) {

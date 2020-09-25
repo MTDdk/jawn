@@ -17,6 +17,7 @@ import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Modes;
 import net.javapla.jawn.core.Results;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.util.Constants;
 
 public class ViewTemplateLoaderTest {
@@ -31,7 +32,7 @@ public class ViewTemplateLoaderTest {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(Paths.get("src", "test", "resources", "webapp").toString()));
         
-        di = new DeploymentInfo(config, StandardCharsets.UTF_8, "");
+        di = new DeploymentInfo(config, StandardCharsets.UTF_8, new ServerConfig.Impl());
         
         templateLoader = new ViewTemplateLoader(di, Modes.DEV);
     }

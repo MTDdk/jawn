@@ -64,7 +64,7 @@ public interface Session {
     /**
      * Destroy / invalidate entire session
      */
-    void invalidate();
+    void invalidate(); // destroy
     
     Instant created();
     

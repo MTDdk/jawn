@@ -262,7 +262,7 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         binder.bind(Charset.class).toInstance(charset);
         binder.bind(Modes.class).toInstance(mode);
         binder.bind(Config.class).toInstance(config);
-        binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, charset, serverConfig.context()));
+        binder.bind(DeploymentInfo.class).toInstance(new DeploymentInfo(config, charset, serverConfig));
         binder.bind(ViewTemplateLoader.class).in(Singleton.class);
         binder.bind(SessionStore.class).toInstance(sessionStore);
         //binder.bind(Crypto.class).to(CryptoImpl.class).in(Singleton.class);

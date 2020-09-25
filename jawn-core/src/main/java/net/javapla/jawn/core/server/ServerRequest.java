@@ -2,6 +2,7 @@ package net.javapla.jawn.core.server;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -79,8 +80,17 @@ public interface ServerRequest {
     
     String ip();
     String protocol();
+    String scheme();
     
     //boolean secure();
+    
+    /**
+     * Get the source address of the HTTP request.
+     *
+     * @return the source address of the HTTP request
+     */
+    InetSocketAddress remoteAddress();
+    
     
     /**
      * Upgrade the request to something else...like a web socket.
