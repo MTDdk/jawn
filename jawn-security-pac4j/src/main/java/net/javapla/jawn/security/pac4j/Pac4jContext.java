@@ -153,6 +153,8 @@ public interface Pac4jContext extends WebContext {
                 builder.secure(cookie.isSecure());
                 builder.maxAge(cookie.getMaxAge());
                 
+                // SameSite
+                
                 context.resp().cookie(builder.build());
             }
         };
