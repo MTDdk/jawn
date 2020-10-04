@@ -34,6 +34,7 @@ public class ActionParameter {
     //private static final Type paramType = Param.class;
     private static final Type pathParamType = PathParam.class;
     private static final Type queryParamType = QueryParam.class;
+    //private static final Type formDataType = FormData.class;
     
     private static final HashMap<Type, CalculateValue> converters = new HashMap<>();
     static {
@@ -54,6 +55,10 @@ public class ActionParameter {
          * @QueryParam
          */
         converters.put(queryParamType, wrap((ctx, param) -> { if(param.list || param.set) return ctx.req().queryParams(param.name); else return ctx.req().queryParam(param.name); } ));//(ctx, param)-> { return wrap(ctx.req().queryParam(param.name));/*.to(param.type);*/ });
+        /**
+         * @FormParam
+         */
+        //converters.put(formDataType, wrap((ctx, param)->  ctx.req().formData() );
         
         /**
          * Request
