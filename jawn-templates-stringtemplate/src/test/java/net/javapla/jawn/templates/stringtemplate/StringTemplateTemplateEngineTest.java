@@ -27,6 +27,7 @@ import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 import net.javapla.jawn.core.renderers.template.config.Site;
 import net.javapla.jawn.core.renderers.template.config.SiteProvider;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfigProvider;
+import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.util.AsyncCharArrayWriter;
 import net.javapla.jawn.core.util.Constants;
 
@@ -40,7 +41,7 @@ public class StringTemplateTemplateEngineTest {
     public static void setUpBeforeClass() throws Exception {
         Config config = mock(Config.class);
         when(config.getOptionally(Constants.PROPERTY_DEPLOYMENT_INFO_WEBAPP_PATH)).thenReturn(Optional.of(resources.toString()));
-        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, "");
+        DeploymentInfo di = new DeploymentInfo(config, StandardCharsets.UTF_8, new ServerConfig.Impl());
         ViewTemplateLoader templateLoader = new ViewTemplateLoader(di, Modes.PROD);
 
         
