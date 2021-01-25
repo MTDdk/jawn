@@ -39,6 +39,8 @@ public interface Session {
     
     // put(String, Number) + put(String, CharSequence)
     
+    boolean has(String name);
+    
     /**
      * Remove a session attribute
      * 
@@ -111,6 +113,11 @@ public interface Session {
                 attributes.put(name, value);
                 updateState();
                 return this;
+            }
+            
+            @Override
+            public boolean has(String key) {
+                return attributes.containsKey(key);
             }
 
             @Override
