@@ -1,7 +1,9 @@
 package net.javapla.jawn.core.internal.reflection;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,12 +38,19 @@ public class PackageWatcher implements Closeable {
     public PackageWatcher(WatchService service, MiniFileSystem miniFS, final Class<? extends Jawn> jawn, final BiConsumer<Jawn, Class<?>> reloader) {
         this.service = service;
         this.miniFS = miniFS;
+        this.reloader = reloader;
         
         this.jawnInstanceClassName = jawn.getSimpleName() + ".class";
         this.jawnInstancePackageClass = jawn.getName();
         this.jawnInstancePackage = jawn.getPackageName();
-        this.packageFileSystemPath = Paths.get(jawn.getResource("").getPath());
-        this.reloader = reloader;
+        Path f;
+        try {
+            f = Paths.get(jawn.getResource("").toURI());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            f = Paths.get("");
+        }
+        this.packageFileSystemPath = f;
     }
     
     /*public PackageWatcher(final Class<? extends Jawn> jawn, final BiConsumer<Jawn, Class<?>> reloader) {
@@ -57,7 +66,7 @@ public class PackageWatcher implements Closeable {
         this.changed = changed;
     }*/
     
-    public Path getWatchingFileSystemPath() {
+    Path getWatchingFileSystemPath() {
         return packageFileSystemPath;
     }
     
@@ -102,7 +111,7 @@ public class PackageWatcher implements Closeable {
         
         CountDownLatch latch = new CountDownLatch(1); // with this we can know when the thread is running
         
-        new Thread(getClass().getSimpleName()) {
+        Thread t = new Thread(getClass().getSimpleName()) {
             @Override
             public void run() {
                 running = true;
@@ -119,7 +128,9 @@ public class PackageWatcher implements Closeable {
                     }
                 }
             }
-        }.start();
+        };
+        t.setDaemon(true);
+        t.start();
         
         latch.await();
     }
@@ -129,10 +140,8 @@ public class PackageWatcher implements Closeable {
         for (WatchEvent<?> event : key.pollEvents()) {
             
             if (event.context() != null) {
-                Path p = (Path) event.context();
-                if (!p.isAbsolute()) {
-                    p = ((Path) key.watchable()).resolve(p);
-                }
+                Path p        = (Path) event.context();
+                Path resolved = ((Path) key.watchable()).resolve(p);
 
                 
                 // it can be something like: bin/test/implementation/JawnMainTest$1.class
@@ -142,7 +151,7 @@ public class PackageWatcher implements Closeable {
 
                 
                 if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                    Path changedDir = p;
+                    Path changedDir = resolved;
                     
                     if (changedDir != null) {
                         // If an event is a StandardWatchEventKinds.ENTRY_CREATE
@@ -158,7 +167,7 @@ public class PackageWatcher implements Closeable {
                     continue;
                 } else if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
                     
-                    Path changedFile = p;
+                    Path changedFile = resolved;
                     Class<?> c = null;
                     
                     // We always reload the Jawn-instance, so skip it here
@@ -167,9 +176,10 @@ public class PackageWatcher implements Closeable {
                         // find the package path by removing the absolute path
                         String packageClassPath = changedFile.toString().substring(packageFileSystemPath.toString().length()+1);
                         
+                        
                         //convert to a class file and reload it from filesystem
                         try {
-                            c = reloadClass(jawnInstancePackage + '.'  + packageClassPath.replace('/', '.'));
+                            c = reloadClass(jawnInstancePackage + '.'  + packageClassPath.replace(File.separatorChar, '.'));
                         } catch (Up.Compilation | Up.UnloadableClass e) {
                             e.printStackTrace();
                             continue;
