@@ -10,7 +10,7 @@ allprojects {
 
   // maven metadata
   group = 'net.javapla.jawn'
-  version = '1.1.2-SNAPSHOT'
+  version = '1.1.2'
   // try to use this notion of versioning henceforth
   // https://github.com/jashkenas/backbone/issues/2888#issuecomment-29076249
 
