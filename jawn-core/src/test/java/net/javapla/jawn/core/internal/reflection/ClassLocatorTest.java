@@ -22,7 +22,7 @@ public class ClassLocatorTest {
 
     @Test
     public void findAllClasses() {
-        assertThat(locator.foundClasses()).hasSize(4);
+        assertThat(locator.foundClasses()).hasSize(5);
     }
     
     @Test
@@ -52,7 +52,7 @@ public class ClassLocatorTest {
     
     @Test
     public void subtypesFromPackage() {
-        assertThat(ClassLocator.subtypesFromPackage(Object.class, "test.classlocator")).hasSize(4);
+        assertThat(ClassLocator.subtypesFromPackage(Object.class, "test.classlocator")).hasSize(5);
         assertThat(ClassLocator.subtypesFromPackage(Jawn.class, "test.classlocator")).hasSize(1);
     }
 }

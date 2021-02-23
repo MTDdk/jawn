@@ -18,8 +18,8 @@ public class MiniFileSystemTest {
         
         List<Path> list = system.listDirectories(root);
         
-        assertThat(list).hasSize(2);
-        assertThat(list).containsExactly(root, root.resolve("classlocator"));
+        assertThat(list).hasSize(3);
+        assertThat(list).containsExactly(root, root.resolve("classlocator"), root.resolve("classlocator").resolve("extralayer"));
     }
 
 }
