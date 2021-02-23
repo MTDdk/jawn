@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.internal;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -82,5 +83,48 @@ public class HttpHandlerImplTest {
         
         verify(response, times(2)).committed();
         verify(response, times(1)).end();
+    }
+    
+    @Test
+    public void endingSlash_not_needed() throws Exception {
+        Route.Handler routeHandler = mock(Route.Handler.class);
+        when(routeHandler.handle(any(Context.class))).thenReturn(Results.ok());
+        when(routeHandler.then(any(Route.After.class))).thenCallRealMethod();
+        
+        
+        Router router = new Router()
+            .compileRoutes(Arrays.asList(
+                new Route.Builder(HttpMethod.GET).path("/first").handler(routeHandler).build(),
+                new Route.Builder(HttpMethod.GET).path("/first/second").handler(routeHandler).build(),
+                new Route.Builder(HttpMethod.GET).path("/").handler(routeHandler).build()
+            ));
+        
+        
+        HttpHandlerImpl handler = 
+            new HttpHandlerImpl(StandardCharsets.UTF_8, router, runner, di, sessionStore, injector);
+        
+        
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.path()).thenReturn("/first/", "/first/second/", "/");
+        when(request.method()).thenReturn(HttpMethod.GET);
+        
+        ServerResponse response = mock(ServerResponse.class);
+        
+        handler.handle(request, response);
+        handler.handle(request, response);
+        handler.handle(request, response);
+        
+        verify(request, times(1 * 3)).path();
+        verify(request, times(2 * 3)).method(); // Router#retrieve + ResultRunner#execute
+        
+        verify(routeHandler, times(1 * 3)).handle(any(Context.class));
+        
+        verify(response, times(2 * 3)).committed();
+        verify(response, times(1 * 3)).end();
+    }
+    
+    @Test
+    public void normalise() {
+        assertThat(HttpHandlerImpl.normaliseURI("/first/")).isEqualTo("/first");
     }
 }

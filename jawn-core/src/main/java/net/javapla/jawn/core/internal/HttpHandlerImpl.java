@@ -47,17 +47,17 @@ final class HttpHandlerImpl implements HttpHandler {
 
     @Override
     public void handle(final ServerRequest req, final ServerResponse resp) throws Exception {
-        //String uri = normaliseURI(context.req().path()); README is this even necessary?
         resp.header("Server", "jawn");
         
         final ContextImpl context = new ContextImpl(req, resp, charset, deploymentInfo, sessionStore, injector);
+        final String uri = normaliseURI(context.req().path()); //README is this even necessary?
         
         // ServerRequest.path() holds the actual path received on the server,
         // so from this point onward the Context.req().path() is preferred, as this
         // takes contextPath into account
         
         try {
-            final Route route = router.retrieve(req.method(), context.req().path()/*uri*/);
+            final Route route = router.retrieve(req.method(), /*context.req().path()*/uri);
             context.route(route);
             
             
@@ -137,9 +137,11 @@ final class HttpHandlerImpl implements HttpHandler {
 //        return result;
 //    }
     
-    /*private static String normaliseURI(final String uri) {
-        return uri.length() == 0 ? "/" : uri;
-    }*/
+    static String normaliseURI(final String uri) {
+        int l = uri.length() - 1;
+        return (l > 0 && uri.charAt(l) == '/') ? uri.substring(0, l) : uri;
+        //return uri.length() == 0 ? "/" : uri;
+    }
     
     void renderSystemError(final ContextImpl context, final int status, Throwable e) {
         if (status == 404) {

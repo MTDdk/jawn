@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import net.javapla.jawn.core.HttpMethod;
@@ -21,6 +22,25 @@ public class RouterTest {
         Router router = new Router(routes);
         
         Route route = router.retrieve(HttpMethod.GET, "/first");
+        assertThat(route).isNotNull();
+    }
+    
+    @Test
+    @Ignore("This ought to be handled by the HttpHandlerImpl")
+    public void endingSlash_not_needed() {
+        List<Route> routes = Arrays.asList(
+            new Route.Builder(HttpMethod.GET).path("/first").build(),
+            new Route.Builder(HttpMethod.GET).path("/first/second").build(),
+            new Route.Builder(HttpMethod.GET).path("/").build()
+        );
+        
+        Router router = new Router(routes);
+        
+        Route route = router.retrieve(HttpMethod.GET, "/first/");
+        assertThat(route).isNotNull();
+        route = router.retrieve(HttpMethod.GET, "/first/second/");
+        assertThat(route).isNotNull();
+        route = router.retrieve(HttpMethod.GET, "/");
         assertThat(route).isNotNull();
     }
     

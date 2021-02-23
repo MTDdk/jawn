@@ -64,14 +64,15 @@ final class Router {
     Route retrieve(final HttpMethod httpMethod, final String requestUri) throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod {
         
         Route route;
+        final char[] uri = requestUri.toCharArray();
         
         try {
             // first, take a look in the trie
-            route = trie.findExact(requestUri, httpMethod);
+            route = trie.findExact(uri, httpMethod);
             
             if (route == null) {
                 // try with wildcard search
-                route = trie.findRoute(requestUri.toCharArray(), httpMethod);
+                route = trie.findRoute(uri, httpMethod);
                 
                 if (route != null && route.matches(requestUri)) {
                     
