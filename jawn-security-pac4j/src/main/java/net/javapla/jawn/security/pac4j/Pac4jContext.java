@@ -2,7 +2,6 @@ package net.javapla.jawn.security.pac4j;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -108,7 +107,8 @@ public interface Pac4jContext extends WebContext {
                 path.entrySet().forEach(e -> params.put(e.getKey(), new String[] {e.getValue()}));
                 
                 MultiList<String> query = context.req().queryParams();
-                query.mapAndConsume((values) -> values.toArray(String[]::new), params::put);
+                //query.mapAndConsume((values) -> values.toArray(String[]::new), params::put);
+                query.mapAndConsume((values) -> values.toArray(new String[] {}), params::put);
                 
                 MultiList<FormItem> form = context.req().formData();
                 form.mapAndConsume((values) -> values.stream().filter(item -> item.value().isPresent()).map(item -> item.value().get()).toArray(String[]::new), params::put);
