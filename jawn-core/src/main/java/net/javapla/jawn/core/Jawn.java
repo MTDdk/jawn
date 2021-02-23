@@ -420,6 +420,7 @@ public class Jawn implements Route.Filtering, Injection {
      */
     public static final void run(final Class<? extends Jawn> jawn, final String ... args) {
         Jawn instance = ClassFactory.createInstance(jawn);
+        instance.parseArguments(args);
         
         if (instance.mode == Modes.DEV) {
             // load the instance with a non-caching classloader
@@ -477,7 +478,7 @@ public class Jawn implements Route.Filtering, Injection {
             //instance = dynamicInstance;
         }
         
-        run(instance, args);
+        run(instance);
     }
     
     private static final void run(final Jawn jawn, final String ... args) {
