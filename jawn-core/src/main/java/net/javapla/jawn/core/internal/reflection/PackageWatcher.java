@@ -7,7 +7,6 @@ import java.net.URISyntaxException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
@@ -46,10 +45,10 @@ public class PackageWatcher implements Closeable {
         this.jawnInstancePackage = jawn.getPackageName();
         Path f;
         try {
-            f = Paths.get(jawn.getResource("").toURI());
+            f = Path.of(jawn.getResource("").toURI());
         } catch (URISyntaxException | FileSystemNotFoundException e) {
             e.printStackTrace();
-            f = Paths.get(jawn.getResource("").getFile());
+            f = Path.of(jawn.getResource("").getFile());
         }
         this.packageFileSystemPath = f;
     }
