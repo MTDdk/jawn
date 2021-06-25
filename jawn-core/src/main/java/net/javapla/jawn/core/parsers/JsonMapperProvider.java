@@ -1,7 +1,7 @@
 package net.javapla.jawn.core.parsers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
+import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.google.inject.Provider;
 
 /**
@@ -18,7 +18,7 @@ public final class JsonMapperProvider implements Provider<ObjectMapper> {
         ParserConfiguration.config(mapper);
         
         // for extra speed
-        mapper.registerModule(new AfterburnerModule());
+        mapper.registerModule(new BlackbirdModule());
         
         return mapper;
     }
