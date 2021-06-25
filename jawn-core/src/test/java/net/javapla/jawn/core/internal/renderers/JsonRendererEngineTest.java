@@ -19,7 +19,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.javapla.jawn.core.Context;
-import net.javapla.jawn.core.parsers.JsonMapperProvider;
 
 public class JsonRendererEngineTest {
     
@@ -27,7 +26,7 @@ public class JsonRendererEngineTest {
     
     @BeforeClass
     public static void beforeClass() throws Exception {
-        engine = new JsonRendererEngine(new JsonMapperProvider().get());
+        engine = new JsonRendererEngine(/*new JsonMapperProvider().get()*/);
     }
     
     private Context context;

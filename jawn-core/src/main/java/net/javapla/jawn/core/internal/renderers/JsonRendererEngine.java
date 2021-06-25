@@ -1,22 +1,31 @@
 package net.javapla.jawn.core.internal.renderers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.renderers.RendererEngine;
 
 @Singleton
 final class JsonRendererEngine implements RendererEngine {
+    
+    private final static ThreadLocal<ObjectWriter> pool = new ThreadLocal<>() {
+        @Override
+        protected ObjectWriter initialValue() {
+            return new JsonMapperProvider().get().writer();
+        }
+    };
 
-    private final ObjectMapper mapper;
+    /*private final ObjectWriter mapper;
     
     @Inject
     JsonRendererEngine(final ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
+        this.mapper = mapper.writer();
+    }*/
     
     @Override
     public void invoke(final Context context, final Object obj) throws Exception {
@@ -25,7 +34,8 @@ final class JsonRendererEngine implements RendererEngine {
         } else if (obj instanceof String) {
             context.resp().send( /*(String)obj );/*/((String) obj).getBytes(context.resp().charset()));
         } else {
-            context.resp().send(mapper.writeValueAsBytes(obj));
+            context.resp().send(pool.get().writeValueAsBytes(obj));
+            //context.resp().send(mapper.writeValueAsBytes(obj));
             //mapper.writeValue(context.resp().outputStream(), obj);
         }
     }
