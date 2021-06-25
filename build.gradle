@@ -7,12 +7,17 @@ buildscript {
 
 allprojects {
   apply plugin: 'java'
-
+  
   // maven metadata
   group = 'net.javapla.jawn'
   version = '1.1.4-SNAPSHOT'
   // try to use this notion of versioning henceforth
   // https://github.com/jashkenas/backbone/issues/2888#issuecomment-29076249
+
+  
+  // compiler options
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
 
   javadoc {
     enabled = true
@@ -32,10 +37,6 @@ subprojects {
   apply plugin: 'jacoco'
 //  apply plugin: 'net.ltgt.errorprone'
 
-
-  // compiler options
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
 
   repositories { mavenCentral() }
     
