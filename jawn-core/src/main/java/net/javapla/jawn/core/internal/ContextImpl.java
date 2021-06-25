@@ -131,7 +131,7 @@ final class ContextImpl implements Context {
 
             @Override
             public MediaType contentType() {
-                return sreq.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
+                return sreq.header("Content-Type").orElse(sreq.header("content-type")).map(MediaType::valueOf).orElse(MediaType.WILDCARD);
             }
 
             @Override
