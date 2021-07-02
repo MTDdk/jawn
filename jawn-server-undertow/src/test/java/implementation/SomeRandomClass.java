@@ -11,7 +11,7 @@ public class SomeRandomClass {
         return Results.text("result");
     }
     
-    public static Result before(Context c, Route.Chain ch) {
+    public static Object before(Context c, Route.Chain ch) {
         System.out.println("some output");
         return ch.next(c);
     }

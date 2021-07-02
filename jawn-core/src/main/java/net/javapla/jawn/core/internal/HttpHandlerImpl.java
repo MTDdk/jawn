@@ -62,7 +62,9 @@ final class HttpHandlerImpl implements HttpHandler {
             
             
             //_handle(context, route, (result) -> runner.execute(result, context));
-            runner.execute(route.handle(context), context);
+            //runner.execute(route.handle(context), context);
+            runner.execute(route, context);
+            
             
         
         } catch (Up.RouteMissing e) {

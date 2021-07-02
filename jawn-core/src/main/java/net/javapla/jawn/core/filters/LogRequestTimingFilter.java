@@ -17,7 +17,7 @@ public class LogRequestTimingFilter implements Filter {
     static final String X_REQUEST_PROCESSING_TIME = "X-Request-Processing-Time";
 
     @Override
-    public Result before(final Context context, final Chain chain) {
+    public Object before(final Context context, final Chain chain) {
         // filters are NOT thread safe!
         context.attribute(filterName, time());
         
@@ -25,7 +25,7 @@ public class LogRequestTimingFilter implements Filter {
     }
 
     @Override
-    public Result after(final Context context, final Result result) {
+    public Object after(final Context context, final Object result) {
         context.attribute(filterName, Long.class).ifPresent(time -> {
             String processingTime = String.valueOf(time() - time);
             context.resp().header(X_REQUEST_PROCESSING_TIME, processingTime);

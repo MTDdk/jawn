@@ -16,7 +16,7 @@ public class LogRequestPropertiesFilter implements Route.Before {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public Result before(Context context, Chain chain) {
+    public Object before(Context context, Chain chain) {
         StringBuilder sb = new StringBuilder("\n------------------------------\n");
         sb.append("Method: ").append(context.req().httpMethod()).append("\n");
         sb.append("Request URL: ").append(context.req().path()).append("\n");

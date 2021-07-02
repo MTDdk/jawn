@@ -11,6 +11,7 @@ import java.util.Properties;
 import java.util.TreeMap;
 
 import net.javapla.jawn.core.Config.ParseOptions;
+import net.javapla.jawn.core.util.StringUtil;
 
 public class MediaType implements Comparable<MediaType> {
     
@@ -26,6 +27,7 @@ public class MediaType implements Comparable<MediaType> {
     public final static MediaType XML_LIKE = new MediaType("application", "*+xml");
     /** application/json */
     public final static MediaType JSON = new MediaType("application", "json");
+    public final static String json = "application/json";
     /** application/*+json */
     public final static MediaType JSON_LIKE = new MediaType("application", "*+json");
     /** application/x-www-form-urlencoded */
@@ -183,6 +185,10 @@ public class MediaType implements Comparable<MediaType> {
         return false;
     }
     
+    public boolean matches(final String contentType) {
+        return matches(valueOf(contentType));
+    }
+    
     @Override
     public boolean equals(final Object obj) {
         if (obj == this) {
@@ -256,7 +262,7 @@ public class MediaType implements Comparable<MediaType> {
     }
     
     private static List<MediaType> _parse(final String value) {
-        String[] types = value.split(",");
+        String[] types = StringUtil.split(value, ',');
         List<MediaType> result = new ArrayList<>(types.length);
         for (String type : types) {
             String[] parts = type.trim().split(";");

@@ -44,7 +44,7 @@ public class RouteFilterPopulatorTest {
         });
     }
 
-    @Test
+    /*@Test
     public void orderingOfFilters() {
         // filters should be executed in correct order
         // filter1.before -> filter2.before -> filter3.before -> routeSpecificBefore
@@ -152,5 +152,5 @@ public class RouteFilterPopulatorTest {
         public Result after(Context context, Result result) {
             return null;
         }
-    }
+    }*/
 }

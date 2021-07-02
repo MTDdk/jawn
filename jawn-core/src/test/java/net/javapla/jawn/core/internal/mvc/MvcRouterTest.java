@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal.mvc;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,12 +12,16 @@ import org.junit.Test;
 import com.google.common.truth.Correspondence;
 import com.google.inject.Injector;
 
+import ch.qos.logback.classic.net.SyslogAppender;
+import net.bytebuddy.agent.ByteBuddyAgent.AttachmentProvider.ForEmulatedAttachment;
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.mvc.GET;
 import net.javapla.jawn.core.mvc.Path;
+import net.javapla.jawn.core.mvc.Produces;
 
 public class MvcRouterTest {
 
@@ -115,6 +120,29 @@ public class MvcRouterTest {
         });
     }
     
+    @Test
+    public void producesAnnotation() {
+        int[] count = {0};
+        MvcRouter.methods(AnnotationsController.class, methods -> {
+            for (Method action : methods) {
+                MediaType produces = MvcRouter.produces(action);
+                assertThat(produces).isEqualTo(MediaType.JSON);
+                count[0]++;
+            }
+        });
+        assertThat(count[0]).isEqualTo(1);
+    }
+    
+    @Test
+    public void producesAnnotationOnController() {
+        List<Route.Builder> routes = MvcRouter.extract(AnnotationsController2.class, mock(ActionParameterProvider.class), mock(Injector.class));
+        assertThat(routes).hasSize(3);
+        
+        assertThat(routes.get(0).build().produces()).isEqualTo(MediaType.JSON);
+        assertThat(routes.get(1).build().produces()).isEqualTo(MediaType.JSON);
+        assertThat(routes.get(2).build().produces()).isEqualTo(MediaType.PLAIN);
+    }
+    
     
 /**** TEST CLASSES ****/
     
@@ -147,6 +175,29 @@ public class MvcRouterTest {
         @GET
         @Path("action")
         public void action() {}
+    }
+    
+    @Path("annotations")
+    static class AnnotationsController {
+        @GET
+        @Path("action")
+        @Produces(MediaType.json)
+        public void action() {}
+    }
+    
+    @Path("annotations")
+    @Produces(MediaType.json)
+    static class AnnotationsController2 {
+        @GET
+        @Path("action")
+        public void action() {}
+        @GET
+        @Path("action2")
+        public void action2() {}
+        @GET
+        @Path("action3")
+        @Produces("text/plain")
+        public void action3() {}
     }
     
     static class Lambdas {

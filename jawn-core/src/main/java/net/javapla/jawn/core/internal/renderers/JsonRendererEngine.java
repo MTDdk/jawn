@@ -11,7 +11,7 @@ import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.renderers.RendererEngine;
 
 @Singleton
-final class JsonRendererEngine implements RendererEngine {
+public final class JsonRendererEngine implements RendererEngine {
     
     private final static ThreadLocal<ObjectWriter> pool = new ThreadLocal<>() {
         @Override
@@ -29,15 +29,15 @@ final class JsonRendererEngine implements RendererEngine {
     
     @Override
     public void invoke(final Context context, final Object obj) throws Exception {
-        if (obj instanceof byte[]) {
-            context.resp().send((byte[])obj);
-        } else if (obj instanceof String) {
-            context.resp().send( /*(String)obj );/*/((String) obj).getBytes(context.resp().charset()));
-        } else {
+//        if (obj instanceof byte[]) {
+//            context.resp().send((byte[])obj);
+//        } else if (obj instanceof String) {
+//            context.resp().send( /*(String)obj );/*/((String) obj).getBytes(context.resp().charset()));
+//        } else {
             context.resp().send(pool.get().writeValueAsBytes(obj));
             //context.resp().send(mapper.writeValueAsBytes(obj));
             //mapper.writeValue(context.resp().outputStream(), obj);
-        }
+//        }
     }
     
     @Override

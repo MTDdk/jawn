@@ -11,6 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import net.javapla.jawn.core.internal.renderers.JsonRendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.util.URLCodec;
 
@@ -18,7 +19,8 @@ public interface Route {
     
     @FunctionalInterface
     interface Chain /*extends Handler*/ {// TODO the next() and handle() is quite confusing when used in filters. Perhaps ditch one of these interfaces
-        Result next(Context context);
+        //Result next(Context context);
+        Object next(Context context);
         
         /*default Result handle(Context context) {
             return next(context);
@@ -29,7 +31,29 @@ public interface Route {
     
     @FunctionalInterface
     interface Before {
-        Result before(Context context, Chain chain);
+        /*void before(Context context);
+        
+        default Before then(Before next) {
+            return ctx -> {
+                before(ctx);
+                if (!ctx.resp().committed()) {
+                    next.before(ctx);
+                }
+            };
+        }
+        
+        default Handler then(Handler next) {
+            return ctx -> {
+                before(ctx);
+                if (!ctx.resp().committed()) {
+                    next.handle(ctx);
+                }
+                return next;
+            };
+        }*/
+        
+        //Result before(Context context, Chain chain);
+        Object before(Context context, Chain chain);
         
         default Before then(Before next) {
             return (ctx, handler) -> {
@@ -46,7 +70,7 @@ public interface Route {
     
     @FunctionalInterface
     interface Handler {
-        Result handle(Context context);
+        Object/*Result*/ handle(Context context);
         
         default Handler then(After after) {
             return ctx -> {
@@ -64,7 +88,8 @@ public interface Route {
      */
     @FunctionalInterface
     interface After {
-        Result after(final Context context, final Result result);
+        //Result after(final Context context, final Result result);
+        Object after(final Context context, final Object result);
         
         default After then(After next) {
             return (ctx, result) -> {
@@ -144,6 +169,7 @@ public interface Route {
         }
     }
     
+    static final RendererEngine JASON = new JsonRendererEngine();
     final class Builder {
         private final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
         /**
@@ -154,6 +180,8 @@ public interface Route {
         private final HttpMethod method;
         private String uri;
         private Handler handler;
+        private RendererEngine renderer = JASON;
+        private MediaType produces, consumes;
         private LinkedList<Route.Before> before = new LinkedList<>();
         private LinkedList<Route.Before> globalBefore = new LinkedList<>();
         private LinkedList<Route.After> after = new LinkedList<>();
@@ -180,6 +208,18 @@ public interface Route {
             this.handler = handler;
             return this;
         }*/
+        
+        public Builder produces(final MediaType type) {
+            if (type != null) {
+                produces = type;
+            }
+            return this;
+        }
+        
+        public Builder renderer(final RendererEngine renderer) {
+            this.renderer = renderer;
+            return this;
+        }
         
         public Builder filter(final Filter filter) {
             this.before.add(filter);
@@ -292,8 +332,17 @@ public interface Route {
                 }
                 
                 @Override
-                public Result handle(final Context context) {
+                public Object handle(final Context context) {
                     return routehandler.handle(context);
+                }
+                
+                public void h(final Context context) {
+                    try {
+                        renderer.invoke(context, ((Result)routehandler.handle(context)).renderable);
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
                 
                 @Override
@@ -314,6 +363,11 @@ public interface Route {
                 @Override
                 public After[] after() {
                     return afters;
+                }
+                
+                @Override
+                public MediaType produces() {
+                    return produces;
                 }
                 
                 @Override
@@ -457,7 +511,9 @@ public interface Route {
         }
     }
     
-    Result handle(Context context);
+    //Result handle(Context context);
+    Object handle(Context context);
+    void h(Context context);
 
     /**
      * @return Current HTTP method.
@@ -467,15 +523,17 @@ public interface Route {
     Before[] before();
     
     After[] after();
-
-    boolean isUrlFullyQualified();
     
-    String wildcardedPath();
-
     /**
      * @return Current request path.
      */
     String path();
+    
+    MediaType produces();
+
+    boolean isUrlFullyQualified();
+    
+    String wildcardedPath();
     
     /**
      * Matches /index to /index or /person/1 to /person/{id}

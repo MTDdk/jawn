@@ -26,8 +26,13 @@ public class DateHeaderBefore implements Route.Before {
         }, 1000, 1000);
     }
     
-    @Override
+    /*@Override
     public Result before(Context context, Chain chain) {
+        context.resp().header("Date", DATE);
+        return chain.next(context);
+    }*/
+    @Override
+    public Object before(Context context, Chain chain) {
         context.resp().header("Date", DATE);
         return chain.next(context);
     }

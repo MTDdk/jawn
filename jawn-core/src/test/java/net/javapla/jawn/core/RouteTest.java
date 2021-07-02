@@ -21,7 +21,7 @@ import net.javapla.jawn.core.Route.Handler;
 
 public class RouteTest {
     
-    @Test
+    /*@Test
     public void beforeSimpleResultOverride() {
         AtomicBoolean called = new AtomicBoolean(false);
         Context context = mock(Context.class);
@@ -79,7 +79,7 @@ public class RouteTest {
         assertThat(executed[1]).isTrue();
         assertThat(executed[2]).isFalse();
         assertThat(result.status()).isEqualTo(Status.OK);
-    }
+    }*/
     
     @Test
     public void executionOrder() {

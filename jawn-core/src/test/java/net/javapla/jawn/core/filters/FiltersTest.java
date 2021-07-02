@@ -26,7 +26,7 @@ import net.javapla.jawn.core.Route;
 
 public class FiltersTest {
 
-    @Test
+    /*@Test
     public void logRequestProperties() {
         Route.Chain chain = c -> Results.status(222);
         
@@ -72,7 +72,7 @@ public class FiltersTest {
         Response response = mock(Context.Response.class);
         Context context = mock(Context.class);
         when(context.resp()).thenReturn(response);
-
+    
         
         DateHeaderBefore filter = new DateHeaderBefore();
         Result result = filter.before(context, chain);
@@ -82,5 +82,5 @@ public class FiltersTest {
         
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         verify(response, times(1)).header(eq("Date"), captor.capture());
-    }
+    }*/
 }

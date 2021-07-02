@@ -22,7 +22,7 @@ public class RouteBuilderTest {
         new Route.Builder(HttpMethod.GET).build(); 
     }
     
-    @Test
+    /*@Test
     public void filterGivesBeforeAndAfter() {
         Route route = new Route
             .Builder(HttpMethod.POST)
@@ -41,7 +41,7 @@ public class RouteBuilderTest {
         
         assertThat(route.before()).isNotNull();
         assertThat(route.after()).isNotNull();
-    }
+    }*/
     
     @Test
     public void emptyBefores() {

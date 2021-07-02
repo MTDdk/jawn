@@ -545,8 +545,8 @@ public class Jawn implements Route.Filtering, Injection {
         
         // populate routes from mvc
         ActionParameterProvider provider = new ActionParameterProvider(new ClassMeta());
-        mvcFilters.values().forEach(popu -> {
-            routes.addAll(popu.populate(injector, provider, (builder, item) -> builder.filter(item)));
+        mvcFilters.values().forEach(populator -> {
+            routes.addAll(populator.populate(injector, provider, (builder, item) -> builder.filter(item)));
         });
         
         // add global filters to the routes

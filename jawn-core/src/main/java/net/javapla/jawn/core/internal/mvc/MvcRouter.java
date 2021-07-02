@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import com.google.inject.Injector;
 
 import net.javapla.jawn.core.HttpMethod;
+import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.mvc.DELETE;
 import net.javapla.jawn.core.mvc.GET;
@@ -26,6 +27,7 @@ import net.javapla.jawn.core.mvc.OPTIONS;
 import net.javapla.jawn.core.mvc.POST;
 import net.javapla.jawn.core.mvc.PUT;
 import net.javapla.jawn.core.mvc.Path;
+import net.javapla.jawn.core.mvc.Produces;
 
 public class MvcRouter {
     
@@ -35,6 +37,7 @@ public class MvcRouter {
     public static List<Route.Builder> extract(final Class<?> routeClass, final ActionParameterProvider provider, final Injector injector) {
         
         final String[] rootPaths = paths(routeClass);
+        final MediaType rootProduces = produces(routeClass);
         
         //TODO what if a controller has two actions with the same VERB, but no Paths, or the same Path for both actions?
         
@@ -45,20 +48,25 @@ public class MvcRouter {
             routes(methods, actions::put)
         );
         
+        
         ArrayList<Route.Builder> defs = new ArrayList<>();
         
         actions.keySet().forEach(action -> {
             List<Class<? extends Annotation>> verbs = actions.get(action);
             
             String[] paths = mergePaths(rootPaths, action);
+            MediaType actionProduces = produces(action);
             
             for (Class<? extends Annotation> verb : verbs) {
                 HttpMethod method = HttpMethod.valueOf(verb.getSimpleName());
                 
                 for (var path : paths) {
-                    defs.add(new Route.Builder(method)
-                        .path(path)
-                        .handler(new MvcMethodHandler(action, routeClass, provider, injector)));
+                    defs.add(
+                        new Route.Builder(method)
+                            .path(path)
+                            .produces(actionProduces != null ? actionProduces : rootProduces)
+                            .handler(new MvcMethodHandler(action, routeClass, provider, injector))
+                        );
                 }
             }
         });
@@ -112,26 +120,6 @@ public class MvcRouter {
         }
     }
     
-    static String[] paths(final AnnotatedElement elm) {
-//        Path path = elm.getAnnotation(Path.class);
-//        System.out.println(Arrays.toString(elm.getAnnotationsByType(Path.class)));
-//        System.out.println(Arrays.toString(elm.getAnnotationsByType(Path.Paths.class)));
-//        System.out.println(elm.getAnnotation(Path.Paths.class));
-//        System.out.println(elm.getAnnotation(Path.class));
-        
-        Path[] paths = elm.getAnnotationsByType(Path.class);
-        
-        if (paths == null || paths.length == 0) return null;
-        
-        /*for (Path p : paths.value()) {
-            if (p.value().charAt(0) != '/') return addLeadingSlash(paths.value());
-        }*/
-        
-        //if (path.value().charAt(0) != '/') return '/' + path.value();
-        //return path.value();
-        return addLeadingSlash(paths);
-    }
-    
     static String[] mergePaths(final String[] rootPaths, final Method method) {
         String[] action = paths(method);
         if (rootPaths == null) {
@@ -162,6 +150,27 @@ public class MvcRouter {
         return result;
     }
     
+    static String[] paths(final AnnotatedElement elm) {
+//        Path path = elm.getAnnotation(Path.class);
+//        System.out.println(Arrays.toString(elm.getAnnotationsByType(Path.class)));
+//        System.out.println(Arrays.toString(elm.getAnnotationsByType(Path.Paths.class)));
+//        System.out.println(elm.getAnnotation(Path.Paths.class));
+//        System.out.println(elm.getAnnotation(Path.class));
+
+        // We technically can have multiple @Path ... but... do we want to?
+        Path[] paths = elm.getAnnotationsByType(Path.class);
+        
+        if (paths == null || paths.length == 0) return null;
+        
+        /*for (Path p : paths.value()) {
+            if (p.value().charAt(0) != '/') return addLeadingSlash(paths.value());
+        }*/
+        
+        //if (path.value().charAt(0) != '/') return '/' + path.value();
+        //return path.value();
+        return addLeadingSlash(paths);
+    }
+    
     static String[] addLeadingSlash(final Path[] paths) {
         String[] result = new String[paths.length];
         for (int i = 0; i < paths.length; i++) {
@@ -169,5 +178,16 @@ public class MvcRouter {
             else result[i] = paths[i].value();
         }
         return result;
+    }
+    
+    static MediaType produces(final AnnotatedElement action) {
+        Produces annotation = action.getAnnotation(Produces.class);
+        
+        if (annotation != null) {
+            String value = annotation.value();
+            return MediaType.valueOf(value);
+        }
+        
+        return null;
     }
 }
