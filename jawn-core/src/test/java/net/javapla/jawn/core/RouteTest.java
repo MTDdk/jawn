@@ -2,13 +2,12 @@ package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.AdditionalAnswers.returnsSecondArg;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
@@ -18,6 +17,7 @@ import org.mockito.Mockito;
 import net.javapla.jawn.core.Route.After;
 import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Route.Handler;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
 public class RouteTest {
     
@@ -99,12 +99,10 @@ public class RouteTest {
         
         
         // execute
-        Route route = new Route.Builder(HttpMethod.GET).
-            path("/")
+        Route route = new Route.Builder(HttpMethod.GET, "/", handler)
             .before(before)
-            .handler(handler)
             .after(after)
-            .build();
+            .build(mock(RendererEngineOrchestrator.class));
         /*Result result = */route.handle(context);
 
         
@@ -117,11 +115,9 @@ public class RouteTest {
 
     @Test
     public void throw_when_afterReturnsNull() {
-        Route handler = new Route.Builder(HttpMethod.GET)
-            .path("/")
-            .handler((c) -> Results.ok())
+        Route handler = new Route.Builder(HttpMethod.GET, "/", (c) -> Results.ok())
             .after((c,r) -> (Result) null)
-            .build();
+            .build(mock(RendererEngineOrchestrator.class));
         
         Context context = mock(Context.class);
         
@@ -130,10 +126,8 @@ public class RouteTest {
     
     @Test
     public void throw_when_handlerReturnsNull() {
-        Route handler = new Route.Builder(HttpMethod.GET)
-            .path("/")
-            .handler(c -> (Result) null)
-            .build();
+        Route handler = new Route.Builder(HttpMethod.GET, "/", c -> (Result) null)
+            .build(mock(RendererEngineOrchestrator.class));
         
         Context context = mock(Context.class);
         
@@ -142,7 +136,7 @@ public class RouteTest {
 
     @Test
     public void pathWithVariable_shouldNot_matchRoot() {
-        Route route = new Route.Builder(HttpMethod.GET).path("/{name}").build();
+        Route route = new Route.Builder(HttpMethod.GET, "/{name}", Route.NOT_FOUND).build(mock(RendererEngineOrchestrator.class));
         assertThat(route.matches("/")).isFalse();
         assertThat(route.matches("/cookie-monster")).isTrue();
         assertThat(route.matches("/1234")).isTrue();

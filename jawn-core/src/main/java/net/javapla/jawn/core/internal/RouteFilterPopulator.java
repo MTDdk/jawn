@@ -6,7 +6,9 @@ import java.util.function.Consumer;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 
+import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Route.Filtering;
 
 //FilterHolder
 public class RouteFilterPopulator implements Route.Filtering {

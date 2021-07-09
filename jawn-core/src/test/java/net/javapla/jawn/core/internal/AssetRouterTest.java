@@ -19,9 +19,11 @@ import net.javapla.jawn.core.Assets;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Route.Builder;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
 public class AssetRouterTest {
     
+    private static final RendererEngineOrchestrator RENDERERS = mock(RendererEngineOrchestrator.class);
     private static DeploymentInfo di;
 
     @BeforeClass
@@ -36,7 +38,7 @@ public class AssetRouterTest {
         List<Builder> assets = AssetRouter.assets(di, new Assets.Impl(), mock(BiConsumer.class));
         assertThat(assets).hasSize(5);
         
-        assertThat(assets.stream().map(Route.Builder::build).collect(Collectors.toList()))
+        assertThat(assets.stream().map(bob -> bob.build(RENDERERS)).collect(Collectors.toList()))
             .comparingElementsUsing(Correspondence.from((Route route, String expected) -> route.path().startsWith(expected), "starts with"))
             .containsExactly("/img/","/js/", "/css/", "/favicon.ico", "/favicon-red.ico");
     }

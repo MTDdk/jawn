@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.Up.BadMediaType;
 
 /**
  * Template engine manager. Has a number of built in template engines, and
@@ -31,5 +32,7 @@ public interface RendererEngineOrchestrator {
     
     
     boolean hasRendererEngineForContentType(MediaType contentType);
+
+    RendererEngine get(MediaType contentType) throws BadMediaType;
 
 }

@@ -26,8 +26,8 @@ final class ResultRunner {
     void execute(final Result result, final ContextImpl context) throws Up.BadMediaType, Up.ViewError {
         //if (context.resp().committed()) return;
         
-        //context.readyResponse(result);
-        readyResponse(result, context);
+        context.readyResponse(result);
+        //readyResponse(result, context);
     
         if (HttpMethod.HEAD == context.req().httpMethod()) {
             //context.end();
@@ -42,13 +42,15 @@ final class ResultRunner {
         context.end();
     }
     
+    
+    
     void execute(final Route route, final ContextImpl context) throws Up.BadMediaType, Up.ViewError {
         context.resp().contentType(MediaType.JSON);
         route.h(context);
         context.end();
     }
     
-    private void readyResponse(final Result result, final ContextImpl context) {
+    /*private void readyResponse(final Result result, final ContextImpl context) {
         if (!context.resp().committed()) {
             context.resp().contentType(result.contentType());
             
@@ -62,7 +64,7 @@ final class ResultRunner {
             
             context.writeCookies();
         }
-    }
+    }*/
     
     private void invoke(final RendererEngine engine, final Context context, final Object renderable) {
         try {

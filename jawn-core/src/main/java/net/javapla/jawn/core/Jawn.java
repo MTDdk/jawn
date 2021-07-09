@@ -29,6 +29,7 @@ import net.javapla.jawn.core.internal.reflection.ClassMeta;
 import net.javapla.jawn.core.internal.reflection.MiniFileSystem;
 import net.javapla.jawn.core.internal.reflection.PackageWatcher;
 import net.javapla.jawn.core.internal.reflection.ReflectionMetadata;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 import net.javapla.jawn.core.server.Server;
 import net.javapla.jawn.core.server.ServerConfig;
 import net.javapla.jawn.core.server.ServerConfig.Performance;
@@ -46,6 +47,7 @@ public class Jawn implements Route.Filtering, Injection {
     private final SessionConfig.Impl sessionConfig;
     
     private final Map<Route.Builder, RouteFilterPopulator> routesAndFilters;
+    private final LinkedList<Route.Builder> routesss;
     private final RouteFilterPopulator globalFilters;
     private final HashMap<String, MvcFilterPopulator> mvcFilters;
     private final LinkedList<String> pathPrefix = new LinkedList<>();
@@ -60,6 +62,7 @@ public class Jawn implements Route.Filtering, Injection {
         sessionConfig = new SessionConfig.Impl();
         
         routesAndFilters = new LinkedHashMap<>(); // to maintain insertion order
+        routesss = new LinkedList<>();
         globalFilters = new RouteFilterPopulator();
         mvcFilters = new HashMap<>();
     }
@@ -148,104 +151,104 @@ public class Jawn implements Route.Filtering, Injection {
     // ****************
     // Router
     // ****************
-    protected Route.Filtering get(final String path, final Route.Handler handler) {
+    protected Route.Builder get(final String path, final Route.Handler handler) {
         return _get(path, handler);
     }
     
-    protected Route.Filtering get(final String path, final Route.ZeroArgHandler handler) {
+    protected Route.Builder get(final String path, final Route.ZeroArgHandler handler) {
         return _get(path, handler);
     }
     
-    protected Route.Filtering get(final String path, final Result result) {
+    protected Route.Builder get(final String path, final Result result) {
         return get(path, () -> result);
     }
     
-    private Route.Filtering _get(final String path,  final Route.Handler handler) {
+    private Route.Builder _get(final String path,  final Route.Handler handler) {
         return _addRoute(HttpMethod.GET, path, handler);
     }
     
     // POST
-    protected Route.Filtering post(final String path, final Result result) {
+    protected Route.Builder post(final String path, final Result result) {
         return post(path, () -> result);
     }
     
-    protected Route.Filtering post(final String path, final Route.ZeroArgHandler handler) {
+    protected Route.Builder post(final String path, final Route.ZeroArgHandler handler) {
         return _post(path, handler);
     }
     
-    protected Route.Filtering post(final String path, final Route.Handler handler) {
+    protected Route.Builder post(final String path, final Route.Handler handler) {
         return _post(path, handler);
     }
     
-    private Route.Filtering _post(final String path,  final Route.Handler handler) {
+    private Route.Builder _post(final String path,  final Route.Handler handler) {
         return _addRoute(HttpMethod.POST, path, handler);
     }
     
     // PUT
-    protected Route.Filtering put(final String path, final Route.Handler handler) {
+    protected Route.Builder put(final String path, final Route.Handler handler) {
         return _put(path, handler);
     }
     
-    protected Route.Filtering put(final String path, final Route.ZeroArgHandler handler) {
+    protected Route.Builder put(final String path, final Route.ZeroArgHandler handler) {
         return _put(path, handler);
     }
     
-    protected Route.Filtering put(final String path, final Result result) {
+    protected Route.Builder put(final String path, final Result result) {
         return put(path, () -> result);
     }
     
-    private Route.Filtering _put(final String path, final Route.Handler handler) {
+    private Route.Builder _put(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.PUT, path, handler);
     }
     
     // DELETE
-    protected Route.Filtering delete(final String path, final Route.Handler handler) {
+    protected Route.Builder delete(final String path, final Route.Handler handler) {
         return _delete(path, handler);
     }
     
-    protected Route.Filtering delete(final String path, final Route.ZeroArgHandler handler) {
+    protected Route.Builder delete(final String path, final Route.ZeroArgHandler handler) {
         return _delete(path, handler);
     }
     
-    protected Route.Filtering delete(final String path, final Result result) {
+    protected Route.Builder delete(final String path, final Result result) {
         return delete(path, () -> result);
     }
     
-    private Route.Filtering _delete(final String path, final Route.Handler handler) {
+    private Route.Builder _delete(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.DELETE, path, handler);
     }
     
     // HEAD
-    protected Route.Filtering head(final String path, final Route.Handler handler) {
+    protected Route.Builder head(final String path, final Route.Handler handler) {
         return _head(path, handler);
     }
     
-    protected Route.Filtering head(final String path, final Route.ZeroArgHandler handler) {
+    protected Route.Builder head(final String path, final Route.ZeroArgHandler handler) {
         return _head(path, handler);
     }
     
-    protected Route.Filtering head(final String path, final Result result) {
+    protected Route.Builder head(final String path, final Result result) {
         return head(path, () -> result);
     }
     
-    private Route.Filtering _head(final String path, final Route.Handler handler) {
+    private Route.Builder _head(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.HEAD, path, handler);
     }
     
     // OPTIONS
-    protected Route.Filtering options(final String path, final Route.Handler handler) {
+    protected Route.Builder options(final String path, final Route.Handler handler) {
         return _options(path, handler);
     }
     
-    protected Route.Filtering options(final String path, final Route.ZeroArgHandler handler) {
+    protected Route.Builder options(final String path, final Route.ZeroArgHandler handler) {
         return _options(path, handler);
     }
     
-    protected Route.Filtering options(final String path, final Result result) {
+    protected Route.Builder options(final String path, final Result result) {
         return options(path, () -> result);
     }
     
-    private Route.Filtering _options(final String path, final Route.Handler handler) {
+    private Route.Builder _options(final String path, final Route.Handler handler) {
         return _addRoute(HttpMethod.OPTIONS, path, handler);
     }
     
@@ -288,8 +291,11 @@ public class Jawn implements Route.Filtering, Injection {
         return this;
     }
     
-    private Route.Filtering _addRoute(HttpMethod method, String path, Route.Handler handler) {
-        return routesAndFilters.computeIfAbsent(new Route.Builder(method).path(_pathPrefix(path)).handler(handler), c -> new RouteFilterPopulator());
+    private Route.Builder _addRoute(HttpMethod method, String path, Route.Handler handler) {
+        Route.BuilderImpl bob = new Route.BuilderImpl(method, _pathPrefix(path), handler);
+        routesss.add(bob);
+        return bob;
+        //return routesAndFilters.computeIfAbsent(new Route.Builder(method, _pathPrefix(path), handler), c -> new RouteFilterPopulator());
     }
     
     private String _pathPrefix(final String path) {
@@ -537,9 +543,12 @@ public class Jawn implements Route.Filtering, Injection {
         LinkedList<Route.Builder> routes = new LinkedList<>();
         
         // populate ordinary routes
-        routesAndFilters.entrySet().forEach(entry -> {
+        /*routesAndFilters.entrySet().forEach(entry -> {
             Route.Builder builder = entry.getKey();
             entry.getValue().populate(injector, builder::filter);
+            routes.add(builder);
+        });*/
+        routesss.forEach(builder -> {
             routes.add(builder);
         });
         
@@ -550,7 +559,7 @@ public class Jawn implements Route.Filtering, Injection {
         });
         
         // add global filters to the routes
-        globalFilters.populate(injector, (item) -> routes.forEach(r -> r.globalFilter(item)));
+        globalFilters.populate(injector, (item) -> routes.forEach(r -> ((Route.BuilderImpl)r).globalFilter(item)));
         
         // add assets (without the global filters) to the head of the list in order to avoid any confusion with custom routes
         AssetRouter
@@ -558,7 +567,7 @@ public class Jawn implements Route.Filtering, Injection {
             .forEach(routes::addFirst);
         
         // build
-        return routes.stream().map(Route.Builder::build).collect(Collectors.toList());
+        return routes.stream().map(builder -> ((Route.BuilderImpl)builder).build(injector.getInstance(RendererEngineOrchestrator.class))).collect(Collectors.toList());
     }
     
 }

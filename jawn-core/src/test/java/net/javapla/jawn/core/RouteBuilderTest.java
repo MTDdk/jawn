@@ -1,26 +1,29 @@
 package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
+
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
 public class RouteBuilderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void emptyPath() {
-        new Route.Builder(HttpMethod.GET).path("");
+        new Route.Builder(HttpMethod.GET, "", Route.NOT_FOUND);
     }
     
     @Test(expected = NullPointerException.class)
     public void nullPath() {
         String s = null;
-        new Route.Builder(HttpMethod.GET).path(s);
+        new Route.Builder(HttpMethod.GET, s, Route.NOT_FOUND);
     }
 
-    @Test(expected = NullPointerException.class)
+    /*@Test(expected = NullPointerException.class)
     public void nullPathBuild() {
         new Route.Builder(HttpMethod.GET).build(); 
-    }
+    }*/
     
     /*@Test
     public void filterGivesBeforeAndAfter() {
@@ -45,11 +48,11 @@ public class RouteBuilderTest {
     
     @Test
     public void emptyBefores() {
-        assertThat(new Route.Builder(HttpMethod.GET).path("/").build().before()).isNull();
+        assertThat(new Route.Builder(HttpMethod.GET, "/", Route.NOT_FOUND).build(mock(RendererEngineOrchestrator.class)).before()).isNull();
     }
     
     @Test
     public void emptyAfters() {
-        assertThat(new Route.Builder(HttpMethod.GET).path("/").build().after()).isNull();
+        assertThat(new Route.Builder(HttpMethod.GET, "/", Route.NOT_FOUND).build(mock(RendererEngineOrchestrator.class)).after()).isNull();
     }
 }

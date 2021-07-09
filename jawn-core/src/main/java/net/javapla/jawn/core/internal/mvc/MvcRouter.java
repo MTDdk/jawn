@@ -62,10 +62,10 @@ public class MvcRouter {
                 
                 for (var path : paths) {
                     defs.add(
-                        new Route.Builder(method)
-                            .path(path)
+                        new Route.BuilderImpl(method, path, new MvcMethodHandler(action, routeClass, provider, injector))
                             .produces(actionProduces != null ? actionProduces : rootProduces)
-                            .handler(new MvcMethodHandler(action, routeClass, provider, injector))
+                            /*.path(path)
+                            .handler(new MvcMethodHandler(action, routeClass, provider, injector))*/
                         );
                 }
             }
