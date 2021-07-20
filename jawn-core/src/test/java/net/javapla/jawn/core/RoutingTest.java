@@ -14,6 +14,8 @@ import org.junit.Test;
 import com.google.common.truth.Correspondence;
 import com.google.inject.Injector;
 
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
+
 public class RoutingTest {
 
     private static Injector injector;
@@ -26,6 +28,7 @@ public class RoutingTest {
         
         injector = mock(Injector.class);
         when(injector.getInstance(DeploymentInfo.class)).thenReturn(di);
+        when(injector.getInstance(RendererEngineOrchestrator.class)).thenReturn(mock(RendererEngineOrchestrator.class));
     }
 
 

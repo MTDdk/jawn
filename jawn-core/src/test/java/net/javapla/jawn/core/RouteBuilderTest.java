@@ -11,13 +11,13 @@ public class RouteBuilderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void emptyPath() {
-        new Route.Builder(HttpMethod.GET, "", Route.NOT_FOUND);
+        new Route.BuilderImpl(HttpMethod.GET, "", Route.NOT_FOUND);
     }
     
     @Test(expected = NullPointerException.class)
     public void nullPath() {
         String s = null;
-        new Route.Builder(HttpMethod.GET, s, Route.NOT_FOUND);
+        new Route.BuilderImpl(HttpMethod.GET, s, Route.NOT_FOUND);
     }
 
     /*@Test(expected = NullPointerException.class)
@@ -48,11 +48,11 @@ public class RouteBuilderTest {
     
     @Test
     public void emptyBefores() {
-        assertThat(new Route.Builder(HttpMethod.GET, "/", Route.NOT_FOUND).build(mock(RendererEngineOrchestrator.class)).before()).isNull();
+        assertThat(new Route.BuilderImpl(HttpMethod.GET, "/", Route.NOT_FOUND).build(mock(RendererEngineOrchestrator.class)).before()).isNull();
     }
     
     @Test
     public void emptyAfters() {
-        assertThat(new Route.Builder(HttpMethod.GET, "/", Route.NOT_FOUND).build(mock(RendererEngineOrchestrator.class)).after()).isNull();
+        assertThat(new Route.BuilderImpl(HttpMethod.GET, "/", Route.NOT_FOUND).build(mock(RendererEngineOrchestrator.class)).after()).isNull();
     }
 }

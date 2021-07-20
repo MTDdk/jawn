@@ -64,7 +64,7 @@ public class HttpHandlerImplTest {
         
         
         Router router = new Router()
-            .compileRoutes(Arrays.asList(new Route.Builder(HttpMethod.GET, path, routeHandler).build(RENDERERS)));
+            .compileRoutes(Arrays.asList(new Route.BuilderImpl(HttpMethod.GET, path, routeHandler).build(RENDERERS)));
         
         
         HttpHandlerImpl handler = 
@@ -97,9 +97,9 @@ public class HttpHandlerImplTest {
         
         Router router = new Router()
             .compileRoutes(Arrays.asList(
-                new Route.Builder(HttpMethod.GET, "/first", routeHandler).build(RENDERERS),
-                new Route.Builder(HttpMethod.GET, "/first/second", routeHandler).build(RENDERERS),
-                new Route.Builder(HttpMethod.GET, "/", routeHandler).build(RENDERERS)
+                new Route.BuilderImpl(HttpMethod.GET, "/first", routeHandler).build(RENDERERS),
+                new Route.BuilderImpl(HttpMethod.GET, "/first/second", routeHandler).build(RENDERERS),
+                new Route.BuilderImpl(HttpMethod.GET, "/", routeHandler).build(RENDERERS)
             ));
         
         

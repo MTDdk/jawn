@@ -34,7 +34,7 @@ public class MvcRouter {
     private static final Set<Class<? extends Annotation>> VERBS = new HashSet<>(Arrays.asList(
         GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class));
 
-    public static List<Route.Builder> extract(final Class<?> routeClass, final ActionParameterProvider provider, final Injector injector) {
+    public static List<Route.BuilderImpl> extract(final Class<?> routeClass, final ActionParameterProvider provider, final Injector injector) {
         
         final String[] rootPaths = paths(routeClass);
         final MediaType rootProduces = produces(routeClass);
@@ -49,7 +49,7 @@ public class MvcRouter {
         );
         
         
-        ArrayList<Route.Builder> defs = new ArrayList<>();
+        ArrayList<Route.BuilderImpl> defs = new ArrayList<>();
         
         actions.keySet().forEach(action -> {
             List<Class<? extends Annotation>> verbs = actions.get(action);
@@ -61,7 +61,7 @@ public class MvcRouter {
                 HttpMethod method = HttpMethod.valueOf(verb.getSimpleName());
                 
                 for (var path : paths) {
-                    defs.add(
+                    defs.add((Route.BuilderImpl)
                         new Route.BuilderImpl(method, path, new MvcMethodHandler(action, routeClass, provider, injector))
                             .produces(actionProduces != null ? actionProduces : rootProduces)
                             /*.path(path)

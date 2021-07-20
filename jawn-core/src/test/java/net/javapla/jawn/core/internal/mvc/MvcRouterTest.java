@@ -75,7 +75,7 @@ public class MvcRouterTest {
 
     @Test
     public void singleRoute() {
-        List<Route.Builder> routes = MvcRouter.extract(SingleRoute.class, mock(ActionParameterProvider.class), mock(Injector.class));
+        List<Route.BuilderImpl> routes = MvcRouter.extract(SingleRoute.class, mock(ActionParameterProvider.class), mock(Injector.class));
         assertThat(routes).hasSize(1);
         
         Route route = routes.stream().map(bob -> bob.build(RENDERERS)).findFirst().get();
@@ -84,7 +84,7 @@ public class MvcRouterTest {
     
     @Test
     public void multipleRoutes() {
-        List<Route.Builder> builders = MvcRouter.extract(TwoRoutes.class, mock(ActionParameterProvider.class), mock(Injector.class));
+        List<Route.BuilderImpl> builders = MvcRouter.extract(TwoRoutes.class, mock(ActionParameterProvider.class), mock(Injector.class));
         assertThat(builders).hasSize(2);
         
         List<Route> routes = builders.stream().map(bob -> bob.build(RENDERERS)).collect(Collectors.toList());
@@ -96,7 +96,7 @@ public class MvcRouterTest {
     
     @Test
     public void emptyControllerPath() {
-        List<Route.Builder> builders = MvcRouter.extract(EmptyControllerPath.class, mock(ActionParameterProvider.class), mock(Injector.class));
+        List<Route.BuilderImpl> builders = MvcRouter.extract(EmptyControllerPath.class, mock(ActionParameterProvider.class), mock(Injector.class));
         
         Route route = builders.get(0).build(RENDERERS);
         
@@ -136,7 +136,7 @@ public class MvcRouterTest {
     
     @Test
     public void producesAnnotationOnController() {
-        List<Route.Builder> routes = MvcRouter.extract(AnnotationsController2.class, mock(ActionParameterProvider.class), mock(Injector.class));
+        List<Route.BuilderImpl> routes = MvcRouter.extract(AnnotationsController2.class, mock(ActionParameterProvider.class), mock(Injector.class));
         assertThat(routes).hasSize(3);
         
         assertThat(routes.get(0).build(RENDERERS).produces()).isEqualTo(MediaType.JSON);

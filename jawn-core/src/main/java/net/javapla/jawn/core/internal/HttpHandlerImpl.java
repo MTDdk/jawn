@@ -61,7 +61,7 @@ final class HttpHandlerImpl implements HttpHandler {
             context.route(route);
             
             //context.readyResponse(result);
-            if (!resp.committed()) {
+            //if (!resp.committed()) {
                 resp.header("Content-Type", route.produces().toString());
                 
                 resp.statusCode(200);
@@ -69,7 +69,7 @@ final class HttpHandlerImpl implements HttpHandler {
                 //result.charset().ifPresent(resp::charset);
                 //result.headers().ifPresent(map -> map.forEach(resp::header));
                 
-            }
+            //}
             if (HttpMethod.HEAD == req.method()) {
                 context.writeCookies();
                 context.end();
@@ -79,7 +79,8 @@ final class HttpHandlerImpl implements HttpHandler {
             //_handle(context, route, (result) -> runner.execute(result, context));
             //runner.execute(route.handle(context), context);
             //runner.execute(route, context);
-            route.h(context);
+            //route.h(context);
+            route.handle(context);
             
             context.writeCookies();
             context.end();

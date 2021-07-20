@@ -18,7 +18,7 @@ public class RouteTrieTest {
         Router.RouteTrie trie = new Router.RouteTrie();
         
         String path = "/route/to/redemption";
-        Route route = new Route.Builder(HttpMethod.GET, path, Route.NOT_FOUND).build(RENDERERS);
+        Route route = new Route.BuilderImpl(HttpMethod.GET, path, Route.NOT_FOUND).build(RENDERERS);
         
         trie.insert(path, route);
         
@@ -35,7 +35,7 @@ public class RouteTrieTest {
         Router.RouteTrie trie = new Router.RouteTrie();
         
         String path = "/route/*/redemption";
-        Route route = new Route.Builder(HttpMethod.GET, path, Route.NOT_FOUND).build(RENDERERS);
+        Route route = new Route.BuilderImpl(HttpMethod.GET, path, Route.NOT_FOUND).build(RENDERERS);
         
         trie.insert(path, route);
         
@@ -57,7 +57,7 @@ public class RouteTrieTest {
         Router.RouteTrie trie = new Router.RouteTrie();
         
         String path = "/route/redemption/of/*";
-        Route route = new Route.Builder(HttpMethod.GET, path, Route.NOT_FOUND).build(RENDERERS);
+        Route route = new Route.BuilderImpl(HttpMethod.GET, path, Route.NOT_FOUND).build(RENDERERS);
         
         trie.insert(path, route);
         
@@ -78,7 +78,7 @@ public class RouteTrieTest {
         Router.RouteTrie trie = new Router.RouteTrie();
         
         String path = "/route/to/redemption";
-        Route route = new Route.Builder(HttpMethod.DELETE, path, Route.NOT_FOUND).build(RENDERERS);
+        Route route = new Route.BuilderImpl(HttpMethod.DELETE, path, Route.NOT_FOUND).build(RENDERERS);
         trie.insert(path, route);
         
         assertThat(trie.startsWith("/route/to")).isTrue();

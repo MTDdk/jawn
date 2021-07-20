@@ -20,8 +20,8 @@ public class MvcFilterPopulator extends RouteFilterPopulator {
         controller = c;
     }
     
-    public List<Route.Builder> populate(final Injector injector, final ActionParameterProvider provider, BiConsumer<Route.Builder, Object> work) {
-        List<Route.Builder> list = MvcRouter.extract(controller, provider, injector);
+    public List<Route.BuilderImpl> populate(final Injector injector, final ActionParameterProvider provider, BiConsumer<Route.Builder, Object> work) {
+        List<Route.BuilderImpl> list = MvcRouter.extract(controller, provider, injector);
         
         list.forEach(builder -> populate(injector, (item) -> work.accept(builder, item)));
         

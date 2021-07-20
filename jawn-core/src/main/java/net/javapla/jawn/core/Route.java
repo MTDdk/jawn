@@ -18,21 +18,21 @@ import net.javapla.jawn.core.util.URLCodec;
 
 public interface Route {
     
-    @FunctionalInterface
-    interface Chain /*extends Handler*/ {// TODO the next() and handle() is quite confusing when used in filters. Perhaps ditch one of these interfaces
-        //Result next(Context context);
-        Object next(Context context);
-        
-        /*default Result handle(Context context) {
-            return next(context);
-        }*/
-    }
+//    @FunctionalInterface
+//    interface Chain /*extends Handler*/ {// TODO the next() and handle() is quite confusing when used in filters. Perhaps ditch one of these interfaces
+//        //Result next(Context context);
+//        Object next(Context context);
+//        
+//        /*default Result handle(Context context) {
+//            return next(context);
+//        }*/
+//    }
     
     interface Filter extends Before, After { }
     
     @FunctionalInterface
     interface Before {
-        /*void before(Context context);
+        void before(Context context);
         
         default Before then(Before next) {
             return ctx -> {
@@ -51,12 +51,12 @@ public interface Route {
                 }
                 return next;
             };
-        }*/
+        }
         
         //Result before(Context context, Chain chain);
-        Object before(Context context, Chain chain);
+        //Object before(Context context, Chain chain);
         
-        default Before then(Before next) {
+        /*default Before then(Before next) {
             return (ctx, handler) -> {
                 return before(ctx, c -> next.before(c, handler));
             };
@@ -66,7 +66,7 @@ public interface Route {
             return ctx -> {
                 return before(ctx, next::handle);
             };
-        }
+        }*/
     }
     
     @FunctionalInterface
@@ -75,7 +75,8 @@ public interface Route {
         
         default Handler then(After after) {
             return ctx -> {
-                return after.after(ctx, handle(ctx));
+                after.after(ctx, handle(ctx));
+                return this;
             };
         }
     }
@@ -90,11 +91,12 @@ public interface Route {
     @FunctionalInterface
     interface After {
         //Result after(final Context context, final Result result);
-        Object after(final Context context, final Object result);
+        void after(final Context context, final Object result);
         
         default After then(After next) {
             return (ctx, result) -> {
-                return next.after(ctx, after(ctx, result));
+                after(ctx, result);
+                next.after(ctx, result);
             };
         }
     }
@@ -142,7 +144,7 @@ public interface Route {
         Filtering filter(final Class<?> filter);
 
         Filtering before(final Before handler);
-        default Filtering before(final Handler handler) {
+        /*default Filtering before(final Handler handler) {
             return before((c,ch) -> handler.handle(c));
         }
         default Filtering before(final Runnable handler) {
@@ -153,18 +155,19 @@ public interface Route {
         }
         default Filtering before(final Result result) {
             return before((c,ch) -> result);
-        }
+        }*/
         default Filtering before(Class<?> filter) {
             return filter(filter);
         }
 
         Filtering after(final After handler);
-        default Filtering after(final Runnable handler) {
+
+        /*default Filtering after(final Runnable handler) {
             return after((c,r) -> {handler.run();return r;});
         }
         default Filtering after(final Result result) {
             return after((c,r) -> result);
-        }
+        }*/
         default Filtering after(Class<?> filter) {
             return filter(filter);
         }
@@ -205,7 +208,7 @@ public interface Route {
         private String uri;
         private Handler handler;
         private RendererEngine renderer = JASON;
-        private MediaType produces, consumes;
+        private MediaType produces = MediaType.PLAIN, consumes;
         private final LinkedList<Route.Before> before = new LinkedList<>();
         private final LinkedList<Route.Before> globalBefore = new LinkedList<>();
         private final LinkedList<Route.After> after = new LinkedList<>();
@@ -311,7 +314,7 @@ public interface Route {
             return this;
         }
         
-        private Handler _befores(final Handler handler, final Before[] befores) {
+        /*private Handler _befores(final Handler handler, final Before[] befores) {
             final Handler h;
             if (befores != null) {
                 Before before = befores[0];
@@ -324,13 +327,24 @@ public interface Route {
             }
             
             return h.then((ctx, r) -> {if (r == null) throw new Up.BadResult("The execution of the route itself rendered no result"); return r;});
-        }
+        }*/
 
         // build pipeline
         private Handler _build(final Handler handler, final Before[] befores, final After[] afters) {
             if (handler == null) return ctx -> { throw new Up.BadResult("The execution of the route itself rendered no result"); };
             
-            final Handler h = _befores(handler, befores);
+            
+            final Handler h;
+            if (befores != null) {
+                Before b = befores[0];
+                for (int i = 1; i < befores.length; i++) b = b.then(befores[i]);
+                h = b.then(handler);
+            } else {
+                h = handler;
+            }
+            
+            
+            //final Handler h = _befores(handler, befores);
             
             if (afters == null) return h;
             
@@ -339,10 +353,12 @@ public interface Route {
                 after = after.then(afters[i]);
             }
             
-            final After a = after;
-            return ctx -> a
-                .then((c, r) -> {if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result"); return r;})
-                .after(ctx, h.handle(ctx));
+            return h.then(after);
+            
+//            final After a = after;
+//            return ctx -> a
+//                .then((c, r) -> {if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result"); return r;})
+//                .after(ctx, h.handle(ctx));
         }
         
         public Route build(final RendererEngineOrchestrator engines) {

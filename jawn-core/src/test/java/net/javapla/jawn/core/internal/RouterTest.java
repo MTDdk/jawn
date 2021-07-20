@@ -21,7 +21,7 @@ public class RouterTest {
 
     @Test
     public void simple() {
-        List<Route> routes = Arrays.asList(new Route.Builder(HttpMethod.GET, "/first", Route.NOT_FOUND).build(RENDERERS));
+        List<Route> routes = Arrays.asList(new Route.BuilderImpl(HttpMethod.GET, "/first", Route.NOT_FOUND).build(RENDERERS));
         
         Router router = new Router(routes);
         
@@ -33,9 +33,9 @@ public class RouterTest {
     @Ignore("This ought to be handled by the HttpHandlerImpl")
     public void endingSlash_not_needed() {
         List<Route> routes = Arrays.asList(
-            new Route.Builder(HttpMethod.GET, "/first", Route.NOT_FOUND).build(RENDERERS),
-            new Route.Builder(HttpMethod.GET, "/first/second", Route.NOT_FOUND).build(RENDERERS),
-            new Route.Builder(HttpMethod.GET, "/", Route.NOT_FOUND).build(RENDERERS)
+            new Route.BuilderImpl(HttpMethod.GET, "/first", Route.NOT_FOUND).build(RENDERERS),
+            new Route.BuilderImpl(HttpMethod.GET, "/first/second", Route.NOT_FOUND).build(RENDERERS),
+            new Route.BuilderImpl(HttpMethod.GET, "/", Route.NOT_FOUND).build(RENDERERS)
         );
         
         Router router = new Router(routes);
@@ -50,7 +50,7 @@ public class RouterTest {
     
     @Test
     public void samePathNotSameMethod() {
-        List<Route> routes = Arrays.asList(new Route.Builder(HttpMethod.GET, "/first", Route.NOT_FOUND).build(RENDERERS));
+        List<Route> routes = Arrays.asList(new Route.BuilderImpl(HttpMethod.GET, "/first", Route.NOT_FOUND).build(RENDERERS));
         
         Router router = new Router(routes);
         
@@ -73,8 +73,8 @@ public class RouterTest {
     @Test
     public void sameComplexPathNotSameMethod() {
         List<Route> routes = Arrays.asList(
-            new Route.Builder(HttpMethod.GET, "/v1/first/more/{id}", Route.NOT_FOUND).build(RENDERERS), 
-            new Route.Builder(HttpMethod.POST, "/v1/first/more/{id}", Route.NOT_FOUND).build(RENDERERS)
+            new Route.BuilderImpl(HttpMethod.GET, "/v1/first/more/{id}", Route.NOT_FOUND).build(RENDERERS), 
+            new Route.BuilderImpl(HttpMethod.POST, "/v1/first/more/{id}", Route.NOT_FOUND).build(RENDERERS)
         );
         
         Router router = new Router(routes);
@@ -94,8 +94,8 @@ public class RouterTest {
      @Test
      public void headShouldAlwaysWork() {
          List<Route> routes = Arrays.asList(
-             new Route.Builder(HttpMethod.GET, "/first", Route.NOT_FOUND).build(RENDERERS),
-             new Route.Builder(HttpMethod.DELETE, "/delete", Route.NOT_FOUND).build(RENDERERS)
+             new Route.BuilderImpl(HttpMethod.GET, "/first", Route.NOT_FOUND).build(RENDERERS),
+             new Route.BuilderImpl(HttpMethod.DELETE, "/delete", Route.NOT_FOUND).build(RENDERERS)
          );
          
          Router router = new Router(routes);
@@ -113,8 +113,8 @@ public class RouterTest {
      @Test
      public void headShouldAlwaysWork_alsoWithComplexPaths() {
          List<Route> routes = Arrays.asList(
-             new Route.Builder(HttpMethod.GET, "/first/complex/{id}", Route.NOT_FOUND).build(RENDERERS),
-             new Route.Builder(HttpMethod.DELETE, "/delete/complex/{id}", Route.NOT_FOUND).build(RENDERERS)
+             new Route.BuilderImpl(HttpMethod.GET, "/first/complex/{id}", Route.NOT_FOUND).build(RENDERERS),
+             new Route.BuilderImpl(HttpMethod.DELETE, "/delete/complex/{id}", Route.NOT_FOUND).build(RENDERERS)
          );
          
          Router router = new Router(routes);
@@ -132,8 +132,8 @@ public class RouterTest {
      @Test
      public void wildcards() {
          List<Route> routes = Arrays.asList(
-             new Route.Builder(HttpMethod.GET, "/first/{something}", Route.NOT_FOUND).build(RENDERERS),
-             new Route.Builder(HttpMethod.GET, "/second/{something}/more", Route.NOT_FOUND).build(RENDERERS)
+             new Route.BuilderImpl(HttpMethod.GET, "/first/{something}", Route.NOT_FOUND).build(RENDERERS),
+             new Route.BuilderImpl(HttpMethod.GET, "/second/{something}/more", Route.NOT_FOUND).build(RENDERERS)
          );
          
          Router router = new Router(routes);
@@ -148,9 +148,9 @@ public class RouterTest {
      @Test
      public void routeWithCorrectMethod() {
          List<Route> routes = Arrays.asList(
-             new Route.Builder(HttpMethod.GET, "/first/{some}", Route.NOT_FOUND).build(RENDERERS),
-             new Route.Builder(HttpMethod.DELETE, "/delete", Route.NOT_FOUND).build(RENDERERS),
-             new Route.Builder(HttpMethod.POST, "/post/{test}", Route.NOT_FOUND).build(RENDERERS)
+             new Route.BuilderImpl(HttpMethod.GET, "/first/{some}", Route.NOT_FOUND).build(RENDERERS),
+             new Route.BuilderImpl(HttpMethod.DELETE, "/delete", Route.NOT_FOUND).build(RENDERERS),
+             new Route.BuilderImpl(HttpMethod.POST, "/post/{test}", Route.NOT_FOUND).build(RENDERERS)
          );
          
          Router router = new Router(routes);
@@ -177,10 +177,10 @@ public class RouterTest {
          // a custom route might *look* like an asset route and get picked before the asset
          
          List<Route> routes = Arrays.asList(
-             new Route.Builder(HttpMethod.GET, "/legit/site", Route.NOT_FOUND).build(RENDERERS),
-             new Route.Builder(HttpMethod.GET, "/{site}/{slug}", Route.NOT_FOUND).build(RENDERERS), // this might override /css/{file} if found first
-             new Route.Builder(HttpMethod.GET, "/css/{file: .*}", Route.NOT_FOUND).build(RENDERERS),
-             new Route.Builder(HttpMethod.GET, "/js/{file: .*}", Route.NOT_FOUND).build(RENDERERS)
+             new Route.BuilderImpl(HttpMethod.GET, "/legit/site", Route.NOT_FOUND).build(RENDERERS),
+             new Route.BuilderImpl(HttpMethod.GET, "/{site}/{slug}", Route.NOT_FOUND).build(RENDERERS), // this might override /css/{file} if found first
+             new Route.BuilderImpl(HttpMethod.GET, "/css/{file: .*}", Route.NOT_FOUND).build(RENDERERS),
+             new Route.BuilderImpl(HttpMethod.GET, "/js/{file: .*}", Route.NOT_FOUND).build(RENDERERS)
          );
          
          
@@ -201,11 +201,11 @@ public class RouterTest {
          List<Route> routes = Arrays.asList(
              
              // these two are close, but not similar
-             new Route.Builder(HttpMethod.GET, "/css/{file: .*}", Route.NOT_FOUND).build(RENDERERS),
-             new Route.Builder(HttpMethod.GET, "/{site}/{slug: [a-z]}", Route.NOT_FOUND).build(RENDERERS),
+             new Route.BuilderImpl(HttpMethod.GET, "/css/{file: .*}", Route.NOT_FOUND).build(RENDERERS),
+             new Route.BuilderImpl(HttpMethod.GET, "/{site}/{slug: [a-z]}", Route.NOT_FOUND).build(RENDERERS),
              
              // this should break
-             new Route.Builder(HttpMethod.GET, "/{notsite}/{definitelynotslug: [0-9]+}", Route.NOT_FOUND).build(RENDERERS)
+             new Route.BuilderImpl(HttpMethod.GET, "/{notsite}/{definitelynotslug: [0-9]+}", Route.NOT_FOUND).build(RENDERERS)
          );
          
          new Router(routes);

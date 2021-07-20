@@ -37,7 +37,7 @@ public class AssetHandlerTest {
         di = new DeploymentInfo(config, StandardCharsets.UTF_8, new ServerConfig.Impl());
     }
 
-    /*@Test
+    @Test
     public void handle() {
         Route.Handler css = new AssetHandler(di);
         
@@ -46,7 +46,7 @@ public class AssetHandlerTest {
         when(context.req()).thenReturn(request);
         when(request.path()).thenReturn("/css/dummy.css");
         
-        Result result = css.handle(context);
+        Result result = (Result) css.handle(context);
         assertThat(result.status()).isEqualTo(Status.OK);
         assertThat(result.charset().isPresent()).isFalse(); // not a part of the request
         assertThat(result.contentType().matches(MediaType.TEXT)).isTrue();
@@ -62,7 +62,7 @@ public class AssetHandlerTest {
         when(context.req()).thenReturn(request);
         when(request.path()).thenReturn("/css/notfound.css");
         
-        Result result = css.handle(context);
+        Result result = (Result) css.handle(context);
         assertThat(result.status()).isEqualTo(Status.NOT_FOUND);
         assertThat(result.contentType().matches(MediaType.PLAIN)).isTrue();
         assertThat(result.renderable().isPresent()).isFalse();
@@ -77,7 +77,7 @@ public class AssetHandlerTest {
         when(context.req()).thenReturn(request);
         when(request.path()).thenReturn("/img/honour.svg");
         
-        Result result = img.handle(context);
+        Result result = (Result) img.handle(context);
         assertThat(result.status()).isEqualTo(Status.OK);
         assertThat(result.contentType().subtype()).isEqualTo("svg+xml");
         assertThat(result.renderable().isPresent()).isTrue();
@@ -94,7 +94,7 @@ public class AssetHandlerTest {
         when(request.path()).thenReturn("/css/dummy.css");
         when(request.header(anyString())).thenReturn(Value.empty());
         
-        Result result = css.handle(context);
+        Result result = (Result) css.handle(context);
         assertThat(result.headers().get()).containsKey("Last-Modified");
     }
     
@@ -108,7 +108,7 @@ public class AssetHandlerTest {
         when(request.path()).thenReturn("/css/dummy.css");
         when(request.header(anyString())).thenReturn(Value.empty());
         
-        Result result = css.handle(context);
+        Result result = (Result) css.handle(context);
         assertThat(result.headers().get()).containsKey("ETag");
     }
     
@@ -121,7 +121,7 @@ public class AssetHandlerTest {
         when(context.req()).thenReturn(request);
         when(request.path()).thenReturn("/css/dummy.css");
         
-        Result result = css.handle(context);
+        Result result = (Result) css.handle(context);
         assertThat(result.headers().get()).containsKey("Cache-Control");
-    }*/
+    }
 }

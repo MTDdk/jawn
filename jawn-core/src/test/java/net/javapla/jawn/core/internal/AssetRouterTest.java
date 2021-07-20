@@ -18,7 +18,6 @@ import com.google.common.truth.Correspondence;
 import net.javapla.jawn.core.Assets;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Route;
-import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
 public class AssetRouterTest {
@@ -35,7 +34,7 @@ public class AssetRouterTest {
     @Test
     public void readAssetFolders() {
         @SuppressWarnings("unchecked")
-        List<Builder> assets = AssetRouter.assets(di, new Assets.Impl(), mock(BiConsumer.class));
+        List<Route.BuilderImpl> assets = AssetRouter.assets(di, new Assets.Impl(), mock(BiConsumer.class));
         assertThat(assets).hasSize(5);
         
         assertThat(assets.stream().map(bob -> bob.build(RENDERERS)).collect(Collectors.toList()))
