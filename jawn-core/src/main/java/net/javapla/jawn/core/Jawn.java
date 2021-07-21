@@ -293,6 +293,9 @@ public class Jawn implements Route.Filtering, Injection {
     
     private Route.Builder _addRoute(HttpMethod method, String path, Route.Handler handler) {
         Route.BuilderImpl bob = new Route.BuilderImpl(method, _pathPrefix(path), handler);
+        
+        globalFilters.populate(bootstrap.getInjector(), (item) -> bob.globalFilter(item));
+        
         routesss.add(bob);
         return bob;
         //return routesAndFilters.computeIfAbsent(new Route.Builder(method, _pathPrefix(path), handler), c -> new RouteFilterPopulator());
@@ -306,7 +309,8 @@ public class Jawn implements Route.Filtering, Injection {
     // ****************
     // Filters
     // ****************
-    /** add a global filter */
+    ///** add a global filter */
+    /** add a filter to all following routes */
     @Override
     public Jawn filter(final Route.Filter filter) {
         globalFilters.filter(filter);
@@ -320,14 +324,16 @@ public class Jawn implements Route.Filtering, Injection {
         return this;
     }
     
-    /** add a global filter */
+    ///** add a global filter */
+    /** add a filter to all following routes */
     @Override
     public Jawn before(final Route.Before filter) {
         globalFilters.before(filter);
         return this;
     }
     
-    /** add a global filter */
+    ///** add a global filter */
+    /** add a filter to all following routes */
     @Override
     public Jawn after(final Route.After filter) {
         globalFilters.after(filter);
@@ -559,7 +565,7 @@ public class Jawn implements Route.Filtering, Injection {
         });
         
         // add global filters to the routes
-        globalFilters.populate(injector, (item) -> routes.forEach(r -> ((Route.BuilderImpl)r).globalFilter(item)));
+        //globalFilters.populate(injector, (item) -> routes.forEach(r -> ((Route.BuilderImpl)r).globalFilter(item)));
         
         // add assets (without the global filters) to the head of the list in order to avoid any confusion with custom routes
         AssetRouter
