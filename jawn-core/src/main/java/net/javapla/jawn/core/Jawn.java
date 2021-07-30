@@ -294,9 +294,15 @@ public class Jawn implements Route.Filtering, Injection {
     private Route.Builder _addRoute(HttpMethod method, String path, Route.Handler handler) {
         Route.BuilderImpl bob = new Route.BuilderImpl(method, _pathPrefix(path), handler);
         
-        globalFilters.populate(bootstrap.getInjector(), (item) -> bob.globalFilter(item));
         
-        routesss.add(bob);
+        
+        //globalFilters.populate(bootstrap.getInjector(), (item) -> bob.globalFilter(item));
+        //routesss.add(bob);
+        
+        //routesss.add(new RouteBag(bob, globalFilters.size()));
+        
+        globalFilters.hold(bob);
+        
         return bob;
         //return routesAndFilters.computeIfAbsent(new Route.Builder(method, _pathPrefix(path), handler), c -> new RouteFilterPopulator());
     }

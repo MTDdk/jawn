@@ -13,9 +13,11 @@ import net.javapla.jawn.core.Route.Filtering;
 //FilterHolder
 public class RouteFilterPopulator implements Route.Filtering {
     protected final LinkedList<Object> bagOFilters;
+    protected final LinkedList<RouteBag> bagORoutes;
     
     public RouteFilterPopulator() {
         bagOFilters = new LinkedList<>();
+        bagORoutes = new LinkedList<>();
     }
     
     @Override
@@ -42,6 +44,14 @@ public class RouteFilterPopulator implements Route.Filtering {
         return this;
     }
     
+    public int size() {
+        return bagOFilters.size();
+    }
+    
+    public void hold(final Route.Builder builder) {
+        bagORoutes.add(new RouteBag(builder, bagOFilters.size()));
+    }
+    
     public void populate(final Injector injector, Consumer<Object> consumer) {
         bagOFilters.forEach(item -> {
             if (item instanceof Class<?>) {
@@ -52,5 +62,16 @@ public class RouteFilterPopulator implements Route.Filtering {
                 consumer.accept(item);
             }
         });
+    }
+    
+    private static class RouteBag {
+        
+        final Route.Builder route;
+        final int filterPosition;
+
+        RouteBag(Route.Builder route, int filterPosition) {
+            this.route = route;
+            this.filterPosition = filterPosition;
+        }
     }
 }
