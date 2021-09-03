@@ -144,6 +144,16 @@ public interface Context /*extends Injection*/ {
         
         List<String> headers(String name);
         
+        /**
+         * 'Accept' header
+         * @param contentType
+         * @return
+         */
+        default boolean accept(MediaType contentType) {
+            Value header = header("Accept");
+            return header.isMissing() || contentType.matches(header.value());
+        }
+        
         Map<String, Cookie> cookies();
 
         MediaType contentType();

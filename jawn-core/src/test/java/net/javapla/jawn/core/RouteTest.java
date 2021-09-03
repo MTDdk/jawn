@@ -2,26 +2,29 @@ package net.javapla.jawn.core;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.AdditionalAnswers.returnsSecondArg;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.AdditionalAnswers;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
+import net.javapla.jawn.core.Context.Response;
 import net.javapla.jawn.core.Route.After;
 import net.javapla.jawn.core.Route.Before;
 import net.javapla.jawn.core.Route.Handler;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
 public class RouteTest {
     
-    @Test
+    /*@Test
     public void beforeSimpleResultOverride() {
         AtomicBoolean called = new AtomicBoolean(false);
         Context context = mock(Context.class);
@@ -79,61 +82,61 @@ public class RouteTest {
         assertThat(executed[1]).isTrue();
         assertThat(executed[2]).isFalse();
         assertThat(result.status()).isEqualTo(Status.OK);
-    }
+    }*/
     
     @Test
     public void executionOrder() {
         Before before = mock(Route.Before.class);
         when(before.then(any(Route.Handler.class))).thenCallRealMethod();
-        when(before.before(any(Context.class), any(Route.Chain.class))).then(AdditionalAnswers.answer((Context c, Route.Chain ch) -> ch.next(c)));
+        doNothing().when(before).before(any(Context.class));
         
         Handler handler = mock(Route.Handler.class);
-        when(handler.handle(any(Context.class))).thenReturn(Results.ok());
         when(handler.then(any(Route.After.class))).thenCallRealMethod();
+        when(handler.handle(any(Context.class))).thenAnswer(ctx -> {/*System.out.println("handler");*/ return Results.ok();});
+        
         
         After after = mock(Route.After.class);
-        when(after.after(any(Context.class),any(Result.class))).then(returnsSecondArg());
         when(after.then(any(Route.After.class))).thenCallRealMethod();
+        //doAnswer(AdditionalAnswers.answerVoid((Context c, Object result) -> {System.out.println("after");})).when(after).after(any(Context.class),any(Object.class));
+        doNothing().when(after).after(any(Context.class),any(Object.class));
+        
+        Response response = mock(Context.Response.class);
+        when(response.committed()).thenReturn(false);
         
         Context context = mock(Context.class);
+        when(context.resp()).thenReturn(response);
         
         
         // execute
-        Route route = new Route.Builder(HttpMethod.GET).
-            path("/")
+        Route.BuilderImpl bob = (Route.BuilderImpl)new Route.BuilderImpl(HttpMethod.GET, "/", handler)
             .before(before)
-            .handler(handler)
-            .after(after)
-            .build();
-        /*Result result = */route.handle(context);
+            .after(after);
+        Route route = bob.build(mock(RendererEngineOrchestrator.class));
+        /*Object result = */route.handle(context);
 
         
         // verify
         InOrder inOrder = Mockito.inOrder(before, handler, after);
-        inOrder.verify(before).before(any(Context.class), any(Route.Chain.class));
+        inOrder.verify(before).before(any(Context.class));
         inOrder.verify(handler).handle(any(Context.class));
-        inOrder.verify(after).after(any(Context.class), any(Result.class));
+        inOrder.verify(after).after(any(Context.class), any(Object.class));
     }
 
-    @Test
+    /*@Test
     public void throw_when_afterReturnsNull() {
-        Route handler = new Route.Builder(HttpMethod.GET)
-            .path("/")
-            .handler((c) -> Results.ok())
-            .after((c,r) -> (Result) null)
-            .build();
+        Route.BuilderImpl bob = (BuilderImpl) new Route.BuilderImpl(HttpMethod.GET, "/", (c) -> Results.ok()).after((c,r) -> (Result) null);
+        Route handler = bob.build(mock(RendererEngineOrchestrator.class));
         
         Context context = mock(Context.class);
         
         assertThrows(Up.BadResult.class, () -> handler.handle(context));
-    }
+    }*/
     
     @Test
+    @Ignore("Handlers are allowed to return null now")
     public void throw_when_handlerReturnsNull() {
-        Route handler = new Route.Builder(HttpMethod.GET)
-            .path("/")
-            .handler(c -> (Result) null)
-            .build();
+        Route handler = new Route.BuilderImpl(HttpMethod.GET, "/", c -> (Result) null)
+            .build(mock(RendererEngineOrchestrator.class));
         
         Context context = mock(Context.class);
         
@@ -142,7 +145,7 @@ public class RouteTest {
 
     @Test
     public void pathWithVariable_shouldNot_matchRoot() {
-        Route route = new Route.Builder(HttpMethod.GET).path("/{name}").build();
+        Route route = new Route.BuilderImpl(HttpMethod.GET, "/{name}", Route.NOT_FOUND).build(mock(RendererEngineOrchestrator.class));
         assertThat(route.matches("/")).isFalse();
         assertThat(route.matches("/cookie-monster")).isTrue();
         assertThat(route.matches("/1234")).isTrue();

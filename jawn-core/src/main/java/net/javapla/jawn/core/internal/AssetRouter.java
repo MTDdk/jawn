@@ -44,25 +44,31 @@ public abstract class AssetRouter {
                 // We assume if the path contains a dot '.', it is a file and not a folder
                 if (path.indexOf('.') > 0) {
                     
-                    builder = new Route.Builder(HttpMethod.GET)
-                        .path(path)
+                    builder = new Route.BuilderImpl(HttpMethod.GET, path, new AssetHandler(deploymentInfo)
+                        .etag(assets.etag)
+                        .lastModified(assets.lastModified)
+                        .maxAge(assets.maxAge))
+                        /*.path(path)
                         .handler(
                             new AssetHandler(deploymentInfo)
                                 .etag(assets.etag)
                                 .lastModified(assets.lastModified)
                                 .maxAge(assets.maxAge)
-                        );
+                        )*/;
                     
                 } else {
                 
                     // This should be a folder then
-                    builder = new Route.Builder(HttpMethod.GET)
-                        .path(path + "/{file: .*}")
+                    builder = new Route.BuilderImpl(HttpMethod.GET, path + "/{file: .*}", new AssetHandler(deploymentInfo)
+                        .etag(assets.etag)
+                        .lastModified(assets.lastModified)
+                        .maxAge(assets.maxAge))
+                        /*.path(path + "/{file: .*}")
                         .handler(new AssetHandler(deploymentInfo)
                             .etag(assets.etag)
                             .lastModified(assets.lastModified)
                             .maxAge(assets.maxAge)
-                        );
+                        )*/;
                 }
                 
                 if (assets.assetFilters.containsKey(path)) {

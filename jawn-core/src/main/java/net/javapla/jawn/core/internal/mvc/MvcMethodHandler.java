@@ -13,7 +13,6 @@ import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
-import net.javapla.jawn.core.mvc.Produces;
 
 public class MvcMethodHandler implements Route.MethodHandler {
     
@@ -115,12 +114,13 @@ public class MvcMethodHandler implements Route.MethodHandler {
                 r = Results.ok(result);
             }
             
+            /*
             // annotations
             Produces produces = method.getAnnotation(Produces.class);
             if (produces != null) {
                 //MediaType type = MediaType.valueOf(produces.value()[0]);
                 r.contentType(produces.value());
-            }
+            }*/
             
             return r;
         }

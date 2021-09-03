@@ -25,10 +25,13 @@ import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.internal.renderers.RendererEngineOrchestratorImplTest;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 import net.javapla.jawn.core.server.ServerRequest;
 import net.javapla.jawn.core.server.ServerResponse;
 
 public class HttpHandlerImplTest {
+    
+    private static final RendererEngineOrchestrator RENDERERS = mock(RendererEngineOrchestrator.class);
     
     static Injector injector;
     static ResultRunner runner;
@@ -61,7 +64,7 @@ public class HttpHandlerImplTest {
         
         
         Router router = new Router()
-            .compileRoutes(Arrays.asList(new Route.Builder(HttpMethod.GET).path(path).handler(routeHandler).build()));
+            .compileRoutes(Arrays.asList(new Route.BuilderImpl(HttpMethod.GET, path, routeHandler).build(RENDERERS)));
         
         
         HttpHandlerImpl handler = 
@@ -94,9 +97,9 @@ public class HttpHandlerImplTest {
         
         Router router = new Router()
             .compileRoutes(Arrays.asList(
-                new Route.Builder(HttpMethod.GET).path("/first").handler(routeHandler).build(),
-                new Route.Builder(HttpMethod.GET).path("/first/second").handler(routeHandler).build(),
-                new Route.Builder(HttpMethod.GET).path("/").handler(routeHandler).build()
+                new Route.BuilderImpl(HttpMethod.GET, "/first", routeHandler).build(RENDERERS),
+                new Route.BuilderImpl(HttpMethod.GET, "/first/second", routeHandler).build(RENDERERS),
+                new Route.BuilderImpl(HttpMethod.GET, "/", routeHandler).build(RENDERERS)
             ));
         
         

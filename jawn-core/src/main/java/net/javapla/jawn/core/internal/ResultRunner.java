@@ -5,7 +5,9 @@ import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
+import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
@@ -24,8 +26,8 @@ final class ResultRunner {
     void execute(final Result result, final ContextImpl context) throws Up.BadMediaType, Up.ViewError {
         //if (context.resp().committed()) return;
         
-        //context.readyResponse(result);
-        readyResponse(result, context);
+        context.readyResponse(result);
+        //readyResponse(result, context);
     
         if (HttpMethod.HEAD == context.req().httpMethod()) {
             //context.end();
@@ -36,10 +38,19 @@ final class ResultRunner {
             engines.getRendererEngineForContentType(result.contentType(), engine -> invoke(engine, context, renderable));
         });
         
+        
         context.end();
     }
     
-    private void readyResponse(final Result result, final ContextImpl context) {
+    
+    
+    void execute(final Route route, final ContextImpl context) throws Up.BadMediaType, Up.ViewError {
+        context.resp().contentType(MediaType.JSON);
+        route.h(context);
+        context.end();
+    }
+    
+    /*private void readyResponse(final Result result, final ContextImpl context) {
         if (!context.resp().committed()) {
             context.resp().contentType(result.contentType());
             
@@ -53,7 +64,7 @@ final class ResultRunner {
             
             context.writeCookies();
         }
-    }
+    }*/
     
     private void invoke(final RendererEngine engine, final Context context, final Object renderable) {
         try {

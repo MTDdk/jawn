@@ -105,6 +105,21 @@ public final class RendererEngineOrchestratorImpl implements RendererEngineOrche
         }
     }
     
+    @Override
+    public final RendererEngine get(final MediaType contentType) throws Up.BadMediaType {
+        final Provider<? extends RendererEngine> provider = contentTypeToRendererEngineMap.get(contentType);
+        
+        if (provider != null) {
+            return provider.get();
+        } else {
+            if (contentType.matches(MediaType.HTML)) {
+                log.warn("You might want to include jawn-templates-stringtemplate or another template engine in your classpath");
+            }
+            throw new Up.BadMediaType(
+                MessageFormat.format("Could not find a template engine supporting the content type of the response : {0}", contentType));
+        }
+    }
+    
     /**
      * Map the engine to all the content types it supports.
      * If any kind of overlap exists, a race condition occurs

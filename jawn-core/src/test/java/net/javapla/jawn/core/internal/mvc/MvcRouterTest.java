@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal.mvc;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,13 +13,18 @@ import com.google.common.truth.Correspondence;
 import com.google.inject.Injector;
 
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.mvc.GET;
 import net.javapla.jawn.core.mvc.Path;
+import net.javapla.jawn.core.mvc.Produces;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 
 public class MvcRouterTest {
+
+    private static final RendererEngineOrchestrator RENDERERS = mock(RendererEngineOrchestrator.class);
 
     @Test
     public void routeFromMethod() {
@@ -69,19 +75,19 @@ public class MvcRouterTest {
 
     @Test
     public void singleRoute() {
-        List<Route.Builder> routes = MvcRouter.extract(SingleRoute.class, mock(ActionParameterProvider.class), mock(Injector.class));
+        List<Route.BuilderImpl> routes = MvcRouter.extract(SingleRoute.class, mock(ActionParameterProvider.class), mock(Injector.class));
         assertThat(routes).hasSize(1);
         
-        Route route = routes.stream().map(Route.Builder::build).findFirst().get();
+        Route route = routes.stream().map(bob -> bob.build(RENDERERS)).findFirst().get();
         assertThat(route.path()).isEqualTo("/single");
     }
     
     @Test
     public void multipleRoutes() {
-        List<Route.Builder> builders = MvcRouter.extract(TwoRoutes.class, mock(ActionParameterProvider.class), mock(Injector.class));
+        List<Route.BuilderImpl> builders = MvcRouter.extract(TwoRoutes.class, mock(ActionParameterProvider.class), mock(Injector.class));
         assertThat(builders).hasSize(2);
         
-        List<Route> routes = builders.stream().map(Route.Builder::build).collect(Collectors.toList());
+        List<Route> routes = builders.stream().map(bob -> bob.build(RENDERERS)).collect(Collectors.toList());
         
         assertThat(routes)
             .comparingElementsUsing(Correspondence.from( (Route actual, String expected) -> actual.path().equals(expected), "equal"))
@@ -90,9 +96,9 @@ public class MvcRouterTest {
     
     @Test
     public void emptyControllerPath() {
-        List<Route.Builder> builders = MvcRouter.extract(EmptyControllerPath.class, mock(ActionParameterProvider.class), mock(Injector.class));
+        List<Route.BuilderImpl> builders = MvcRouter.extract(EmptyControllerPath.class, mock(ActionParameterProvider.class), mock(Injector.class));
         
-        Route route = builders.get(0).build();
+        Route route = builders.get(0).build(RENDERERS);
         
         // the '/' of the controller should not be simply prepended to the action
         assertThat(route.path()).isNotEqualTo("//image");
@@ -113,6 +119,29 @@ public class MvcRouterTest {
         MvcRouter.methods(StaticMethods.class, methods -> {
             assertThat(methods).hasLength(1);
         });
+    }
+    
+    @Test
+    public void producesAnnotation() {
+        int[] count = {0};
+        MvcRouter.methods(AnnotationsController.class, methods -> {
+            for (Method action : methods) {
+                MediaType produces = MvcRouter.produces(action);
+                assertThat(produces).isEqualTo(MediaType.JSON);
+                count[0]++;
+            }
+        });
+        assertThat(count[0]).isEqualTo(1);
+    }
+    
+    @Test
+    public void producesAnnotationOnController() {
+        List<Route.BuilderImpl> routes = MvcRouter.extract(AnnotationsController2.class, mock(ActionParameterProvider.class), mock(Injector.class));
+        assertThat(routes).hasSize(3);
+        
+        assertThat(routes.get(0).build(RENDERERS).produces()).isEqualTo(MediaType.JSON);
+        assertThat(routes.get(1).build(RENDERERS).produces()).isEqualTo(MediaType.JSON);
+        assertThat(routes.get(2).build(RENDERERS).produces()).isEqualTo(MediaType.PLAIN);
     }
     
     
@@ -147,6 +176,29 @@ public class MvcRouterTest {
         @GET
         @Path("action")
         public void action() {}
+    }
+    
+    @Path("annotations")
+    static class AnnotationsController {
+        @GET
+        @Path("action")
+        @Produces(MediaType.json)
+        public void action() {}
+    }
+    
+    @Path("annotations")
+    @Produces(MediaType.json)
+    static class AnnotationsController2 {
+        @GET
+        @Path("action")
+        public void action() {}
+        @GET
+        @Path("action2")
+        public void action2() {}
+        @GET
+        @Path("action3")
+        @Produces("text/plain")
+        public void action3() {}
     }
     
     static class Lambdas {

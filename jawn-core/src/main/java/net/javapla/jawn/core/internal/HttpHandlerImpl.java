@@ -10,6 +10,7 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
@@ -32,7 +33,6 @@ final class HttpHandlerImpl implements HttpHandler {
     private final DeploymentInfo deploymentInfo;
     private final SessionStore sessionStore;
     private final Injector injector;
-
 
     
     @Inject
@@ -60,10 +60,30 @@ final class HttpHandlerImpl implements HttpHandler {
             final Route route = router.retrieve(req.method(), /*context.req().path()*/uri);
             context.route(route);
             
+            //context.readyResponse(result);
+            //if (!resp.committed()) {
+                resp.header("Content-Type", route.produces().toString());
+                
+                resp.statusCode(200);
+                
+                //result.charset().ifPresent(resp::charset);
+                //result.headers().ifPresent(map -> map.forEach(resp::header));
+                
+            //}
+            if (HttpMethod.HEAD == req.method()) {
+                context.writeCookies();
+                context.end();
+                return;
+            }
             
             //_handle(context, route, (result) -> runner.execute(result, context));
-            runner.execute(route.handle(context), context);
+            //runner.execute(route.handle(context), context);
+            //runner.execute(route, context);
+            //route.h(context);
+            route.handle(context);
             
+            context.writeCookies();
+            context.end();
         
         } catch (Up.RouteMissing e) {
             // 404

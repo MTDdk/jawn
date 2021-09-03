@@ -25,6 +25,7 @@ import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Session;
 import net.javapla.jawn.core.SessionStore;
@@ -131,7 +132,7 @@ final class ContextImpl implements Context {
 
             @Override
             public MediaType contentType() {
-                return sreq.header("Content-Type").map(MediaType::valueOf).orElse(MediaType.WILDCARD);
+                return sreq.header("Content-Type").orElse(sreq.header("content-type")).map(MediaType::valueOf).orElse(MediaType.WILDCARD);
             }
 
             @Override
@@ -556,6 +557,32 @@ final class ContextImpl implements Context {
             cookies.clear();
         }
     }
+    
+    void readyResponse(final Result result) {
+        if (!resp.committed()) {
+            resp.contentType(result.contentType());
+            
+            resp.status(result.status().value());
+            
+            result.charset()
+                .ifPresent(resp::charset);
+            
+            result.headers().
+                ifPresent(map -> map.forEach(resp::header));
+            
+            writeCookies();
+        }
+    }
+    
+    /*Object render(final Result result) {
+        readyResponse(result);
+        if (HttpMethod.HEAD == req.httpMethod()) {
+            //context.end();
+            return null;
+        }
+        
+        return result.renderable();
+    }*/
 
     private void instantiateAttributes() {
         if (attributes == null) attributes = new HashMap<>(5);

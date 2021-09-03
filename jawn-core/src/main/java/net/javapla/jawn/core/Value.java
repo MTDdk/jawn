@@ -209,6 +209,10 @@ public interface Value extends Iterable<Value> { // SimpleValue
 
     boolean isPresent();
     
+    default boolean isMissing() {
+        return !isPresent();
+    }
+    
     default void ifPresent(final Consumer<String> action) {
         if (isPresent()) {
             action.accept(value());

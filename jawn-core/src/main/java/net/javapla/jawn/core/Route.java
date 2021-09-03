@@ -11,27 +11,52 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import net.javapla.jawn.core.internal.renderers.JsonRendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngine;
+import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 import net.javapla.jawn.core.util.URLCodec;
 
 public interface Route {
     
-    @FunctionalInterface
-    interface Chain /*extends Handler*/ {// TODO the next() and handle() is quite confusing when used in filters. Perhaps ditch one of these interfaces
-        Result next(Context context);
-        
-        /*default Result handle(Context context) {
-            return next(context);
-        }*/
-    }
+//    @FunctionalInterface
+//    interface Chain /*extends Handler*/ {// TODO the next() and handle() is quite confusing when used in filters. Perhaps ditch one of these interfaces
+//        //Result next(Context context);
+//        Object next(Context context);
+//        
+//        /*default Result handle(Context context) {
+//            return next(context);
+//        }*/
+//    }
     
     interface Filter extends Before, After { }
     
     @FunctionalInterface
     interface Before {
-        Result before(Context context, Chain chain);
+        void before(Context context);
         
         default Before then(Before next) {
+            return ctx -> {
+                before(ctx);
+                if (!ctx.resp().committed()) {
+                    next.before(ctx);
+                }
+            };
+        }
+        
+        default Handler then(Handler next) {
+            return ctx -> {
+                before(ctx);
+                if (!ctx.resp().committed()) {
+                    next.handle(ctx);
+                }
+                return next;
+            };
+        }
+        
+        //Result before(Context context, Chain chain);
+        //Object before(Context context, Chain chain);
+        
+        /*default Before then(Before next) {
             return (ctx, handler) -> {
                 return before(ctx, c -> next.before(c, handler));
             };
@@ -41,16 +66,17 @@ public interface Route {
             return ctx -> {
                 return before(ctx, next::handle);
             };
-        }
+        }*/
     }
     
     @FunctionalInterface
     interface Handler {
-        Result handle(Context context);
+        Object/*Result*/ handle(Context context);
         
         default Handler then(After after) {
             return ctx -> {
-                return after.after(ctx, handle(ctx));
+                after.after(ctx, handle(ctx));
+                return this;
             };
         }
     }
@@ -64,11 +90,13 @@ public interface Route {
      */
     @FunctionalInterface
     interface After {
-        Result after(final Context context, final Result result);
+        //Result after(final Context context, final Result result);
+        void after(final Context context, final Object result);
         
         default After then(After next) {
             return (ctx, result) -> {
-                return next.after(ctx, after(ctx, result));
+                after(ctx, result);
+                next.after(ctx, result);
             };
         }
     }
@@ -116,7 +144,7 @@ public interface Route {
         Filtering filter(final Class<?> filter);
 
         Filtering before(final Before handler);
-        default Filtering before(final Handler handler) {
+        /*default Filtering before(final Handler handler) {
             return before((c,ch) -> handler.handle(c));
         }
         default Filtering before(final Runnable handler) {
@@ -127,24 +155,49 @@ public interface Route {
         }
         default Filtering before(final Result result) {
             return before((c,ch) -> result);
-        }
+        }*/
         default Filtering before(Class<?> filter) {
             return filter(filter);
         }
 
         Filtering after(final After handler);
-        default Filtering after(final Runnable handler) {
+
+        /*default Filtering after(final Runnable handler) {
             return after((c,r) -> {handler.run();return r;});
         }
         default Filtering after(final Result result) {
             return after((c,r) -> result);
-        }
+        }*/
         default Filtering after(Class<?> filter) {
             return filter(filter);
         }
     }
     
-    final class Builder {
+    interface Rendering {
+        Rendering produces(final MediaType type);
+    }
+    
+    interface Builder {
+
+        Builder produces(MediaType type);
+
+
+        Builder after(After handler);
+
+        Builder before(Before handler);
+
+        Builder filter(Filter filter);
+        Builder filter(Object item);
+
+        Builder renderer(RendererEngine renderer);
+        
+    }
+    
+    public static final Route.Handler NOT_FOUND = ctx -> Status.NOT_FOUND;
+    
+    
+    static final RendererEngine JASON = new JsonRendererEngine();
+    final class BuilderImpl implements Route.Builder {
         private final static Pattern PATTERN_FOR_VARIABLE_PARTS_OF_ROUTE = Pattern.compile("\\{(.*?)(:\\s(.*?))?\\}");
         /**
          * This regex matches everything in between path slashes.
@@ -154,16 +207,24 @@ public interface Route {
         private final HttpMethod method;
         private String uri;
         private Handler handler;
-        private LinkedList<Route.Before> before = new LinkedList<>();
-        private LinkedList<Route.Before> globalBefore = new LinkedList<>();
-        private LinkedList<Route.After> after = new LinkedList<>();
-        private LinkedList<Route.After> globalAfter = new LinkedList<>();
+        private RendererEngine renderer = JASON;
+        private MediaType produces = MediaType.PLAIN, consumes;
+        private final LinkedList<Route.Before> before = new LinkedList<>();
+        private final LinkedList<Route.Before> globalBefore = new LinkedList<>();
+        private final LinkedList<Route.After> after = new LinkedList<>();
+        private final LinkedList<Route.After> globalAfter = new LinkedList<>();
         
-        public Builder(final HttpMethod method) {
+        public BuilderImpl(final HttpMethod method, final String path, final Handler handler) {
             this.method = method;
+            this.handler = handler;
+            
+            if (path == null) throw new NullPointerException("Path is null");
+            if (path.isEmpty()) throw new IllegalArgumentException("Path is empty");
+            
+            this.uri = (path.charAt(0) != '/') ? "/" + path : path;
         }
         
-        public Builder path(final String path) {
+        /*public Builder path(final String path) { // path pattern
             if (path == null) throw new NullPointerException("Path is null");
             if (path.isEmpty()) throw new IllegalArgumentException("Path is empty");
             
@@ -174,24 +235,41 @@ public interface Route {
         public Builder handler(final Handler handler) {
             this.handler = handler;
             return this;
-        }
+        }*/
         
         /*public Builder handler(final ZeroArgHandler handler) {
             this.handler = handler;
             return this;
         }*/
         
+        @Override
+        public Builder produces(final MediaType type) {
+            if (type != null) {
+                produces = type;
+            }
+            return this;
+        }
+
+        @Override
+        public Builder renderer(final RendererEngine renderer) {
+            this.renderer = renderer;
+            return this;
+        }
+        
+        @Override
         public Builder filter(final Filter filter) {
             this.before.add(filter);
             this.after.addFirst(filter);
             return this;
         }
         
+        @Override
         public Builder before(final Before handler) {
             this.before.add(handler);
             return this;
         }
         
+        @Override
         public Builder after(final After handler) {
             this.after.add(handler);
             return this;
@@ -213,7 +291,8 @@ public interface Route {
             return this;
         }
 
-        Builder filter(final Object item) {
+        @Override
+        public Builder filter(final Object item) {
             if (item instanceof Filter) { //filter is instanceof Before and After, so this has to be first
                 filter((Filter) item);
             } else if (item instanceof After) {
@@ -235,7 +314,7 @@ public interface Route {
             return this;
         }
         
-        private Handler _befores(final Handler handler, final Before[] befores) {
+        /*private Handler _befores(final Handler handler, final Before[] befores) {
             final Handler h;
             if (befores != null) {
                 Before before = befores[0];
@@ -248,12 +327,24 @@ public interface Route {
             }
             
             return h.then((ctx, r) -> {if (r == null) throw new Up.BadResult("The execution of the route itself rendered no result"); return r;});
-        }
-        
+        }*/
+
+        // build pipeline
         private Handler _build(final Handler handler, final Before[] befores, final After[] afters) {
             if (handler == null) return ctx -> { throw new Up.BadResult("The execution of the route itself rendered no result"); };
             
-            final Handler h = _befores(handler, befores);
+            
+            final Handler h;
+            if (befores != null) {
+                Before b = befores[0];
+                for (int i = 1; i < befores.length; i++) b = b.then(befores[i]);
+                h = b.then(handler);
+            } else {
+                h = handler;
+            }
+            
+            
+            //final Handler h = _befores(handler, befores);
             
             if (afters == null) return h;
             
@@ -262,17 +353,18 @@ public interface Route {
                 after = after.then(afters[i]);
             }
             
-            final After a = after;
-            return ctx -> a
-                .then((c, r) -> {if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result"); return r;})
-                .after(ctx, h.handle(ctx));
+            return h.then(after);
+            
+//            final After a = after;
+//            return ctx -> a
+//                .then((c, r) -> {if (r == null) throw new Up.BadResult("A ("+ Route.After.class.getSimpleName() +") filter rendered a 'null' result"); return r;})
+//                .after(ctx, h.handle(ctx));
         }
         
-        public Route build() {
+        public Route build(final RendererEngineOrchestrator engines) {
             if (uri == null) throw new NullPointerException("Path is null");
             
             return new Route() {
-                //private final Handler routehandler = handler;
                 private final ArrayList<String> parameters = parseParameters(uri);
                 private final Pattern regex = Pattern.compile(convertRawUriToRegex(uri));
                 
@@ -280,6 +372,8 @@ public interface Route {
                 private final After[] afters = after.isEmpty() && globalAfter.isEmpty() ? null : Stream.concat(after.stream(), globalAfter.stream()).toArray(After[]::new);
                 
                 private final Handler routehandler = _build(handler, befores, afters);
+                
+                private final RendererEngine r = engines.get(produces);
                 
                 @Override
                 public HttpMethod method() {
@@ -292,8 +386,18 @@ public interface Route {
                 }
                 
                 @Override
-                public Result handle(final Context context) {
+                public Object handle(final Context context) {
                     return routehandler.handle(context);
+                }
+                
+                public void h(final Context context) {
+                    try {
+                        //renderer.invoke(context, ((Result)routehandler.handle(context)).renderable);
+                        r.invoke(context, routehandler.handle(context));
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
                 
                 @Override
@@ -314,6 +418,11 @@ public interface Route {
                 @Override
                 public After[] after() {
                     return afters;
+                }
+                
+                @Override
+                public MediaType produces() {
+                    return produces;
                 }
                 
                 @Override
@@ -457,7 +566,9 @@ public interface Route {
         }
     }
     
-    Result handle(Context context);
+    //Result handle(Context context);
+    Object handle(Context context);
+    void h(Context context);
 
     /**
      * @return Current HTTP method.
@@ -467,15 +578,17 @@ public interface Route {
     Before[] before();
     
     After[] after();
-
-    boolean isUrlFullyQualified();
     
-    String wildcardedPath();
-
     /**
      * @return Current request path.
      */
     String path();
+    
+    MediaType produces();
+
+    boolean isUrlFullyQualified();
+    
+    String wildcardedPath();
     
     /**
      * Matches /index to /index or /person/1 to /person/{id}
