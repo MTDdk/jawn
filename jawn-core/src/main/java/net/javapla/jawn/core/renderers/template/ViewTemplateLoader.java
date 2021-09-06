@@ -275,6 +275,7 @@ public class ViewTemplateLoader {
             } else if (arr.length == NOT_FOUND.length && arr[0] == NOT_FOUND[0] && arr[1] == NOT_FOUND[1]) { // previously seen as not found
                 //throw new Up.ViewError(controllerLayoutCombined + " is not to be found anywhere");
                 logger.debug(controllerLayoutCombined + " is not to be found anywhere");
+                return null;
             }
             return arr;
         }
