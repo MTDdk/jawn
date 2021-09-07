@@ -3,6 +3,7 @@ package net.javapla.jawn.core.renderers.template;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -43,7 +44,7 @@ public class ViewTemplateLoader {
     }
     
     public String loadTemplate(final String path) {
-        return new String(lookupTemplate(path));
+        return new String(lookupTemplate(path)); // TODO should throw if not found?
     }
     
     public ViewTemplates load(final View view, final String suffixOfTemplatingEngine) throws Up.ViewError {
@@ -203,12 +204,17 @@ public class ViewTemplateLoader {
     }
     
     private char[] locateContentTemplate(String templatePath) {
-        try {
+        if (templatePath != null) {
+            return lookupTemplate(templatePath);
+        }
+        return null;
+        
+        /*try {
             return templatePath != null ? lookupTemplate(templatePath) : null;
         } catch (Up.ViewError e) {
             //logger.debug(e.getMessage());
             return null;
-        }
+        }*/
     }
     
     /**
@@ -229,11 +235,15 @@ public class ViewTemplateLoader {
             
             // going for defaults
             Tuple<String,char[]> t;
-            if ((template = (t = lookupDefaultLayoutInControllerPathChain(controller, suffixOfTemplatingEngine)).second) != null) 
+            if ((template = (t = lookupDefaultLayoutInControllerPathChain(controller, suffixOfTemplatingEngine)).second) != null) {
+                //logger.debug("if ((template = (t = lookupDefaultLayoutInControllerPathChain("+controller+", "+suffixOfTemplatingEngine+")).second) != null)  " + t);
                 return t;
+            }
             
-            if ((template = (t = lookupDefaultLayout(suffixOfTemplatingEngine)).second) != null) 
+            if ((template = (t = lookupDefaultLayout(suffixOfTemplatingEngine)).second) != null) {
+                //logger.debug("if ((template = (t = lookupDefaultLayout("+suffixOfTemplatingEngine+")).second) != null)  " + t);
                 return t;
+            }
         
         } catch (Up.ViewError e) {
             logger.debug(TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine + " is not to be found anywhere");
@@ -251,6 +261,7 @@ public class ViewTemplateLoader {
         while ((template = lookupTemplate/*diskReadLayout*/(controller + '/' + TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine)) == null && controller.indexOf('/') > 0) {
             controller = controller.substring(0, controller.lastIndexOf('/'));
         }
+        
         return new Tuple<>(controller + '/' + TemplateRendererEngine.LAYOUT_DEFAULT + suffixOfTemplatingEngine, template);
     }
     
@@ -262,10 +273,12 @@ public class ViewTemplateLoader {
     private char[] lookupTemplate(final String controllerLayoutCombined) {
         if (useCache) {
             char[] arr = cachedTemplates.get(controllerLayoutCombined);
+            logger.debug("char[] arr = cachedTemplates.get("+controllerLayoutCombined+"); " + Arrays.toString(arr));
             
             if (arr == null) { // key not found
                 
                 char[] template = diskReadLayout(controllerLayoutCombined);
+                logger.debug("char[] template = diskReadLayout(controllerLayoutCombined);  " + Arrays.toString(template));
                 if (template == null) { // file not found
                     cachedTemplates.put(controllerLayoutCombined, NOT_FOUND);
                 } else {
@@ -273,7 +286,9 @@ public class ViewTemplateLoader {
                 }
                 return template;
             } else if (arr.length == NOT_FOUND.length && arr[0] == NOT_FOUND[0] && arr[1] == NOT_FOUND[1]) { // previously seen as not found
-                throw new Up.ViewError(controllerLayoutCombined + " is not to be found anywhere");
+                //throw new Up.ViewError(controllerLayoutCombined + " is not to be found anywhere");
+                logger.debug(controllerLayoutCombined + " is not to be found anywhere");
+                return null;
             }
             return arr;
         }
