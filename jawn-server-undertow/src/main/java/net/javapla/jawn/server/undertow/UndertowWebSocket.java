@@ -21,7 +21,7 @@ import net.javapla.jawn.core.server.WebSocket;
 import net.javapla.jawn.core.server.WebSocketCloseStatus;
 import net.javapla.jawn.core.server.WebSocketMessage;
 
-@SuppressWarnings("deprecation")
+//@SuppressWarnings("deprecation")
 class UndertowWebSocket extends AbstractReceiveListener implements WebSocket.Listener, WebSocket, WebSocketCallback<Void> {
     
     //private static final ConcurrentMap<String, List<WebSocket>> ALL = new ConcurrentHashMap<>();

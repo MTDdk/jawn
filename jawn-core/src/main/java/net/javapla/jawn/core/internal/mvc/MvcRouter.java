@@ -15,6 +15,9 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Injector;
 
 import net.javapla.jawn.core.HttpMethod;
@@ -30,6 +33,7 @@ import net.javapla.jawn.core.mvc.Path;
 import net.javapla.jawn.core.mvc.Produces;
 
 public class MvcRouter {
+    private final static Logger logger = LoggerFactory.getLogger(MvcRouter.class.getSimpleName());
     
     private static final Set<Class<? extends Annotation>> VERBS = new HashSet<>(Arrays.asList(
         GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class));
@@ -55,6 +59,8 @@ public class MvcRouter {
             List<Class<? extends Annotation>> verbs = actions.get(action);
             
             String[] paths = mergePaths(rootPaths, action);
+            if (paths == null) return;
+            
             MediaType actionProduces = produces(action);
             
             for (Class<? extends Annotation> verb : verbs) {
@@ -124,7 +130,8 @@ public class MvcRouter {
         String[] action = paths(method);
         if (rootPaths == null) {
             if (action == null) {
-                throw new IllegalArgumentException("No path found for: " + method);
+                logger.error("No path found for: " + method);
+                //throw new IllegalArgumentException("No path found for: " + method);
             }
             return action;
         }
