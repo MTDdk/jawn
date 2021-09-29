@@ -28,13 +28,14 @@ public final class JsonRendererEngine implements RendererEngine {
     }*/
     
     @Override
-    public void invoke(final Context context, final Object obj) throws Exception {
+    public byte[] invoke(final Context context, final Object obj) throws Exception {
 //        if (obj instanceof byte[]) {
 //            context.resp().send((byte[])obj);
 //        } else if (obj instanceof String) {
 //            context.resp().send( /*(String)obj );/*/((String) obj).getBytes(context.resp().charset()));
 //        } else {
-            context.resp().send(pool.get().writeValueAsBytes(obj));
+        return pool.get().writeValueAsBytes(obj);
+            //context.resp().send(pool.get().writeValueAsBytes(obj));
             //context.resp().send(mapper.writeValueAsBytes(obj));
             //mapper.writeValue(context.resp().outputStream(), obj);
 //        }

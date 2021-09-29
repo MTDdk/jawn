@@ -164,6 +164,10 @@ public class Up extends RuntimeException {
         return statusCode;
     }
     
+    public static ViewError viewError(String message) {
+        return new ViewError(message);
+    }
+    
     /**
      * Build an error message using the HTTP status.
      *

@@ -73,7 +73,7 @@ public class MediaType implements Comparable<MediaType> {
     /**
      * Alias for most used types.
      */
-    private static final HashMap<String, List<MediaType>> cache = new HashMap<>();
+    private static final HashMap<String, List<MediaType>> cache = new HashMap<>(8, 1.0f);
 
     static {
       cache.put("html", Collections.singletonList(HTML));

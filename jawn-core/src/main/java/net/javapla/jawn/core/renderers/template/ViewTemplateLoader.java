@@ -3,7 +3,6 @@ package net.javapla.jawn.core.renderers.template;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -115,16 +114,6 @@ public class ViewTemplateLoader {
         render(context, render, e -> {});
     }
     
-    public String renderAsString(ThrowingConsumer<Writer> renderer) throws Up.ViewError {
-        try (final AsyncCharArrayWriter writer = new AsyncCharArrayWriter()) {
-            renderer.accept(writer);
-            
-            return writer.toString();
-        } catch (Exception e) {
-            throw new Up.ViewError(e);
-        }
-    }
-
     public final String getLayoutNameForResult(View view, String suffixOfTemplatingEngine) {
         String layout = view.layout();
         if (layout != null) {
@@ -273,12 +262,10 @@ public class ViewTemplateLoader {
     private char[] lookupTemplate(final String controllerLayoutCombined) {
         if (useCache) {
             char[] arr = cachedTemplates.get(controllerLayoutCombined);
-            logger.debug("char[] arr = cachedTemplates.get("+controllerLayoutCombined+"); " + Arrays.toString(arr));
             
             if (arr == null) { // key not found
                 
                 char[] template = diskReadLayout(controllerLayoutCombined);
-                logger.debug("char[] template = diskReadLayout(controllerLayoutCombined);  " + Arrays.toString(template));
                 if (template == null) { // file not found
                     cachedTemplates.put(controllerLayoutCombined, NOT_FOUND);
                 } else {

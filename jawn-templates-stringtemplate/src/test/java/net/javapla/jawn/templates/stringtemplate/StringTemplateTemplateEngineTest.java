@@ -15,6 +15,7 @@ import java.util.Optional;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
+import org.stringtemplate.v4.compiler.STException;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Context;
@@ -131,5 +132,16 @@ public class StringTemplateTemplateEngineTest {
         
         // assert
         assertThat(output).isEqualTo("<html><body><div>Mail:<br>simple template</div></body></html>");
+    }
+    
+    @Test
+    public void arrayIndexFetch() {
+        
+        // execute
+        String output = engine.invoke(Results.view().template("arrays").put("test", "injected content").put("arr", new String[] {"one", "two", "three"}));
+        System.out.println(output);
+        
+        // assert
+        assertThat(output).isEqualTo("<html><body><div>injected content</div><div>one</div><div>two</div><div>three</div></body></html>");
     }
 }

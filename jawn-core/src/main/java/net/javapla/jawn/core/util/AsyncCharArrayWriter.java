@@ -55,7 +55,7 @@ public final class AsyncCharArrayWriter extends Writer {
     }
     
     @Override
-    public void write(char[] c, int off, int len) throws IOException {
+    public void write(char[] c, int off, int len) throws IndexOutOfBoundsException {
         if ((off < 0) || (off > c.length) || (len < 0) ||
             ((off + len) > c.length) || ((off + len) < 0)) {
             throw new IndexOutOfBoundsException();
@@ -70,7 +70,7 @@ public final class AsyncCharArrayWriter extends Writer {
     }
     
     @Override
-    public void write(String str, int off, int len) throws IOException {
+    public void write(String str, int off, int len) {
         int newcount = count + len;
         ensureBuffer(newcount);
         
@@ -79,7 +79,7 @@ public final class AsyncCharArrayWriter extends Writer {
     }
     
     @Override
-    public void write(String str) throws IOException {
+    public void write(String str) {
         write(str, 0, str.length());
     }
     

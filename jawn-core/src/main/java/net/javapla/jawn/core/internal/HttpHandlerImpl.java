@@ -12,6 +12,7 @@ import com.google.inject.Singleton;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Result;
 import net.javapla.jawn.core.Results;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.SessionStore;
@@ -77,10 +78,11 @@ final class HttpHandlerImpl implements HttpHandler {
             }
             
             //_handle(context, route, (result) -> runner.execute(result, context));
-            //runner.execute(route.handle(context), context);
+            runner.execute((Result)route.handle(context), context);
             //runner.execute(route, context);
             //route.h(context);
-            route.handle(context);
+            
+            //route.handle(context);
             
             context.writeCookies();
             context.end();

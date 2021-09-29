@@ -2,6 +2,7 @@ package net.javapla.jawn.templates.stringtemplate;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -30,6 +31,7 @@ import net.javapla.jawn.core.renderers.template.config.Site;
 import net.javapla.jawn.core.renderers.template.config.SiteProvider;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfig;
 import net.javapla.jawn.core.renderers.template.config.TemplateConfigProvider;
+import net.javapla.jawn.core.util.AsyncCharArrayWriter;
 import net.javapla.jawn.templates.stringtemplate.rewrite.FastSTGroup;
 
 @Singleton
@@ -80,23 +82,27 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     }
 
     @Override
-    public final void invoke(final Context context, final View view) throws Up.ViewError {
+    public final byte[] invoke(final Context context, final View view) throws Up.ViewError {
         final long time = System.currentTimeMillis();
 
         final ViewTemplates viewTemplates = templateLoader.load(view, TEMPLATE_ENDING);
-        writeTemplate(assembleTemplate(context, view, viewTemplates), context.resp().writer());
+        //writeTemplate(assembleTemplate(context, view, viewTemplates), context.resp().writer());
+        
+        ST template = assembleTemplate(context, view, viewTemplates);
         
         if (log.isDebugEnabled())
            log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
         
+        return writeTemplate(template);
     }
     
     @Override
     public String invoke(final View view) {
-
-        return templateLoader.renderAsString(writer -> {
+        
+        try (final AsyncCharArrayWriter writer = new AsyncCharArrayWriter()) {
             writeTemplate(assembleTemplate(null, view, templateLoader.load(view, TEMPLATE_ENDING)), writer);
-        });
+            return writer.toString();
+        }
     }
     
     private ST assembleTemplate(final Context context, final View view, final ViewTemplates viewTemplates) {
@@ -242,6 +248,19 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
                     log.debug("key/value {}/{} not found in template {}", entry.getKey(), entry.getValue(), template); 
                 }
             }
+        }
+    }
+    
+    private final byte[] writeTemplate(final ST layoutTemplate) {
+        try (final AsyncCharArrayWriter writer = new AsyncCharArrayWriter()) {
+            
+            try {
+                layoutTemplate.write(createSTWriter(writer));
+            } catch (IOException ignore) {
+                // should not actually ever throw anything
+            }
+            
+            return writer.getBytes(StandardCharsets.UTF_8);
         }
     }
     

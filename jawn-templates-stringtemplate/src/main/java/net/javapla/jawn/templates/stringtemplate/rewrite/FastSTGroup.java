@@ -2,12 +2,14 @@ package net.javapla.jawn.templates.stringtemplate.rewrite;
 
 import org.stringtemplate.v4.InstanceScope;
 import org.stringtemplate.v4.Interpreter;
+import org.stringtemplate.v4.ModelAdaptor;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupDir;
 import org.stringtemplate.v4.compiler.CompiledST;
 import org.stringtemplate.v4.compiler.Compiler;
 import org.stringtemplate.v4.misc.ErrorType;
+import org.stringtemplate.v4.misc.STNoSuchPropertyException;
 
 import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 
@@ -30,6 +32,12 @@ public final class FastSTGroup extends STGroup {
         
         // overwrite the ObjectModelAdaptor
         adaptors.put(Object.class, new ObjectWithAttributeNamedGettersModelAdaptor());
+        adaptors.put(Object[].class, new ModelAdaptor() {
+            @Override
+            public Object getProperty(Interpreter interp, ST self, Object o, Object property, String propertyName) throws STNoSuchPropertyException {
+                return ((Object[])o)[Integer.valueOf(propertyName)];
+            }
+        });
     }
     
     public ST getInstanceOf(String name, String template ) {

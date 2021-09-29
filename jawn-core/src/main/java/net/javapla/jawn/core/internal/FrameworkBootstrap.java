@@ -24,6 +24,8 @@ import com.google.inject.Stage;
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
 import net.javapla.jawn.core.Modes;
+import net.javapla.jawn.core.NewParser;
+import net.javapla.jawn.core.NewRenderer;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.Up;
@@ -33,6 +35,7 @@ import net.javapla.jawn.core.internal.renderers.RendererEngineOrchestratorImpl;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
+import net.javapla.jawn.core.renderers.RendererEngine;
 import net.javapla.jawn.core.renderers.RendererEngineOrchestrator;
 import net.javapla.jawn.core.renderers.template.ViewTemplateLoader;
 import net.javapla.jawn.core.server.HttpHandler;
@@ -67,6 +70,14 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
             registerCoreModules(binder, mode, frameworkConfig, router, serverConfig, sessionStore);
             
             final ApplicationConfig pluginConfig = new ApplicationConfig() {
+                
+                public void parser(NewParser parser) {
+                    
+                }
+                public void renderer(RendererEngine renderer) {
+                    
+                }
+                
                 @Override
                 public Binder binder() {
                     return binder;

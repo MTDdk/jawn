@@ -9,14 +9,15 @@ public interface TemplateRendererEngine extends RendererEngine {
     String LAYOUT_DEFAULT = "index.html"; //TODO move to jawn_defaults.properties
     
     @Override
-    default void invoke(Context context, Object renderable) throws Exception {
+    default byte[] invoke(Context context, Object renderable) throws Exception {
         if (renderable instanceof View) {
             View v = (View)renderable;
-            invoke(context, v);
+            return invoke(context, v);
         }
+        return null;
     }
     
-    void invoke(Context context, View viewable);
+    byte[] invoke(Context context, View viewable);
     
     String invoke(View viewable);
 
@@ -32,5 +33,9 @@ public interface TemplateRendererEngine extends RendererEngine {
      *      name of suffix or null if engine is not using a template on disk.
      */
     String getSuffixOfTemplatingEngine();
+    
+    default boolean supports(View view) {
+        return view.layout().endsWith(getSuffixOfTemplatingEngine());
+    }
     
 }

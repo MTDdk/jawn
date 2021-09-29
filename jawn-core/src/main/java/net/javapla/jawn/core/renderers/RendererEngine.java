@@ -12,7 +12,7 @@ public interface RendererEngine {
      * @param context
      * @param response
      */
-    void invoke(final Context context, final Object renderable) throws Exception;
+    byte[] invoke(final Context context, final Object renderable) throws Exception;
     
     
     /**
@@ -21,6 +21,8 @@ public interface RendererEngine {
      * @return
      *      The content type this template engine renders
      */
-    MediaType[] getContentType();
+    default MediaType[] getContentType() {
+        return new MediaType[] { MediaType.TEXT };
+    }
     
 }
