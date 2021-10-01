@@ -2,7 +2,6 @@ package net.javapla.jawn.templates.stringtemplate;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -82,18 +81,19 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
     }
 
     @Override
-    public final byte[] invoke(final Context context, final View view) throws Up.ViewError {
+    public final byte[] render(final Context context, final View view) throws Up.ViewError {
         final long time = System.currentTimeMillis();
 
         final ViewTemplates viewTemplates = templateLoader.load(view, TEMPLATE_ENDING);
-        //writeTemplate(assembleTemplate(context, view, viewTemplates), context.resp().writer());
+        writeTemplate(assembleTemplate(context, view, viewTemplates), context.resp().writer());
         
-        ST template = assembleTemplate(context, view, viewTemplates);
+        //ST template = assembleTemplate(context, view, viewTemplates);
+        //context.resp().send(writeTemplate(template));
         
         if (log.isDebugEnabled())
            log.debug("Rendered template: '{}' with layout: '{}' in  {}ms", viewTemplates.templatePath(), viewTemplates.layoutPath(), (System.currentTimeMillis() - time));
         
-        return writeTemplate(template);
+        return null;
     }
     
     @Override
@@ -251,7 +251,7 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
         }
     }
     
-    private final byte[] writeTemplate(final ST layoutTemplate) {
+    /*private final CharBuffer writeTemplate(final ST layoutTemplate) {
         try (final AsyncCharArrayWriter writer = new AsyncCharArrayWriter()) {
             
             try {
@@ -260,9 +260,9 @@ public final class StringTemplateTemplateEngine implements TemplateRendererEngin
                 // should not actually ever throw anything
             }
             
-            return writer.getBytes(StandardCharsets.UTF_8);
+            return writer.toCharBuffer();
         }
-    }
+    }*/
     
     private final void writeTemplate(final ST layoutTemplate, final Writer writer/*, final ErrorBuffer error*/) {
         try {

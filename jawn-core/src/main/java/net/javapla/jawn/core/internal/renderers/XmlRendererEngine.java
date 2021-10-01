@@ -19,14 +19,15 @@ final class XmlRendererEngine implements RendererEngine {
     }
     
     @Override
-    public void invoke(final Context context, final Object obj) throws Exception {
-        if (obj instanceof byte[]) {
-            context.resp().send((byte[])obj);
-        } else if (obj instanceof String) {
-            context.resp().send( /*(String)obj );/*/((String) obj).getBytes(context.resp().charset()));
-        } else {
-            context.resp().send(mapper.writeValueAsBytes(obj));
-        }
+    public byte[] invoke(final Context context, final Object obj) throws Exception {
+//        if (obj instanceof byte[]) {
+//            context.resp().send((byte[])obj);
+//        } else if (obj instanceof String) {
+//            context.resp().send( /*(String)obj );/*/((String) obj).getBytes(context.resp().charset()));
+//        } else {
+//            context.resp().send(mapper.writeValueAsBytes(obj));
+//        }
+        return null;
     }
 
     @Override

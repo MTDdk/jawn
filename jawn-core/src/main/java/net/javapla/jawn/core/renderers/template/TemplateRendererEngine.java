@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.renderers.template;
 
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.View;
 import net.javapla.jawn.core.renderers.RendererEngine;
 
@@ -11,13 +12,16 @@ public interface TemplateRendererEngine extends RendererEngine {
     @Override
     default byte[] invoke(Context context, Object renderable) throws Exception {
         if (renderable instanceof View) {
+            
+            context.resp().contentType(MediaType.HTML);
+            
             View v = (View)renderable;
-            return invoke(context, v);
+            return render(context, v);
         }
         return null;
     }
     
-    byte[] invoke(Context context, View viewable);
+    byte[] render(Context context, View viewable);
     
     String invoke(View viewable);
 

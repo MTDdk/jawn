@@ -17,14 +17,14 @@ class ImageRendererEngine extends StreamRendererEngine {
  // TODO ImageRendererEngine needs to be thoroughly thought through as well
 
     @Override
-    public void invoke(Context context, Object obj) throws Exception {
+    public byte[] invoke(Context context, Object obj) throws Exception {
 
 
         if (obj instanceof BufferedImage) {
 
             // We assume the content type to be of the form "image/{extension}"
             // This is what we extract, as the image ought to be of the same format
-            String extension = context.resp().contentType().get().subtype();//contentType.substring(contentType.indexOf('/')+1);
+            String extension = context.resp().contentType().subtype();//contentType.substring(contentType.indexOf('/')+1);
 
             // As we are using ImageIO as a serialiser, we need to ensure that it is actually going to 
             // do some work
@@ -50,7 +50,8 @@ class ImageRendererEngine extends StreamRendererEngine {
                 context.resp().send(s);
             }
         }*/
-        else super.invoke(context, obj);
+        else //super.invoke(context, obj);
+            return super.invoke(context, obj);
 
     }
 

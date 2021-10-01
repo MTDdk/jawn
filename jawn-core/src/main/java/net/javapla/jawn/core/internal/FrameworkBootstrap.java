@@ -23,9 +23,8 @@ import com.google.inject.Stage;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.DeploymentInfo;
+import net.javapla.jawn.core.HttpResponseRenderer;
 import net.javapla.jawn.core.Modes;
-import net.javapla.jawn.core.NewParser;
-import net.javapla.jawn.core.NewRenderer;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.Up;
@@ -33,6 +32,7 @@ import net.javapla.jawn.core.internal.reflection.ClassFactory;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.renderers.RendererEngineOrchestratorImpl;
 import net.javapla.jawn.core.parsers.JsonMapperProvider;
+import net.javapla.jawn.core.parsers.ParserEngine;
 import net.javapla.jawn.core.parsers.ParserEngineManager;
 import net.javapla.jawn.core.parsers.XmlMapperProvider;
 import net.javapla.jawn.core.renderers.RendererEngine;
@@ -65,17 +65,20 @@ public final class FrameworkBootstrap /*implements Injection*/ {//TODO rename to
         
         final Config frameworkConfig = readConfigurations(mode);
         final Router router = new Router(/*routes*/);
+        final HttpResponseRenderer renderers = new HttpResponseRenderer();
         
         final com.google.inject.Module jawnModule = binder -> {
             registerCoreModules(binder, mode, frameworkConfig, router, serverConfig, sessionStore);
             
             final ApplicationConfig pluginConfig = new ApplicationConfig() {
                 
-                public void parser(NewParser parser) {
+                @Override
+                public void parser(ParserEngine parser) {
                     
                 }
+                @Override
                 public void renderer(RendererEngine renderer) {
-                    
+                    renderers.add(renderer);
                 }
                 
                 @Override

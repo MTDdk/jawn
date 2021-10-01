@@ -1,8 +1,10 @@
 package net.javapla.jawn.core;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import net.javapla.jawn.core.renderers.RendererEngine;
@@ -63,7 +65,13 @@ public class HttpResponseRenderer implements RendererEngine {
         if (renderable instanceof byte[]) {
             return (byte[]) renderable;
         }
-            
+        if (renderable instanceof ByteBuffer) {
+            context.resp().send((ByteBuffer)renderable);
+            return null;
+        }
+        
+        Iterator<RendererEngine> iterator = renderers.iterator();
+        
         
         
         return null;

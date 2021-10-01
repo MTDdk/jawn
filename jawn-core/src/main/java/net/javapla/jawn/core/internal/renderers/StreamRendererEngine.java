@@ -15,9 +15,9 @@ import net.javapla.jawn.core.renderers.RendererEngine;
 class StreamRendererEngine implements RendererEngine {
 
     @Override
-    public void invoke(final Context context, final Object obj) throws Exception {
+    public byte[] invoke(final Context context, final Object obj) throws Exception {
         
-        if (obj instanceof InputStream) {
+        /*if (obj instanceof InputStream) {
             //context.resp().send((InputStream) obj);
             try (InputStream s = (InputStream) obj) {
                 //context.resp().send(s);
@@ -37,7 +37,8 @@ class StreamRendererEngine implements RendererEngine {
             }
         } else {
             context.resp().send( obj.toString() );
-        }
+        }*/
+        return null;
         /*} else if (obj instanceof Serializable) {*/
         
         // 'instanceof' returns false if 'object' is null

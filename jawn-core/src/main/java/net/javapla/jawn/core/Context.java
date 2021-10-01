@@ -30,7 +30,7 @@ public interface Context /*extends Injection*/ {
         
         Response removeHeader(String name);
 
-        Optional<MediaType> contentType();
+        MediaType contentType();
         
         Response contentType(MediaType type);
         

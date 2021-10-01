@@ -7,6 +7,10 @@ public class Up extends RuntimeException {
         public BadMediaType(final String message) {
             super(Status.BAD_REQUEST, message);
         }
+        
+        public static BadMediaType here(String message) {
+            return new BadMediaType(message);
+        }
     }
 
     public static class Missing extends Up {
@@ -24,6 +28,13 @@ public class Up extends RuntimeException {
         }
         public ParsableError(final String message, final Throwable err) {
             super(Status.UNSUPPORTED_MEDIA_TYPE, message, err);
+        }
+        
+        public static ParsableError here(String message) {
+            return new ParsableError(message);
+        }
+        public static Up here(Throwable e) {
+            return new Up(Status.UNPROCESSABLE_ENTITY, e);
         }
     }
     

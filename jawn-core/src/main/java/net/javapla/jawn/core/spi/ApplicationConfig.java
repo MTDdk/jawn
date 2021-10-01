@@ -4,6 +4,8 @@ import com.google.inject.Binder;
 
 import net.javapla.jawn.core.Config;
 import net.javapla.jawn.core.Modes;
+import net.javapla.jawn.core.parsers.ParserEngine;
+import net.javapla.jawn.core.renderers.RendererEngine;
 
 public interface ApplicationConfig {
 
@@ -16,5 +18,9 @@ public interface ApplicationConfig {
     void onStartup(Runnable task);
 
     void onShutdown(Runnable task);
+
+    void parser(ParserEngine parser);
+
+    void renderer(RendererEngine renderer);
 
 }

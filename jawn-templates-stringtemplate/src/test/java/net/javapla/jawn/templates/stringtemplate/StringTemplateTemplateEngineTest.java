@@ -66,7 +66,7 @@ public class StringTemplateTemplateEngineTest {
         
         
         // execute
-        engine.invoke(context, Results.view());
+        engine.render(context, Results.view());
         
         
         // verify
@@ -89,7 +89,7 @@ public class StringTemplateTemplateEngineTest {
 
         
         // execute
-        engine.invoke(context, Results.view().layout("additional"));
+        engine.render(context, Results.view().layout("additional"));
         
         
         // verify
@@ -112,7 +112,7 @@ public class StringTemplateTemplateEngineTest {
 
         
         // execute
-        engine.invoke(context, Results.view().template("injectcontent").put("test", "injected content"));
+        engine.render(context, Results.view().template("injectcontent").put("test", "injected content"));
 
         
         // verify

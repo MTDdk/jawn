@@ -24,7 +24,7 @@ class UndertowHandler implements HttpHandler {
         this.config = config;
         this.dispatcher = dispatcher;
         
-        /** Eager body parsing: */
+        
         parserFactory = FormParserFactory.builder(false)
             .addParser(new MultiPartParserDefinition(UndertowRequest.TMP_DIR)
                 .setDefaultEncoding(StandardCharsets.UTF_8.name()))
@@ -45,11 +45,13 @@ class UndertowHandler implements HttpHandler {
             return;
         }
         
+        /** Eager body parsing: */
         FormDataParser parser = parserFactory.createParser(exchange);
         if (parser != null) {
             parser.parse(this::handle);
             //parser.close(); // TODO when to close this?
         } else {
+            // Read raw body
 //            Receiver receiver = exchange.getRequestReceiver();
 //            receiver.receiveFullBytes((ex, bytes) -> );
 //            

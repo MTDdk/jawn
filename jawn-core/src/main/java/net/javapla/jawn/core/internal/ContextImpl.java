@@ -269,7 +269,7 @@ final class ContextImpl implements Context {
         };
 
         this.resp = new Context.Response() {
-            private MediaType contentType;
+            private MediaType contentType = MediaType.TEXT;
             private Charset   cs = charset;
 
             @Override
@@ -301,8 +301,8 @@ final class ContextImpl implements Context {
             }
 
             @Override
-            public Optional<MediaType> contentType() {
-                return Optional.ofNullable(contentType);
+            public MediaType contentType() {
+                return contentType;
             }
 
             @Override
