@@ -3,7 +3,6 @@ package net.javapla.jawn.core;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -12,15 +11,19 @@ import net.javapla.jawn.core.renderers.template.TemplateRendererEngine;
 
 public class HttpResponseRenderer implements RendererEngine {
 
-    private ArrayList<RendererEngine> renderers = new ArrayList<>(2);
+    private LinkedList<RendererEngine> renderers = new LinkedList<>();
     
     private LinkedList<TemplateRendererEngine> templateRenderers = new LinkedList<>();
+    
+    public HttpResponseRenderer() {
+        renderers.addLast(TO_STRING); // default
+    }
     
     public HttpResponseRenderer add(RendererEngine renderer) {
         if (renderer instanceof TemplateRendererEngine) {
             templateRenderers.add((TemplateRendererEngine) renderer);
         } else {
-            renderers.add(renderer);
+            renderers.addFirst(renderer);
         }
         return this;
     }
@@ -71,10 +74,13 @@ public class HttpResponseRenderer implements RendererEngine {
         }
         
         Iterator<RendererEngine> iterator = renderers.iterator();
+        byte[] output = null;
+        while (output == null) { // the TO_STRING should always be at the bottom of this list and thus counter the infinite loop
+            RendererEngine engine = iterator.next();
+            output = engine.invoke(context, renderable);
+        }
         
-        
-        
-        return null;
+        return output;
     }
 
 }

@@ -215,6 +215,7 @@ final class ContextImpl implements Context {
             }
 
             @Override
+            @SuppressWarnings("unchecked")
             public <T> T body(final Class<T> type) throws Exception {
                 long length = length();
 
@@ -240,8 +241,8 @@ final class ContextImpl implements Context {
                         // content-type might just be (unknowingly) wrongly set.
                         // Probably should tell the implementor about this..
                     }
-
-                    return engine.invoke(sreq.in(), type);
+                    
+                    return (T) engine.invoke(ContextImpl.this, type);
                 }
 
                 return Value.of(body()).as(type);
@@ -259,7 +260,7 @@ final class ContextImpl implements Context {
 
             @Override
             public long length() {
-                return sreq.header("Content-Length").map(Long::parseLong).orElse(-1l);
+                return sreq.header("Content-Length").map(Long::parseLong).orElse(0l);
             }
 
             @Override

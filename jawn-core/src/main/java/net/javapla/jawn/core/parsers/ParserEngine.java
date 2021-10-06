@@ -28,8 +28,6 @@ public interface ParserEngine {
     /**
      * The content type this BodyParserEngine can handle
      * 
-     * MUST BE THREAD SAFE TO CALL!
-     * 
      * @return the content type. this parser can handle - eg. "application/json"
      */
     default MediaType[] getContentType() {
