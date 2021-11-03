@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 
+import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.internal.AssetRouter;
 import net.javapla.jawn.core.internal.FrameworkBootstrap;
 import net.javapla.jawn.core.internal.RouteFilterPopulator;
@@ -527,6 +528,13 @@ public class Jawn implements Route.Filtering, Injection {
         }
     }
     
+    private List<Builder> systemErrorRoutes() {
+        LinkedList<Route.Builder> system = new LinkedList<>();
+        for (HttpMethod method : HttpMethod.values()) {
+            system.add(new Route.Builder(method).path("jawn.system").handler(ctx -> Results.view().path("system").template(String.valueOf(ctx.resp().status().value())).status(ctx.resp().status())));
+        }
+        return system;
+    }
     
     /**
      * When adding global filters to all routes
@@ -553,6 +561,9 @@ public class Jawn implements Route.Filtering, Injection {
      */
     List<Route> buildRoutes(Injector injector) {
         LinkedList<Route.Builder> routes = new LinkedList<>();
+        
+        // add system errors (this makes them have filters on them as well)
+        routes.addAll(systemErrorRoutes());
         
         // populate ordinary routes
         /*routesAndFilters.entrySet().forEach(entry -> {
