@@ -119,7 +119,7 @@ final class Router {
         for (final Route route : routes) {
             
             Route lookup = trie.findRoute(route.wildcardedPath().toCharArray(), route.method());
-            if (lookup != null && (route.method() != HttpMethod.HEAD || lookup.method() != HttpMethod.HEAD) && route.wildcardedPath().equals(lookup.wildcardedPath())) {
+            if (lookup != null && route.method() != HttpMethod.HEAD && route.wildcardedPath().equals(lookup.wildcardedPath())) {
                 throw new Up.RouteAlreadyExists(lookup);
             }
             
