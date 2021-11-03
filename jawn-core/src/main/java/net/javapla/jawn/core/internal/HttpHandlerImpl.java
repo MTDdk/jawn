@@ -150,6 +150,8 @@ final class HttpHandlerImpl implements HttpHandler {
             logger.error("{} [{}] ", status, context.req().path(), e);
         }
         
+        context.resp().status(status);
+        
         //if (e instanceof Up.ViewError) return;
         
         if (injector.getInstance(RendererEngineOrchestrator.class).hasRendererEngineForContentType(MediaType.HTML) && !(e instanceof Up.ViewError)) {
