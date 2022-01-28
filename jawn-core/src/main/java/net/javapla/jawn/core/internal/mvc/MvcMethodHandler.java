@@ -70,7 +70,12 @@ public class MvcMethodHandler implements Route.MethodHandler {
             final Object result = method.invoke(controller, actionParameters);
             
             return _handleReturnType(result);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+        } catch (InvocationTargetException e) { 
+            if (e.getCause() instanceof Up) {
+                throw (Up)e.getCause();
+            }
+            throw new Up.RenderableError(e);
+        } catch (IllegalAccessException | IllegalArgumentException e) {
             //return Results.error();
             throw new Up.RenderableError(e);
         }
