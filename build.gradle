@@ -1,0 +1,34 @@
+allprojects {
+  apply plugin: 'java'
+  
+  // maven metadata
+  group = 'net.javapla.jawn'
+  
+  
+  // compiler options
+  compileJava {
+    options.release = 14
+  }
+  
+  
+  repositories { mavenCentral() }
+  
+  
+}
+
+
+subprojects {
+  apply plugin: 'eclipse'
+  
+  
+  dependencies {
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.1'
+  }
+  
+  test {
+    // show standard out and standard error of the test JVM(s) on the console
+    testLogging.showStandardStreams true
+    
+    ignoreFailures false
+  }
+}
