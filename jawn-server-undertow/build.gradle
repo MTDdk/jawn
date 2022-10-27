@@ -1,0 +1,12 @@
+plugins {
+  id 'java-library'
+}
+
+dependencies {
+
+  // framework
+  api project(':jawn-core')
+  
+  // server
+  implementation 'io.undertow:undertow-core:2.3.0.Final' 
+}

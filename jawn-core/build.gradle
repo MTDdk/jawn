@@ -3,5 +3,18 @@ plugins {
 }
 
 dependencies {
-  implementation 'com.typesafe:config:1.4.2'
+
+  // configuration
+  api 'com.typesafe:config:1.4.2'
+  
+  // logging
+  api 'org.slf4j:slf4j-api:2.0.3'
+  
+  
+  // bytecode reading
+  def asm_version = '9.4'
+  implementation 'org.ow2.asm:asm:' + asm_version
+  implementation 'org.ow2.asm:asm-tree:' + asm_version
+  implementation 'org.ow2.asm:asm-util:' + asm_version
+  
 }
