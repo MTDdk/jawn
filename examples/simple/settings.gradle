@@ -1,0 +1,6 @@
+//includeFlat 'jawn-core','jawn-server-undertow'
+
+['jawn-core','jawn-server-undertow'].each {
+  include it
+  project(":$it").projectDir = file("../../$it")
+}

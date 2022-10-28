@@ -1,9 +1,11 @@
 package net.javapla.jawn.core;
 
-// Exception
-public /*abstract*/ class Up extends RuntimeException {
+import java.io.FileNotFoundException;
+import java.util.NoSuchElementException;
 
-    private static final long serialVersionUID = 4840075238541075867L;
+// Exception
+@SuppressWarnings("serial")
+public abstract class Up extends RuntimeException {
     
     private final Status status;
     
@@ -15,28 +17,42 @@ public /*abstract*/ class Up extends RuntimeException {
         super(message(status, msg));
         this.status = status;
     }
+    public Up(Status status, String msg, Throwable cause) {
+        super(message(status, msg), cause);
+        this.status = status;
+    }
     
     public Status status() {
         return status;
     }
     
-    /*public abstract Up because();*/
+    /*public static Up because(Throwable cause) {
+        return new Up();
+    }*/
 
     public static Up.IO IO(Throwable cause) {
-        return Up.IO.because(cause);
+        return new Up.IO(cause);
     }
-    public static class IO extends Up {
-        private static final long serialVersionUID = -4272247081350518486L;
-        public IO(Throwable cause) {
-            super(Status.SERVER_ERROR, cause);
-        }
-        public static IO because(Throwable cause) {
-            return new IO(cause);
-        }
+    public static Up.RegistryException RegistryException(String msg) {
+        return new Up.RegistryException(msg);
     }
-    
-    public static Up RouteMissing(String path) {
-        return new Up(Status.NOT_FOUND, path);
+    /*public static Up.RouteMissing RouteMissing(String path) {
+        return new Up.RouteMissing(path);
+    }*/
+    public static Up ParseError(String msg, Throwable cause) {
+        return new Up.ParseError(msg, cause);
+    }
+    public static Up ParseError(String msg) {
+        return new Up.ParseError(msg);
+    }
+    public static Up.BadMediaType BadMediaType(String msg) {
+        return new Up.BadMediaType(msg);
+    }
+    /*public static Up.RouteFoundWithDifferentMethod RouteFoundWithDifferentMethod(String method) {
+        return new Up.RouteFoundWithDifferentMethod(method);
+    }*/
+    public static Up.RouteAlreadyExists RouteAlreadyExists(String route) {
+        return new Up.RouteAlreadyExists(route);
     }
     
     /**
@@ -67,5 +83,63 @@ public /*abstract*/ class Up extends RuntimeException {
             || x instanceof LinkageError
             || x instanceof ThreadDeath
             || x instanceof VirtualMachineError;
+    }
+    
+    
+    public static Status error(Throwable e) {
+        if (e instanceof Up) return ((Up) e).status();
+        if (e instanceof IllegalArgumentException || e instanceof NoSuchElementException) return Status.BAD_REQUEST;
+        if (e instanceof FileNotFoundException) return Status.NOT_FOUND;
+        return Status.SERVER_ERROR;
+    }
+    
+    
+    public static class IO extends Up {
+        public IO(Throwable cause) {
+            super(Status.SERVER_ERROR, cause);
+        }
+    }
+    
+    public static class RegistryException extends Up {
+        public RegistryException(String msg) {
+            super(Status.SERVER_ERROR, msg);
+        }
+        
+        public RegistryException(String msg, Throwable cause) {
+            super(Status.SERVER_ERROR, msg, cause);
+        }
+    }
+    
+    /*public static class RouteMissing extends Up {
+        public RouteMissing( String msg) {
+            super(Status.NOT_FOUND, msg);
+        }
+    }*/
+    
+    public static class ParseError extends Up {
+        public ParseError(String msg, Throwable cause) {
+            super(Status.UNPROCESSABLE_ENTITY, msg, cause);
+        }
+        public ParseError(String msg) {
+            super(Status.UNPROCESSABLE_ENTITY, msg);
+        }
+    }
+    
+    public static class BadMediaType extends Up {
+        public BadMediaType(String msg) {
+            super(Status.BAD_REQUEST, msg);
+        }
+    }
+    
+    /*public static class RouteFoundWithDifferentMethod extends Up {
+        public RouteFoundWithDifferentMethod(String method) {
+            super(Status.METHOD_NOT_ALLOWED, "Was looking for [" + method + "]");
+        }
+    }*/
+    
+    public static class RouteAlreadyExists extends Up {
+        public RouteAlreadyExists(String route) {
+            super(Status.ALREADY_REPORTED, "Found " + route);
+        }
     }
 }

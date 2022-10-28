@@ -3,13 +3,11 @@ package net.javapla.jawn.core;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import net.javapla.jawn.core.util.DateUtil;
 import net.javapla.jawn.core.util.URLCodec;
 
 /**
@@ -20,15 +18,6 @@ import net.javapla.jawn.core.util.URLCodec;
  */
 public class Cookie {
     
-    /**
-     * Examples:
-     * Wed, 21 Oct 2015 07:28:00 GMT
-     * Mon, 09 Mar 2020 08:13:24 GMT
-     */
-    static final DateTimeFormatter FORMATTER = DateTimeFormatter
-        .ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH)
-        .withZone(ZoneId.of("GMT"));
-
     private final String name;
     private final String value;
     private String domain;
@@ -202,7 +191,7 @@ public class Cookie {
 
             // Older browsers do not support Max-Age
             Instant instant = Instant.ofEpochMilli(maxAge > 0 ? System.currentTimeMillis() + maxAge * 1000L : 0);
-            bob.append(";Expires=").append(FORMATTER.format(instant));
+            bob.append(";Expires=").append(DateUtil.toDateString(instant));
         }
 
         return bob.toString();

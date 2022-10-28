@@ -10,6 +10,10 @@ dependencies {
   // logging
   api 'org.slf4j:slf4j-api:2.0.3'
   
+  // injection
+  implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
+  // would have wanted to use javax.inject, but it is not modular
+  
   
   // bytecode reading
   def asm_version = '9.4'

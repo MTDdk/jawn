@@ -1,0 +1,16 @@
+plugins {
+  id 'java'
+  id 'eclipse'
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+
+  // framework
+  implementation project(':jawn-core')
+  implementation project(':jawn-server-undertow')
+  
+  // logging
+  implementation 'ch.qos.logback:logback-classic:1.4.4'
+}
