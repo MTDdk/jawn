@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import net.javapla.jawn.core.Module.Application;
 import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.internal.Bootstrapper;
+import net.javapla.jawn.core.internal.ResponseRenderer;
 import net.javapla.jawn.core.internal.reflection.Reflection;
 
 public class Jawn {
@@ -20,6 +22,7 @@ public class Jawn {
     
     private final Bootstrapper booter = new Bootstrapper(); // Core?
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
+    private final Renderer renderer = new ResponseRenderer();
     
     public Jawn() {
         System.out.println("Jawning");
@@ -53,7 +56,7 @@ public class Jawn {
         
         // bootstrap
         //bootstrap.boot(mode, serverConfig, sessionConfig.sessionStore, this::buildRoutes);
-        Application moduleConfig = booter.boot(routes.stream().map(Route.Builder::build));
+        Application moduleConfig = booter.boot(buildRoutes());
         
         
         // find server
@@ -90,7 +93,6 @@ public class Jawn {
         // do some command line parsing of the args
         // port=8080 mode=prod
         Class<Jawn> caller = Reflection.callingClass(Jawn.class);
-        System.out.println(caller);
         if (caller == null) {
             log.error("Could not determine a class extending {}, and therefore not able to start a server", Jawn.class);
             return;
@@ -107,4 +109,7 @@ public class Jawn {
         }
     }
     
+    private Stream<Route> buildRoutes() {
+        return routes.stream().map(bob -> bob.renderer(renderer).build());
+    }
 }

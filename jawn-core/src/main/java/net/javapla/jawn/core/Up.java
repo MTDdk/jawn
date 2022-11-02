@@ -48,6 +48,9 @@ public abstract class Up extends RuntimeException {
     public static Up.BadMediaType BadMediaType(String msg) {
         return new Up.BadMediaType(msg);
     }
+    public static Up.NotAcceptable NotAcceptable(String contentType) {
+        return new Up.NotAcceptable(contentType);
+    }
     /*public static Up.RouteFoundWithDifferentMethod RouteFoundWithDifferentMethod(String method) {
         return new Up.RouteFoundWithDifferentMethod(method);
     }*/
@@ -128,6 +131,12 @@ public abstract class Up extends RuntimeException {
     public static class BadMediaType extends Up {
         public BadMediaType(String msg) {
             super(Status.BAD_REQUEST, msg);
+        }
+    }
+    
+    public static class NotAcceptable extends Up {
+        public NotAcceptable(String contentType) {
+            super(Status.NOT_ACCEPTABLE, contentType);
         }
     }
     

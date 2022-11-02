@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +19,8 @@ import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
+import io.undertow.util.ByteRange;
+import io.undertow.util.DateUtils;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
@@ -32,7 +35,7 @@ import net.javapla.jawn.core.util.StreamUtil;
 
 final class UndertowContext implements Context, IoCallback {
     
-    private static final ByteBuffer EMPTY_BODY = ByteBuffer.allocate(0);
+    //private static final ByteBuffer EMPTY_BODY = ByteBuffer.allocate(0);
     
     private final HttpServerExchange exchange;
     
@@ -93,7 +96,7 @@ final class UndertowContext implements Context, IoCallback {
     @Override
     public Response resp() {
         return new Response() {
-            private MediaType responseType = MediaType.TEXT;
+            private MediaType responseType = MediaType.PLAIN;
             private Charset cs = StandardCharsets.UTF_8;
 
             @Override
@@ -132,10 +135,20 @@ final class UndertowContext implements Context, IoCallback {
             }
             
             @Override
+            public MediaType contentType() {
+                return responseType;
+            }
+            
+            @Override
             public Response charset(Charset encoding) {
                 cs = encoding;
                 setContentType();
                 return this;
+            }
+            
+            @Override
+            public Charset charset() {
+                return cs;
             }
             
             private void setContentType() {
@@ -151,12 +164,21 @@ final class UndertowContext implements Context, IoCallback {
                 return exchange.getOutputStream();
             }
             
-            // TODO PrintWriter ?
+            /*@Override
+            public PrintWriter writer(MediaType type, Charset charset) {
+                startBlocking();
+                //contentType(type);
+                //charset(charset);
+                setChunked();
+                return new PrintWriter(new OutputStreamWriter(exchange.getOutputStream(), charset()));
+            }*/
             
             @Override
             public Response respond(Status status) {
                 status(status.value());
-                exchange.getResponseSender().send(EMPTY_BODY, UndertowContext.this);
+                //exchange.getResponseSender().send(EMPTY_BODY, UndertowContext.this);
+                // Makes sure that the onComplete handler gets called
+                exchange.getResponseSender().close(UndertowContext.this);
                 return this;
             }
             
@@ -173,10 +195,77 @@ final class UndertowContext implements Context, IoCallback {
                 if (stream instanceof FileInputStream) {
                     return respond(((FileInputStream)stream).getChannel());
                 }
-                /*try {
+                try {
                     setChunked();
+                    long len = exchange.getResponseContentLength();
+                    /*
+                     ReadableByteChannel channel = Channels.newChannel(inputStream);
+                     ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
+                        
+                     while (channel.read(buffer) != -1) {
+                       //write buffer
+                        
+                     };
+                     */
                     
-                }*/
+                    final ByteRange range = ByteRange.parse(exchange.getRequestHeaders().getFirst(Headers.RANGE));
+                    if (range != null && range.getRanges() == 1) {
+                        stream.skip(range.getStart(0));
+                        
+                        String lastModified = exchange.getResponseHeaders().getFirst(Headers.LAST_MODIFIED);
+                        ByteRange.RangeResponseResult rangeResponse = range.getResponseResult(len, exchange.getRequestHeaders().getFirst(Headers.IF_RANGE), lastModified == null ? null : DateUtils.parseDate(lastModified), exchange.getResponseHeaders().getFirst(Headers.ETAG));
+                        /*long start = rangeResponse.getStart();
+                        long end = rangeResponse.getEnd();*/
+                        exchange.getResponseHeaders().put(Headers.CONTENT_RANGE, rangeResponse.getContentRange());
+                        exchange.setStatusCode(rangeResponse.getStatusCode());
+                        exchange.setResponseContentLength(rangeResponse.getContentLength());
+                        
+                        
+                        new UndertowStream(range.getEnd(0), Channels.newChannel(stream), exchange, UndertowContext.this).start();
+                        return this;
+                    }
+                    
+                    
+                    new UndertowStream(len, Channels.newChannel(stream), exchange, UndertowContext.this).start();
+                    
+//                    if (range != null && range.getRanges() == 1) {
+//                        
+//                        String length = exchange.getResponseHeaders().getFirst(Headers.CONTENT_LENGTH);
+//                        long responseLength = Long.parseLong(length);
+//                        String lastModified = exchange.getResponseHeaders().getFirst(Headers.LAST_MODIFIED);
+//                        ByteRange.RangeResponseResult rangeResponse = range.getResponseResult(responseLength, exchange.getRequestHeaders().getFirst(Headers.IF_RANGE), lastModified == null ? null : DateUtils.parseDate(lastModified), exchange.getResponseHeaders().getFirst(Headers.ETAG));
+//                        if(rangeResponse != null){
+//                            long start = rangeResponse.getStart();
+//                            long end = rangeResponse.getEnd();
+//                            exchange.setStatusCode(rangeResponse.getStatusCode());
+//                            exchange.getResponseHeaders().put(Headers.CONTENT_RANGE, rangeResponse.getContentRange());
+//                            exchange.setResponseContentLength(rangeResponse.getContentLength());
+//                            if(rangeResponse.getStatusCode() == StatusCodes.REQUEST_RANGE_NOT_SATISFIABLE) {
+//                                return new HeadStreamSinkConduit(factory.create(), null, true);
+//                            }
+//                            return new RangeStreamSinkConduit(factory.create(), start, end, responseLength);
+//                        }/* else {
+//                            return factory.create();
+//                        }*/
+//                        
+//                        /*exchange.addResponseWrapper(new ConduitWrapper<StreamSinkConduit>() {
+//                            @Override
+//                            public StreamSinkConduit wrap(ConduitFactory<StreamSinkConduit> factory, HttpServerExchange exchange) {
+//                                if(exchange.getStatusCode() != StatusCodes.OK ) {
+//                                    return factory.create();
+//                                }
+//                                
+//                                if (length == null) {
+//                                    return factory.create();
+//                                }
+//                                
+//                            }
+//                        });*/
+//                        
+//                    }
+                } catch (IOException e) {
+                    throw Up.IO(e);
+                }
                 
                 return this;
             }
@@ -184,6 +273,31 @@ final class UndertowContext implements Context, IoCallback {
             @Override
             public Response respond(FileChannel channel) {
                 // TODO
+                setChunked();
+                long len;
+                try {
+                    len = channel.size();
+                    final ByteRange range = ByteRange.parse(exchange.getRequestHeaders().getFirst(Headers.RANGE));
+                    if (range != null && range.getRanges() == 1) {
+                        channel.position(range.getStart(0));
+                        
+                        String lastModified = exchange.getResponseHeaders().getFirst(Headers.LAST_MODIFIED);
+                        ByteRange.RangeResponseResult rangeResponse = range.getResponseResult(len, exchange.getRequestHeaders().getFirst(Headers.IF_RANGE), lastModified == null ? null : DateUtils.parseDate(lastModified), exchange.getResponseHeaders().getFirst(Headers.ETAG));
+                        /*long start = rangeResponse.getStart();
+                        long end = rangeResponse.getEnd();*/
+                        exchange.getResponseHeaders().put(Headers.CONTENT_RANGE, rangeResponse.getContentRange());
+                        exchange.setStatusCode(rangeResponse.getStatusCode());
+                        exchange.setResponseContentLength(rangeResponse.getContentLength());
+                        
+                        
+                        channel.transferTo(range.getStart(0), range.getEnd(0), exchange.getResponseChannel());
+                    }
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                
+                exchange.getResponseSender().transferFrom(channel, UndertowContext.this);
                 return this;
             }
             
@@ -200,6 +314,8 @@ final class UndertowContext implements Context, IoCallback {
             data.iterator().forEachRemaining(path -> {
                 Deque<FormData.FormValue> values = data.get(path);
                 values.forEach(value -> {
+                    
+                    
                     if (value.isFileItem()) {
                         
                         list.put(path, new Context.FormItem() {
@@ -334,7 +450,9 @@ final class UndertowContext implements Context, IoCallback {
     public void onComplete(HttpServerExchange exchange, Sender sender) {
         // save session
         // TODO
+        // ctx.session.save
         this.exchange.endExchange();
+        System.out.println(this.getClass() + "  onComplete");
     }
 
     @Override

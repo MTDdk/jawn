@@ -4,6 +4,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -46,21 +48,28 @@ public interface Context {
         int status();
         Response removeHeader(String name);
         Response contentType(MediaType type);
+        MediaType contentType();
         Response charset(Charset encoding);
+        Charset charset();
         
         default Response status(Status status) {
             return status(status.value());
         }
         
         OutputStream stream();
+        default PrintWriter writer(/*MediaType type, Charset charset*/) {
+            return new PrintWriter(new OutputStreamWriter(stream(), charset()));
+        }
         
         Response respond(Status status);
         Response respond(ByteBuffer data);
         Response respond(InputStream stream);
         Response respond(FileChannel channel);
-        
         default Response respond(byte[] data) {
             return respond(ByteBuffer.wrap(data));
+        }
+        default Response respond(String data) {
+            return respond(data.getBytes(charset()));
         }
         
         boolean isResponseStarted();

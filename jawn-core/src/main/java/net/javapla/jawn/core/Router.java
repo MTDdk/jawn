@@ -1,7 +1,12 @@
 package net.javapla.jawn.core;
 
 public interface Router {
+    
+    /*interface Match {
 
-    Route.Handler retrieve(HttpMethod httpMethod, String requestUri);// throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod;
+        void execute(Context ctx);
+    }*/
+
+    Route retrieve(HttpMethod httpMethod, String requestUri);// throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod;
 
 }

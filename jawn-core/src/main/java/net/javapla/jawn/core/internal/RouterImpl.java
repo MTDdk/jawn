@@ -6,7 +6,6 @@ import java.util.List;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
-import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 
 final class RouterImpl implements Router {
@@ -60,7 +59,7 @@ final class RouterImpl implements Router {
     }
     
     @Override
-    public Route.Handler retrieve(final HttpMethod httpMethod, final String requestUri) /*throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod*/ {
+    public Route retrieve(final HttpMethod httpMethod, final String requestUri) /*throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod*/ {
         
         Route route;
         final char[] uri = requestUri.toCharArray();
@@ -84,7 +83,7 @@ final class RouterImpl implements Router {
                 }
             }
             
-            return route.handler();
+            return route;
             
         /*} catch (Up.RouteFoundWithDifferentMethod e) {
             
@@ -96,23 +95,23 @@ final class RouterImpl implements Router {
         }*/
     }
     
-    private Route.Handler goThroughCustom(final HttpMethod httpMethod, final String requestUri) {
+    private Route goThroughCustom(final HttpMethod httpMethod, final String requestUri) {
         for (Route r : routes) {
             if (r.matches(requestUri)) {
                 
                 if (r.method() == httpMethod || HttpMethod.HEAD == httpMethod) {
                     trie.insert(requestUri, r); // cache it for later fast look-up
-                    return r.handler();
+                    return r;
                 }
                 
                 // so we actually found something
                 //throwThisIfNothingFound = () -> new Up.RouteFoundWithDifferentMethod(httpMethod.name());
-                return ctx -> ctx.resp().respond(Status.METHOD_NOT_ALLOWED);
+                return Route.METHOD_NOT_ALLOWED;
             }
         }
         
         //throw throwThisIfNothingFound.get();
-        return ctx -> ctx.resp().respond(Status.NOT_FOUND);
+        return Route.NOT_FOUND;//ctx -> ctx.resp().respond(Status.NOT_FOUND);
     }
     
     RouterImpl compileRoutes(final List<Route> routes) throws Up.RouteAlreadyExists {

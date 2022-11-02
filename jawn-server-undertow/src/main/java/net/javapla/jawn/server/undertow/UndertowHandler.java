@@ -39,7 +39,7 @@ public class UndertowHandler implements HttpHandler {
         System.out.println(context.req().path());
         
         if (context.req().httpMethod() == HttpMethod.GET) {
-            router.retrieve(context.req().httpMethod(), context.req().path()).handle(context);
+            router.retrieve(context.req().httpMethod(), context.req().path()).execute(context);
         } else {
             // Might be a HTTP body
             

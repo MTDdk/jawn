@@ -15,6 +15,10 @@ public interface Route {
     
     
     Handler handler();
+    
+    MediaType produces();
+    
+    void execute(Context ctx);
 
     // TODO create static route which listens on /favicon.ico
     //public static final Handler FAVICON = ctx -> ctx.resp().respond(Status.NOT_FOUND);
@@ -61,9 +65,31 @@ public interface Route {
 
     }
     
+    interface Before {
+        void apply(Context ctx) throws Up;
+        
+        default Before then(Before next) {
+            return ctx -> {
+                apply(ctx);
+                if (!ctx.resp().isResponseStarted()) {
+                    next.apply(ctx);
+                }
+            };
+        }
+        
+        default Handler then(Handler next) {
+            return ctx -> {
+                apply(ctx);
+                if (!ctx.resp().isResponseStarted()) {
+                    return next.handle(ctx);
+                }
+                return ctx;
+            };
+        }
+    }
+    
     interface After {
         void apply(Context ctx, Object result, Throwable cause);
-        
         
         default After then(After next) {
             return (ctx, result, cause) -> {
@@ -73,11 +99,14 @@ public interface Route {
         }
     }
     
+    
     static class Builder {
         
         private final HttpMethod method;
         private final String path;
         private Handler handler;
+        private MediaType responseType = MediaType.PLAIN;
+        private Renderer renderer;
 
         public Builder(HttpMethod method, String path, Handler handler) {
             this.method = method;
@@ -85,7 +114,13 @@ public interface Route {
             this.handler = handler;
         }
         
-        public Builder produces() {
+        public Builder produces(MediaType type) {
+            responseType = type;
+            return this;
+        }
+        
+        public Builder renderer(Renderer renderer) {
+            this.renderer = renderer;
             return this;
         }
         
@@ -94,7 +129,8 @@ public interface Route {
             return this;
         }
         
-        public Builder before() {
+        public Builder before(Before before) {
+            handler = before.then(handler);
             return this;
         }
         
@@ -135,8 +171,36 @@ public interface Route {
                     return handler;
                 }
                 
+                @Override
+                public MediaType produces() {
+                    return responseType;
+                }
+                
+                @Override
+                public void execute(Context ctx) {
+                    Object result = handler.handle(ctx);
+                    
+                    if (!ctx.resp().isResponseStarted()) {
+                        
+                        try {
+                            byte[] rendered = renderer.render(ctx, result);
+                            
+                            if (rendered != null) {
+                                System.out.println("Response has not been handled");
+                            }
+                            
+                        } catch (Exception e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
+                    }
+                    
+                }
             };
         }
     }
+    
+    Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.NOT_FOUND)).build();
+    Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.METHOD_NOT_ALLOWED)).build();
 }
 
