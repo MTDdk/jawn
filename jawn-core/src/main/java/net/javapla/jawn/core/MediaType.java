@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 import com.typesafe.config.Config;
@@ -300,20 +299,20 @@ public class MediaType implements Comparable<MediaType> {
         return result;
     }
 
-    public static Optional<MediaType> byPath(final String path) {
+    public static MediaType byPath(final String path) {
         int last = path.lastIndexOf('.');
         if (last != -1) {
             String ext = path.substring(last + 1);
             return byExtension(ext);
         }
-        return Optional.empty();
+        return OCTET_STREAM;
     }
 
-    public static Optional<MediaType> byExtension(final String ext) {
+    public static MediaType byExtension(final String ext) {
         String key = "mime." + ext;
         if (mimes.hasPath(key)) {
-            return Optional.of(MediaType.valueOf(mimes.getString(key)));
+            return MediaType.valueOf(mimes.getString(key));
         }
-        return Optional.empty();
+        return OCTET_STREAM;
     }
 }

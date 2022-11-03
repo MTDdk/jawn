@@ -9,6 +9,8 @@ import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
 
 public class Bootstrapper {
+    
+    private final ResponseRenderer renderer = new ResponseRenderer();
 
     
     
@@ -16,16 +18,16 @@ public class Bootstrapper {
         
     }
     
-    public synchronized Application boot(Stream<Route> stream) {
+    public synchronized Application boot(Stream<Route.Builder> routes) {
         
         RouterImpl router = new RouterImpl();
         
-        stream.forEach(router::addRoute);
+        routes.map(bob -> bob.renderer(renderer.renderer(bob.produces())).build()).forEach(router::addRoute);
         
         Module.Application moduleConfig = new Module.Application() {
 
             @Override
-            public Registry registry() {
+            public Registry.ServiceRegistry registry() {
                 return new InjectionRegistry();
             }
 

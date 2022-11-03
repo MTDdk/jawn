@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -12,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import net.javapla.jawn.core.Module.Application;
 import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.internal.Bootstrapper;
-import net.javapla.jawn.core.internal.ResponseRenderer;
 import net.javapla.jawn.core.internal.reflection.Reflection;
 
 public class Jawn {
@@ -22,7 +22,8 @@ public class Jawn {
     
     private final Bootstrapper booter = new Bootstrapper(); // Core?
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
-    private final Renderer renderer = new ResponseRenderer();
+    
+    
     
     public Jawn() {
         System.out.println("Jawning");
@@ -34,11 +35,39 @@ public class Jawn {
     protected Route.Builder get(final String path, final Route.Handler handler) {
         return _route(HttpMethod.GET, path, handler);
     }
+    protected Route.Builder head(final String path, final Route.Handler handler) {
+        return _route(HttpMethod.HEAD, path, handler);
+    }
     protected Route.Builder _route(HttpMethod method, final String path, final Route.Handler handler) {
-        Route.Builder bob = new Route.Builder(method, path, handler);
+        Route.Builder bob = new Route.Builder(method, _pathPrefix(path), handler);
         routes.add(bob);
         return bob;
     }
+    
+    protected Jawn routes(Runnable routes) {
+        routes.run();
+        return this;
+    }
+    
+    /**
+     * path("/api/v1/", () -> {
+     *   get("/{id}", ctx -> ... );
+     *   get("/", ctx -> ... );
+     *   post("/", ctx -> ... );
+     * });
+     * @return
+     */
+    protected Jawn path(final String rootPath, final Runnable routes) {
+        pathPrefix.addLast(rootPath);
+        routes(routes);
+        pathPrefix.removeLast();
+        return this;
+    }
+    private final LinkedList<String> pathPrefix = new LinkedList<>();
+    private String _pathPrefix(String path) {
+        return pathPrefix.stream().collect(Collectors.joining("","",path));
+    }
+    
     
     
     protected void install(Server server) {
@@ -109,7 +138,7 @@ public class Jawn {
         }
     }
     
-    private Stream<Route> buildRoutes() {
-        return routes.stream().map(bob -> bob.renderer(renderer).build());
+    private Stream<Route.Builder> buildRoutes() {
+        return routes.stream();
     }
 }

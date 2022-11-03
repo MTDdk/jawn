@@ -73,10 +73,20 @@ public interface Context {
         }
         
         boolean isResponseStarted();
+        void postResponse(Route.PostResponse task);
     }
     
     Request req();
     Response resp();
+    
+    
+    // ** Attributes **
+    void attribute(final String name, final Object value);
+    Optional<Object> attribute(final String name);
+    void removeAttribute(final String name);
+    
+    
+    // ** Session **
     
 
     interface FormItem extends Closeable {

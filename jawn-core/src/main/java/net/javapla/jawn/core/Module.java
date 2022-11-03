@@ -9,7 +9,7 @@ public interface Module {
     
     public static interface Application {
         
-        Registry registry();
+        Registry.ServiceRegistry registry();
         
         Router router();
         

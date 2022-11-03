@@ -123,7 +123,8 @@ final class RouterImpl implements Router {
         return this;
     }
 
-    void addRoute(final Route route) {
+    @Override
+    public void addRoute(final Route route) {
         Route lookup = trie.findRoute(route.wildcardedPath().toCharArray(), route.method());
         if (lookup != null && route.method() != HttpMethod.HEAD && route.wildcardedPath().equals(lookup.wildcardedPath())) {
             throw Up.RouteAlreadyExists(lookup.toString());

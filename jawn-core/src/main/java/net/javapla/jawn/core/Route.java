@@ -1,5 +1,7 @@
 package net.javapla.jawn.core;
 
+import java.lang.reflect.Method;
+
 public interface Route {
     
 
@@ -41,10 +43,10 @@ public interface Route {
                     if (ctx.resp().isResponseStarted()) {
                         // TODO ought to be unmodifiable context
                         Context unmodifiable = ctx;
-                        next.apply(unmodifiable, result, cause);
+                        next.after(unmodifiable, result, cause);
                         result = ctx;
                     } else {
-                        next.apply(ctx, result, cause);
+                        next.after(ctx, result, cause);
                     }
                 } catch (Throwable e) {
                     result = null;
@@ -66,20 +68,20 @@ public interface Route {
     }
     
     interface Before {
-        void apply(Context ctx) throws Up;
+        void before(Context ctx) throws Up;
         
         default Before then(Before next) {
             return ctx -> {
-                apply(ctx);
+                before(ctx);
                 if (!ctx.resp().isResponseStarted()) {
-                    next.apply(ctx);
+                    next.before(ctx);
                 }
             };
         }
         
         default Handler then(Handler next) {
             return ctx -> {
-                apply(ctx);
+                before(ctx);
                 if (!ctx.resp().isResponseStarted()) {
                     return next.handle(ctx);
                 }
@@ -89,14 +91,46 @@ public interface Route {
     }
     
     interface After {
-        void apply(Context ctx, Object result, Throwable cause);
+        void after(Context ctx, Object result, Throwable cause);
         
         default After then(After next) {
             return (ctx, result, cause) -> {
-                next.apply(ctx, result, cause);
-                apply(ctx, result, cause);
+                next.after(ctx, result, cause);
+                after(ctx, result, cause);
             };
         }
+    }
+    
+    interface Filter extends Before, After, PostResponse {
+        
+        /*default Handler apply(Handler next) {
+            return ctx -> ()
+        }*/
+        
+        // PostResponse
+        @Override
+        default void onComplete(Context ctx, Throwable error) {}
+    }
+    
+    // OnComplete
+    interface PostResponse {
+        void onComplete(Context ctx, Throwable error);
+        
+        default PostResponse then(PostResponse next) {
+            return (ctx, error) -> {
+                onComplete(ctx, error);
+                next.onComplete(ctx, error);
+            };
+        }
+    }
+    
+    
+    interface MethodHandler extends Handler {
+        // Action
+        Method method();
+        
+        // Route calss
+        Class<?> controller();
     }
     
     
@@ -105,6 +139,7 @@ public interface Route {
         private final HttpMethod method;
         private final String path;
         private Handler handler;
+        private PostResponse post;
         private MediaType responseType = MediaType.PLAIN;
         private Renderer renderer;
 
@@ -117,6 +152,9 @@ public interface Route {
         public Builder produces(MediaType type) {
             responseType = type;
             return this;
+        }
+        public MediaType produces() {
+            return responseType;
         }
         
         public Builder renderer(Renderer renderer) {
@@ -134,7 +172,18 @@ public interface Route {
             return this;
         }
         
-        public Builder filter() {
+        public Builder filter(Filter filter) {
+            before(filter);
+            after(filter);
+            
+            if (post != null) post = post.then(filter);
+            else post = filter;
+            
+            return this;
+        }
+        
+        public Builder postResponse(PostResponse post) {
+            this.post = post;
             return this;
         }
         
@@ -178,9 +227,11 @@ public interface Route {
                 
                 @Override
                 public void execute(Context ctx) {
+                    if (post != null) ctx.resp().postResponse(post);
+                    
                     Object result = handler.handle(ctx);
                     
-                    if (!ctx.resp().isResponseStarted()) {
+                    if (!ctx.resp().isResponseStarted() && result != ctx) {
                         
                         try {
                             byte[] rendered = renderer.render(ctx, result);
@@ -190,11 +241,9 @@ public interface Route {
                             }
                             
                         } catch (Exception e) {
-                            // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
                     }
-                    
                 }
             };
         }

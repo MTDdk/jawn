@@ -1,6 +1,9 @@
 package net.javapla.jawn.core.internal;
 
+import java.io.File;
 import java.io.InputStream;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +16,11 @@ public class ResponseRenderer implements Renderer {
     
     private Map<MediaType, Renderer> renderers = new HashMap<>();
     
+    public ResponseRenderer() {
+        add(MediaType.PLAIN, this);
+    }
+    
+    
     public ResponseRenderer add(MediaType type, Renderer renderer) {
         
         if (renderer instanceof Renderer.TemplateRenderer) {
@@ -23,7 +31,14 @@ public class ResponseRenderer implements Renderer {
         
         return this;
     }
+    
+    Renderer renderer(MediaType type) {
+        return renderers.getOrDefault(type, this);
+    }
 
+    
+    // SimpleRenderer
+    // MediaType.PLAIN
     @Override
     public byte[] render(Context ctx, Object value) throws Exception {
         
@@ -34,6 +49,23 @@ public class ResponseRenderer implements Renderer {
         
         if (value instanceof InputStream) {
             ctx.resp().respond((InputStream) value);
+            return null;
+        }
+        
+        if (value instanceof FileChannel) {
+            ctx.resp().respond((FileChannel) value);
+            return null;
+        }
+        if (value instanceof File) {
+            File f = (File) value;
+            ctx.resp().contentType(MediaType.byPath(f.getName()));
+            ctx.resp().respond(FileChannel.open(f.toPath()));
+            return null;
+        }
+        if (value instanceof Path) {
+            Path p = (Path) value;
+            ctx.resp().contentType(MediaType.byPath(p.getFileName().toString()));
+            ctx.resp().respond(FileChannel.open(p));
             return null;
         }
         

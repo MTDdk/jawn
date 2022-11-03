@@ -9,21 +9,22 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Deque;
 import java.util.Optional;
 
+import io.undertow.connector.PooledByteBuffer;
 import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
-import io.undertow.util.ByteRange;
-import io.undertow.util.DateUtils;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
+import net.javapla.jawn.core.AbstractContext;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
@@ -33,7 +34,7 @@ import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.StreamUtil;
 
-final class UndertowContext implements Context, IoCallback {
+final class UndertowContext extends AbstractContext implements IoCallback {
     
     //private static final ByteBuffer EMPTY_BODY = ByteBuffer.allocate(0);
     
@@ -95,7 +96,7 @@ final class UndertowContext implements Context, IoCallback {
 
     @Override
     public Response resp() {
-        return new Response() {
+        return new AbstractResponse() {
             private MediaType responseType = MediaType.PLAIN;
             private Charset cs = StandardCharsets.UTF_8;
 
@@ -191,78 +192,56 @@ final class UndertowContext implements Context, IoCallback {
             
             @Override
             public Response respond(InputStream stream) {
-                // TODO
                 if (stream instanceof FileInputStream) {
                     return respond(((FileInputStream)stream).getChannel());
                 }
                 try {
-                    setChunked();
-                    long len = exchange.getResponseContentLength();
-                    /*
-                     ReadableByteChannel channel = Channels.newChannel(inputStream);
-                     ByteBuffer buffer = ByteBuffer.allocate(bufferSize);
-                        
-                     while (channel.read(buffer) != -1) {
-                       //write buffer
-                        
-                     };
-                     */
+                    // TODO handle RANGE header
+                    // Take note from io.undertow.server.handlers.ByteRangeHandler
+                    //long len = exchange.getResponseContentLength();
+                    /*if (len == -1) { // the header did not exist
+                        new UndertowStream(len, Channels.newChannel(stream), exchange, UndertowContext.this).start();
+                        return this;
+                    }*/
                     
-                    final ByteRange range = ByteRange.parse(exchange.getRequestHeaders().getFirst(Headers.RANGE));
+                    /*final ByteRange range = ByteRange.parse(exchange.getRequestHeaders().getFirst(Headers.RANGE));
                     if (range != null && range.getRanges() == 1) {
                         stream.skip(range.getStart(0));
                         
                         String lastModified = exchange.getResponseHeaders().getFirst(Headers.LAST_MODIFIED);
                         ByteRange.RangeResponseResult rangeResponse = range.getResponseResult(len, exchange.getRequestHeaders().getFirst(Headers.IF_RANGE), lastModified == null ? null : DateUtils.parseDate(lastModified), exchange.getResponseHeaders().getFirst(Headers.ETAG));
-                        /*long start = rangeResponse.getStart();
-                        long end = rangeResponse.getEnd();*/
+                        //long start = rangeResponse.getStart();
+                        //long end = rangeResponse.getEnd();
                         exchange.getResponseHeaders().put(Headers.CONTENT_RANGE, rangeResponse.getContentRange());
                         exchange.setStatusCode(rangeResponse.getStatusCode());
                         exchange.setResponseContentLength(rangeResponse.getContentLength());
-                        
+                        if (rangeResponse.getStatusCode() == StatusCodes.REQUEST_RANGE_NOT_SATISFIABLE) {
+                            //return new HeadStreamSinkConduit(factory.create(), null, true);
+                            // TODO do a HEAD response, which discards any data
+                        }
                         
                         new UndertowStream(range.getEnd(0), Channels.newChannel(stream), exchange, UndertowContext.this).start();
                         return this;
                     }
+                    new UndertowStream(len, Channels.newChannel(stream), exchange, UndertowContext.this).start();*/
                     
                     
-                    new UndertowStream(len, Channels.newChannel(stream), exchange, UndertowContext.this).start();
+                    setChunked();
+                    Sender sender = exchange.getResponseSender();
+                    try ( PooledByteBuffer pool = exchange.getConnection().getByteBufferPool().allocate();
+                          ReadableByteChannel channel = Channels.newChannel(stream)) {
+                        
+                        ByteBuffer buffer = pool.getBuffer();
+                        buffer.clear();
+                        while (channel.read(buffer) > 0) {
+                            buffer.flip();
+                            sender.send(buffer);
+                            buffer.clear();
+                        }
+                    } finally {
+                        sender.close(UndertowContext.this);
+                    }
                     
-//                    if (range != null && range.getRanges() == 1) {
-//                        
-//                        String length = exchange.getResponseHeaders().getFirst(Headers.CONTENT_LENGTH);
-//                        long responseLength = Long.parseLong(length);
-//                        String lastModified = exchange.getResponseHeaders().getFirst(Headers.LAST_MODIFIED);
-//                        ByteRange.RangeResponseResult rangeResponse = range.getResponseResult(responseLength, exchange.getRequestHeaders().getFirst(Headers.IF_RANGE), lastModified == null ? null : DateUtils.parseDate(lastModified), exchange.getResponseHeaders().getFirst(Headers.ETAG));
-//                        if(rangeResponse != null){
-//                            long start = rangeResponse.getStart();
-//                            long end = rangeResponse.getEnd();
-//                            exchange.setStatusCode(rangeResponse.getStatusCode());
-//                            exchange.getResponseHeaders().put(Headers.CONTENT_RANGE, rangeResponse.getContentRange());
-//                            exchange.setResponseContentLength(rangeResponse.getContentLength());
-//                            if(rangeResponse.getStatusCode() == StatusCodes.REQUEST_RANGE_NOT_SATISFIABLE) {
-//                                return new HeadStreamSinkConduit(factory.create(), null, true);
-//                            }
-//                            return new RangeStreamSinkConduit(factory.create(), start, end, responseLength);
-//                        }/* else {
-//                            return factory.create();
-//                        }*/
-//                        
-//                        /*exchange.addResponseWrapper(new ConduitWrapper<StreamSinkConduit>() {
-//                            @Override
-//                            public StreamSinkConduit wrap(ConduitFactory<StreamSinkConduit> factory, HttpServerExchange exchange) {
-//                                if(exchange.getStatusCode() != StatusCodes.OK ) {
-//                                    return factory.create();
-//                                }
-//                                
-//                                if (length == null) {
-//                                    return factory.create();
-//                                }
-//                                
-//                            }
-//                        });*/
-//                        
-//                    }
                 } catch (IOException e) {
                     throw Up.IO(e);
                 }
@@ -272,8 +251,8 @@ final class UndertowContext implements Context, IoCallback {
             
             @Override
             public Response respond(FileChannel channel) {
-                // TODO
-                setChunked();
+                // TODO handle byte-range
+                /*setChunked();
                 long len;
                 try {
                     len = channel.size();
@@ -283,8 +262,8 @@ final class UndertowContext implements Context, IoCallback {
                         
                         String lastModified = exchange.getResponseHeaders().getFirst(Headers.LAST_MODIFIED);
                         ByteRange.RangeResponseResult rangeResponse = range.getResponseResult(len, exchange.getRequestHeaders().getFirst(Headers.IF_RANGE), lastModified == null ? null : DateUtils.parseDate(lastModified), exchange.getResponseHeaders().getFirst(Headers.ETAG));
-                        /*long start = rangeResponse.getStart();
-                        long end = rangeResponse.getEnd();*/
+                        //long start = rangeResponse.getStart();
+                        //long end = rangeResponse.getEnd();
                         exchange.getResponseHeaders().put(Headers.CONTENT_RANGE, rangeResponse.getContentRange());
                         exchange.setStatusCode(rangeResponse.getStatusCode());
                         exchange.setResponseContentLength(rangeResponse.getContentLength());
@@ -293,9 +272,8 @@ final class UndertowContext implements Context, IoCallback {
                         channel.transferTo(range.getStart(0), range.getEnd(0), exchange.getResponseChannel());
                     }
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
-                }
+                }*/
                 
                 exchange.getResponseSender().transferFrom(channel, UndertowContext.this);
                 return this;
@@ -452,7 +430,7 @@ final class UndertowContext implements Context, IoCallback {
         // TODO
         // ctx.session.save
         this.exchange.endExchange();
-        System.out.println(this.getClass() + "  onComplete");
+        onComplete();
     }
 
     @Override
