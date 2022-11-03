@@ -2,6 +2,8 @@ package net.javapla.jawn.core;
 
 import java.lang.reflect.Method;
 
+import net.javapla.jawn.core.internal.ReadOnlyContext;
+
 public interface Route {
     
 
@@ -26,7 +28,7 @@ public interface Route {
     //public static final Handler FAVICON = ctx -> ctx.resp().respond(Status.NOT_FOUND);
     
     interface Handler {
-        Object handle(Context ctx) throws Up;
+        Object handle(Context ctx) throws Exception;
         
         default Handler after(After next) {
             return ctx -> {
@@ -124,6 +126,15 @@ public interface Route {
         }
     }
     
+    interface NoResultHandler extends Handler {
+        void nothing(Context ctx) throws Exception;
+        
+        default Object handle(Context ctx) throws Exception {
+            nothing(ctx);
+            return Status.OK;
+        }
+    }
+    
     
     interface MethodHandler extends Handler {
         // Action
@@ -133,8 +144,15 @@ public interface Route {
         Class<?> controller();
     }
     
+    interface RouteBuilder {
+        RouteBuilder before(Before b);
+        RouteBuilder after(After a);
+        RouteBuilder filter(Filter f);
+        RouteBuilder postResponse(PostResponse p);
+    }
     
-    static class Builder {
+    
+    static class Builder implements RouteBuilder {
         
         private final HttpMethod method;
         private final String path;
@@ -142,6 +160,7 @@ public interface Route {
         private PostResponse post;
         private MediaType responseType = MediaType.PLAIN;
         private Renderer renderer;
+        //private ErrorHandler err;
 
         public Builder(HttpMethod method, String path, Handler handler) {
             this.method = method;
@@ -182,8 +201,11 @@ public interface Route {
             return this;
         }
         
-        public Builder postResponse(PostResponse post) {
-            this.post = post;
+        public Builder postResponse(PostResponse r) {
+            if (post == null)
+                post = r;
+            else
+                post = post.then(r);
             return this;
         }
         
@@ -225,25 +247,29 @@ public interface Route {
                     return responseType;
                 }
                 
+                
+                
                 @Override
                 public void execute(Context ctx) {
-                    if (post != null) ctx.resp().postResponse(post);
-                    
-                    Object result = handler.handle(ctx);
-                    
-                    if (!ctx.resp().isResponseStarted() && result != ctx) {
+                    Exception x = null;
                         
-                        try {
+                    try {
+                        Object result = handler.handle(ctx);
+                    
+                        if (!ctx.resp().isResponseStarted() && result != ctx) {
+                        
                             byte[] rendered = renderer.render(ctx, result);
                             
                             if (rendered != null) {
                                 System.out.println("Response has not been handled");
                             }
                             
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
+                    } catch (Exception e) {
+                        x = e;
                     }
+                    
+                    if (post != null) post.onComplete(new ReadOnlyContext(ctx), x);
                 }
             };
         }

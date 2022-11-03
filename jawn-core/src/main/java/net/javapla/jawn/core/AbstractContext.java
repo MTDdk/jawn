@@ -1,10 +1,7 @@
 package net.javapla.jawn.core;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Optional;
-
-import net.javapla.jawn.core.Route.PostResponse;
 
 public abstract class AbstractContext implements Context {
 
@@ -25,9 +22,10 @@ public abstract class AbstractContext implements Context {
     }
     
     @Override
-    public void attribute(final String name, final Object value) {
+    public Context attribute(final String name, final Object value) {
         instantiateAttributes();
         attributes.put(name, value);
+        return this;
     }
     
     @Override
@@ -36,8 +34,9 @@ public abstract class AbstractContext implements Context {
     }
     
     @Override
-    public void removeAttribute(final String name) {
+    public Context removeAttribute(final String name) {
         if (attributes != null) attributes.remove(name);
+        return this;
     }
     
     
@@ -47,7 +46,7 @@ public abstract class AbstractContext implements Context {
     
     
     
-    protected abstract class AbstractResponse implements Context.Response {
+    /*protected abstract class AbstractResponse implements Context.Response {
         
         @Override
         public void postResponse(PostResponse task) {
@@ -60,5 +59,6 @@ public abstract class AbstractContext implements Context {
     protected void onComplete() {
         if (onComplete != null)
             onComplete.forEach(action -> action.onComplete(this, null));
-    }
+    }*/
+    
 }

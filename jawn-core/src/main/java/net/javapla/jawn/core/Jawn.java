@@ -29,16 +29,22 @@ public class Jawn {
         System.out.println("Jawning");
     }
     
-    protected Route.Builder get(final String path) {
+    protected Route.RouteBuilder get(final String path) {
         return _route(HttpMethod.GET, path, (ctx) -> ctx.resp().respond(Status.OK));
     }
-    protected Route.Builder get(final String path, final Route.Handler handler) {
+    protected Route.RouteBuilder get(final String path, final Route.Handler handler) {
         return _route(HttpMethod.GET, path, handler);
     }
-    protected Route.Builder head(final String path, final Route.Handler handler) {
+    protected Route.RouteBuilder head(final String path, final Route.Handler handler) {
         return _route(HttpMethod.HEAD, path, handler);
     }
-    protected Route.Builder _route(HttpMethod method, final String path, final Route.Handler handler) {
+    protected Route.RouteBuilder post(final String path, final Route.Handler handler) {
+        return _route(HttpMethod.POST, path, handler);
+    }
+    protected Route.RouteBuilder post(final String path, final Route.NoResultHandler handler) {
+        return _route(HttpMethod.POST, path, handler);
+    }
+    protected Route.RouteBuilder _route(HttpMethod method, final String path, final Route.Handler handler) {
         Route.Builder bob = new Route.Builder(method, _pathPrefix(path), handler);
         routes.add(bob);
         return bob;

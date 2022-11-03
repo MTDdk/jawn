@@ -27,7 +27,7 @@ public class ServerModule implements Server {
             .setServerOption(UndertowOptions.ALLOW_EQUALS_IN_COOKIE_VALUE, true)
             .setServerOption(UndertowOptions.DECODE_URL, false)
             .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
-            /** Worker */
+            /** Workers */
             .setIoThreads(config.ioThreads())
             /** Handler */
             .setHandler(handler)

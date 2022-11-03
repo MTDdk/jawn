@@ -10,7 +10,6 @@ import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.FormParserFactory;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
-import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Router;
 import net.javapla.jawn.core.Status;
 
@@ -19,6 +18,7 @@ public class UndertowHandler implements HttpHandler {
     private final Router router;
     
     private final FormParserFactory parserFactory;
+
 
 
     public UndertowHandler(Router router) {
@@ -34,32 +34,58 @@ public class UndertowHandler implements HttpHandler {
 
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
-        UndertowContext context = new UndertowContext(exchange);
+        if (exchange.isInIoThread()) {
+            exchange.dispatch(() -> {
+                
+                UndertowContext context = new UndertowContext(exchange);
+                
+                if (!context.req().httpMethod().mightContainBody) {
+                    
+                    router.retrieveAndExecute(context);
+                    
+                } else {
+                    // Might include a HTTP Form body
         
-        System.out.println(context.req().path());
-        
-        if (context.req().httpMethod() == HttpMethod.GET) {
-            router.retrieve(context.req().httpMethod(), context.req().path()).execute(context);
-        } else {
-            // Might be a HTTP body
-            
-            FormDataParser parser = parserFactory.createParser(exchange);
-            if (parser != null) {
-                try {
-                    parser.parse(execute(router, context));
-                } catch (Exception e) {
-                    context.resp().respond(Status.BAD_REQUEST);
-                    // TODO log the error
+                    long len = exchange.getRequestContentLength();
+                    if (len > 0) {
+                        // With the existence of Content-Length, we assume body present
+                        
+                            
+                        /**
+                         * Eagerly parsing Form data
+                         * @see io.undertow.server.handlers.form.EagerFormParsingHandler
+                         */
+                        FormDataParser parser = parserFactory.createParser(exchange);
+                        if (parser != null) {
+                            try (parser) {
+                                parser.parse(execute(router, context));
+                            } catch (Exception e) {
+                                context.resp().respond(Status.BAD_REQUEST);
+                                // TODO log the error
+                            }
+                        } else {
+                            // TODO do some raw body parsing
+                            
+                            /*Receiver receiver = exchange.getRequestReceiver();
+                            if (len)*/
+                            router.retrieveAndExecute(context);
+                        }
+                        
+                    } else {
+                        
+                        // Apparently no body
+                        // Just execute route
+                        router.retrieveAndExecute(context);
+                        
+                    }
                 }
-            } else {
-                // TODO do some raw body parsing
-            }
+            });
         }
     }
     
     private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir"));
 
     private static HttpHandler execute(Router router, UndertowContext ctx) {
-        return exchange -> router.retrieve(ctx.req().httpMethod(), ctx.req().path());
+        return exchange -> router.retrieveAndExecute(ctx);
     }
 }

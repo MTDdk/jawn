@@ -13,7 +13,24 @@ import net.javapla.jawn.core.util.StringUtil;
  */
 public enum HttpMethod {
 
-    GET,HEAD,POST,PUT,DELETE,OPTIONS;
+    GET(false),
+    HEAD(false),
+    DELETE(false),
+    OPTIONS(false),
+    POST(true),
+    PUT(true);
+    
+    /**
+     * Not all requests have one: requests fetching resources, 
+     * like GET, HEAD, DELETE, or OPTIONS, usually don't need one. 
+     * Some requests send data to the server in order to update it: 
+     * as often the case with POST requests (containing HTML form data).
+     */
+    public final boolean mightContainBody;
+    
+    private HttpMethod(boolean mightContainBody) {
+        this.mightContainBody = mightContainBody;
+    }
     
     
     public static final String AJAX_METHOD_PARAMETER = "_method";

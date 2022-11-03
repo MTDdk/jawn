@@ -2,6 +2,8 @@ package net.javapla.jawn.core;
 
 import com.typesafe.config.Config;
 
+import net.javapla.jawn.core.util.StreamUtil;
+
 public interface Server {
     
     Server start(ServerConfig config, Module.Application application);
@@ -22,6 +24,7 @@ public interface Server {
         private int backlog = -1;
         private int ioThreads = -1;
         private boolean serveDefaultHeaders = true;
+        private int bufferSize = StreamUtil._16KB;
         
         
         
@@ -61,11 +64,17 @@ public interface Server {
             return serveDefaultHeaders;
         }
         
+        public int bufferSize() {
+            return bufferSize;
+        }
+        
         public static ServerConfig from(Config config) {
             ServerConfig options = new ServerConfig();
             
             if (config != null && config.hasPath("server")) {
-                
+                if (config.hasPath("server.bufferSize")) {
+                    options.bufferSize = config.getInt("server.bufferSize");
+                }
             }
             
             return options;

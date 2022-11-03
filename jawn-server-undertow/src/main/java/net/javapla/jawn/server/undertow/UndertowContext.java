@@ -14,7 +14,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Deque;
-import java.util.Optional;
 
 import io.undertow.connector.PooledByteBuffer;
 import io.undertow.io.IoCallback;
@@ -42,15 +41,20 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     
     private final HttpMethod method;
     private final String path;
+    
+    private final Request req;
+    private final Response resp;
 
     UndertowContext(HttpServerExchange exchange) {
         this.exchange = exchange;
         this.method = HttpMethod._getMethod(exchange.getRequestMethod().toString(), () -> req().multipart());
         this.path = exchange.getRequestPath();
+        
+        this.req = _req();
+        this.resp = _resp();
     }
-
-    @Override
-    public Request req() {
+    
+    private Request _req() {
         return new Request() {
             private MultiList<FormItem> multipart = null;
             
@@ -65,6 +69,11 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             }
             
             @Override
+            public long contentLength() {
+                return exchange.getRequestContentLength();
+            }
+            
+            @Override
             public String queryString() {
                 return exchange.getQueryString();
             }
@@ -75,31 +84,35 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             }
             
             @Override
-            public MultiList<FormItem> form() {
-                return multipart();
-            }
-            
-            @Override
             public MultiList<FormItem> multipart() {
                 if (multipart == null) {
                     
                     MultiList<FormItem> list = MultiList.empty();
-                    formData(exchange.getAttachment(FORM_DATA), list);
+                    formData(list);
                     
                     multipart = list;
                 }
                 
                 return multipart;
             }
+            
+            @Override
+            public InputStream stream() {
+                startBlocking();
+                return exchange.getInputStream();
+            }
         };
     }
-
-    @Override
-    public Response resp() {
-        return new AbstractResponse() {
+    
+    private Response _resp() {
+        return new Response() {
             private MediaType responseType = MediaType.PLAIN;
             private Charset cs = StandardCharsets.UTF_8;
-
+            
+            {
+                setContentType();
+            }
+            
             @Override
             public Value header(String name) {
                 return Value.of(exchange.getResponseHeaders().get(name));
@@ -287,55 +300,31 @@ final class UndertowContext extends AbstractContext implements IoCallback {
         };
     }
 
-    private void formData(FormData data, MultiList<FormItem> list) {
+    @Override
+    public Request req() {
+        return req;
+    }
+
+    @Override
+    public Response resp() {
+        return resp;
+    }
+
+    private void formData(MultiList<FormItem> list) {
+        // Set by FormDataParser in the UndertowHandler
+        FormData data = exchange.getAttachment(FORM_DATA);
+        
         if (data != null) {
             data.iterator().forEachRemaining(path -> {
                 Deque<FormData.FormValue> values = data.get(path);
                 values.forEach(value -> {
                     
-                    
                     if (value.isFileItem()) {
-                        
-                        list.put(path, new Context.FormItem() {
-
-                            @Override
-                            public String name() {
-                                return path;
-                            }
-
-                            @Override
-                            public Optional<String> value() {
-                                return Optional.empty();
-                            }
-
-                            @Override
-                            public Optional<FileUpload> file() {
-                                return Optional.of(new UndertowFileUpload(value));
-                            }
-                            
-                        });
-                        
+                        list.put(path, Context.FormItem.of(path, new UndertowFileUpload(value)));
                     } else {
-                        
-                        list.put(path, new Context.FormItem() {
-                            
-                            @Override
-                            public String name() {
-                                return path;
-                            }
-
-                            @Override
-                            public Optional<String> value() {
-                                return Optional.of(value.getValue());
-                            }
-
-                            @Override
-                            public Optional<FileUpload> file() {
-                                return Optional.empty();
-                            }
-                            
-                        });
+                        list.put(path, Context.FormItem.of(path, value.getValue()));
                     }
+                    
                 });
             });
         }
@@ -430,7 +419,6 @@ final class UndertowContext extends AbstractContext implements IoCallback {
         // TODO
         // ctx.session.save
         this.exchange.endExchange();
-        onComplete();
     }
 
     @Override

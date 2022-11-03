@@ -31,14 +31,19 @@ public interface Context {
             return Objects.equals(contentType, MediaType.valueOf(accept.value()));
         }
         
+        long contentLength();
         default MediaType contentType() {
             Value header = header("Content-Type");
             return header.isMissing() ? null : MediaType.valueOf(header.value());
         }
         
         
-        MultiList<FormItem> form();
         MultiList<FormItem> multipart();
+        default MultiList<FormItem> form() {
+            return multipart();
+        }
+        
+        InputStream stream();
     }
     
     interface Response {
@@ -73,7 +78,6 @@ public interface Context {
         }
         
         boolean isResponseStarted();
-        void postResponse(Route.PostResponse task);
     }
     
     Request req();
@@ -81,9 +85,9 @@ public interface Context {
     
     
     // ** Attributes **
-    void attribute(final String name, final Object value);
+    Context attribute(final String name, final Object value);
     Optional<Object> attribute(final String name);
-    void removeAttribute(final String name);
+    Context removeAttribute(final String name);
     
     
     // ** Session **
@@ -104,16 +108,60 @@ public interface Context {
                 }
             });
         }
+        
+        static FormItem of(String path, String value) {
+            return new Context.FormItem() {
+                
+                @Override
+                public String name() {
+                    return path;
+                }
+
+                @Override
+                public Optional<String> value() {
+                    return Optional.of(value);
+                }
+
+                @Override
+                public Optional<FileUpload> file() {
+                    return Optional.empty();
+                }
+                
+                @Override
+                public String toString() {
+                    return path + "=" + value;
+                }
+            };
+        }
+        
+        static FormItem of(String path, FileUpload value) {
+            return new Context.FormItem() {
+
+                @Override
+                public String name() {
+                    return path;
+                }
+
+                @Override
+                public Optional<String> value() {
+                    return Optional.empty();
+                }
+
+                @Override
+                public Optional<FileUpload> file() {
+                    return Optional.of(value);
+                }
+            };
+        }
     }
     
     interface FileUpload extends Closeable {
-
         InputStream stream();
         byte[] bytes();
         long fileSize();
         String fileName();
         Path path();
         String contentType();
-        
     }
+    
 }

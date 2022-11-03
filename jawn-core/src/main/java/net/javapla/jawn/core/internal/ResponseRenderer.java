@@ -18,6 +18,7 @@ public class ResponseRenderer implements Renderer {
     
     public ResponseRenderer() {
         add(MediaType.PLAIN, this);
+        add(MediaType.TEXT, this);
     }
     
     
