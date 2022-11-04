@@ -1,6 +1,6 @@
 package net.javapla.jawn.core;
 
-public interface Module {
+public interface Plugin {
     
     
     void install(Application config);
