@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
@@ -59,7 +60,9 @@ final class RouterImpl implements Router {
     }
     
     @Override
-    public Route retrieve(final HttpMethod httpMethod, final String requestUri) /*throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod*/ {
+    public Route retrieve(Context context) /*throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod*/ {
+        final HttpMethod httpMethod = context.req().httpMethod();
+        final String requestUri = context.req().path();
         
         Route route;
         final char[] uri = requestUri.toCharArray();

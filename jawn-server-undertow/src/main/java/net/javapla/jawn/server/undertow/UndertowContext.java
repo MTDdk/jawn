@@ -24,6 +24,7 @@ import io.undertow.util.HeaderMap;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 import net.javapla.jawn.core.AbstractContext;
+import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
@@ -44,14 +45,16 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     
     private final Request req;
     private final Response resp;
+    Body body = null;
 
     UndertowContext(HttpServerExchange exchange) {
         this.exchange = exchange;
-        this.method = HttpMethod._getMethod(exchange.getRequestMethod().toString(), () -> req().multipart());
         this.path = exchange.getRequestPath();
         
         this.req = _req();
         this.resp = _resp();
+        
+        this.method = HttpMethod._getMethod(exchange.getRequestMethod().toString()/*, () -> req.multipart()*/);
     }
     
     private Request _req() {
@@ -96,10 +99,16 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                 return multipart;
             }
             
-            @Override
+            /*@Override
             public InputStream stream() {
                 startBlocking();
                 return exchange.getInputStream();
+            }*/
+            
+            @Override
+            public Body body() {
+                if (body == null) body = Body.empty(); 
+                return body;
             }
         };
     }

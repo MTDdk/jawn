@@ -7,7 +7,7 @@ import net.javapla.jawn.core.internal.ReadOnlyContext;
 public interface Route {
     
 
-    boolean matches(String requestUri);
+    boolean matches(String uri);
 
     HttpMethod method();
 
@@ -43,9 +43,7 @@ public interface Route {
                 
                 try {
                     if (ctx.resp().isResponseStarted()) {
-                        // TODO ought to be unmodifiable context
-                        Context unmodifiable = ctx;
-                        next.after(unmodifiable, result, cause);
+                        next.after(new ReadOnlyContext(ctx), result, cause);
                         result = ctx;
                     } else {
                         next.after(ctx, result, cause);
@@ -158,7 +156,7 @@ public interface Route {
         private final String path;
         private Handler handler;
         private PostResponse post;
-        private MediaType responseType = MediaType.PLAIN;
+        private MediaType responseType = MediaType.PLAIN, consumes = MediaType.WILDCARD;
         private Renderer renderer;
         //private ErrorHandler err;
 
@@ -166,6 +164,14 @@ public interface Route {
             this.method = method;
             this.path = path;
             this.handler = handler;
+        }
+        
+        public Builder consumes(MediaType type) {
+            this.consumes = type;
+            return this;
+        }
+        public MediaType consumes() {
+            return consumes;
         }
         
         public Builder produces(MediaType type) {
@@ -213,9 +219,13 @@ public interface Route {
             return new Route() {
 
                 @Override
-                public boolean matches(String requestUri) {
+                public boolean matches(String uri) {
                     return false;
                 }
+                
+                /*public boolean consuming(MediaType type) {
+                    return consumes.matches(type);
+                }*/
 
                 @Override
                 public HttpMethod method() {

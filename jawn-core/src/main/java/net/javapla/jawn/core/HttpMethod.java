@@ -1,12 +1,5 @@
 package net.javapla.jawn.core;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import net.javapla.jawn.core.Context.FormItem;
-import net.javapla.jawn.core.util.MultiList;
-import net.javapla.jawn.core.util.StringUtil;
-
 /**
  * 
  * @author MTD
@@ -37,7 +30,7 @@ public enum HttpMethod {
     
     
     // Using a supplier in order to postpone calculation to later if necessary
-    public static HttpMethod _getMethod(final CharSequence requestMethod, Supplier<MultiList<FormItem>> formdata) {
+    public static HttpMethod _getMethod(final CharSequence requestMethod/*, Supplier<MultiList<FormItem>> formdata*/) {
         char first = requestMethod.charAt(0);
         switch (first) {
             case 'G':
@@ -56,13 +49,13 @@ public enum HttpMethod {
                 // Sometimes an ajax request can only be sent as GET or POST.
                 // We can emulate PUT and DELETE by sending a parameter '_method=PUT' or '_method=DELETE'.
                 // Under the assumption that a request method always is sent in upper case
-                final CharSequence methodParam = formdata.get().firstOptionally(AJAX_METHOD_PARAMETER).map(Context.FormItem::value).map(Optional::get).orElse(null);
+                /*final CharSequence methodParam = formdata.get().firstOptionally(AJAX_METHOD_PARAMETER).map(Context.FormItem::value).map(Optional::get).orElse(null);
                 if (methodParam != null) {
                     // assume DELETE
                     if (StringUtil.startsWith(methodParam, 'D', 'E', 'L')) return HttpMethod.DELETE;
                     // PUT
                     if (StringUtil.startsWith(methodParam, 'P', 'U', 'T')) return HttpMethod.PUT;
-                }
+                }*/
                 return HttpMethod.POST;
         }
         

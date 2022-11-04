@@ -15,7 +15,7 @@ public class ServerModule implements Server {
     @Override
     public Server start(ServerConfig config, Module.Application application) {
         
-        HttpHandler handler = new UndertowHandler(application.router());
+        HttpHandler handler = new UndertowHandler(application.router(), config.bufferSize(), config.maxRequestSize());
         
         Undertow.Builder bob = Undertow
             .builder()

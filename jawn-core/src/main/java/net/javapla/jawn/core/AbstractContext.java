@@ -46,6 +46,14 @@ public abstract class AbstractContext implements Context {
     
     
     
+    /*protected abstract class AbstractRequest implements Context.Request {
+        
+        @Override
+        public Body body() {
+            return null;
+        }
+    }*/
+    
     /*protected abstract class AbstractResponse implements Context.Response {
         
         @Override

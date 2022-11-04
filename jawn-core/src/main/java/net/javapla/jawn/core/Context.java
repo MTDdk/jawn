@@ -43,7 +43,7 @@ public interface Context {
             return multipart();
         }
         
-        InputStream stream();
+        Body body();
     }
     
     interface Response {

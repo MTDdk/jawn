@@ -25,6 +25,7 @@ public interface Server {
         private int ioThreads = -1;
         private boolean serveDefaultHeaders = true;
         private int bufferSize = StreamUtil._16KB;
+        private long maxRequestSize = 10_485_760; // 10MB
         
         
         
@@ -68,12 +69,19 @@ public interface Server {
             return bufferSize;
         }
         
+        public long maxRequestSize() {
+            return maxRequestSize;
+        }
+        
         public static ServerConfig from(Config config) {
             ServerConfig options = new ServerConfig();
             
             if (config != null && config.hasPath("server")) {
                 if (config.hasPath("server.bufferSize")) {
                     options.bufferSize = config.getInt("server.bufferSize");
+                }
+                if (config.hasPath("server.maxRequestSize")) {
+                    options.maxRequestSize = config.getLong("server.maxRequestSize");
                 }
             }
             

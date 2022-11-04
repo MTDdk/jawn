@@ -1,13 +1,13 @@
 package net.javapla.jawn.examples;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Up;
-import net.javapla.jawn.core.util.StreamUtil;
 
 public class SimpleJawnMain extends Jawn {
     
@@ -46,8 +46,7 @@ public class SimpleJawnMain extends Jawn {
         });
         
         post("/post", ctx -> {
-            System.out.println(ctx.req().form().first("testing"));
-            System.out.println(StreamUtil.read(ctx.req().stream()));
+            System.out.println(ctx.req().body().value(StandardCharsets.UTF_8));
         });
     }
 
