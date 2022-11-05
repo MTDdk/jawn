@@ -2,3 +2,4 @@ rootProject.name = 'jawn'
 
 include 'jawn-core'
 include 'jawn-server-undertow'
+include 'jawn-jackson'

@@ -17,8 +17,8 @@ public class ResponseRenderer implements Renderer {
     private Map<MediaType, Renderer> renderers = new HashMap<>();
     
     public ResponseRenderer() {
-        add(MediaType.PLAIN, this);
-        add(MediaType.TEXT, this);
+        //add(MediaType.PLAIN, this);
+        //add(MediaType.TEXT, this);
     }
     
     
@@ -69,6 +69,9 @@ public class ResponseRenderer implements Renderer {
             ctx.resp().respond(FileChannel.open(p));
             return null;
         }
+        
+        Renderer r = renderers.get(ctx.resp().contentType());
+        if (r != null) return r.render(ctx, value);
         
         // String, CharSequence, Number
         ctx.resp().respond(TO_STRING.render(ctx, value));

@@ -1,5 +1,7 @@
 package net.javapla.jawn.core;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -54,16 +56,27 @@ public abstract class AbstractContext implements Context {
         }
     }*/
     
-    /*protected abstract class AbstractResponse implements Context.Response {
+    protected abstract class AbstractResponse implements Context.Response {
+        protected MediaType responseType = MediaType.TEXT;
+        protected MediaType defaultResponseType = null;
+        protected Charset cs = StandardCharsets.UTF_8;
+        
         
         @Override
+        public Response rendererContentType(MediaType type) {
+            defaultResponseType = type;
+            return this;
+        }
+        
+        
+        /*@Override
         public void postResponse(PostResponse task) {
             if (onComplete == null) onComplete = new LinkedList<>();
             onComplete.add(task);
-        }
+        }*/
     }
     
-    private LinkedList<Route.PostResponse> onComplete;
+    /*private LinkedList<Route.PostResponse> onComplete;
     protected void onComplete() {
         if (onComplete != null)
             onComplete.forEach(action -> action.onComplete(this, null));

@@ -6,7 +6,7 @@ import net.javapla.jawn.core.util.StreamUtil;
 
 public interface Server {
     
-    Server start(ServerConfig config, Module.Application application);
+    Server start(ServerConfig config, Plugin.Application application);
     
     Server stop();
 

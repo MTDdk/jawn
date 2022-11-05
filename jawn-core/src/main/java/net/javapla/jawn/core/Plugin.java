@@ -13,6 +13,10 @@ public interface Plugin {
         
         Router router();
         
+        void renderer(MediaType type, Renderer renderer);
+        
+        void parser(MediaType type, Parser parser);
+        
         void onStartup(Runnable task);
         
         void onShutdown(Runnable task);

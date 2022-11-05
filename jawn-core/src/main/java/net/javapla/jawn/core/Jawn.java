@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.javapla.jawn.core.Module.Application;
+import net.javapla.jawn.core.Plugin.Application;
 import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.internal.Bootstrapper;
 import net.javapla.jawn.core.internal.reflection.Reflection;
@@ -26,13 +26,19 @@ public class Jawn {
     
     
     public Jawn() {
-        System.out.println("Jawning");
+        
     }
     
     protected Route.RouteBuilder get(final String path) {
         return _route(HttpMethod.GET, path, (ctx) -> ctx.resp().respond(Status.OK));
     }
     protected Route.RouteBuilder get(final String path, final Route.Handler handler) {
+        return _route(HttpMethod.GET, path, handler);
+    }
+    protected Route.RouteBuilder get(final String path, final Route.NoResultHandler handler) {
+        return _route(HttpMethod.GET, path, handler);
+    }
+    protected Route.RouteBuilder get(final String path, final Route.ZeroArgHandler handler) {
         return _route(HttpMethod.GET, path, handler);
     }
     protected Route.RouteBuilder head(final String path, final Route.Handler handler) {
@@ -83,7 +89,6 @@ public class Jawn {
     
     
     public void start() {
-        System.out.println("starting");
         long startupTime = System.currentTimeMillis();
         
         // shutdown hook
@@ -124,7 +129,7 @@ public class Jawn {
 
     
     public static final void run(final String ... args) {
-        System.out.println("running");
+        // TODO
         // do some command line parsing of the args
         // port=8080 mode=prod
         Class<Jawn> caller = Reflection.callingClass(Jawn.class);

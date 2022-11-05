@@ -133,6 +133,14 @@ public interface Route {
         }
     }
     
+    interface ZeroArgHandler extends Handler {
+        Object zero() throws Exception;
+        
+        default Object handle(Context ctx) throws Exception {
+            return zero();
+        }
+    }
+    
     
     interface MethodHandler extends Handler {
         // Action
@@ -147,6 +155,8 @@ public interface Route {
         RouteBuilder after(After a);
         RouteBuilder filter(Filter f);
         RouteBuilder postResponse(PostResponse p);
+        
+        RouteBuilder produces(MediaType type);
     }
     
     
@@ -272,6 +282,7 @@ public interface Route {
                             
                             if (rendered != null) {
                                 System.out.println("Response has not been handled");
+                                ctx.resp().respond(Status.NO_CONTENT);
                             }
                             
                         }

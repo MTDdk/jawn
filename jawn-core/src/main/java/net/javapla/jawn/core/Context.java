@@ -52,8 +52,10 @@ public interface Context {
         Response status(int statusCode);
         int status();
         Response removeHeader(String name);
-        Response contentType(MediaType type);
         MediaType contentType();
+        Response contentType(MediaType type);
+        Response rendererContentType(MediaType type);
+        
         Response charset(Charset encoding);
         Charset charset();
         

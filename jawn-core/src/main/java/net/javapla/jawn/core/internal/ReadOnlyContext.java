@@ -63,6 +63,11 @@ public class ReadOnlyContext implements Context {
             public MediaType contentType() {
                 return c.resp().contentType();
             }
+            
+            @Override
+            public Response rendererContentType(MediaType type) {
+                throw new IllegalStateException(M);
+            }
 
             @Override
             public Response charset(Charset encoding) {

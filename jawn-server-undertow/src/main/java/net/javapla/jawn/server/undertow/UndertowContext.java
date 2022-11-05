@@ -11,7 +11,6 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Deque;
 
@@ -114,9 +113,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     }
     
     private Response _resp() {
-        return new Response() {
-            private MediaType responseType = MediaType.PLAIN;
-            private Charset cs = StandardCharsets.UTF_8;
+        return new AbstractResponse() {
             
             {
                 setContentType();
@@ -159,7 +156,14 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             
             @Override
             public MediaType contentType() {
-                return responseType;
+                return defaultResponseType == null ? responseType : defaultResponseType;
+            }
+            
+
+            protected void setContentType() {
+                if (this.responseType != null) {
+                    exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, responseType + (cs != null ? (";charset=" + cs) : ""));
+                }
             }
             
             @Override
@@ -172,12 +176,6 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             @Override
             public Charset charset() {
                 return cs;
-            }
-            
-            private void setContentType() {
-                if (this.responseType != null) {
-                    exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, responseType + (cs != null ? (";charset=" + cs) : ""));
-                }
             }
             
             @Override

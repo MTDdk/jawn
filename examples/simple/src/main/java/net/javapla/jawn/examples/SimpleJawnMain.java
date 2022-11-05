@@ -30,28 +30,39 @@ public class SimpleJawnMain extends Jawn {
             get("/v1", ctx -> {
                 System.out.println("api/v1  handler");
                 return "---  api/v1";
-            }).filter(new Route.Filter() {
-                @Override
-                public void before(Context ctx) throws Up {ctx.attribute("timing", System.currentTimeMillis()); System.out.println(ctx.req().path() +  " before");}
-
-                @Override
-                public void after(Context ctx, Object result, Throwable cause) {System.out.println(ctx.req().path() + " after");}
-                
-                public void onComplete(Context ctx, Throwable error) {
-                    System.out.println("Timing   ::   "  + (ctx.attribute("timing").map(time -> (System.currentTimeMillis() - ((long)time))).get()));
-                }
-                
-            }).after((ctx,result,error) -> System.out.println("before1111"));
+            }).filter(new TimingFilter()).after((ctx,result,error) -> System.out.println("before1111"));
             get("/v2", ctx -> "api/v2");
         });
         
         post("/post", ctx -> {
             System.out.println(ctx.req().body().value(StandardCharsets.UTF_8));
         });
+        
+        get("/json", () -> {
+            return new JsonResponse("key","value");
+        }).produces(MediaType.JSON).filter(new TimingFilter());
+    }
+    
+    public static record JsonResponse(String key, String value) {}
+    
+    private static class TimingFilter implements Route.Filter {
+
+        @Override
+        public void before(Context ctx) throws Up {
+            ctx.attribute("timing", System.currentTimeMillis());
+        }
+
+        @Override
+        public void after(Context ctx, Object result, Throwable cause) {}
+        
+        @Override
+        public void onComplete(Context ctx, Throwable error) {
+            System.out.println("Timing   ::   "  + (ctx.attribute("timing").map(time -> (System.currentTimeMillis() - ((long)time))).get()));
+        }
+        
     }
 
     public static void main(String[] args) {
         run();
     }
-
 }

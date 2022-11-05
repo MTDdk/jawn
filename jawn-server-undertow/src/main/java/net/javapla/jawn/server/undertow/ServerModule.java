@@ -5,7 +5,7 @@ import org.xnio.Options;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
-import net.javapla.jawn.core.Module;
+import net.javapla.jawn.core.Plugin;
 import net.javapla.jawn.core.Server;
 
 public class ServerModule implements Server {
@@ -13,7 +13,7 @@ public class ServerModule implements Server {
     private Undertow server;
     
     @Override
-    public Server start(ServerConfig config, Module.Application application) {
+    public Server start(ServerConfig config, Plugin.Application application) {
         
         HttpHandler handler = new UndertowHandler(application.router(), config.bufferSize(), config.maxRequestSize());
         

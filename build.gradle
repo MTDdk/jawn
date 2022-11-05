@@ -10,7 +10,6 @@ allprojects {
     options.release = 14
   }
   
-  
   repositories { mavenCentral() }
 }
 
@@ -35,4 +34,8 @@ subprojects {
     
     ignoreFailures false
   }
+  
+  
+  //java.modularity.inferModulePath = true
+  
 }

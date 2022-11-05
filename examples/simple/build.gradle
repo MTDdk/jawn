@@ -3,6 +3,12 @@ plugins {
   id 'eclipse'
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 repositories { mavenCentral() }
 
 dependencies {
@@ -10,6 +16,7 @@ dependencies {
   // framework
   implementation project(':jawn-core')
   implementation project(':jawn-server-undertow')
+  implementation project(':jawn-jackson')
   
   // logging
   implementation 'ch.qos.logback:logback-classic:1.4.4'
