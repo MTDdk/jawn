@@ -7,18 +7,26 @@ import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
 import net.javapla.jawn.core.Plugin;
 import net.javapla.jawn.core.Server;
+import net.javapla.jawn.core.util.LoggerManipulation;
 
 public class ServerModule implements Server {
+    
+    // The server package is a bit noisy
+    static {
+        LoggerManipulation.quiet("org.jboss.threads");
+        LoggerManipulation.quiet("org.xnio.nio");
+        LoggerManipulation.quiet("io.undertow");
+    }
     
     private Undertow server;
     
     @Override
     public Server start(ServerConfig config, Plugin.Application application) {
         
-        HttpHandler handler = new UndertowHandler(application.router(), config.bufferSize(), config.maxRequestSize());
+        HttpHandler handler = new UndertowHandler(application.router(), config);
         
-        Undertow.Builder bob = Undertow
-            .builder()
+        Undertow.Builder bob = Undertow.builder()
+            .setBufferSize(config.bufferSize())
             /** Socket */
             .setSocketOption(Options.BACKLOG, config.backlog())
             /** Server */
@@ -29,12 +37,12 @@ public class ServerModule implements Server {
             .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
             /** Workers */
             .setIoThreads(config.ioThreads())
+            .setWorkerThreads(config.workerThreads())
             /** Handler */
             .setHandler(handler)
             ;
         
         bob.addHttpListener(config.port(), config.host());
-        
         
         server = bob.build();
         server.start();
