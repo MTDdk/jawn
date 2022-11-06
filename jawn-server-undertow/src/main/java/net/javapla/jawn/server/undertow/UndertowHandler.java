@@ -19,8 +19,12 @@ import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.FormParserFactory;
 import io.undertow.server.handlers.form.MultiPartParserDefinition;
+import io.undertow.util.HeaderMap;
+import io.undertow.util.Headers;
 import net.javapla.jawn.core.Body;
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Router;
+import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 
@@ -29,28 +33,36 @@ public class UndertowHandler implements HttpHandler {
     private final Router router;
     private final int bufferSize;
     private final long maxRequestSize;
+    private final boolean addDefaultHeaders;
     
     private final FormParserFactory parserFactory;
 
-    public UndertowHandler(Router router, int bufferSize, long maxRequestSize) {
+    public UndertowHandler(Router router, ServerConfig config) {
         this.router = router;
-        this.bufferSize = bufferSize;
-        this.maxRequestSize = maxRequestSize;
+        this.bufferSize = config.bufferSize();
+        this.maxRequestSize = config.maxRequestSize();
+        this.addDefaultHeaders = config.serverDefaultHeaders();
         
-        parserFactory = FormParserFactory.builder(false)
+        this.parserFactory = FormParserFactory.builder(false)
             .addParser(new MultiPartParserDefinition(TMP_DIR)
                 .setDefaultEncoding(StandardCharsets.UTF_8.name()))
             .addParser(new FormEncodedDataDefinition()
                 .setDefaultEncoding(StandardCharsets.UTF_8.name()))
             .build();
     }
-
+    
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
         if (exchange.isInIoThread()) {
             exchange.dispatch(() -> {
                 
                 UndertowContext context = new UndertowContext(exchange);
+                
+                HeaderMap headers = exchange.getResponseHeaders();
+                headers.put(Headers.CONTENT_TYPE, Context.Response.STANDARD_HEADER_CONTENT_TYPE);
+                if (addDefaultHeaders) {
+                    headers.add(Headers.SERVER, "Jawn/U");
+                }
                 
                 if (!context.req().httpMethod().mightContainBody) {
                     

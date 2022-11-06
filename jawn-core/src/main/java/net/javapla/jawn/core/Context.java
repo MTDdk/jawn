@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,6 +48,8 @@ public interface Context {
     }
     
     interface Response {
+        static final String STANDARD_HEADER_CONTENT_TYPE = MediaType.PLAIN.name() + ";charset=" + StandardCharsets.UTF_8.name();
+        
         Value header(String name);
         Response header(String name, String value);
         Response status(int statusCode);
