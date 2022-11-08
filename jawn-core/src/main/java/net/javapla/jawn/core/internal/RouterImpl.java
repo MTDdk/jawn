@@ -3,7 +3,6 @@ package net.javapla.jawn.core.internal;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
@@ -59,35 +58,37 @@ final class RouterImpl implements Router {
         compileRoutes(routes);
     }
     
+    
     @Override
-    public Route retrieve(Context context) /*throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod*/ {
-        final HttpMethod httpMethod = context.req().httpMethod();
-        final String requestUri = context.req().path();
+    public Route retrieve(final int httpMethod, final String requestUri) /*throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod*/ {
+        //final HttpMethod httpMethod = context.req().httpMethod();
+        //final String requestUri = context.req().path();
         
-        Route route;
-        final char[] uri = requestUri.toCharArray();
+        //final char[] uri = requestUri.toCharArray();
         
         //try {
-            // first, take a look in the trie
-            route = trie.findExact(uri, httpMethod);
+        // first, take a look in the trie
+        Route route = trie.findExact(requestUri.toCharArray(), httpMethod);
+        if (route != null) return route;
             
-            if (route == null) {
-                // try with wildcard search
-                route = trie.findRoute(uri, httpMethod);
+        // try with wildcard search
+        route = trie.findRoute(requestUri.toCharArray(), httpMethod);
+        if (route != null && route.matches(requestUri)) {
+            
+            trie.insert(requestUri, route); // cache it for later fast look-up
+            return route;
+            
+        } else {
+            // The trie did not have any for us..
+            // Have a look in the custom routes then
+            return goThroughCustom(HttpMethod.values()[httpMethod], requestUri);//, () -> Up.RouteMissing("Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri));
+        }
+            /*if (route == null) {
                 
-                if (route != null && route.matches(requestUri)) {
-                    
-                    trie.insert(requestUri, route); // cache it for later fast look-up
-                    
-                } else {
-                    // The trie did not have any for us..
-                    // Have a look in the custom routes then
-                    return goThroughCustom(httpMethod, requestUri);//, () -> Up.RouteMissing("Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri));
-                }
             }
             
             return route;
-            
+            */
         /*} catch (Up.RouteFoundWithDifferentMethod e) {
             
             return goThroughCustom(httpMethod, requestUri);
@@ -125,10 +126,11 @@ final class RouterImpl implements Router {
         }
         return this;
     }
+    
 
     @Override
     public void addRoute(final Route route) {
-        Route lookup = trie.findRoute(route.wildcardedPath().toCharArray(), route.method());
+        Route lookup = trie.findRoute(route.wildcardedPath().toCharArray(), route.method().ordinal());
         if (lookup != null && route.method() != HttpMethod.HEAD && route.wildcardedPath().equals(lookup.wildcardedPath())) {
             throw Up.RouteAlreadyExists(lookup.toString());
         }
@@ -174,7 +176,7 @@ final class RouterImpl implements Router {
             TrieNode current = root, child;
             for (char c : input) {
                 child = current.nodes[c];
-                if(child == null) {
+                if (child == null) {
                     child = new TrieNode(c);
                     current.nodes[c] = child;
                 }
@@ -214,7 +216,19 @@ final class RouterImpl implements Router {
                 else
                     current = current.nodes[c];
             }
-            return current.get(method);
+            return current.routes[method.ordinal()];//.get(method);
+        }
+        
+        public Route findExact(final char[] arr, final int method) {
+            TrieNode current = root;
+            for (int i = 0; i < arr.length; i++) {
+                char c = arr[i];
+                if (current.nodes[c] == null)
+                    return null;
+                else
+                    current = current.nodes[c];
+            }
+            return current.routes[method];
         }
         
         public Route findExact(final CharSequence str, final HttpMethod method) {
@@ -226,7 +240,7 @@ final class RouterImpl implements Router {
                 else
                     current = current.nodes[c];
             }
-            return current.get(method);
+            return current.routes[method.ordinal()];//.get(method);
         }
         
         /**
@@ -234,7 +248,7 @@ final class RouterImpl implements Router {
          * @param arr
          * @return
          */
-        public final Route findRoute(final char[] arr, final HttpMethod method) {
+        public final Route findRoute(final char[] arr, final int method) {
             TrieNode current = root;
             char c;
             for (int i = 0; i < arr.length; i++) {
@@ -245,7 +259,7 @@ final class RouterImpl implements Router {
                     if (current.nodes[WILDCARD] != null) {
                         // if this is the last part of a possible route, then just return the route
                         if (current.nodes[WILDCARD].end)
-                            return current.nodes[WILDCARD].routes[method.ordinal()];//routes.get(current.nodes[WILDCARD].routeIndex);
+                            return current.nodes[WILDCARD].routes[method];//routes.get(current.nodes[WILDCARD].routeIndex);
                         
                         // try the wildcard search
 //                        TrieNode node = doWildcardSearch(current.nodes[WILDCARD], arr, i);
@@ -265,7 +279,7 @@ final class RouterImpl implements Router {
                     current = current.nodes[c];
                 }
             }
-            return current.routes[method.ordinal()];
+            return current.routes[method];
         }
         
         /**
@@ -321,11 +335,11 @@ final class RouterImpl implements Router {
             }
             
             public Route get(HttpMethod method) /*throws Up.RouteFoundWithDifferentMethod*/ {
-                // This *should* only be applicable if the Trie is used outside of the context of this Router
+                // This *ought to* only be applicable if the Trie is used outside of the context of this Router
                 // I.e. as an isolated library
-                if (routes[method.ordinal()] == null) {
+                /*if (routes[method.ordinal()] == null) {
                     if (end) return null;//throw Up.RouteFoundWithDifferentMethod(method.name());
-                }
+                }*/
                 return routes[method.ordinal()];
             }
             
