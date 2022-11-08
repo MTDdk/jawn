@@ -20,9 +20,11 @@ public enum HttpMethod {
      * as often the case with POST requests (containing HTML form data).
      */
     public final boolean mightContainBody;
+    //public final int hash;
     
     private HttpMethod(boolean mightContainBody) {
         this.mightContainBody = mightContainBody;
+        //this.hash = name().hashCode();
     }
     
     
@@ -60,5 +62,44 @@ public enum HttpMethod {
         }
         
         throw new IllegalArgumentException();
+    }
+    
+    public static HttpMethod _getMethod(byte[] bytes) {
+        switch(bytes[0]) {
+            case 'G':
+                return HttpMethod.GET;
+            case 'D':
+                return HttpMethod.DELETE;
+            case 'H':
+                return HttpMethod.HEAD;
+            case 'O':
+                return HttpMethod.OPTIONS;
+            case 'P':
+                if (bytes[1] == 'U') return HttpMethod.PUT;
+                return HttpMethod.POST;
+        }
+        throw new IllegalArgumentException();
+    }
+    
+    public static HttpMethod _getMethod(ByteArray ba) {
+        switch(ba.byteAt(0)) {
+            case 'G':
+                return HttpMethod.GET;
+            case 'D':
+                return HttpMethod.DELETE;
+            case 'H':
+                return HttpMethod.HEAD;
+            case 'O':
+                return HttpMethod.OPTIONS;
+            case 'P':
+                if (ba.byteAt(1) == 'U') return HttpMethod.PUT;
+                return HttpMethod.POST;
+        }
+        throw new IllegalArgumentException();
+    }
+    
+    @FunctionalInterface
+    public static interface ByteArray {
+        byte byteAt(int index);
     }
 }
