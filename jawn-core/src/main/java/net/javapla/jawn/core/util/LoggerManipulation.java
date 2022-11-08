@@ -28,13 +28,13 @@ import org.slf4j.LoggerFactory;
  * How to use:
  * 
  * <p>
- * <code>
+ * <pre>
     static {
         LoggerManipulation.quiet("org.jboss.threads");
         LoggerManipulation.quiet("org.xnio.nio");
         LoggerManipulation.quiet("io.undertow");
     }
- * </code>
+ * </pre>
  *
  */
 public abstract class LoggerManipulation {
