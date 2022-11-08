@@ -31,8 +31,10 @@ public class JacksonModule implements Plugin, Renderer, Parser {
 
     @Override
     public byte[] render(Context ctx, Object value) throws Exception {
-        ctx.resp().rendererContentType(MediaType.JSON);
+        ctx.resp().contentType(MediaType.JSON);
         ctx.resp().respond(writer.writeValueAsBytes(value));
+        //ctx.contentType(MediaType.JSON);
+        //ctx.respond(writer.writeValueAsBytes(value));
         return null;
     }
 

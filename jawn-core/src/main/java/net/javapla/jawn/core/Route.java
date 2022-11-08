@@ -1,33 +1,95 @@
 package net.javapla.jawn.core;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 import net.javapla.jawn.core.internal.ReadOnlyContext;
 
-public interface Route {
+public final class Route {
     
 
-    boolean matches(String uri);
-
-    HttpMethod method();
-
-    String wildcardedPath();
-
-    boolean isUrlFullyQualified();
-
-    String path();
+    private final HttpMethod method;
+    private final String path;
+    private final Handler handler;
+    private final OnComplete post;
+    private final MediaType produces, consumes;
+    //private final Renderer renderer;
+    private final Type returnType;
+    public final Execution exec;
     
+    Route(
+            HttpMethod method,
+            String path,
+            Handler handler,
+            OnComplete post,
+            MediaType responseType, MediaType consumes,
+            //Renderer renderer,
+            Type returnType, Execution exec) {
+        this.method = method;
+        this.path = path;
+        this.handler = handler;
+        this.post = post;
+        this.produces = responseType;
+        this.consumes = consumes;
+        //this.renderer = renderer;
+        this.returnType = returnType;
+        this.exec = exec; 
+    }
+
+    public boolean matches(String uri) {
+        return path.equals(uri);
+    }
+
+    public HttpMethod method() {
+        return method;
+    }
+
+    public String wildcardedPath() {
+        return path;
+    }
+
+    public boolean isUrlFullyQualified() {
+        return true;
+    }
+
+    public String path() {
+        return path;
+    }
+
+    public Route.Handler handler() {
+        return handler;
+    }
     
-    Handler handler();
+    public MediaType produces() {
+        return produces;
+    }
+
+    public boolean consuming(MediaType type) {
+        return consumes.matches(type);
+    }
     
-    MediaType produces();
+    public Type returnType() {
+        return returnType;
+    }
     
-    void execute(Context ctx);
+    public void execute(Context ctx) {
+            
+        /*try {
+        
+        } catch (Exception e) {
+            //x = e;
+        }*/
+        exec.execute(ctx);
+        
+        if (post != null) post.onComplete(new ReadOnlyContext(ctx));
+    }
+    
 
     // TODO create static route which listens on /favicon.ico
     //public static final Handler FAVICON = ctx -> ctx.resp().respond(Status.NOT_FOUND);
     
-    interface Handler {
+    public static interface Handler extends Serializable {
         Object handle(Context ctx) throws Exception;
         
         default Handler after(After next) {
@@ -38,7 +100,7 @@ public interface Route {
                     result = handle(ctx);
                 } catch (Throwable e) {
                     cause = e;
-                    ctx.resp().status(Up.error(e));
+                    ctx.resp().status(Up.error(e).value());
                 }
                 
                 try {
@@ -67,7 +129,7 @@ public interface Route {
 
     }
     
-    interface Before {
+    public static interface Before {
         void before(Context ctx) throws Up;
         
         default Before then(Before next) {
@@ -90,7 +152,7 @@ public interface Route {
         }
     }
     
-    interface After {
+    public static interface After {
         void after(Context ctx, Object result, Throwable cause);
         
         default After then(After next) {
@@ -101,7 +163,7 @@ public interface Route {
         }
     }
     
-    interface Filter extends Before, After, PostResponse {
+    public static interface Filter extends Before, After, OnComplete {
         
         /*default Handler apply(Handler next) {
             return ctx -> ()
@@ -109,31 +171,31 @@ public interface Route {
         
         // PostResponse
         @Override
-        default void onComplete(Context ctx, Throwable error) {}
+        default void onComplete(Context ctx) {}
     }
     
     // OnComplete
-    interface PostResponse {
-        void onComplete(Context ctx, Throwable error);
+    public static interface OnComplete {
+        void onComplete(Context ctx/*, Throwable error*/);
         
-        default PostResponse then(PostResponse next) {
-            return (ctx, error) -> {
-                onComplete(ctx, error);
-                next.onComplete(ctx, error);
+        default OnComplete then(OnComplete next) {
+            return (ctx) -> {
+                onComplete(ctx);
+                next.onComplete(ctx);
             };
         }
     }
     
-    interface NoResultHandler extends Handler {
+    public static interface NoResultHandler extends Handler {
         void nothing(Context ctx) throws Exception;
         
         default Object handle(Context ctx) throws Exception {
             nothing(ctx);
-            return Status.OK;
+            return null;
         }
     }
     
-    interface ZeroArgHandler extends Handler {
+    public static interface ZeroArgHandler extends Handler {
         Object zero() throws Exception;
         
         default Object handle(Context ctx) throws Exception {
@@ -142,37 +204,44 @@ public interface Route {
     }
     
     
-    interface MethodHandler extends Handler {
+    public static interface MethodHandler extends Handler {
         // Action
         Method method();
         
-        // Route calss
+        // Route class
         Class<?> controller();
     }
     
-    interface RouteBuilder {
+    public static interface Execution {
+        void execute(Context ctx);
+    }
+    
+    public static interface RouteBuilder {
         RouteBuilder before(Before b);
         RouteBuilder after(After a);
         RouteBuilder filter(Filter f);
-        RouteBuilder postResponse(PostResponse p);
+        RouteBuilder postResponse(OnComplete p);
         
         RouteBuilder produces(MediaType type);
     }
     
     
-    static class Builder implements RouteBuilder {
+    public static class Builder implements RouteBuilder {
         
-        private final HttpMethod method;
-        private final String path;
-        private Handler handler;
-        private PostResponse post;
+        public final HttpMethod method;
+        public final String path;
+        public final Handler originalHandler; // action
+        private Handler handler; // pipeline
+        private OnComplete post;
         private MediaType responseType = MediaType.PLAIN, consumes = MediaType.WILDCARD;
         private Renderer renderer;
+        private Type returnType;
         //private ErrorHandler err;
 
         public Builder(HttpMethod method, String path, Handler handler) {
             this.method = method;
             this.path = path;
+            this.originalHandler = handler;
             this.handler = handler;
         }
         
@@ -186,6 +255,10 @@ public interface Route {
         
         public Builder produces(MediaType type) {
             responseType = type;
+            
+            // Prepend the pipeline of handlers with setting the contentType
+            // of the response, when setting it to something non-default
+            before(ctx -> ctx.resp().contentType(type));
             return this;
         }
         public MediaType produces() {
@@ -196,13 +269,22 @@ public interface Route {
             this.renderer = renderer;
             return this;
         }
+        public Renderer renderer() {
+            return this.renderer;
+        }
         
+        //private After after;
         public Builder after(After after) {
+            //if (this.after == null) this.after = after;
+            //else this.after = this.after.then(after);
             handler = handler.after(after);
             return this;
         }
         
+        //private Before before;
         public Builder before(Before before) {
+            //if (this.before == null) this.before = before;
+            //else this.before = before.then(this.before);
             handler = before.then(handler);
             return this;
         }
@@ -217,7 +299,19 @@ public interface Route {
             return this;
         }
         
-        public Builder postResponse(PostResponse r) {
+        public Builder handler(Handler handler) {
+            this.handler = handler;
+            return this;
+        }
+        public Handler handler() {
+            return handler;
+        }
+        Execution exec;
+        public void execution(Execution exec) {
+            this.exec = exec;
+        }
+        
+        public Builder postResponse(OnComplete r) {
             if (post == null)
                 post = r;
             else
@@ -225,78 +319,38 @@ public interface Route {
             return this;
         }
         
+        public Builder returnType(Type type) {
+            this.returnType = type;
+            return this;
+        }
+        public Type returnType() {
+            return returnType;
+        }
+        
         public Route build() {
-            return new Route() {
-
-                @Override
-                public boolean matches(String uri) {
-                    return false;
-                }
-                
-                /*public boolean consuming(MediaType type) {
-                    return consumes.matches(type);
-                }*/
-
-                @Override
-                public HttpMethod method() {
-                    return method;
-                }
-
-                @Override
-                public String wildcardedPath() {
-                    return path;
-                }
-
-                @Override
-                public boolean isUrlFullyQualified() {
-                    return true;
-                }
-
-                @Override
-                public String path() {
-                    return path;
-                }
-
-                @Override
-                public Route.Handler handler() {
-                    return handler;
-                }
-                
-                @Override
-                public MediaType produces() {
-                    return responseType;
-                }
-                
-                
-                
-                @Override
-                public void execute(Context ctx) {
-                    Exception x = null;
-                        
-                    try {
-                        Object result = handler.handle(ctx);
-                    
-                        if (!ctx.resp().isResponseStarted() && result != ctx) {
-                        
-                            byte[] rendered = renderer.render(ctx, result);
-                            
-                            if (rendered != null) {
-                                System.out.println("Response has not been handled");
-                                ctx.resp().respond(Status.NO_CONTENT);
-                            }
-                            
-                        }
-                    } catch (Exception e) {
-                        x = e;
-                    }
-                    
-                    if (post != null) post.onComplete(new ReadOnlyContext(ctx), x);
-                }
-            };
+            return 
+                new Route(
+                    method,
+                    path,
+                    handler,
+                    post,
+                    responseType,
+                    consumes,
+                    //renderer,
+                    returnType,
+                    exec
+                );
         }
     }
     
-    Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.NOT_FOUND)).build();
-    Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.METHOD_NOT_ALLOWED)).build();
+    public static Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.NOT_FOUND)).build();
+    public static Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.METHOD_NOT_ALLOWED)).build();
+    public static Route.Before RESPONSE_CONTENT_TYPE = (ctx) -> ctx.resp().contentType();
+    
+    /*final class RouteImpl implements Route {
+        
+        
+        
+    }*/
 }
 

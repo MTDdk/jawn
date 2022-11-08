@@ -20,7 +20,7 @@ public class Jawn {
     protected static final Logger log = LoggerFactory.getLogger(Jawn.class);
     
     
-    private final Bootstrapper booter = new Bootstrapper(); // Core?
+    private final Bootstrapper booter = new Bootstrapper(getClass().getClassLoader()); // Core?
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
     
     
@@ -35,11 +35,14 @@ public class Jawn {
     protected Route.RouteBuilder get(final String path, final Route.Handler handler) {
         return _route(HttpMethod.GET, path, handler);
     }
-    protected Route.RouteBuilder get(final String path, final Route.NoResultHandler handler) {
+    /*protected Route.RouteBuilder get(final String path, final Route.NoResultHandler handler) {
         return _route(HttpMethod.GET, path, handler);
-    }
+    }*/
     protected Route.RouteBuilder get(final String path, final Route.ZeroArgHandler handler) {
         return _route(HttpMethod.GET, path, handler);
+    }
+    protected Route.RouteBuilder get(final String path, Object result) {
+        return _route(HttpMethod.GET, path, (ctx) -> result).returnType(result.getClass());
     }
     protected Route.RouteBuilder head(final String path, final Route.Handler handler) {
         return _route(HttpMethod.HEAD, path, handler);
@@ -50,7 +53,7 @@ public class Jawn {
     protected Route.RouteBuilder post(final String path, final Route.NoResultHandler handler) {
         return _route(HttpMethod.POST, path, handler);
     }
-    protected Route.RouteBuilder _route(HttpMethod method, final String path, final Route.Handler handler) {
+    protected Route.Builder _route(HttpMethod method, final String path, final Route.Handler handler) {
         Route.Builder bob = new Route.Builder(method, _pathPrefix(path), handler);
         routes.add(bob);
         return bob;
@@ -82,7 +85,7 @@ public class Jawn {
     
     
     
-    protected void install(Server server) {
+    protected void install(Plugin plugin) {
         //Server service = loader.findFirst().get();
         //registry.register(Server.class, server);
     }
@@ -109,7 +112,6 @@ public class Jawn {
         // start server
         ServerConfig serverConfig = Server.ServerConfig.from(null);
         try {
-            //registry.require(Server.class).start(serverConfig);
             server.get().start(serverConfig, moduleConfig);
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,7 +147,7 @@ public class Jawn {
             
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
                  | NoSuchMethodException | SecurityException e) {
-            e.printStackTrace();
+            log.error("", e);
         }
     }
     

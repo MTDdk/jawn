@@ -57,7 +57,7 @@ public abstract class AbstractContext implements Context {
     }*/
     
     protected abstract class AbstractResponse implements Context.Response {
-        protected MediaType responseType = MediaType.TEXT;
+        protected MediaType responseType = MediaType.PLAIN;
         protected MediaType defaultResponseType = null;
         protected Charset cs = StandardCharsets.UTF_8;
         

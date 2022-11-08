@@ -49,78 +49,75 @@ public class UndertowHandler implements HttpHandler {
             .addParser(new FormEncodedDataDefinition()
                 .setDefaultEncoding(StandardCharsets.UTF_8.name()))
             .build();
+        
     }
     
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
-        if (exchange.isInIoThread()) {
-            exchange.dispatch(() -> {
                 
-                UndertowContext context = new UndertowContext(exchange);
+        UndertowContext context = new UndertowContext(exchange);
+        
+        HeaderMap headers = exchange.getResponseHeaders();
+        headers.put(Headers.CONTENT_TYPE, Context.Response.STANDARD_HEADER_CONTENT_TYPE);
+        if (addDefaultHeaders) {
+            headers.add(Headers.SERVER, "Jawn/U");
+        }
+        
+        if (!context.method.mightContainBody) {
+            
+            router.retrieve(context.method.ordinal(), context.path).execute(context);
+            
+        } else {
+            // Might include a body
+
+            long len = exchange.getRequestContentLength();
+            if (len > 0) {
+                // With the existence of Content-Length, we assume body present
                 
-                HeaderMap headers = exchange.getResponseHeaders();
-                headers.put(Headers.CONTENT_TYPE, Context.Response.STANDARD_HEADER_CONTENT_TYPE);
-                if (addDefaultHeaders) {
-                    headers.add(Headers.SERVER, "Jawn/U");
-                }
                 
-                if (!context.req().httpMethod().mightContainBody) {
-                    
-                    router.retrieveAndExecute(context);
+                // If the request is either "multipart/form-data" or "application/x-www-form-urlencoded"
+                // the parserFactory will provide us with a form data parser
+                FormDataParser parser = parserFactory.createParser(exchange);
+                if (parser != null) {
+                    try (parser) {
+                        // Eagerly parsing Form data
+                        // @see io.undertow.server.handlers.form.EagerFormParsingHandler
+                        parser.parse(execute(router, context));
+                    } catch (Exception e) {
+                        context.resp().respond(Status.BAD_REQUEST);
+                        // TODO log the error
+                    }
                     
                 } else {
-                    // Might include a body
-        
-                    long len = exchange.getRequestContentLength();
-                    if (len > 0) {
-                        // With the existence of Content-Length, we assume body present
-                        
-                        
-                        // If the request is either "multipart/form-data" or "application/x-www-form-urlencoded"
-                        // the parserFactory will provide us with a form data parser
-                        FormDataParser parser = parserFactory.createParser(exchange);
-                        if (parser != null) {
-                            try (parser) {
-                                // Eagerly parsing Form data
-                                // @see io.undertow.server.handlers.form.EagerFormParsingHandler
-                                parser.parse(execute(router, context));
-                            } catch (Exception e) {
-                                context.resp().respond(Status.BAD_REQUEST);
-                                // TODO log the error
-                            }
-                            
-                        } else {
-                            
-                            // Apparently the body was not form data
-                            // Read the entire thing, and we will deal with it later
-                            
-                            Receiver receiver = exchange.getRequestReceiver();
-                            
-                            if (len > 0 && len <= bufferSize) {
-                                receiver.receiveFullBytes(UndertowHandler.receiveFullBytes(context));
-                            } else {
-                                receiver.receivePartialBytes(new PartialBodyReceiver(context));
-                            }
-                            
-                            router.retrieveAndExecute(context);
-                        }
-                        
+                    
+                    // Apparently the body was not form data
+                    // Read the entire thing, and we will deal with it later
+                    
+                    Receiver receiver = exchange.getRequestReceiver();
+                    
+                    if (len > 0 && len <= bufferSize) {
+                        receiver.receiveFullBytes(UndertowHandler.receiveFullBytes(context));
                     } else {
-                        
-                        // Apparently no body
-                        // Just execute route
-                        router.retrieveAndExecute(context);
-                        
+                        receiver.receivePartialBytes(new PartialBodyReceiver(context));
                     }
+                    
+                    router.retrieve(context.method.ordinal(), context.path).execute(context);
                 }
-            });
+                
+            } else {
+                
+                // Apparently no body
+                // Just execute route
+                router.retrieve(context.method.ordinal(), context.path).execute(context);
+                
+            }
         }
     }
     
     private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir"));
 
-    private static HttpHandler execute(Router router, UndertowContext ctx) {
-        return exchange -> router.retrieveAndExecute(ctx);
+    private static HttpHandler execute(Router router, UndertowContext context) {
+        return exchange -> router.retrieve(context.method.ordinal(), context.path).execute(context);
     }
     
     private static Receiver.FullBytesCallback receiveFullBytes(UndertowContext context) {

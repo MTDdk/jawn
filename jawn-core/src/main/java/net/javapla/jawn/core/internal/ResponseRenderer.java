@@ -2,6 +2,7 @@ package net.javapla.jawn.core.internal;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -67,6 +68,11 @@ public class ResponseRenderer implements Renderer {
             Path p = (Path) value;
             ctx.resp().contentType(MediaType.byPath(p.getFileName().toString()));
             ctx.resp().respond(FileChannel.open(p));
+            return null;
+        }
+        
+        if (value instanceof ByteBuffer) {
+            ctx.resp().respond((ByteBuffer) value);
             return null;
         }
         

@@ -39,10 +39,10 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     
     private final HttpServerExchange exchange;
     
-    private final HttpMethod method;
-    private final String path;
+    final HttpMethod method;
+    final String path;
     
-    private final Request req;
+    private Request req;
     private final Response resp;
     Body body = null;
 
@@ -50,10 +50,13 @@ final class UndertowContext extends AbstractContext implements IoCallback {
         this.exchange = exchange;
         this.path = exchange.getRequestPath();
         
-        this.req = _req();
+        //this.req = _req();
         this.resp = _resp();
         
-        this.method = HttpMethod._getMethod(exchange.getRequestMethod().toString()/*, () -> req.multipart()*/);
+        
+        //this.method = HttpMethod._getMethod(exchange.getRequestMethod().toString()/*, () -> req.multipart()*/);
+        final HttpString m = exchange.getRequestMethod();
+        this.method = HttpMethod._getMethod(m::byteAt);
     }
     
     private Request _req() {
@@ -114,10 +117,6 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     
     private Response _resp() {
         return new AbstractResponse() {
-            
-            {
-                setContentType();
-            }
             
             @Override
             public Value header(String name) {
@@ -215,7 +214,6 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                 if (stream instanceof FileInputStream) {
                     return respond(((FileInputStream)stream).getChannel());
                 }
-                try {
                     // TODO handle RANGE header
                     // Take note from io.undertow.server.handlers.ByteRangeHandler
                     //long len = exchange.getResponseContentLength();
@@ -246,25 +244,29 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                     new UndertowStream(len, Channels.newChannel(stream), exchange, UndertowContext.this).start();*/
                     
                     
-                    setChunked();
-                    Sender sender = exchange.getResponseSender();
-                    try ( PooledByteBuffer pool = exchange.getConnection().getByteBufferPool().allocate();
-                          ReadableByteChannel channel = Channels.newChannel(stream)) {
+                setChunked();
+                dispatch(() -> {
                         
-                        ByteBuffer buffer = pool.getBuffer();
-                        buffer.clear();
-                        while (channel.read(buffer) > 0) {
-                            buffer.flip();
-                            sender.send(buffer);
+                    try {
+                        Sender sender = exchange.getResponseSender();
+                        try ( PooledByteBuffer pool = exchange.getConnection().getByteBufferPool().allocate();
+                              ReadableByteChannel channel = Channels.newChannel(stream)) {
+                            
+                            ByteBuffer buffer = pool.getBuffer();
                             buffer.clear();
+                            while (channel.read(buffer) > 0) {
+                                buffer.flip();
+                                sender.send(buffer);
+                                buffer.clear();
+                            }
+                        } finally {
+                            sender.close(UndertowContext.this);
                         }
-                    } finally {
-                        sender.close(UndertowContext.this);
+                        
+                    } catch (IOException e) {
+                        throw Up.IO(e);
                     }
-                    
-                } catch (IOException e) {
-                    throw Up.IO(e);
-                }
+                });
                 
                 return this;
             }
@@ -295,7 +297,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                     e.printStackTrace();
                 }*/
                 
-                exchange.getResponseSender().transferFrom(channel, UndertowContext.this);
+                dispatch(() -> exchange.getResponseSender().transferFrom(channel, UndertowContext.this));
                 return this;
             }
             
@@ -309,6 +311,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
 
     @Override
     public Request req() {
+        if (req == null) this.req = _req();
         return req;
     }
 
@@ -316,6 +319,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     public Response resp() {
         return resp;
     }
+    
 
     private void formData(MultiList<FormItem> list) {
         // Set by FormDataParser in the UndertowHandler
@@ -413,6 +417,13 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     private void startBlocking() {
         if (! exchange.isBlocking()) {
             exchange.startBlocking();
+        }
+    }
+    private void dispatch(Runnable action) {
+        if (exchange.isInIoThread()) {
+            exchange.dispatch(action);
+        } else {
+            action.run();
         }
     }
 

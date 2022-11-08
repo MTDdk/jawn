@@ -23,6 +23,7 @@ public interface Server {
         
         private int backlog = -1;
         private int ioThreads = -1;
+        private int workerThreads = -1;
         private boolean serveDefaultHeaders = true;
         private int bufferSize = StreamUtil._16KB;
         private long maxRequestSize = 10_485_760; // 10MB
@@ -51,6 +52,10 @@ public interface Server {
         
         public int ioThreads(int fallbackIOThreads) {
             return ioThreads < 1 ? fallbackIOThreads : ioThreads;
+        }
+        
+        public int workerThreads() {
+            return workerThreads < 1 ? ioThreads() * 8 : workerThreads;
         }
         
         /**
