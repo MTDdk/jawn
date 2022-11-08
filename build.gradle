@@ -11,6 +11,12 @@ allprojects {
   }
   
   repositories { mavenCentral() }
+  
+/*  jar {
+    from {
+      configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+  }*/
 }
 
 
@@ -35,7 +41,15 @@ subprojects {
     ignoreFailures false
   }
   
-  
-  //java.modularity.inferModulePath = true
-  
 }
+
+
+
+apply plugin: 'java-library'
+dependencies {
+  implementation project(':jawn-core')
+  implementation project(':jawn-server-undertow')
+  implementation project(':jawn-jackson')
+}
+
+apply from: 'uberjar.gradle'
