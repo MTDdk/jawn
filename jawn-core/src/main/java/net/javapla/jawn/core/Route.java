@@ -82,7 +82,7 @@ public final class Route {
         }*/
         exec.execute(ctx);
         
-        if (post != null) post.onComplete(new ReadOnlyContext(ctx));
+        if (post != null) post.complete(new ReadOnlyContext(ctx));
     }
     
 
@@ -163,25 +163,23 @@ public final class Route {
         }
     }
     
-    public static interface Filter extends Before, After, OnComplete {
-        
-        /*default Handler apply(Handler next) {
-            return ctx -> ()
-        }*/
-        
-        // PostResponse
+    public static abstract class Filter implements Before, After, OnComplete {
         @Override
-        default void onComplete(Context ctx) {}
+        public void before(Context ctx) throws Up {}
+        @Override
+        public void after(Context ctx, Object result, Throwable cause) {}
+        @Override
+        public void complete(Context ctx) {}
     }
     
     // OnComplete
     public static interface OnComplete {
-        void onComplete(Context ctx/*, Throwable error*/);
+        void complete(Context ctx/*, Throwable error*/);
         
         default OnComplete then(OnComplete next) {
             return (ctx) -> {
-                onComplete(ctx);
-                next.onComplete(ctx);
+                complete(ctx);
+                next.complete(ctx);
             };
         }
     }

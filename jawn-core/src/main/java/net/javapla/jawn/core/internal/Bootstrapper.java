@@ -108,11 +108,6 @@ public class Bootstrapper {
         
         Class<?> raw = ReifiedGenerics.rawType(returnType);
         
-        System.out.println(bob.path);
-        System.out.println(returnType);
-        System.out.println(raw);
-        
-        
         bob.execution(execution(raw, bob));
     }
     
@@ -139,6 +134,21 @@ public class Bootstrapper {
                     Object result = handler.handle(ctx);
                     if (!ctx.resp().isResponseStarted()) {
                         ctx.resp().respond((ByteBuffer)result);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            };
+        }
+        
+        /* VOID */
+        if (void.class == raw) {
+            final Route.Handler handler = bob.handler();
+            return ctx -> {
+                try {
+                    handler.handle(ctx);
+                    if (!ctx.resp().isResponseStarted()) {
+                        ctx.resp().respond(Status.OK);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
