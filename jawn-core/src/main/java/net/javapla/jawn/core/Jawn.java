@@ -1,7 +1,10 @@
 package net.javapla.jawn.core;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
@@ -14,6 +17,7 @@ import net.javapla.jawn.core.Plugin.Application;
 import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.internal.Bootstrapper;
 import net.javapla.jawn.core.internal.reflection.Reflection;
+import net.javapla.jawn.core.util.StringUtil;
 
 public class Jawn {
     
@@ -149,6 +153,15 @@ public class Jawn {
                  | NoSuchMethodException | SecurityException e) {
             log.error("", e);
         }
+    }
+    
+    static Map<String,String> commandLineParsing(String ... args) {
+        if (args == null || args.length == 0) return Collections.emptyMap();
+        
+        LinkedHashMap<String,String> map = new LinkedHashMap<>();
+        StringUtil.split(args, '=', map::put);
+        
+        return map;
     }
     
     private Stream<Route.Builder> buildRoutes() {

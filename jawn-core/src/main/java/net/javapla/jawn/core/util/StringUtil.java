@@ -2,6 +2,7 @@ package net.javapla.jawn.core.util;
 
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -16,7 +17,7 @@ public abstract class StringUtil {
      * @return a string into an array using a provided delimiter
      */
     public static String[] split(String input, char delimiter){
-        if(input == null) throw new NullPointerException("input cannot be null");
+        if (input == null) throw new NullPointerException("input cannot be null");
 
         final int len = input.length();
         
@@ -53,7 +54,7 @@ public abstract class StringUtil {
      * @param callbackPerSubstring called for each splitted string
      */
     public static void split(String input, char delimiter, Consumer<String> callbackPerSubstring) {
-        if(input == null) throw new NullPointerException("input cannot be null");
+        if (input == null) throw new NullPointerException("input cannot be null");
         
         final int len = input.length();
         
@@ -67,38 +68,25 @@ public abstract class StringUtil {
         callbackPerSubstring.accept(input.substring(lastMark, len));
     }
     
-//    /**
-//     * Joins the items in collection with a delimiter.
-//     *
-//     * @param collection - collection of items to join.
-//     * @param delimiter delimiter to insert between elements of collection.
-//     * @return string with collection elements separated by delimiter. There is no trailing delimiter in the string.
-//     */
-//    public static String join(Collection<?> collection, String delimiter){
-//        if(collection.size() == 0) return "";
-//        return collection
-//                    .stream()
-//                    .filter(o -> o != null)
-//                    .map(o -> o.toString())
-//                    .collect(Collectors.joining(delimiter));
-//    }
-//    
-//    /**
-//     * Joins the items in collection with a delimiter.
-//     *
-//     * @param collection - collection of items to join.
-//     * @param delimiter delimiter to insert between elements of collection.
-//     * @return string with collection elements separated by delimiter. There is no trailing delimiter in the string.
-//     */
-//    public static String join(String delimiter, String... collection){
-//        if (collection.length == 0) return "";
-//        
-//        StringJoiner sj = new StringJoiner(delimiter);
-//        for (String string : collection) {
-//            sj.add(string);
-//        }
-//        return sj.toString();
-//    }
+    /**
+     * 
+     * @param lines
+     * @param delimiter
+     * @param callback
+     */
+    public static void split(String[] lines, char delimiter, BiConsumer<String,String> callback) {
+        if (lines == null || lines.length == 0) return;
+        
+        for (String line : lines) {
+            int del = line.indexOf(delimiter);
+            if (del > 0) {
+                callback.accept(line.substring(0, del).trim(), line.substring(del + 1).trim());
+            } else {
+                callback.accept(line.trim(), "");
+            }
+        }
+    }
+    
     
     /**
      * Generates a camel case version of a phrase from underscore.
