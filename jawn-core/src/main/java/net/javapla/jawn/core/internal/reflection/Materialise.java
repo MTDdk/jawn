@@ -10,9 +10,14 @@ import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Objects;
 
+import net.javapla.jawn.core.TypeLiteral;
+
 /**
- * Reify: "To convert mentally into a concrete thing; to materialise"
- * @author MTD
+ * {@link TypeLiteral} is an implementation of what is called "Reified Generics".
+ * 
+ * <p>Reify: "To convert mentally into a concrete thing; to materialise"
+ * 
+ * Borrowed from {@code com.google.inject.internal.MoreTypes}
  *
  */
 public class Materialise {
@@ -89,11 +94,11 @@ public class Materialise {
             // Neal isn't either but suspects some pathological case related
             // to nested classes exists.
             Type rawType = parameterizedType.getRawType();
-            /*checkArgument(
+            checkArgument(
                 rawType instanceof Class,
                 "Expected a Class, but <%s> is of type %s",
                 type,
-                type.getClass().getName());*/
+                type.getClass().getName());
             return (Class<?>) rawType;
 
         } else if (type instanceof GenericArrayType) {
@@ -171,13 +176,14 @@ public class Materialise {
         }
     }
     
+    private static int hashCodeOrZero(Object o) {
+        return o != null ? o.hashCode() : 0;
+    }
+    
     public static String typeToString(Type type) {
         return type instanceof Class ? ((Class<?>) type).getName() : type.toString();
     }
     
-    private static int hashCodeOrZero(Object o) {
-        return o != null ? o.hashCode() : 0;
-    }
     static void checkNotPrimitive(Type type) {
         if (!(!(type instanceof Class<?>) || !((Class<?>) type).isPrimitive())) {
             throw new IllegalArgumentException("Not a primitive type: " + type);
@@ -185,13 +191,20 @@ public class Materialise {
     }
     static void checkNotNull(Type type) {
         if (type == null) {
-            throw new NullPointerException(
-                "typeArguments[" + type + "]: " );
+            throw new NullPointerException("typeArguments[" + type + "]: " );
         }
     }
+    static void checkArgument(boolean b, String errorMessage) {
+        if (!b) throw new IllegalArgumentException(errorMessage);
+    }
+    static void checkArgument(boolean b, String formatString, Object p1) {
+        if (!b) throw new IllegalArgumentException(String.format(formatString, p1));
+    }
+    static void checkArgument(boolean b, String formatString, Object p1, Object p2) {
+        if (!b) throw new IllegalArgumentException(String.format(formatString, p1, p2));
+    }
     
-    public static class ParameterizedTypeImpl
-    implements ParameterizedType, Serializable, CompositeType {
+    public static class ParameterizedTypeImpl implements ParameterizedType, Serializable, CompositeType {
         private final Type ownerType;
         private final Type rawType;
         private final Type[] typeArguments;
@@ -273,23 +286,18 @@ public class Materialise {
 
         private static void ensureOwnerType(Type ownerType, Type rawType) {
             if (rawType instanceof Class<?>) {
-                /*Class rawTypeAsClass = (Class) rawType;
-                checkArgument(
-                    ownerType != null || rawTypeAsClass.getEnclosingClass() == null,
-                    "No owner type for enclosed %s",
-                    rawType);
-                checkArgument(
-                    ownerType == null || rawTypeAsClass.getEnclosingClass() != null,
-                    "Owner type for unenclosed %s",
-                    rawType);*/
+                Class<?> rawTypeAsClass = (Class<?>) rawType;
+                checkArgument(ownerType != null || rawTypeAsClass.getEnclosingClass() == null, 
+                    "No owner type for enclosed %s", rawType);
+                checkArgument(ownerType == null || rawTypeAsClass.getEnclosingClass() != null,
+                    "Owner type for unenclosed %s", rawType);
             }
         }
 
         private static final long serialVersionUID = 0;
     }
 
-    public static class GenericArrayTypeImpl
-    implements GenericArrayType, Serializable, CompositeType {
+    public static class GenericArrayTypeImpl implements GenericArrayType, Serializable, CompositeType {
         private final Type componentType;
 
         public GenericArrayTypeImpl(Type componentType) {
@@ -334,18 +342,17 @@ public class Materialise {
         private final Type lowerBound;
 
         public WildcardTypeImpl(Type[] upperBounds, Type[] lowerBounds) {
-            //checkArgument(lowerBounds.length <= 1, "Must have at most one lower bound.");
-            //checkArgument(upperBounds.length == 1, "Must have exactly one upper bound.");
+            checkArgument(lowerBounds.length <= 1, "Must have at most one lower bound.");
+            checkArgument(upperBounds.length == 1, "Must have exactly one upper bound.");
 
             if (lowerBounds.length == 1) {
                 checkNotNull(lowerBounds[0]);
                 checkNotPrimitive(lowerBounds[0]);
-                //checkArgument(upperBounds[0] == Object.class, "bounded both ways");
+                checkArgument(upperBounds[0] == Object.class, "bounded both ways");
                 this.lowerBound = canonicalize(lowerBounds[0]);
                 this.upperBound = Object.class;
-
             } else {
-                //checkNotNull(upperBounds[0], "upperBound");
+                checkNotNull(upperBounds[0]);//, "upperBound");
                 checkNotPrimitive(upperBounds[0]);
                 this.lowerBound = null;
                 this.upperBound = canonicalize(upperBounds[0]);
@@ -398,6 +405,7 @@ public class Materialise {
         /** Returns true if there are no type variables in this type. */
         boolean isFullySpecified();
     }
+    
     public static final Type[] EMPTY_TYPE_ARRAY = new Type[] {};
 
 }

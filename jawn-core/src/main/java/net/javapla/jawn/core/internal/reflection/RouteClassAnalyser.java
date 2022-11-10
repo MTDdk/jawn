@@ -36,7 +36,7 @@ import org.objectweb.asm.tree.VarInsnNode;
 import org.objectweb.asm.util.ASMifier;
 import org.objectweb.asm.util.TraceMethodVisitor;
 
-import net.javapla.jawn.core.ReifiedGenerics;
+import net.javapla.jawn.core.TypeLiteral;
 import net.javapla.jawn.core.Up;
 
 public class RouteClassAnalyser {
@@ -468,7 +468,7 @@ public class RouteClassAnalyser {
             LinkedList<Type> parent = stack.peekLast();
             if (parent.size() > 0) {
                 Type rawType = parent.removeLast();
-                Type paramType = ReifiedGenerics.getParameterized(rawType, types).type;
+                Type paramType = TypeLiteral.getParameterized(rawType, types).type;
                 parent.addLast(paramType);
             } else {
                 parent.add(types[0]);
@@ -504,10 +504,10 @@ public class RouteClassAnalyser {
             Iterator<Type> it = classes.iterator();
             // begin with set from first hierarchy
             Set<Class<?>> result = new LinkedHashSet<>();
-            superclasses(ReifiedGenerics.rawType(it.next()), result);
+            superclasses(TypeLiteral.rawType(it.next()), result);
             // remove non-superclasses of remaining
             while (it.hasNext()) {
-                Class<?> c = ReifiedGenerics.rawType(it.next());
+                Class<?> c = TypeLiteral.rawType(it.next());
                 Iterator<Class<?>> resultIt = result.iterator();
                 while (resultIt.hasNext()) {
                     Class<?> sup = resultIt.next();

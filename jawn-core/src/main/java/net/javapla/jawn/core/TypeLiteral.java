@@ -7,7 +7,6 @@ import java.lang.reflect.Type;
 import net.javapla.jawn.core.internal.reflection.Materialise;
 
 /**
- * 
  * Represents a generic type {@code T}. Java doesn't yet provide a way to represent generic types,
  * so this class does. Forces clients to create a subclass of this class which enables retrieval of
  * the type information even at runtime.
@@ -15,15 +14,15 @@ import net.javapla.jawn.core.internal.reflection.Materialise;
  * <p>For example, to create a type literal for {@code List<String>}, you can create an empty
  * anonymous inner class:
  *
- * <p>{@code ReifiedGenerics<List<String>> list = new ReifiedGenerics<List<String>>() {};}
+ * <p>{@code TypeLiteral<List<String>> list = new TypeLiteral<List<String>>() {};}
  *
  * <p>Along with modeling generic types, this class can resolve type parameters. For example, to
  * figure out what type {@code keySet()} returns on a {@code Map<Integer, String>}, use this code:
  *
  * <pre>{@code
- * ReifiedGenerics<Map<Integer, String>> mapType
- *     = new ReifiedGenerics<Map<Integer, String>>() {};
- * ReifiedGenerics<?> keySetType
+ * TypeLiteral<Map<Integer, String>> mapType
+ *     = new TypeLiteral<Map<Integer, String>>() {};
+ * TypeLiteral<?> keySetType
  *     = mapType.getReturnType(Map.class.getMethod("keySet"));
  * System.out.println(keySetType); // prints "Set<Integer>"
  * }</pre>
@@ -31,12 +30,11 @@ import net.javapla.jawn.core.internal.reflection.Materialise;
  * @author crazybob@google.com (Bob Lee)
  * @author jessewilson@google.com (Jesse Wilson)
  * 
- * Borrowed from 
- * {@code com.google.inject.TypeLiteral}
+ * Borrowed from {@code com.google.inject.TypeLiteral}
  * 
  * @see https://cr.openjdk.java.net/~briangoetz/valhalla/erasure.html
  */
-public class ReifiedGenerics<T> {
+public class TypeLiteral<T> {
     
     public final Class<? super T> rawType;
     public final Type type;
@@ -51,7 +49,7 @@ public class ReifiedGenerics<T> {
      * at runtime despite erasure.
      */
     @SuppressWarnings("unchecked")
-    public ReifiedGenerics() {
+    public TypeLiteral() {
       this.type = getSuperclassTypeParameter(getClass());
       this.rawType = (Class<? super T>) Materialise.getRawType(type);
       this.hashCode = type.hashCode();
@@ -59,14 +57,14 @@ public class ReifiedGenerics<T> {
     
     /** Unsafe. Constructs a type literal manually. */
     @SuppressWarnings("unchecked")
-    ReifiedGenerics(Type type) {
+    TypeLiteral(Type type) {
         this.type = Materialise.canonicalize(type);
         this.rawType = (Class<? super T>) Materialise.getRawType(this.type);
         this.hashCode = this.type.hashCode();
     }
     
     /** Unsafe. Constructs a type literal manually. */
-    private ReifiedGenerics(Class<T> type) {
+    private TypeLiteral(Class<T> type) {
         this.type = type;
         this.rawType = type;
         this.hashCode = type.hashCode();
@@ -97,8 +95,8 @@ public class ReifiedGenerics<T> {
      * @param <T> Generic type.
      * @return Gets type literal for the given {@code Class} instance.
      */
-    public static <T> ReifiedGenerics<T> get(Class<T> type) {
-        return new ReifiedGenerics<>(type);
+    public static <T> TypeLiteral<T> get(Class<T> type) {
+        return new TypeLiteral<>(type);
     }
     
     /**
@@ -111,7 +109,7 @@ public class ReifiedGenerics<T> {
         if (type instanceof Class) {
             return (Class<?>) type;
         }
-        return new ReifiedGenerics<>(type).rawType;
+        return new TypeLiteral<>(type).rawType;
     }
 
     /**
@@ -123,8 +121,8 @@ public class ReifiedGenerics<T> {
      * @return Gets type literal for the parameterized type represented by applying
      *    {@code typeArguments} to {@code rawType}.
      */
-    public static ReifiedGenerics<?> getParameterized(Type rawType,
+    public static TypeLiteral<?> getParameterized(Type rawType,
                                                       Type... typeArguments) {
-        return new ReifiedGenerics<>(Materialise.newParameterizedTypeWithOwner(null, rawType, typeArguments));
+        return new TypeLiteral<>(Materialise.newParameterizedTypeWithOwner(null, rawType, typeArguments));
     }
 }
