@@ -320,6 +320,8 @@ final class UndertowContext extends AbstractContext implements IoCallback {
         return resp;
     }
     
+    public String requestHeader(String name) { return exchange.getRequestHeaders().getFirst(name); };
+    
 
     private void formData(MultiList<FormItem> list) {
         // Set by FormDataParser in the UndertowHandler

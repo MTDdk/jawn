@@ -3,6 +3,7 @@ package net.javapla.jawn.core;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractContext implements Context {
@@ -44,6 +45,50 @@ public abstract class AbstractContext implements Context {
     
     /* Session  */
     
+    
+    // ** Route **
+    //Route route;
+    /*void route(Route route) {
+        this.route = route;
+    }
+    Route route() {
+        return route;
+    }*/
+    
+    
+    
+    // ** Framework specific shortcuts
+    public abstract String requestHeader(String name);
+    
+    MediaType accept(List<MediaType> responseTypes) {
+        if (responseTypes.isEmpty()) return null;
+        
+        String accept = requestHeader(ACCEPT);
+        if (accept == null) {
+            // We got no header, so just use the first of the possible response types
+            return responseTypes.get(0);
+        }
+        
+        
+        // Example
+        // Multiple types, weighted with the quality value syntax:
+        // Accept: text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8
+        // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept
+        
+        // TODO take weights into account
+        // For now, we assume "Accept" is a prioritised list of MIME types
+        
+        List<MediaType> acceptable = MediaType.parse(accept);
+        
+        // Find appropriate type
+        for (MediaType accepting : acceptable) {
+            for (MediaType producing : responseTypes) {
+                if (accepting.matches(producing)) return producing;
+            }
+        }
+        
+        return responseTypes.get(0);
+    }
     
     
     

@@ -9,6 +9,17 @@ public interface Server {
     Server start(ServerConfig config, Plugin.Application application);
     
     Server stop();
+    
+    // TODO 
+    public static boolean isEntityBodyAllowed(int code) {
+        if(code >= 100 && code < 200) {
+            return false;
+        }
+        if(code == 204 || code == 304) {
+            return false;
+        }
+        return true;
+    }
 
     
     public static class ServerConfig {

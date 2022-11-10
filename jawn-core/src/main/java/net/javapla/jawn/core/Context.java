@@ -18,14 +18,17 @@ import net.javapla.jawn.core.util.MultiList;
 
 public interface Context {
     
+    // Often used headers
+    static final String ACCEPT = "Accept";
+    
     interface Request {
         HttpMethod httpMethod();
         String path();
         String queryString();
         Value header(String name);
         
-        default boolean accepts(MediaType contentType) {
-            Value accept = header("Accept");
+        default boolean accept(MediaType contentType) {
+            Value accept = header(ACCEPT);
             if (accept.isMissing()) {
                 return false;
             }
@@ -97,6 +100,9 @@ public interface Context {
     
     // ** Session **
     
+    
+    // ** Route **
+    //Route route();
 
     interface FormItem extends Closeable {
         String name();

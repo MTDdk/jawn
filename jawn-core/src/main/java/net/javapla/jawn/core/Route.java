@@ -3,6 +3,9 @@ package net.javapla.jawn.core;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Function;
 
 import net.javapla.jawn.core.internal.ReadOnlyContext;
 
@@ -13,24 +16,26 @@ public final class Route {
     private final String path;
     private final Handler handler;
     private final OnComplete post;
-    private final MediaType produces, consumes;
+    private final MediaType consumes;
+    //private final List<MediaType> produces;
     //private final Renderer renderer;
     private final Type returnType;
-    public final Execution exec;
+    private final Execution exec;
     
     Route(
             HttpMethod method,
             String path,
             Handler handler,
             OnComplete post,
-            MediaType responseType, MediaType consumes,
+            //List<MediaType> responseType, 
+            MediaType consumes,
             //Renderer renderer,
             Type returnType, Execution exec) {
         this.method = method;
         this.path = path;
         this.handler = handler;
         this.post = post;
-        this.produces = responseType;
+        //this.produces = responseType;
         this.consumes = consumes;
         //this.renderer = renderer;
         this.returnType = returnType;
@@ -61,9 +66,9 @@ public final class Route {
         return handler;
     }
     
-    public MediaType produces() {
+    /*public List<MediaType> produces() {
         return produces;
-    }
+    }*/
 
     public boolean consuming(MediaType type) {
         return consumes.matches(type);
@@ -74,6 +79,7 @@ public final class Route {
     }
     
     public void execute(Context ctx) {
+        //((AbstractContext)ctx).route = this;
             
         /*try {
         
@@ -232,7 +238,8 @@ public final class Route {
         private Handler handler; // pipeline
         private OnComplete post;
         private MediaType responseType = MediaType.PLAIN, consumes = MediaType.WILDCARD;
-        private Renderer renderer;
+        private final List<MediaType> responseTypes = new LinkedList<>();
+        //private Renderer renderer;
         private Type returnType;
         //private ErrorHandler err;
 
@@ -241,6 +248,7 @@ public final class Route {
             this.path = path;
             this.originalHandler = handler;
             this.handler = handler;
+            //this.responseTypes.add(responseType);
         }
         
         public Builder consumes(MediaType type) {
@@ -253,23 +261,27 @@ public final class Route {
         
         public Builder produces(MediaType type) {
             responseType = type;
+            responseTypes.add(type);
             
             // Prepend the pipeline of handlers with setting the contentType
             // of the response, when setting it to something non-default
-            before(ctx -> ctx.resp().contentType(type));
+            //before(ctx -> ctx.resp().contentType(type));
             return this;
         }
-        public MediaType produces() {
+        public MediaType fallbackResponseType() {
             return responseType;
         }
+        public List<MediaType> produces() {
+            return responseTypes;
+        }
         
-        public Builder renderer(Renderer renderer) {
+        /*public Builder renderer(Renderer renderer) {
             this.renderer = renderer;
             return this;
-        }
-        public Renderer renderer() {
+        }*/
+        /*public Renderer renderer() {
             return this.renderer;
-        }
+        }*/
         
         //private After after;
         public Builder after(After after) {
@@ -332,7 +344,8 @@ public final class Route {
                     path,
                     handler,
                     post,
-                    responseType,
+                    //responseType,
+                    //responseTypes,
                     consumes,
                     //renderer,
                     returnType,
@@ -341,14 +354,20 @@ public final class Route {
         }
     }
     
-    public static Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.NOT_FOUND)).build();
-    public static Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.METHOD_NOT_ALLOWED)).build();
-    public static Route.Before RESPONSE_CONTENT_TYPE = (ctx) -> ctx.resp().contentType();
+    public static final Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.NOT_FOUND)).build();
+    public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.METHOD_NOT_ALLOWED)).build();
     
-    /*final class RouteImpl implements Route {
-        
-        
-        
-    }*/
+    /** Set the response type based on what the request asked for in the ACCEPT-header  */
+    /*public static final Route.Before RESPONSE_CONTENT_TYPE = (ctx) -> {
+        AbstractContext ac = (AbstractContext) ctx;
+        MediaType acceptable = ac.accept();
+        ctx.resp().contentType(acceptable);
+    };*/
+    public static final Function<List<MediaType>, Route.Before> RESPONSE_CONTENT_TYPE = (responseTypes) -> (ctx) -> {
+        AbstractContext ac = (AbstractContext) ctx;
+        MediaType acceptable = ac.accept(responseTypes);
+        ctx.resp().contentType(acceptable);
+    };
+    
 }
 

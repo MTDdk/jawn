@@ -11,7 +11,7 @@ import net.javapla.jawn.core.Parser;
 import net.javapla.jawn.core.Plugin;
 import net.javapla.jawn.core.Plugin.Application;
 import net.javapla.jawn.core.Registry;
-import net.javapla.jawn.core.ReifiedGenerics;
+import net.javapla.jawn.core.TypeLiteral;
 import net.javapla.jawn.core.Renderer;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
@@ -21,7 +21,7 @@ import net.javapla.jawn.core.internal.reflection.RouteClassAnalyser;
 
 public class Bootstrapper {
     
-    private final ResponseRenderer renderer = new ResponseRenderer();
+    private final ParserRenderEngine engine = new ParserRenderEngine();
     private final ClassLoader classLoader;
     
     public Bootstrapper(ClassLoader classLoader) {
@@ -46,11 +46,13 @@ public class Bootstrapper {
 
             @Override
             public void renderer(MediaType type, Renderer renderer) {
-                Bootstrapper.this.renderer.add(type, renderer);
+                Bootstrapper.this.engine.add(type, renderer);
             }
             
             @Override
-            public void parser(MediaType type, Parser parser) {}
+            public void parser(MediaType type, Parser parser) {
+                Bootstrapper.this.engine.add(type, parser);
+            }
 
             @Override
             public void onStartup(Runnable task) {}
@@ -88,7 +90,19 @@ public class Bootstrapper {
         
         
         routes.map(bob -> {
-            bob.renderer(renderer.renderer(bob.produces()));
+            // if the route has multiple possible response types, 
+            // we want to look at the request's ACCEPT-header to pick one of them for us.
+            if (bob.produces().size() > 1) {
+                bob.before(Route.RESPONSE_CONTENT_TYPE.apply(bob.produces()));
+            } else {
+                // If just a single option is available then always set response type accordingly.
+                bob.before(ctx -> ctx.resp().contentType(bob.fallbackResponseType()));
+            }
+            
+            // TODO insert Parsers somewhere, so they are reachable from handlers
+            // which means they have to be reachable from Context
+            
+            //bob.renderer(engine.render(bob.fallbackResponseType()));
             
             // pipeline
             pipeline(bob, source, analyser);
@@ -106,7 +120,7 @@ public class Bootstrapper {
             returnType = analyser.returnType(bob.originalHandler);
         }
         
-        Class<?> raw = ReifiedGenerics.rawType(returnType);
+        Class<?> raw = TypeLiteral.rawType(returnType);
         
         bob.execution(execution(raw, bob));
     }
@@ -141,7 +155,7 @@ public class Bootstrapper {
             };
         }
         
-        /* VOID */
+        /* void */
         if (void.class == raw) {
             final Route.Handler handler = bob.handler();
             return ctx -> {
@@ -161,7 +175,7 @@ public class Bootstrapper {
     
     private Route.Execution defaultExecution(Route.Builder bob) {
         final Route.Handler handler = bob.handler();
-        final Renderer renderer = bob.renderer();
+        //final Renderer renderer = bob.renderer();
         
         return ctx -> {
             
@@ -174,7 +188,7 @@ public class Bootstrapper {
                         ctx.resp().status(200);
                     } else {
                 
-                        byte[] rendered = renderer.render(ctx, result);
+                        byte[] rendered = engine.render(ctx.resp().contentType()).render(ctx, result);
                         
                         if (rendered != null) {
                             System.out.println("Response has not been handled");

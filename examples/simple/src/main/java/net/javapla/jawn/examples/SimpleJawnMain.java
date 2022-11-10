@@ -43,6 +43,7 @@ public class SimpleJawnMain extends Jawn {
         get("/plaintext", ctx -> MESSAGE_BUFFER.duplicate());//ctx -> ctx.resp().respond(MESSAGE_BUFFER.duplicate()));
         
         post("/post", ctx -> {
+            System.out.println(ctx.req().contentType());
             System.out.println(ctx.req().body().value(StandardCharsets.UTF_8));
         });
         
