@@ -44,7 +44,8 @@ public class SimpleJawnMain extends Jawn {
         
         post("/post", ctx -> {
             System.out.println(ctx.req().contentType());
-            System.out.println(ctx.req().body().value(StandardCharsets.UTF_8));
+            JsonResponse parse = ctx.req().parse(JsonResponse.class);
+            System.out.println(parse);
         });
         
         get("/json", () -> {

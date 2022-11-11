@@ -23,10 +23,12 @@ public interface Body {
     
     ReadableByteChannel channel();
     
-    
-    
     default String value(Charset charset) {
         return new String(bytes(), charset);
+    }
+    
+    default boolean hasData() {
+        return true;
     }
     
     
@@ -146,6 +148,11 @@ public interface Body {
             @Override
             public ReadableByteChannel channel() {
                 return Channels.newChannel(stream());
+            }
+            
+            @Override
+            public boolean hasData() {
+                return bytes.length > 0;
             }
         };
     }

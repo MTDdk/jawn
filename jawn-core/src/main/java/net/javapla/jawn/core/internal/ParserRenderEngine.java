@@ -2,7 +2,6 @@ package net.javapla.jawn.core.internal;
 
 import java.io.File;
 import java.io.InputStream;
-import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
@@ -14,10 +13,10 @@ import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Parser;
 import net.javapla.jawn.core.Renderer;
 import net.javapla.jawn.core.Status;
+import net.javapla.jawn.core.Up;
 
-public class ParserRenderEngine {
+public class ParserRenderEngine implements Parser.ParserProvider {
     
-    private final Parser   SIMPLE_PARSER = new SimpleParser();
     private final Renderer SIMPLE_RENDERER = new SimpleRenderer();
     
     private final Map<MediaType, Parser>   parsers = new HashMap<>();
@@ -30,13 +29,11 @@ public class ParserRenderEngine {
     
 
     public ParserRenderEngine add(MediaType type, Parser parser) {
-        
         parsers.put(type, parser);
         return this;
     }
     
     public ParserRenderEngine add(MediaType type, Renderer renderer) {
-        
         if (renderer instanceof Renderer.TemplateRenderer) {
             
         } else {
@@ -47,8 +44,8 @@ public class ParserRenderEngine {
     }
     
     
-    Parser parser(MediaType type) {
-        return parsers.getOrDefault(type, SIMPLE_PARSER);
+    public Parser get(MediaType type) {
+        return parsers.getOrDefault(type, (ctx, t) -> {throw Up.UnsupportedMediaType(type.name());});
     }
     Renderer render(MediaType type) {
         return renderers.getOrDefault(type, SIMPLE_RENDERER);
@@ -71,6 +68,7 @@ public class ParserRenderEngine {
                 return null;
             }
             
+            /** File */
             if (value instanceof FileChannel) {
                 ctx.resp().respond((FileChannel) value);
                 return null;
@@ -88,6 +86,7 @@ public class ParserRenderEngine {
                 return null;
             }
             
+            /** bytes */
             if (value instanceof ByteBuffer) {
                 ctx.resp().respond((ByteBuffer) value);
                 return null;
@@ -119,13 +118,4 @@ public class ParserRenderEngine {
         };
     }
     
-    final class SimpleParser implements Parser {
-
-        @Override
-        public Object parse(Context ctx, Type type) throws Exception {
-            return null;
-        }
-        
-    }
-
 }

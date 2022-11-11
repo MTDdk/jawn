@@ -21,6 +21,7 @@ public final class Route {
     //private final Renderer renderer;
     private final Type returnType;
     private final Execution exec;
+    final Parser.ParserProvider parsers;
     
     Route(
             HttpMethod method,
@@ -30,7 +31,8 @@ public final class Route {
             //List<MediaType> responseType, 
             MediaType consumes,
             //Renderer renderer,
-            Type returnType, Execution exec) {
+            Type returnType, Execution exec, 
+            Parser.ParserProvider parsers) {
         this.method = method;
         this.path = path;
         this.handler = handler;
@@ -40,6 +42,7 @@ public final class Route {
         //this.renderer = renderer;
         this.returnType = returnType;
         this.exec = exec; 
+        this.parsers = parsers;
     }
 
     public boolean matches(String uri) {
@@ -79,7 +82,7 @@ public final class Route {
     }
     
     public void execute(Context ctx) {
-        //((AbstractContext)ctx).route = this;
+        ((AbstractContext)ctx).route = this;
             
         /*try {
         
@@ -216,6 +219,9 @@ public final class Route {
         Class<?> controller();
     }
     
+    /**
+     * Promise to handle all exceptions
+     */
     public static interface Execution {
         void execute(Context ctx);
     }
@@ -337,6 +343,12 @@ public final class Route {
             return returnType;
         }
         
+        private Parser.ParserProvider parsers;
+        public Builder parsers(Parser.ParserProvider provider) {
+            this.parsers = provider;
+            return this;
+        }
+        
         public Route build() {
             return 
                 new Route(
@@ -349,7 +361,8 @@ public final class Route {
                     consumes,
                     //renderer,
                     returnType,
-                    exec
+                    exec,
+                    parsers
                 );
         }
     }

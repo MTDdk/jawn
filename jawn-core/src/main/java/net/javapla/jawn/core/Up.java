@@ -48,6 +48,9 @@ public abstract class Up extends RuntimeException {
     public static Up.BadMediaType BadMediaType(String msg) {
         return new Up.BadMediaType(msg);
     }
+    public static Up.UnsupportedMediaType UnsupportedMediaType(String msg) {
+        return new Up.UnsupportedMediaType(msg);
+    }
     public static Up.NotAcceptable NotAcceptable(String contentType) {
         return new Up.NotAcceptable(contentType);
     }
@@ -131,6 +134,12 @@ public abstract class Up extends RuntimeException {
     public static class BadMediaType extends Up {
         public BadMediaType(String msg) {
             super(Status.BAD_REQUEST, msg);
+        }
+    }
+    
+    public static class UnsupportedMediaType extends Up {
+        public UnsupportedMediaType(String message) {
+            super(Status.UNSUPPORTED_MEDIA_TYPE, message);
         }
     }
     

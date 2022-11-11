@@ -1,5 +1,6 @@
 package net.javapla.jawn.core;
 
+import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public abstract class AbstractContext implements Context {
     
     
     // ** Route **
-    //Route route;
+    Route route;
     /*void route(Route route) {
         this.route = route;
     }
@@ -59,7 +60,6 @@ public abstract class AbstractContext implements Context {
     
     // ** Framework specific shortcuts
     public abstract String requestHeader(String name);
-    
     MediaType accept(List<MediaType> responseTypes) {
         if (responseTypes.isEmpty()) return null;
         
@@ -93,13 +93,19 @@ public abstract class AbstractContext implements Context {
     
     
     
-    /*protected abstract class AbstractRequest implements Context.Request {
+    protected abstract class AbstractRequest implements Context.Request {
         
+        @SuppressWarnings("unchecked")
         @Override
-        public Body body() {
-            return null;
+        public <T> T parse(Type type) {
+            try {
+                return (T) route.parsers.get(contentType()).parse(AbstractContext.this, type);
+            } catch (Exception e) {
+                throw Up.ParseError("", e);
+            }
         }
-    }*/
+        
+    }
     
     protected abstract class AbstractResponse implements Context.Response {
         protected MediaType responseType = MediaType.PLAIN;

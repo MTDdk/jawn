@@ -60,7 +60,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     }
     
     private Request _req() {
-        return new Request() {
+        return new AbstractRequest() {
             private MultiList<FormItem> multipart = null;
             
             @Override
@@ -215,7 +215,9 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                     return respond(((FileInputStream)stream).getChannel());
                 }
                     // TODO handle RANGE header
-                    // Take note from io.undertow.server.handlers.ByteRangeHandler
+                    // Take note from io.undertow.server.handlers.ByteRangeHandler and io/undertow/conduits/ChunkedStreamSinkConduit.java
+                    // as well as io/undertow/conduits/FixedLengthStreamSourceConduit.java
+                
                     //long len = exchange.getResponseContentLength();
                     /*if (len == -1) { // the header did not exist
                         new UndertowStream(len, Channels.newChannel(stream), exchange, UndertowContext.this).start();

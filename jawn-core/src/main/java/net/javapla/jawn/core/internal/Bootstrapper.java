@@ -11,11 +11,11 @@ import net.javapla.jawn.core.Parser;
 import net.javapla.jawn.core.Plugin;
 import net.javapla.jawn.core.Plugin.Application;
 import net.javapla.jawn.core.Registry;
-import net.javapla.jawn.core.TypeLiteral;
 import net.javapla.jawn.core.Renderer;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
 import net.javapla.jawn.core.Status;
+import net.javapla.jawn.core.TypeLiteral;
 import net.javapla.jawn.core.internal.reflection.ClassSource;
 import net.javapla.jawn.core.internal.reflection.RouteClassAnalyser;
 
@@ -90,17 +90,24 @@ public class Bootstrapper {
         
         
         routes.map(bob -> {
+            
+            // Add parsers to later be available in Context.
+            // Unfortunately we have to let them be chained 
+            // through Route.Builder -> Route -> AbstractContext
+            bob.parsers(engine);
+            
+            
             // if the route has multiple possible response types, 
             // we want to look at the request's ACCEPT-header to pick one of them for us.
             if (bob.produces().size() > 1) {
                 bob.before(Route.RESPONSE_CONTENT_TYPE.apply(bob.produces()));
             } else {
-                // If just a single option is available then always set response type accordingly.
+                // If only a single option is available then always set response type accordingly.
                 bob.before(ctx -> ctx.resp().contentType(bob.fallbackResponseType()));
             }
             
             // TODO insert Parsers somewhere, so they are reachable from handlers
-            // which means they have to be reachable from Context
+            // which probably means they have to be reachable from Context
             
             //bob.renderer(engine.render(bob.fallbackResponseType()));
             
@@ -137,7 +144,7 @@ public class Bootstrapper {
                         ctx.resp().respond((byte[])result);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    ctx.error(e);
                 }
             };
         }
@@ -150,7 +157,7 @@ public class Bootstrapper {
                         ctx.resp().respond((ByteBuffer)result);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    ctx.error(e);
                 }
             };
         }
@@ -165,7 +172,7 @@ public class Bootstrapper {
                         ctx.resp().respond(Status.OK);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    ctx.error(e);
                 }
             };
         }
@@ -183,22 +190,18 @@ public class Bootstrapper {
                 Object result = handler.handle(ctx);
                 
                 if (!ctx.resp().isResponseStarted()) {
-                    
                     if (result instanceof Context) {
-                        ctx.resp().status(200);
+                        ctx.resp().respond(Status.OK);
                     } else {
-                
                         byte[] rendered = engine.render(ctx.resp().contentType()).render(ctx, result);
-                        
                         if (rendered != null) {
                             System.out.println("Response has not been handled");
                             ctx.resp().respond(Status.NO_CONTENT);
                         }
                     }
-                    
                 }
             } catch (Exception e ) {
-                e.printStackTrace();
+                ctx.error(e);
             }
         };
     }

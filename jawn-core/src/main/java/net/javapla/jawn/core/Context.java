@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -48,6 +49,7 @@ public interface Context {
         }
         
         Body body();
+        <T> T parse(Type type);
     }
     
     interface Response {
@@ -103,6 +105,15 @@ public interface Context {
     
     // ** Route **
     //Route route();
+    default void error(Throwable t) {
+        if (t instanceof Up) {
+            System.out.println( ((Up)t).getMessage() );
+            resp().status(((Up) t).status());
+        } else {
+            t.printStackTrace();
+        }
+    }
+
 
     interface FormItem extends Closeable {
         String name();

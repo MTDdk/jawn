@@ -10,4 +10,7 @@ public interface Parser {
     
     Object parse(Context ctx, Type type) throws Exception;
 
+    interface ParserProvider {
+        Parser get(MediaType type);
+    }
 }
