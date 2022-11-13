@@ -11,7 +11,7 @@ import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
 import io.undertow.server.HttpServerExchange;
 
-public class UndertowStream implements IoCallback, Runnable {
+class UndertowStream implements IoCallback, Runnable {
     
     private final long length;
     private final ReadableByteChannel source;

@@ -28,7 +28,7 @@ import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 
-public class UndertowHandler implements HttpHandler {
+class UndertowHandler implements HttpHandler {
     
     private final Router router;
     private final int bufferSize;

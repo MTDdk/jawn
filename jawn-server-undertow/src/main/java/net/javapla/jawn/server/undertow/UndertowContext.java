@@ -14,6 +14,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Deque;
 
+import io.undertow.Handlers;
 import io.undertow.connector.PooledByteBuffer;
 import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
@@ -30,6 +31,7 @@ import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Value;
+import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.StreamUtil;
 
@@ -112,6 +114,18 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                 if (body == null) body = Body.empty(); 
                 return body;
             }
+            
+            public void upgrade(WebSocket.Initialiser init) {
+                try {
+                    Handlers.websocket((exchange, channel) -> {
+                        UndertowWebSocket socket = new UndertowWebSocket(UndertowContext.this, channel);
+                        init.init(this, socket);
+                        socket.fireConnected();
+                    }).handleRequest(exchange);
+                } catch (Exception e) {
+                    throw Up.IO(e);
+                }
+            }
         };
     }
     
@@ -192,6 +206,14 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                 setChunked();
                 return new PrintWriter(new OutputStreamWriter(exchange.getOutputStream(), charset()));
             }*/
+            
+            // io.undertow.server.handlers.RedirectHandler
+            public Response redirect_found(String location) {
+                status(Status.FOUND);
+                exchange.getResponseHeaders().put(Headers.LOCATION, location);
+                exchange.getResponseSender().close(UndertowContext.this);
+                return this;
+            }
             
             @Override
             public Response respond(Status status) {
@@ -423,7 +445,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             exchange.startBlocking();
         }
     }
-    private void dispatch(Runnable action) {
+    void dispatch(Runnable action) {
         if (exchange.isInIoThread()) {
             exchange.dispatch(action);
         } else {
