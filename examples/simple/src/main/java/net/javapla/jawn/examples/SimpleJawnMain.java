@@ -8,21 +8,27 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 
 public class SimpleJawnMain extends Jawn {
     
+    private static final String MESSAGE = "Hello, World!";
     private static final ByteBuffer MESSAGE_BUFFER = ByteBuffer
-        .allocateDirect(13)
-        .put("Hello, World!".getBytes(StandardCharsets.US_ASCII))
+        .allocateDirect(MESSAGE.length())
+        .put(MESSAGE.getBytes(StandardCharsets.US_ASCII))
         .flip();
     
     {
         
-        get("/henning").after((ctx, result, error) -> {
-            System.out.println(ctx.resp().status());
+        get("/henning", Status.ACCEPTED).after((ctx, result, error) -> {
+            // TODO document why these are different in this specific case
+            System.out.println(ctx.resp().status()); // the result has not yet been added to the context at this point
+            System.out.println(result); // "after" is called directly after "handler", so context will not be finalised yet
         });
         get("/html", ctx -> ctx.resp().respond("<html><body><h1>Workzes</h1></body</html>".getBytes())).produces(MediaType.HTML);
+        
+        get("/redirect", ctx -> ctx.resp().redirectSeeOther("/henning"));
         
         get("/stream", ctx -> {
             ctx.resp().contentType(MediaType.HTML);
