@@ -21,6 +21,7 @@ public interface Context {
     
     // Often used headers
     static final String ACCEPT = "Accept";
+    static final String LOCATION = "Location";
     
     interface Request {
         HttpMethod httpMethod();
@@ -50,6 +51,8 @@ public interface Context {
         
         Body body();
         <T> T parse(Type type);
+        
+        void upgrade(WebSocket.Initialiser init);
     }
     
     interface Response {
@@ -57,18 +60,52 @@ public interface Context {
         
         Value header(String name);
         Response header(String name, String value);
-        Response status(int statusCode);
-        int status();
         Response removeHeader(String name);
         MediaType contentType();
         Response contentType(MediaType type);
         Response rendererContentType(MediaType type);
-        
         Response charset(Charset encoding);
         Charset charset();
         
+        
+        
+        Response status(int statusCode);
+        int status();
         default Response status(Status status) {
             return status(status.value());
+        }
+        
+        /**
+         * 301 Moved Permanently
+         * @see Status.MOVED_PERMANENTLY
+         * @param location
+         */
+        default void redirectPermanently(String location) {
+            header(LOCATION, location).respond(Status.MOVED_PERMANENTLY);
+        }
+        /**
+         * 302 Found
+         * @see Status.FOUND
+         * @param location
+         */
+        default void redirectFound(String location) {
+            header(LOCATION, location).respond(Status.FOUND);
+        }
+        /**
+         * 303 See Other
+         * @see Status.SEE_OTHER
+         * @param location
+         */
+        default void redirectSeeOther(String location) {
+            header(LOCATION, location).respond(Status.SEE_OTHER);
+        }
+        /**
+         * 307 Temporary Redirect
+         * @see Status.TEMPORARY_REDIRECT
+         * @param location
+         */
+        default void redirectTemporary(String location) {
+            header(LOCATION, location).respond(Status.TEMPORARY_REDIRECT);
         }
         
         OutputStream stream();
@@ -76,15 +113,44 @@ public interface Context {
             return new PrintWriter(new OutputStreamWriter(stream(), charset()));
         }
         
-        Response respond(Status status);
-        Response respond(ByteBuffer data);
-        Response respond(InputStream stream);
-        Response respond(FileChannel channel);
-        default Response respond(byte[] data) {
-            return respond(ByteBuffer.wrap(data));
+        /**
+         * This is a terminal operation
+         * @param status
+         */
+        void respond(Status status);
+        
+        /**
+         * This is a terminal operation
+         * @param data
+         */
+        void respond(ByteBuffer data);
+        
+        /**
+         * This is a terminal operation
+         * @param stream
+         */
+        void respond(InputStream stream);
+        
+        /**
+         * This is a terminal operation
+         * @param channel
+         */
+        void respond(FileChannel channel);
+        
+        /**
+         * This is a terminal operation
+         * @param data
+         */
+        default void respond(byte[] data) {
+            respond(ByteBuffer.wrap(data));
         }
-        default Response respond(String data) {
-            return respond(data.getBytes(charset()));
+        
+        /**
+         * This is a terminal operation
+         * @param data
+         */
+        default void respond(String data) {
+            respond(data.getBytes(charset()));
         }
         
         boolean isResponseStarted();
