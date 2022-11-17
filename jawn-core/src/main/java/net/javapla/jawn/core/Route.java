@@ -199,6 +199,7 @@ public final class Route {
         default Object handle(Context ctx) throws Exception {
             nothing(ctx);
             return null;
+            // return ctx; // TODO which is better?
         }
     }
     
@@ -226,6 +227,14 @@ public final class Route {
         void execute(Context ctx);
     }
     
+    // TODO
+    /*static class ExecutorTesting {
+        Execution create(Handler handler) {
+            return (ctx) -> {try { handler.handle(ctx); } catch (Throwable e) {}};
+        }
+    }*/
+    
+    
     public static interface RouteBuilder {
         RouteBuilder before(Before b);
         RouteBuilder after(After a);
@@ -250,6 +259,13 @@ public final class Route {
         //private ErrorHandler err;
 
         public Builder(HttpMethod method, String path, Handler handler) {
+            this.method = method;
+            this.path = path;
+            this.originalHandler = handler;
+            this.handler = handler;
+            //this.responseTypes.add(responseType);
+        }
+        public Builder(HttpMethod method, String path, NoResultHandler handler) {
             this.method = method;
             this.path = path;
             this.originalHandler = handler;
@@ -322,9 +338,14 @@ public final class Route {
         public Handler handler() {
             return handler;
         }
-        Execution exec;
-        public void execution(Execution exec) {
+        Execution exec; 
+        public Builder execution(Execution exec) {
             this.exec = exec;
+            return this;
+        }
+        Builder executor() { // TODO
+            this.exec = (ctx) -> {try { handler.handle(ctx); } catch (Throwable e) {}}; // simple/default execution
+            return this;
         }
         
         public Builder postResponse(OnComplete r) {
@@ -367,8 +388,8 @@ public final class Route {
         }
     }
     
-    public static final Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.NOT_FOUND)).build();
-    public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.METHOD_NOT_ALLOWED)).build();
+    public static final Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.NOT_FOUND)).executor().build();
+    public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.METHOD_NOT_ALLOWED)).executor().build();
     
     /** Set the response type based on what the request asked for in the ACCEPT-header  */
     /*public static final Route.Before RESPONSE_CONTENT_TYPE = (ctx) -> {
