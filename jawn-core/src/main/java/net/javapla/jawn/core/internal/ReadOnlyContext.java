@@ -85,22 +85,22 @@ public class ReadOnlyContext implements Context {
             }
 
             @Override
-            public Response respond(Status status) {
+            public void respond(Status status) {
                 throw new IllegalStateException(M);
             }
 
             @Override
-            public Response respond(ByteBuffer data) {
+            public void respond(ByteBuffer data) {
                 throw new IllegalStateException(M);
             }
 
             @Override
-            public Response respond(InputStream stream) {
+            public void respond(InputStream stream) {
                 throw new IllegalStateException(M);
             }
 
             @Override
-            public Response respond(FileChannel channel) {
+            public void respond(FileChannel channel) {
                 throw new IllegalStateException(M);
             }
             

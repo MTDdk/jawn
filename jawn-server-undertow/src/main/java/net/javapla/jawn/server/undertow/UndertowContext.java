@@ -23,6 +23,7 @@ import io.undertow.server.handlers.form.FormData;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
+import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
 import net.javapla.jawn.core.AbstractContext;
 import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
@@ -115,17 +116,27 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                 return body;
             }
             
+            @Override
             public void upgrade(WebSocket.Initialiser init) {
-                try {
-                    Handlers.websocket((exchange, channel) -> {
+                if (WS == null) { // TODO (at least needs to be synchronised in some form)
+                    
+                    // "Handlers.websocket" Handles all the handshaking and upgrading.
+                    // Automatically responds with a 404 if the headers are not correctly set
+                    WS = Handlers.websocket((exchange, channel) -> { // WebSocketConnectionCallback.onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel)
                         UndertowWebSocket socket = new UndertowWebSocket(UndertowContext.this, channel);
                         init.init(this, socket);
                         socket.fireConnected();
-                    }).handleRequest(exchange);
+                    });
+                }
+                
+                try {
+                    WS.handleRequest(exchange);
                 } catch (Exception e) {
                     throw Up.IO(e);
                 }
+                
             }
+            static WebSocketProtocolHandshakeHandler WS;
         };
     }
     
@@ -207,34 +218,26 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                 return new PrintWriter(new OutputStreamWriter(exchange.getOutputStream(), charset()));
             }*/
             
-            // io.undertow.server.handlers.RedirectHandler
-            public Response redirect_found(String location) {
-                status(Status.FOUND);
-                exchange.getResponseHeaders().put(Headers.LOCATION, location);
-                exchange.getResponseSender().close(UndertowContext.this);
-                return this;
-            }
-            
             @Override
-            public Response respond(Status status) {
+            public void respond(Status status) {
                 status(status.value());
                 //exchange.getResponseSender().send(EMPTY_BODY, UndertowContext.this);
                 // Makes sure that the onComplete handler gets called
-                exchange.getResponseSender().close(UndertowContext.this);
-                return this;
+                //exchange.getResponseSender().close(UndertowContext.this);
+                onComplete(exchange, null); // does exchange.endExchange();
             }
             
             @Override
-            public Response respond(ByteBuffer data) {
+            public void respond(ByteBuffer data) {
                 exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, Long.toString(data.remaining()));
                 exchange.getResponseSender().send(data, UndertowContext.this);
-                return this;
             }
             
             @Override
-            public Response respond(InputStream stream) {
+            public void respond(InputStream stream) {
                 if (stream instanceof FileInputStream) {
-                    return respond(((FileInputStream)stream).getChannel());
+                    respond(((FileInputStream)stream).getChannel());
+                    return;
                 }
                     // TODO handle RANGE header
                     // Take note from io.undertow.server.handlers.ByteRangeHandler and io/undertow/conduits/ChunkedStreamSinkConduit.java
@@ -292,11 +295,10 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                     }
                 });
                 
-                return this;
             }
             
             @Override
-            public Response respond(FileChannel channel) {
+            public void respond(FileChannel channel) {
                 // TODO handle byte-range
                 /*setChunked();
                 long len;
@@ -322,7 +324,6 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                 }*/
                 
                 dispatch(() -> exchange.getResponseSender().transferFrom(channel, UndertowContext.this));
-                return this;
             }
             
             @Override
@@ -335,6 +336,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
 
     @Override
     public Request req() {
+        // each context ought to be single-threaded, so no need to synchronise
         if (req == null) this.req = _req();
         return req;
     }

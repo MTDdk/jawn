@@ -33,15 +33,15 @@ public class Jawn {
         
     }
     
-    protected Route.RouteBuilder get(final String path) {
+    /*protected Route.RouteBuilder get(final String path) {
         return _route(HttpMethod.GET, path, (ctx) -> ctx.resp().respond(Status.OK));
-    }
+    }*/
     protected Route.RouteBuilder get(final String path, final Route.Handler handler) {
         return _route(HttpMethod.GET, path, handler);
     }
-    /*protected Route.RouteBuilder get(final String path, final Route.NoResultHandler handler) {
+    protected Route.RouteBuilder get(final String path, final Route.NoResultHandler handler) {
         return _route(HttpMethod.GET, path, handler);
-    }*/
+    }
     protected Route.RouteBuilder get(final String path, final Route.ZeroArgHandler handler) {
         return _route(HttpMethod.GET, path, handler);
     }
@@ -85,6 +85,12 @@ public class Jawn {
     private final LinkedList<String> pathPrefix = new LinkedList<>();
     private String _pathPrefix(String path) {
         return pathPrefix.stream().collect(Collectors.joining("","",path));
+    }
+    
+    
+    protected Route.Builder ws(final String path, WebSocket.Initialiser initialiser) {
+        // Only GET is supported to start the handshake
+        return _route(HttpMethod.GET, path, new WebSocket.WebSocketHandler(initialiser));
     }
     
     
