@@ -1,5 +1,11 @@
 package net.javapla.jawn.core;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
+import java.util.Objects;
+import java.util.Optional;
+
 import com.typesafe.config.Config;
 
 import net.javapla.jawn.core.util.StreamUtil;
@@ -10,12 +16,22 @@ public interface Server {
     
     Server stop();
     
+    static boolean connectionResetByPeer(final Throwable cause) {
+        return Optional.ofNullable(cause)
+            .filter(IOException.class::isInstance)
+            .map(x -> x.getMessage())
+            .filter(Objects::nonNull)
+            .map(String::toLowerCase)
+            .map(message -> message.contains("reset by peer") || message.contains("broken pipe"))
+            .orElse(cause instanceof ClosedChannelException || cause instanceof EOFException);
+    }
+    
     // TODO 
-    public static boolean isEntityBodyAllowed(int code) {
-        if(code >= 100 && code < 200) {
+    static boolean isEntityBodyAllowed(int code) {
+        if (code >= 100 && code < 200) {
             return false;
         }
-        if(code == 204 || code == 304) {
+        if (code == 204 || code == 304) {
             return false;
         }
         return true;

@@ -50,7 +50,7 @@ public class JacksonModule implements Plugin, Renderer, Parser {
     @Override
     public Object parse(Context ctx, Type type) throws Exception {
         Body body = ctx.req().body();
-        if (!body.hasData()) return null;
+        if (!body.isPresent()) return null;
         if (body.inMemory()) {
             if (type == JsonNode.class) return reader.readTree(body.bytes());
             

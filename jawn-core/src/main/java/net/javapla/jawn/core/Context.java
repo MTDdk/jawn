@@ -179,6 +179,14 @@ public interface Context {
             t.printStackTrace();
         }
     }
+    default void error(String message, Throwable t) {
+        if (t instanceof Up) {
+            System.out.println( message ); // TODO log instead
+            resp().status(((Up) t).status());
+        } else {
+            t.printStackTrace();
+        }
+    }
 
 
     interface FormItem extends Closeable {

@@ -8,6 +8,7 @@ public class WebSocketJawnMain extends Jawn {
         ws("/ws", (req, init) -> {
             init.onConnect(ws -> System.out.println(ws));
             init.onMessage((ws,msg) -> System.out.println(ws));
+            init.onClose((ws, status) -> System.out.println(ws));
         });
     }
     

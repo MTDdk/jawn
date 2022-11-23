@@ -6,12 +6,13 @@ import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import net.javapla.jawn.core.util.StreamUtil;
 
-public interface Body {
+public interface Body extends Value {
     
     byte[] bytes();
 
@@ -27,7 +28,13 @@ public interface Body {
         return new String(bytes(), charset);
     }
     
-    default boolean hasData() {
+    @Override
+    default String value() {
+        return value(StandardCharsets.UTF_8);
+    }
+    
+    @Override
+    default boolean isPresent() {
         return true;
     }
     
@@ -71,6 +78,7 @@ public interface Body {
             public ReadableByteChannel channel() {
                 return Channels.newChannel(stream);
             }
+
         };
     }
     
@@ -123,39 +131,46 @@ public interface Body {
     
     
     static Body of(final byte[] bytes) {
-        return new Body() {
-
-            @Override
-            public byte[] bytes() {
-                return bytes;
-            }
-
-            @Override
-            public long size() {
-                return bytes.length;
-            }
-            
-            @Override
-            public boolean inMemory() {
-                return true;
-            }
-
-            @Override
-            public InputStream stream() {
-                return new ByteArrayInputStream(bytes);
-            }
-
-            @Override
-            public ReadableByteChannel channel() {
-                return Channels.newChannel(stream());
-            }
-            
-            @Override
-            public boolean hasData() {
-                return bytes.length > 0;
-            }
-        };
+        return new ByteArrayBody(bytes);
     }
     
     final static Body EMPTY = of(new byte[0]);
+
+    static class ByteArrayBody implements Body {
+        private final byte[] bytes;
+    
+        ByteArrayBody(byte[] bytes) {
+            this.bytes = bytes;
+        }
+    
+        @Override
+        public byte[] bytes() {
+            return bytes;
+        }
+    
+        @Override
+        public long size() {
+            return bytes.length;
+        }
+    
+        @Override
+        public boolean inMemory() {
+            return true;
+        }
+    
+        @Override
+        public InputStream stream() {
+            return new ByteArrayInputStream(bytes);
+        }
+    
+        @Override
+        public ReadableByteChannel channel() {
+            return Channels.newChannel(stream());
+        }
+    
+        @Override
+        public boolean isPresent() {
+            return bytes.length > 0;
+        }
+    }
 }
