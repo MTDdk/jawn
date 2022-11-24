@@ -14,7 +14,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Deque;
 
-import io.undertow.Handlers;
 import io.undertow.connector.PooledByteBuffer;
 import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
@@ -23,7 +22,6 @@ import io.undertow.server.handlers.form.FormData;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
-import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
 import net.javapla.jawn.core.AbstractContext;
 import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
@@ -118,25 +116,8 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             
             @Override
             public void upgrade(WebSocket.Initialiser init) {
-                if (WS == null) { // TODO (at least needs to be synchronised in some form)
-                    
-                    // "Handlers.websocket" Handles all the handshaking and upgrading.
-                    // Automatically responds with a 404 if the headers are not correctly set
-                    WS = Handlers.websocket((exchange, channel) -> { // WebSocketConnectionCallback.onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel)
-                        UndertowWebSocket socket = new UndertowWebSocket(UndertowContext.this, channel);
-                        init.init(this, socket);
-                        socket.fireConnected();
-                    });
-                }
-                
-                try {
-                    WS.handleRequest(exchange);
-                } catch (Exception e) {
-                    throw Up.IO(e);
-                }
-                
+                UndertowWebSocket.newConnection(init, UndertowContext.this, exchange);
             }
-            static WebSocketProtocolHandshakeHandler WS;
         };
     }
     

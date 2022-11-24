@@ -160,16 +160,16 @@ public interface Context {
     Response resp();
     
     
-    // ** Attributes **
+    // ** Attributes ** //
     Context attribute(final String name, final Object value);
     Optional<Object> attribute(final String name);
     Context removeAttribute(final String name);
     
     
-    // ** Session **
+    // ** Session ** //
     
     
-    // ** Route **
+    // ** Route ** //
     //Route route();
     default void error(Throwable t) {
         if (t instanceof Up) {

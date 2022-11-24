@@ -35,6 +35,65 @@ public interface WebSocket {
         Listener onClose(WebSocket.OnClose callback);
     }
     
+    
+
+    /** Max message size for websocket (128K). */
+    int MAX_BUFFER_SIZE = 128 * 1024;
+    
+    boolean isOpen();
+    
+    Context context();
+    
+    WebSocket send(String message, boolean broadcast);
+    
+    default WebSocket send(String message) {
+        return send(message, false);
+    }
+    
+    WebSocket send(byte[] message, boolean broadcast);
+    
+    // ** Attributes ** //
+    default WebSocket attribute(final String name, final Object value) {
+        context().attribute(name, value);
+        return this;
+    }
+    default Optional<Object> attribute(final String name) {
+        return context().attribute(name);
+    }
+    default WebSocket removeAttribute(final String name) {
+        context().removeAttribute(name);
+        return this;
+    }
+    
+    
+    
+    class WebSocketHandler implements Route.Handler {
+        private WebSocket.Initialiser initialiser;
+    
+        public WebSocketHandler(WebSocket.Initialiser initialiser) {
+          this.initialiser = initialiser;
+        }
+    
+        @Override
+        public Object handle(Context ctx) throws Exception {
+            // Only GET is supported to start the handshake, but we assume this has been dealt with prior to getting this far
+            
+            boolean webSocket = ctx.req().header("Upgrade").value("").equalsIgnoreCase("websocket");
+            if (webSocket) {
+                ctx.req().upgrade(initialiser);
+            }
+            if (!ctx.resp().isResponseStarted()) {
+                ctx.resp().status(Status.NOT_FOUND);
+            }
+            
+            //return Results.status(Status.OK/*ACCEPTED*/);//.contentType(MediaType.JSON);//TODO
+            //return ctx;
+            return null;
+        }
+        
+        private static final long serialVersionUID = 706588927746912140L;
+    }
+
     class WebSocketMessage extends Body.ByteArrayBody {
 
         public WebSocketMessage(byte[] bytes) {
@@ -261,35 +320,5 @@ public interface WebSocket {
             }
             return bob.toString();
         }
-    }
-
-    /** Max message size for websocket (128K). */
-    int MAX_BUFFER_SIZE = 128 * 1024;
-    
-    class WebSocketHandler implements Route.Handler {
-        private WebSocket.Initialiser initialiser;
-
-        public WebSocketHandler(WebSocket.Initialiser initialiser) {
-          this.initialiser = initialiser;
-        }
-
-        @Override
-        public Object handle(Context ctx) throws Exception {
-            // Only GET is supported to start the handshake, but we assume this has been dealt with prior to getting this far
-            
-            boolean webSocket = ctx.req().header("Upgrade").value("").equalsIgnoreCase("websocket");
-            if (webSocket) {
-                ctx.req().upgrade(initialiser);
-            }
-            if (!ctx.resp().isResponseStarted()) {
-                ctx.resp().status(Status.NOT_FOUND);
-            }
-            
-            //return Results.status(Status.OK/*ACCEPTED*/);//.contentType(MediaType.JSON);//TODO
-            //return ctx;
-            return null;
-        }
-        
-        private static final long serialVersionUID = 706588927746912140L;
     }
 }
