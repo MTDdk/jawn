@@ -204,25 +204,27 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             }*/
             
             @Override
-            public void respond(Status status) {
+            public Response respond(Status status) {
                 status(status.value());
                 //exchange.getResponseSender().send(EMPTY_BODY, UndertowContext.this);
                 // Makes sure that the onComplete handler gets called
                 //exchange.getResponseSender().close(UndertowContext.this);
                 onComplete(exchange, null); // does exchange.endExchange();
+                return this;
             }
             
             @Override
-            public void respond(ByteBuffer data) {
+            public Response respond(ByteBuffer data) {
                 exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, Long.toString(data.remaining()));
                 exchange.getResponseSender().send(data, UndertowContext.this);
+                return this;
             }
             
             @Override
-            public void respond(InputStream stream) {
+            public AbstractResponse respond(InputStream stream) {
                 if (stream instanceof FileInputStream) {
                     respond(((FileInputStream)stream).getChannel());
-                    return;
+                    return this;
                 }
                     // TODO handle RANGE header
                     // Take note from io.undertow.server.handlers.ByteRangeHandler and io/undertow/conduits/ChunkedStreamSinkConduit.java
@@ -280,10 +282,12 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                     }
                 });
                 
+                return this;
+                
             }
             
             @Override
-            public void respond(FileChannel channel) {
+            public Response respond(FileChannel channel) {
                 // TODO handle byte-range
                 /*setChunked();
                 long len;
@@ -309,6 +313,8 @@ final class UndertowContext extends AbstractContext implements IoCallback {
                 }*/
                 
                 dispatch(() -> exchange.getResponseSender().transferFrom(channel, UndertowContext.this));
+                
+                return this;
             }
             
             @Override

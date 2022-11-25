@@ -80,32 +80,37 @@ public interface Context {
          * @see Status.MOVED_PERMANENTLY
          * @param location
          */
-        default void redirectPermanently(String location) {
+        default Response redirectPermanently(String location) {
             header(LOCATION, location).respond(Status.MOVED_PERMANENTLY);
+            return this;
         }
         /**
          * 302 Found
          * @see Status.FOUND
          * @param location
          */
-        default void redirectFound(String location) {
+        default Response redirectFound(String location) {
             header(LOCATION, location).respond(Status.FOUND);
+            return this;
         }
         /**
          * 303 See Other
          * @see Status.SEE_OTHER
          * @param location
          */
-        default void redirectSeeOther(String location) {
+        default Response redirectSeeOther(String location) {
             header(LOCATION, location).respond(Status.SEE_OTHER);
+            return this;
         }
         /**
          * 307 Temporary Redirect
          * @see Status.TEMPORARY_REDIRECT
          * @param location
+         * @return 
          */
-        default void redirectTemporary(String location) {
+        default Response redirectTemporary(String location) {
             header(LOCATION, location).respond(Status.TEMPORARY_REDIRECT);
+            return this;
         }
         
         OutputStream stream();
@@ -117,40 +122,40 @@ public interface Context {
          * This is a terminal operation
          * @param status
          */
-        void respond(Status status);
+        Response respond(Status status);
         
         /**
          * This is a terminal operation
          * @param data
          */
-        void respond(ByteBuffer data);
+        Response respond(ByteBuffer data);
         
         /**
          * This is a terminal operation
          * @param stream
          */
-        void respond(InputStream stream);
+        Response respond(InputStream stream);
         
         /**
          * This is a terminal operation
          * @param channel
          */
-        void respond(FileChannel channel);
+        Response respond(FileChannel channel);
         
         /**
          * This is a terminal operation
          * @param data
          */
-        default void respond(byte[] data) {
-            respond(ByteBuffer.wrap(data));
+        default Response respond(byte[] data) {
+            return respond(ByteBuffer.wrap(data));
         }
         
         /**
          * This is a terminal operation
          * @param data
          */
-        default void respond(String data) {
-            respond(data.getBytes(charset()));
+        default Response respond(String data) {
+            return respond(data.getBytes(charset()));
         }
         
         boolean isResponseStarted();

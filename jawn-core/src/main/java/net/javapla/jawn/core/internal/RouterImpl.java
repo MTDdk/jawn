@@ -282,6 +282,10 @@ final class RouterImpl implements Router {
             return current.routes[method];
         }
         
+        public final Route findRoute(final String path, final HttpMethod method) {
+            return findRoute(path.toCharArray(), method.ordinal());
+        }
+        
         /**
          * Whenever a wildcard is detected during ordinary traversal,
          * continue to the next concrete URL segment - if segment found, continue,

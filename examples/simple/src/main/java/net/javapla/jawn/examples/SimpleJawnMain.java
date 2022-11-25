@@ -52,6 +52,7 @@ public class SimpleJawnMain extends Jawn {
             System.out.println(ctx.req().contentType());
             JsonResponse parse = ctx.req().parse(JsonResponse.class);
             System.out.println(parse);
+            return Status.ACCEPTED;
         });
         
         get("/json", () -> {

@@ -94,6 +94,11 @@ public final class Route {
         if (post != null) post.complete(new ReadOnlyContext(ctx));
     }
     
+    @Override
+    public String toString() {
+        return "[" + method + "] " + path;
+    }
+    
 
     // TODO create static route which listens on /favicon.ico
     //public static final Handler FAVICON = ctx -> ctx.resp().respond(Status.NOT_FOUND);
@@ -193,7 +198,7 @@ public final class Route {
         }
     }
     
-    public static interface NoResultHandler extends Handler {
+    /*public static interface NoResultHandler extends Handler {
         void nothing(Context ctx) throws Exception;
         
         default Object handle(Context ctx) throws Exception {
@@ -201,7 +206,7 @@ public final class Route {
             return null;
             // return ctx; // TODO which is better?
         }
-    }
+    }*/
     
     public static interface ZeroArgHandler extends Handler {
         Object zero() throws Exception;
@@ -265,13 +270,13 @@ public final class Route {
             this.handler = handler;
             //this.responseTypes.add(responseType);
         }
-        public Builder(HttpMethod method, String path, NoResultHandler handler) {
+        /*public Builder(HttpMethod method, String path, NoResultHandler handler) {
             this.method = method;
             this.path = path;
             this.originalHandler = handler;
             this.handler = handler;
             //this.responseTypes.add(responseType);
-        }
+        }*/
         
         public Builder consumes(MediaType type) {
             this.consumes = type;
@@ -388,8 +393,8 @@ public final class Route {
         }
     }
     
-    public static final Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.NOT_FOUND)).executor().build();
-    public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> ctx.resp().respond(Status.METHOD_NOT_ALLOWED)).executor().build();
+    public static final Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> {ctx.resp().respond(Status.NOT_FOUND);return ctx;}).executor().build();
+    public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> {ctx.resp().respond(Status.METHOD_NOT_ALLOWED);return ctx;}).executor().build();
     
     /** Set the response type based on what the request asked for in the ACCEPT-header  */
     /*public static final Route.Before RESPONSE_CONTENT_TYPE = (ctx) -> {

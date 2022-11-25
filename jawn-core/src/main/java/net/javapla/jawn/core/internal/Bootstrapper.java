@@ -1,14 +1,11 @@
 package net.javapla.jawn.core.internal;
 
-import java.lang.reflect.Type;
-import java.nio.ByteBuffer;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Parser;
 import net.javapla.jawn.core.Plugin;
@@ -17,8 +14,6 @@ import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Renderer;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
-import net.javapla.jawn.core.Status;
-import net.javapla.jawn.core.TypeLiteral;
 import net.javapla.jawn.core.internal.reflection.ClassSource;
 import net.javapla.jawn.core.internal.reflection.RouteClassAnalyser;
 
@@ -108,6 +103,8 @@ public class Bootstrapper {
         
         routes.map(bob -> {
             
+            return Pipeline.compile(source, analyser, engine, bob);
+            /*
             // Add parsers to later be available in Context.
             // Unfortunately we have to let them be chained 
             // through Route.Builder -> Route -> AbstractContext
@@ -131,14 +128,14 @@ public class Bootstrapper {
             // pipeline
             pipeline(bob, source, analyser);
                 
-            return bob.build();
+            return bob.build();*/
         }).forEach(router::addRoute);
 
         
         source.close();
     }
     
-    private void pipeline(Route.Builder bob, ClassSource source, RouteClassAnalyser analyser) {
+    /*private void pipeline(Route.Builder bob, ClassSource source, RouteClassAnalyser analyser) {
         Type returnType = bob.returnType();
         if (returnType == null) {
             returnType = analyser.returnType(bob.originalHandler);
@@ -151,7 +148,7 @@ public class Bootstrapper {
     
     private Route.Execution execution(Class<?> raw, final Route.Builder bob) {
         
-        /* Bytes */
+        // ** Bytes ** //
         if (byte[].class == raw) {
             final Route.Handler handler = bob.handler();
             return ctx -> {
@@ -179,7 +176,7 @@ public class Bootstrapper {
             };
         }
         
-        /* void */
+        // ** void ** //
         if (void.class == raw) {
             final Route.Handler handler = bob.handler();
             return ctx -> {
@@ -221,5 +218,5 @@ public class Bootstrapper {
                 ctx.error(e);
             }
         };
-    }
+    }*/
 }
