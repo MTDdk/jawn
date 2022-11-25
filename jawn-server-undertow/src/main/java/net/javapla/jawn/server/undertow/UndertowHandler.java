@@ -31,17 +31,21 @@ import net.javapla.jawn.core.Up;
 class UndertowHandler implements HttpHandler {
     
     private final Router router;
+    private final ServerConfig config;
+    
     private final int bufferSize;
     private final long maxRequestSize;
     private final boolean addDefaultHeaders;
     
     private final FormParserFactory parserFactory;
 
-    public UndertowHandler(Router router, ServerConfig config) {
+    public UndertowHandler(Router router, ServerConfig serverConfig) {
         this.router = router;
-        this.bufferSize = config.bufferSize();
-        this.maxRequestSize = config.maxRequestSize();
-        this.addDefaultHeaders = config.serverDefaultHeaders();
+        this.config = serverConfig;
+        
+        this.bufferSize = serverConfig.bufferSize();
+        this.maxRequestSize = serverConfig.maxRequestSize();
+        this.addDefaultHeaders = serverConfig.serverDefaultHeaders();
         
         this.parserFactory = FormParserFactory.builder(false)
             .addParser(new MultiPartParserDefinition(TMP_DIR)
@@ -55,7 +59,7 @@ class UndertowHandler implements HttpHandler {
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
                 
-        UndertowContext context = new UndertowContext(exchange);
+        UndertowContext context = new UndertowContext(exchange, config);
         
         HeaderMap headers = exchange.getResponseHeaders();
         headers.put(Headers.CONTENT_TYPE, Context.Response.STANDARD_HEADER_CONTENT_TYPE);

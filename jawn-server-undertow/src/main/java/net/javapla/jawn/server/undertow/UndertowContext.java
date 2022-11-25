@@ -27,6 +27,7 @@ import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Value;
@@ -39,6 +40,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     //private static final ByteBuffer EMPTY_BODY = ByteBuffer.allocate(0);
     
     private final HttpServerExchange exchange;
+    private final ServerConfig config;
     
     final HttpMethod method;
     final String path;
@@ -47,8 +49,10 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     private final Response resp;
     Body body = null;
 
-    UndertowContext(HttpServerExchange exchange) {
+
+    UndertowContext(final HttpServerExchange exchange, final ServerConfig config) {
         this.exchange = exchange;
+        this.config = config;
         this.path = exchange.getRequestPath();
         
         //this.req = _req();
@@ -116,7 +120,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             
             @Override
             public void upgrade(WebSocket.Initialiser init) {
-                UndertowWebSocket.newConnection(init, UndertowContext.this, exchange);
+                UndertowWebSocket.newConnection(init, UndertowContext.this, exchange, config);
             }
         };
     }

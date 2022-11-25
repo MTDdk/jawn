@@ -98,6 +98,7 @@ public class Jawn {
     protected void install(Plugin plugin) {
         //Server service = loader.findFirst().get();
         //registry.register(Server.class, server);
+        // TODO
     }
     
     
@@ -120,7 +121,7 @@ public class Jawn {
         }
         
         // start server
-        ServerConfig serverConfig = Server.ServerConfig.from(null);
+        ServerConfig serverConfig = Server.ServerConfig.from(booter.config().getConfig("server"));
         try {
             server.get().start(serverConfig, moduleConfig);
         } catch (Exception e) {

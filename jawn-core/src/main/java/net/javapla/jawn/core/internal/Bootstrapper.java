@@ -5,6 +5,9 @@ import java.nio.ByteBuffer;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Parser;
@@ -22,26 +25,36 @@ import net.javapla.jawn.core.internal.reflection.RouteClassAnalyser;
 public class Bootstrapper {
     
     private final ParserRenderEngine engine = new ParserRenderEngine();
+    
     private final ClassLoader classLoader;
+    private final Config config;
+    
     
     public Bootstrapper(ClassLoader classLoader) {
         this.classLoader = classLoader;
+        this.config = ConfigFactory.parseResources(classLoader, "jawn.conf");
     }
     
     public synchronized Application boot(Stream<Route.Builder> routes) {
         
         RouterImpl router = new RouterImpl();
+        InjectionRegistry registry = new InjectionRegistry();
         
         Plugin.Application moduleConfig = new Plugin.Application() {
 
             @Override
             public Registry.ServiceRegistry registry() {
-                return new InjectionRegistry();
+                return registry;
             }
 
             @Override
             public Router router() {
                 return router;
+            }
+            
+            @Override
+            public Config config() {
+                return config;
             }
 
             @Override
@@ -62,14 +75,18 @@ public class Bootstrapper {
             
         };
         
-        installPlugins(moduleConfig);
+        registerCoreClasses(registry, config);
         
-        registerCoreClasses();
+        installPlugins(moduleConfig);
         
         
         parseRoutes(routes, router);
         
         return moduleConfig;
+    }
+    
+    public Config config() {
+        return config;
     }
     
     private void installPlugins(Plugin.Application moduleConfig) {
@@ -80,8 +97,8 @@ public class Bootstrapper {
         });
     }
     
-    private void registerCoreClasses() {
-        
+    private void registerCoreClasses(InjectionRegistry registry, Config config) {
+        registry.register(Config.class, config);
     }
     
     private void parseRoutes(Stream<Route.Builder> routes, RouterImpl router) {

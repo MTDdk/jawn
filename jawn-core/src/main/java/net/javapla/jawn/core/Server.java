@@ -55,7 +55,11 @@ public interface Server {
         private int bufferSize = StreamUtil._16KB;
         private long maxRequestSize = 10_485_760; // 10MB
         
+        public final Config config;
         
+        public ServerConfig(Config config) {
+            this.config = config;
+        }
         
         public String host() {
             return host;
@@ -106,7 +110,7 @@ public interface Server {
         }
         
         public static ServerConfig from(Config config) {
-            ServerConfig options = new ServerConfig();
+            ServerConfig options = new ServerConfig(config);
             
             if (config != null && config.hasPath("server")) {
                 if (config.hasPath("server.bufferSize")) {

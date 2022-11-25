@@ -1,5 +1,7 @@
 package net.javapla.jawn.core;
 
+import com.typesafe.config.Config;
+
 public interface Plugin {
     
     
@@ -12,6 +14,8 @@ public interface Plugin {
         Registry.ServiceRegistry registry();
         
         Router router();
+        
+        Config config();
         
         void renderer(MediaType type, Renderer renderer);
         

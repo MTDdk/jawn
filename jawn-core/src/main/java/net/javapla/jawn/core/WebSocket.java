@@ -42,8 +42,6 @@ public interface WebSocket {
     
     boolean isOpen();
     
-    Context context();
-    
     WebSocket send(String message, boolean broadcast);
     
     default WebSocket send(String message) {
@@ -51,6 +49,8 @@ public interface WebSocket {
     }
     
     WebSocket send(byte[] message, boolean broadcast);
+    
+    /*Context context();
     
     // ** Attributes ** //
     default WebSocket attribute(final String name, final Object value) {
@@ -63,7 +63,7 @@ public interface WebSocket {
     default WebSocket removeAttribute(final String name) {
         context().removeAttribute(name);
         return this;
-    }
+    }*/
     
     
     

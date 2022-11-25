@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.xnio.ChannelListener;
 import org.xnio.IoUtils;
 
 import io.undertow.Handlers;
@@ -20,7 +21,6 @@ import io.undertow.websockets.core.CloseMessage;
 import io.undertow.websockets.core.WebSocketCallback;
 import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Server;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.WebSocket;
@@ -42,10 +42,12 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
     
     private final UndertowContext context;
     private final WebSocketChannel channel;
+    private final Server.ServerConfig config;
 
-    public UndertowWebSocket(UndertowContext context, WebSocketChannel channel) {
+    public UndertowWebSocket(UndertowContext context, WebSocketChannel channel, Server.ServerConfig config) {
         this.context = context;
         this.channel = channel;
+        this.config  = config;
     }
 
     /* WebSocket.Initialiser */
@@ -80,11 +82,6 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
     }
     
     @Override
-    public Context context() {
-        return context;
-    }
-    
-    @Override
     public WebSocket send(String message, boolean broadcast) {
         return send(message.getBytes(StandardCharsets.UTF_8) ,broadcast);
     }
@@ -114,7 +111,10 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
         // If this was not already handled by Undertow, we could do it here
         
         // timeout - read some configs
-        long timeout = TimeUnit.MINUTES.toMillis(5);
+        long timeout = 
+            config.config.hasPath("websocket.idleTimeout") 
+            ? config.config.getDuration("websocket.idleTimeout", TimeUnit.MILLISECONDS) 
+            : TimeUnit.MINUTES.toMillis(5);
         if (timeout > 0) {
             channel.setIdleTimeout(timeout);
         }
@@ -227,7 +227,7 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
                 // By utilising AtomicReference for "onError" like such:
                 // OnClose ref = AtomicReference<OnClose>.getAndSet(null); ref.onClose(this, status);
                 // we could guarantee that the callback only gets called once.
-                // But it is - until further notice - deemed not necessary
+                // But this is - until further notice - deemed not necessary
                 
                 onClose.onClose(this, status);
             }
@@ -239,12 +239,12 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
     }
     
     
-    static void newConnection(WebSocket.Initialiser init, UndertowContext context, HttpServerExchange exchange) {
+    static void newConnection(WebSocket.Initialiser init, UndertowContext context, HttpServerExchange exchange, Server.ServerConfig config) {
         // Save for later use in the WebSocketProtocolHandshakeHandler
         exchange.putAttachment(CONTEXT_KEY, context);
         
         
-        WebSocketProtocolHandshakeHandler handler = SOCKET_HANDLERS.computeIfAbsent(init, p -> 
+        WebSocketProtocolHandshakeHandler handler = SOCKET_HANDLERS.computeIfAbsent(init, key -> 
             // "Handlers.websocket" handles all the handshaking and upgrading.
             // Automatically responds with a 404 if the headers are not correctly set
             Handlers.websocket((wsexchange, channel) -> { // WebSocketConnectionCallback.onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel)
@@ -255,15 +255,13 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
                 // utilise the already built-in mechanisms for peer connections 
                 // (as these are saved within WebSocketProtocolHandshakeHandler)
                 UndertowContext current = wsexchange.getAttachment(CONTEXT_KEY);
-                UndertowWebSocket socket = new UndertowWebSocket(current, channel);
-                init.init(current.req(), socket);
+                UndertowWebSocket socket = new UndertowWebSocket(current, channel, config);
+                key.init(current.req(), socket);
                 socket.fireConnected();
                 
                 
                 // Cleanup task
-                // Whenever a channel is closed, have a look at how many other channels for the same handler/route are currently
-                // available and remove the WebSocketProtocolHandshakeHandler if it is no longer needed.
-                channel.addCloseTask(ch -> { if (ch.getPeerConnections().size() == 0) SOCKET_HANDLERS.remove(init); });
+                channel.addCloseTask(cleanupTask(key));
             })
         );
     
@@ -280,4 +278,10 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
     // already refers to this single Route
     final static ConcurrentHashMap<WebSocket.Initialiser, WebSocketProtocolHandshakeHandler> SOCKET_HANDLERS = new ConcurrentHashMap<>(2);
     final static AttachmentKey<UndertowContext> CONTEXT_KEY = AttachmentKey.create(UndertowContext.class);
+    
+    // Whenever a channel is closed, have a look at how many other channels for the same handler/route are currently
+    // available and remove the WebSocketProtocolHandshakeHandler if it is no longer needed.
+    static ChannelListener<WebSocketChannel> cleanupTask(WebSocket.Initialiser init) {
+        return ch -> { if (ch.getPeerConnections().size() == 0) SOCKET_HANDLERS.remove(init); };
+    }
 }
