@@ -1,3 +1,4 @@
+// gradle uberJar
 task uberJar(type: Jar) {
   archiveClassifier = 'uber'
 
