@@ -27,6 +27,7 @@ public interface Context {
         HttpMethod httpMethod();
         String path();
         String queryString();
+        
         Value header(String name);
         
         default boolean accept(MediaType contentType) {

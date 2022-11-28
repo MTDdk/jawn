@@ -5,30 +5,48 @@ import java.util.Optional;
 
 public interface WebSocket {
     
+    @FunctionalInterface
     interface Initialiser {
         void init(Context.Request req, Listener init);
     }
     
+    @FunctionalInterface
     interface OnConnect {
         void onConnect(WebSocket ws);
     }
     
+    @FunctionalInterface
     interface OnMessage {
         void onMessage(WebSocket ws, WebSocketMessage message);
     }
     
+    @FunctionalInterface
     interface OnClose {
         void onClose(WebSocket ws, WebSocketCloseStatus status);
     }
     
+    @FunctionalInterface
     interface OnError {
         void onError(WebSocket ws, Throwable cause);
+    }
+    
+    @FunctionalInterface
+    interface OnPing {
+        void onPing(WebSocket ws, WebSocketMessage message);
+    }
+    
+    @FunctionalInterface
+    interface OnPong {
+        void onPong(WebSocket ws, WebSocketMessage message);
     }
     
     interface Listener {
         Listener onConnect(WebSocket.OnConnect callback);
         
         Listener onMessage(WebSocket.OnMessage callback);
+        
+        /*Listener onPing(WebSocket.OnPing callback);
+        Listener onPong(WebSocket.OnPong callback);*/
         
         Listener onError(WebSocket.OnError callback);
         
@@ -42,13 +60,13 @@ public interface WebSocket {
     
     boolean isOpen();
     
-    WebSocket send(String message, boolean broadcast);
+    WebSocket send(String message/*, boolean broadcast*/);
     
-    default WebSocket send(String message) {
+    /*default WebSocket send(String message) {
         return send(message, false);
-    }
+    }*/
     
-    WebSocket send(byte[] message, boolean broadcast);
+    WebSocket send(byte[] message/*, boolean broadcast*/);
     
     /*Context context();
     
@@ -64,6 +82,18 @@ public interface WebSocket {
         context().removeAttribute(name);
         return this;
     }*/
+    
+    WebSocket close(WebSocketCloseStatus status);
+    
+    default WebSocket close() {
+        return close(WebSocketCloseStatus.NORMAL);
+    }
+    
+    WebSocket ping(String message);
+    
+    default WebSocket ping() {
+        return ping("ping");
+    }
     
     
     

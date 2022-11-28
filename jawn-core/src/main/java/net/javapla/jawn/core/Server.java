@@ -16,6 +16,8 @@ public interface Server {
     
     Server stop();
     
+    
+    
     static boolean connectionResetByPeer(final Throwable cause) {
         return Optional.ofNullable(cause)
             .filter(IOException.class::isInstance)

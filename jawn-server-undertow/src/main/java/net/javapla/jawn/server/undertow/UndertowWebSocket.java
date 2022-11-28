@@ -3,17 +3,14 @@ package net.javapla.jawn.server.undertow;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.xnio.ChannelListener;
 import org.xnio.IoUtils;
 
 import io.undertow.Handlers;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.util.AttachmentKey;
 import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
 import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.BufferedTextMessage;
@@ -37,6 +34,8 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
     
     private WebSocket.OnConnect onConnect;
     private WebSocket.OnMessage onMessage;
+    /*private WebSocket.OnPing    onPing;
+    private WebSocket.OnPong    onPong;*/
     private WebSocket.OnError   onError;
     private WebSocket.OnClose   onClose;
     
@@ -62,6 +61,18 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
         onMessage = callback;
         return this;
     }
+    
+    /*@Override
+    public Listener onPing(OnPing callback) {
+        onPing = callback;
+        return this;
+    }
+    
+    @Override
+    public Listener onPong(OnPong callback) {
+        onPong = callback;
+        return this;
+    }*/
 
     @Override
     public WebSocket.Listener onError(OnError callback) {
@@ -81,27 +92,46 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
         return open.get() && channel.isOpen();
     }
     
+    /*@Override
+    public Context context() {
+        return context;
+    }*/
+    
     @Override
-    public WebSocket send(String message, boolean broadcast) {
-        return send(message.getBytes(StandardCharsets.UTF_8) ,broadcast);
+    public WebSocket send(String message/*, boolean broadcast*/) {
+        return send(message.getBytes(StandardCharsets.UTF_8)/* ,broadcast*/);
     }
     
     @Override
-    public WebSocket send(byte[] message, boolean broadcast) {
-        if (broadcast) {
+    public WebSocket send(byte[] message/*, boolean broadcast*/) {
+        /*if (broadcast) {
             for (WebSocketChannel peer : channel.getPeerConnections()) {
                 if (peer.isOpen())
                     WebSockets.sendText(ByteBuffer.wrap(message), peer, this);
             }
-        } else {
-            if (isOpen())
-                WebSockets.sendText(ByteBuffer.wrap(message), channel, this);
+        } else */{
+            if (isOpen()) {
+                try {
+                    WebSockets.sendText(ByteBuffer.wrap(message), channel, this);
+                } catch (Throwable e) {
+                    onError(channel, e);
+                }
+            } else {
+                onError(channel, new IllegalStateException("Attempting to send a message to a closed web socket"));
+            }
         }
         return this;
     }
     
-    public void ping() {
-        WebSockets.sendPing(ByteBuffer.wrap("ping".getBytes(StandardCharsets.UTF_8)), channel, this);
+    @Override
+    public WebSocket close(WebSocketCloseStatus status) {
+        handleClose(status);
+        return this;
+    }
+    
+    public WebSocket ping(String message) {
+        WebSockets.sendPing(ByteBuffer.wrap(message.getBytes(StandardCharsets.UTF_8)), channel, this);
+        return this;
     }
 
     void fireConnected() {
@@ -139,6 +169,29 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
             context.dispatch(wrap(() -> onMessage.onMessage(this, WebSocket.WebSocketMessage.create(message.getData(), StandardCharsets.UTF_8))));
         }
     }
+
+    // Default behaviour is already what we want
+    // The channel respond to a ping with the same message as a pong, and automatically discards any pong messages
+    /*@Override
+    protected void onFullPingMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {
+        super.onFullPingMessage(channel, message);
+        System.out.println("onFullPingMessage");
+    }
+    
+    @Override
+    protected void onFullPongMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {
+        super.onFullPongMessage(channel, message);
+        
+        StringBuilder bob = new StringBuilder();
+        ByteBuffer[] data = message.getData().getResource();
+        if (data.length > 0 ) {
+            for (ByteBuffer buffer : data) {
+                bob.append(new String(buffer.array(), StandardCharsets.UTF_8));
+            }
+        }
+        
+        System.out.println("onFullPongMessage  [" +  bob + "]");
+    }*/
     // TODO handle binary messages?
     
     @Override
@@ -183,13 +236,12 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
     /* WebSocketCallback<Void> */
     @Override
     public void complete(WebSocketChannel channel, Void context) {
-        IoUtils.safeClose(channel);
+        // NOOP
     }
     
     @Override
-    public void onError(WebSocketChannel channel, Void context, Throwable throwable) {
-        IoUtils.safeClose(channel);
-        UndertowWebSocket.this.onError(channel, throwable);
+    public void onError(WebSocketChannel channel, Void ctx, Throwable throwable) {
+        context.error("WebSocket.send resulted in exception", throwable);
     }
     
     
@@ -217,7 +269,18 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
             
             // send close
             if (!channel.isCloseFrameSent()) { // TODO this check necessary?
-                WebSockets.sendClose(status.code(), status.reason(), channel, this);
+                WebSockets.sendClose(status.code(), status.reason(), channel, new WebSocketCallback<UndertowWebSocket>() {
+                    @Override
+                    public void complete(WebSocketChannel channel, UndertowWebSocket socket) {
+                        IoUtils.safeClose(channel);
+                    }
+
+                    @Override
+                    public void onError(WebSocketChannel channel, UndertowWebSocket socket, Throwable throwable) {
+                        IoUtils.safeClose(channel);
+                        socket.onError(channel, throwable);
+                    }
+                }, this);
             }
         }
         
@@ -238,13 +301,15 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
         }*/
     }
     
+
     
     static void newConnection(WebSocket.Initialiser init, UndertowContext context, HttpServerExchange exchange, Server.ServerConfig config) {
         // Save for later use in the WebSocketProtocolHandshakeHandler
-        exchange.putAttachment(CONTEXT_KEY, context);
+        //exchange.putAttachment(CONTEXT_KEY, context);
+        // Purely used for "broadcast" functionality - which we might not actually want
         
         
-        WebSocketProtocolHandshakeHandler handler = SOCKET_HANDLERS.computeIfAbsent(init, key -> 
+        WebSocketProtocolHandshakeHandler handler = //SOCKET_HANDLERS.computeIfAbsent(init, key -> 
             // "Handlers.websocket" handles all the handshaking and upgrading.
             // Automatically responds with a 404 if the headers are not correctly set
             Handlers.websocket((wsexchange, channel) -> { // WebSocketConnectionCallback.onConnect(WebSocketHttpExchange exchange, WebSocketChannel channel)
@@ -254,16 +319,18 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
                 // context unaware and therefore reusable, which in turn makes it able for us to
                 // utilise the already built-in mechanisms for peer connections 
                 // (as these are saved within WebSocketProtocolHandshakeHandler)
-                UndertowContext current = wsexchange.getAttachment(CONTEXT_KEY);
+                //UndertowContext current = wsexchange.getAttachment(CONTEXT_KEY);
+                UndertowContext current = context;//wsexchange.getAttachment(CONTEXT_KEY);
                 UndertowWebSocket socket = new UndertowWebSocket(current, channel, config);
-                key.init(current.req(), socket);
+                init.init(current.req(), socket);
                 socket.fireConnected();
                 
                 
                 // Cleanup task
-                channel.addCloseTask(cleanupTask(key));
-            })
-        );
+                //channel.addCloseTask(cleanupTask(key));
+                // nothing to clean up if we do not re-use handlers for broadcast functionality
+            });
+        //);
     
         try {
             handler.handleRequest(exchange);
@@ -276,12 +343,12 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
     // which in turn will keep a list of its current sessions.
     // This eliminates the need for storing the handlers based on the Route.originalPath, as the WebSocket.Initialiser
     // already refers to this single Route
-    final static ConcurrentHashMap<WebSocket.Initialiser, WebSocketProtocolHandshakeHandler> SOCKET_HANDLERS = new ConcurrentHashMap<>(2);
-    final static AttachmentKey<UndertowContext> CONTEXT_KEY = AttachmentKey.create(UndertowContext.class);
+    //final static ConcurrentHashMap<WebSocket.Initialiser, WebSocketProtocolHandshakeHandler> SOCKET_HANDLERS = new ConcurrentHashMap<>(2);
+    //final static AttachmentKey<UndertowContext> CONTEXT_KEY = AttachmentKey.create(UndertowContext.class);
     
     // Whenever a channel is closed, have a look at how many other channels for the same handler/route are currently
     // available and remove the WebSocketProtocolHandshakeHandler if it is no longer needed.
-    static ChannelListener<WebSocketChannel> cleanupTask(WebSocket.Initialiser init) {
+    /*static ChannelListener<WebSocketChannel> cleanupTask(WebSocket.Initialiser init) {
         return ch -> { if (ch.getPeerConnections().size() == 0) SOCKET_HANDLERS.remove(init); };
-    }
+    }*/
 }
