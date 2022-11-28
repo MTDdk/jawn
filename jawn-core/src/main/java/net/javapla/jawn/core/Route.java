@@ -253,7 +253,7 @@ public final class Route {
     public static class Builder implements RouteBuilder {
         
         public final HttpMethod method;
-        public final String path;
+        public final String path; // original path (might contain path params)
         public final Handler originalHandler; // action
         private Handler handler; // pipeline
         private OnComplete post;

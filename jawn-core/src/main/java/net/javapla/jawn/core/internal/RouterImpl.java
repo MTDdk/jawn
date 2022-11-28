@@ -135,6 +135,10 @@ final class RouterImpl implements Router {
             throw Up.RouteAlreadyExists(lookup.toString());
         }
         
+        if (PathParser.wildcarded(route.path())) {
+            
+        }
+        
         if (route.isUrlFullyQualified()) {
             trie.insert(route.path(), route);
         } else {
@@ -244,7 +248,7 @@ final class RouterImpl implements Router {
         }
         
         /**
-         * Cannot handle if a route starts with '/'
+         * Can only handle if a route starts with '/'
          * @param arr
          * @return
          */
@@ -270,6 +274,7 @@ final class RouterImpl implements Router {
                         do {
                             // jump to next segment
                             while(++i < arr.length && arr[i] != '/');
+                            if (i == arr.length) return null; 
                             i++;
                         } while (current.nodes[arr[i]] == null);
                         current = current.nodes[arr[i]];

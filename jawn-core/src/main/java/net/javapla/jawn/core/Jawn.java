@@ -90,7 +90,7 @@ public class Jawn {
     
     protected Route.Builder ws(final String path, WebSocket.Initialiser initialiser) {
         // Only GET is supported to start the handshake
-        return _route(HttpMethod.GET, path, new WebSocket.WebSocketHandler(initialiser));
+        return _route(HttpMethod.GET, path, new WebSocket.WebSocketHandler(initialiser)).returnType(Context.class);
     }
     
     
