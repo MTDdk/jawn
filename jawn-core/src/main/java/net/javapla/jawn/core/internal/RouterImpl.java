@@ -1,6 +1,8 @@
 package net.javapla.jawn.core.internal;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import net.javapla.jawn.core.HttpMethod;
@@ -135,7 +137,7 @@ final class RouterImpl implements Router {
             throw Up.RouteAlreadyExists(lookup.toString());
         }
         
-        if (PathParser.wildcarded(route.path())) {
+        if (TriePathParser.hasParams(route.path())) {
             
         }
         
@@ -187,7 +189,7 @@ final class RouterImpl implements Router {
                 current = child;
             }
             current.routes[route.method().ordinal()] = route;
-            current.routes[HttpMethod.HEAD.ordinal()] = route;
+            current.routes[HttpMethod.HEAD.ordinal()] = route; // TODO should be handled correctly (HEAD == GET ?) and by whatever is retrieving
             current.end = true;
         }
         
@@ -352,7 +354,7 @@ final class RouterImpl implements Router {
                 return routes[method.ordinal()];
             }
             
-            /*@Override
+            @Override
             public String toString() {
                 StringBuilder bob = new StringBuilder();
                 for (TrieNode node : nodes) {
@@ -362,7 +364,76 @@ final class RouterImpl implements Router {
                     }
                 }
                 return content + " " + bob.toString();
-            }*/
+            }
         }
     }
+    
+    static class TriePathParser {
+        
+        // /{paramname}
+        private static final char PARAM_START = '{'; 
+        private static final char PARAM_END = '}'; 
+        
+        static TriePath parse(String originalPath) {
+            if (!hasParams(originalPath))
+                return new TriePath(originalPath);
+            
+            
+            int l = originalPath.length();
+            
+            LinkedList<String> pn = new LinkedList<>();
+            StringBuilder applicable = new StringBuilder(l);
+            
+            for (int i = 0; i < l; i++) {
+                char c = originalPath.charAt(i);
+                
+                if (c == PARAM_START) {
+                    // continue to end
+                    int end = i;
+                    while (++end < l && (originalPath.charAt(end) != PARAM_END && originalPath.charAt(end) != '/'));
+                    
+                    
+                    pn.add(originalPath.substring(i+1, end));
+                    applicable.append(RouteTrie.WILDCARD); // replace the parameter with a wildcard
+                    
+                    
+                    //if (end >= l) end = l-1;
+                    if (end < l && originalPath.charAt(end) != PARAM_END) end--; // we found '/' before '}', and we want the next char to be '/'
+                    i = end; // jump
+                    continue;
+                    // foul
+                    // throw Up.ParseError("Route seems to be errorneous -> " + originalPath);
+                } else {
+                    applicable.append(c);
+                }
+            }
+            
+            
+            return new TriePath(originalPath, applicable.toString(), pn);
+        }
+        
+        static boolean hasParams(String path) {
+            return path.indexOf(PARAM_START) > 0;
+        }
+
+        // TODO could be a record
+        static class TriePath {
+            final String original;
+            final String trieApplicable;
+            final List<String> parameterNames;
+            final boolean hasParams;
+            
+            TriePath(String o) {
+                this(o, o, Collections.emptyList());
+            }
+            TriePath(String o, String w, List<String> pn) {
+                original = o;
+                trieApplicable = w;
+                parameterNames = pn;
+                hasParams = !pn.isEmpty();
+            }
+        }
+
+    }
+
 }

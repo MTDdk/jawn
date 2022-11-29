@@ -21,9 +21,9 @@ public class WebSocketJawnMain extends Jawn {
     static int count = 0;
     {
         // ?type=occurrence
-        // ?type=fullstate,occurrence
+        // ?type=full_state,occurrence
         // ?type=occurrence[kills,round_start]
-        // ?type=occurrence[round_ended:winCondition[bomb_exploded]]
+        // ?type=occurrence[round_ended:winCondition=bomb_exploded]
         // ?snapshot=620 (from this)
         ws("/ws", (req, init) -> {
             System.out.println(req.path());
