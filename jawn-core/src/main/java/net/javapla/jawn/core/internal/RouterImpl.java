@@ -75,7 +75,7 @@ final class RouterImpl implements Router {
             
         // try with wildcard search
         route = trie.findRoute(requestUri.toCharArray(), httpMethod);
-        if (route != null && route.matches(requestUri)) {
+        if (route != null /*&& route.matches(requestUri)*/) {
             
             trie.insert(requestUri, route); // cache it for later fast look-up
             return route;
@@ -102,7 +102,7 @@ final class RouterImpl implements Router {
     }
     
     private Route goThroughCustom(final HttpMethod httpMethod, final String requestUri) {
-        for (Route r : routes) {
+        /*for (Route r : routes) {
             if (r.matches(requestUri)) {
                 
                 if (r.method() == httpMethod || HttpMethod.HEAD == httpMethod) {
@@ -114,7 +114,7 @@ final class RouterImpl implements Router {
                 //throwThisIfNothingFound = () -> new Up.RouteFoundWithDifferentMethod(httpMethod.name());
                 return Route.METHOD_NOT_ALLOWED;
             }
-        }
+        }*/
         
         //throw throwThisIfNothingFound.get();
         return Route.NOT_FOUND;//ctx -> ctx.resp().respond(Status.NOT_FOUND);
@@ -132,8 +132,8 @@ final class RouterImpl implements Router {
 
     @Override
     public void addRoute(final Route route) {
-        Route lookup = trie.findRoute(route.wildcardedPath().toCharArray(), route.method().ordinal());
-        if (lookup != null && route.method() != HttpMethod.HEAD && route.wildcardedPath().equals(lookup.wildcardedPath())) {
+        Route lookup = trie.findRoute(route.path().toCharArray(), route.method().ordinal());
+        if (lookup != null && route.method() != HttpMethod.HEAD && route.path().equals(lookup.path())) {
             throw Up.RouteAlreadyExists(lookup.toString());
         }
         
@@ -141,12 +141,12 @@ final class RouterImpl implements Router {
             
         }
         
-        if (route.isUrlFullyQualified()) {
+        //if (route.isUrlFullyQualified()) {
             trie.insert(route.path(), route);
-        } else {
+        /*} else {
             trie.insert(route.wildcardedPath(), route);
             this.routes.add(route);
-        }
+        }*/
     }
     
     public void recompileRoutes(final List<Route> newOrAlteredRoutes) {
@@ -368,48 +368,47 @@ final class RouterImpl implements Router {
         }
     }
     
+    
+    /**
+     * @author MTD (github/mtddk)
+     */
     static class TriePathParser {
         
         // /{paramname}
-        private static final char PARAM_START = '{'; 
-        private static final char PARAM_END = '}'; 
+        private static final char PARAM_START = '{';
+        private static final char PARAM_END = '}';
         
-        static TriePath parse(String originalPath) {
-            if (!hasParams(originalPath))
-                return new TriePath(originalPath);
+        static TriePath parse(Route route) {
+            String originalPath = route.path();
+            if (!hasParams(originalPath)) return new TriePath(route);
             
-            
-            int l = originalPath.length();
-            
+            int length = originalPath.length();
             LinkedList<String> pn = new LinkedList<>();
-            StringBuilder applicable = new StringBuilder(l);
+            StringBuilder applicable = new StringBuilder(length);
             
-            for (int i = 0; i < l; i++) {
+            for (int i = 0; i < length; i++) {
                 char c = originalPath.charAt(i);
                 
                 if (c == PARAM_START) {
                     // continue to end
                     int end = i;
-                    while (++end < l && (originalPath.charAt(end) != PARAM_END && originalPath.charAt(end) != '/'));
+                    while (++end < length && (originalPath.charAt(end) != PARAM_END && originalPath.charAt(end) != '/'));
                     
-                    
+                    // add the parameter name to list
                     pn.add(originalPath.substring(i+1, end));
                     applicable.append(RouteTrie.WILDCARD); // replace the parameter with a wildcard
                     
-                    
-                    //if (end >= l) end = l-1;
-                    if (end < l && originalPath.charAt(end) != PARAM_END) end--; // we found '/' before '}', and we want the next char to be '/'
+                    if (end < length && originalPath.charAt(end) != PARAM_END) end--; // we found '/' and no '}', and we want the next char to be '/'
+                    // throw Up.ParseError("Route seems to be erroneous -> " + originalPath); // foul
+
                     i = end; // jump
                     continue;
-                    // foul
-                    // throw Up.ParseError("Route seems to be errorneous -> " + originalPath);
                 } else {
                     applicable.append(c);
                 }
             }
             
-            
-            return new TriePath(originalPath, applicable.toString(), pn);
+            return new TriePath(route, applicable.toString(), pn);
         }
         
         static boolean hasParams(String path) {
@@ -418,19 +417,27 @@ final class RouterImpl implements Router {
 
         // TODO could be a record
         static class TriePath {
-            final String original;
+            final Route route;
+            /**
+             * A route that can go into the Trie 
+             * (i.e. might contain wildcards that can be handled by the Trie or simply be a static route)
+             */
             final String trieApplicable;
             final List<String> parameterNames;
             final boolean hasParams;
             
-            TriePath(String o) {
-                this(o, o, Collections.emptyList());
+            TriePath(Route r) {
+                this(r, r.path(), Collections.emptyList());
             }
-            TriePath(String o, String w, List<String> pn) {
-                original = o;
+            TriePath(Route r, String w, List<String> pn) {
+                route = r;
                 trieApplicable = w;
                 parameterNames = pn;
                 hasParams = !pn.isEmpty();
+            }
+            
+            void readParameters(String requestPath) {
+                
             }
         }
 

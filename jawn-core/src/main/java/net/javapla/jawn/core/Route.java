@@ -45,21 +45,21 @@ public final class Route {
         this.parsers = parsers;
     }
 
-    public boolean matches(String uri) {
+    /*public boolean matches(String uri) {
         return path.equals(uri);
-    }
+    }*/
 
     public HttpMethod method() {
         return method;
     }
 
-    public String wildcardedPath() {
+    /*public String wildcardedPath() {
         return path;
-    }
+    }*/
 
-    public boolean isUrlFullyQualified() {
+    /*public boolean isUrlFullyQualified() {
         return true;
-    }
+    }*/
 
     public String path() {
         return path;
@@ -262,6 +262,10 @@ public final class Route {
         //private Renderer renderer;
         private Type returnType;
         //private ErrorHandler err;
+        
+        public Builder(String path) {
+            this(HttpMethod.GET, path, ctx -> ctx);
+        }
 
         public Builder(HttpMethod method, String path, Handler handler) {
             this.method = method;
@@ -396,7 +400,7 @@ public final class Route {
     public static final Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> {ctx.resp().respond(Status.NOT_FOUND);return ctx;}).executor().build();
     public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> {ctx.resp().respond(Status.METHOD_NOT_ALLOWED);return ctx;}).executor().build();
     
-    /** Set the response type based on what the request asked for in the ACCEPT-header  */
+    /* Set the response type based on what the request asked for in the ACCEPT-header  */
     /*public static final Route.Before RESPONSE_CONTENT_TYPE = (ctx) -> {
         AbstractContext ac = (AbstractContext) ctx;
         MediaType acceptable = ac.accept();

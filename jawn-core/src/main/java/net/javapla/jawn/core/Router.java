@@ -1,5 +1,7 @@
 package net.javapla.jawn.core;
 
+import java.util.Map;
+
 public interface Router {
     
     /*interface Match {
@@ -19,4 +21,14 @@ public interface Router {
         //retrieve(context).execute(context);
         //((Route.RouteImpl)retrieve(context.req().httpMethod(), context.req().path())).exec.execute(context);
     }*/
+    
+    interface RoutePath extends Route.Execution {
+        Route route();
+        
+        /**
+         * Path parameters
+         * @return
+         */
+        Map<String, String> pathParameters();
+    }
 }
