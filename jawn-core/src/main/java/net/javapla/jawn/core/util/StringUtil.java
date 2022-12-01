@@ -58,8 +58,8 @@ public abstract class StringUtil {
         
         final int len = input.length();
         
-        int lastMark = 0;
-        for (int i = 0; i < len; i++) {
+        int lastMark = 1;
+        for (int i = lastMark; i < len; i++) {
             if (input.charAt(i) == delimiter) {
                 callbackPerSubstring.accept(input.substring(lastMark, i));
                 lastMark = i + 1;// 1 == delimiter length
@@ -69,7 +69,7 @@ public abstract class StringUtil {
     }
     
     /**
-     * 
+     * split(String[]{"--mode=prod","--performance=medium"}, '=') -> ("--mode","prod"),("--performance","medium")
      * @param lines
      * @param delimiter
      * @param callback

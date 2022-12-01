@@ -15,12 +15,12 @@ public final class Route {
     private final HttpMethod method;
     private final String path;
     private final Handler handler;
-    private final OnComplete post;
+    final OnComplete post;
     private final MediaType consumes;
     //private final List<MediaType> produces;
     //private final Renderer renderer;
     private final Type returnType;
-    private final Execution exec;
+    final Execution exec;
     final Parser.ParserProvider parsers;
     
     Route(
@@ -81,8 +81,9 @@ public final class Route {
         return returnType;
     }
     
-    public void execute(Context ctx) {
-        ((AbstractContext)ctx).route = this;
+    public void execute(Context ctx, Router.RoutePath path) {
+        //((AbstractContext)ctx).route = this;
+        ((AbstractContext)ctx).routePath = path;
             
         /*try {
         

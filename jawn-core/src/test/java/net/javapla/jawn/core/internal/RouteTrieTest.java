@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.internal.RouterImpl.TriePath;
+import net.javapla.jawn.core.internal.RouterImpl.TriePathParser;
 
 class RouteTrieTest {
 
@@ -16,15 +18,15 @@ class RouteTrieTest {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
         String path = "/route/to/redemption";
-        Route route = route(HttpMethod.GET, path);
+        TriePath route = new TriePath(route(HttpMethod.GET, path));
         
-        trie.insert(path, route);
+        trie.insert(route);
         
-        Route exact = trie.findExact(path, HttpMethod.GET);
+        TriePath exact = trie.findExact(path, HttpMethod.GET);
         assertNotNull(exact);
-        assertEquals(path, exact.path());
+        assertEquals(path, exact.route.path());
         
-        Route exact2 = trie.findExact(path.toCharArray(), HttpMethod.GET);
+        TriePath exact2 = trie.findExact(path.toCharArray(), HttpMethod.GET);
         assertEquals(exact, exact2);
     }
     
@@ -33,21 +35,21 @@ class RouteTrieTest {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
         String path = "/route/*/redemption";
-        Route route = route(HttpMethod.GET, path);
+        TriePath route = new TriePath(route(HttpMethod.GET, path));
         
-        trie.insert(path, route);
+        trie.insert(route);
         
-        Route r = trie.findRoute("/route/to/redemption", HttpMethod.GET);
+        TriePath r = trie.findRoute("/route/to/redemption", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.path());
+        assertEquals(path, r.route.path());
         
         r = trie.findRoute("/route/along/the/way/to/redemption", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.path());
+        assertEquals(path, r.route.path());
         
         r = trie.findRoute("/route/along_the_way_to/redemption", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.path());
+        assertEquals(path, r.route.path());
     }
     
     @Test
@@ -55,12 +57,12 @@ class RouteTrieTest {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
         String path = "/route/*/redemption";
-        Route route = route(HttpMethod.GET, path);
+        TriePath route = new TriePath(route(HttpMethod.GET, path));
         
-        trie.insert(path, route);
+        trie.insert(route);
         
         // should not be found
-        Route r = trie.findRoute("/route/redemption", HttpMethod.GET);
+        TriePath r = trie.findRoute("/route/redemption", HttpMethod.GET);
         assertNull(r);
         
         r = trie.findRoute("/route/r/edemption", HttpMethod.GET);
@@ -72,25 +74,25 @@ class RouteTrieTest {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
         String path = "/route/to/*";
-        Route route = route(HttpMethod.GET, path);
+        TriePath route = new TriePath(route(HttpMethod.GET, path));
         
-        trie.insert(path, route);
+        trie.insert(route);
         
-        Route r = trie.findRoute("/route/to/redemption", HttpMethod.GET);
+        TriePath r = trie.findRoute("/route/to/redemption", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.path());
+        assertEquals(path, r.route.path());
         
         r = trie.findRoute("/route/to/everywhere", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.path());
+        assertEquals(path, r.route.path());
         
         r = trie.findRoute("/route/to/along_the_way", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.path());
+        assertEquals(path, r.route.path());
         
         r = trie.findRoute("/route/to/along/the/way", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.path());
+        assertEquals(path, r.route.path());
     }
     
     @Test
@@ -98,11 +100,11 @@ class RouteTrieTest {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
         String path = "/route/to/*";
-        Route route = route(HttpMethod.GET, path);
+        TriePath route = new TriePath(route(HttpMethod.GET, path));
         
-        trie.insert(path, route);
+        trie.insert(route);
         
-        Route r = trie.findRoute("/route/redemption", HttpMethod.GET);
+        TriePath r = trie.findRoute("/route/redemption", HttpMethod.GET);
         assertNull(r);
         
         r = trie.findRoute("/routing/to/everywhere", HttpMethod.GET);
@@ -113,6 +115,19 @@ class RouteTrieTest {
         
         r = trie.findRoute("/route/to/", HttpMethod.GET);
         assertNull(r);
+    }
+    
+    @Test
+    void multipleWildcardEnd() {
+        RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
+        
+        String path = "/path/*/*";
+        TriePath route = new TriePath(route(HttpMethod.GET, path));
+        
+        trie.insert(route);
+        
+        TriePath r = trie.findRoute("/path/something/else", HttpMethod.GET);
+        assertNotNull(r);
     }
 
 

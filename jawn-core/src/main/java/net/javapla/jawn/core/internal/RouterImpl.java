@@ -2,13 +2,16 @@ package net.javapla.jawn.core.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.util.StringUtil;
 
 final class RouterImpl implements Router {
     
@@ -62,7 +65,7 @@ final class RouterImpl implements Router {
     
     
     @Override
-    public Route retrieve(final int httpMethod, final String requestUri) /*throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod*/ {
+    public RoutePath retrieve(final int httpMethod, final String requestUri) /*throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod*/ {
         //final HttpMethod httpMethod = context.req().httpMethod();
         //final String requestUri = context.req().path();
         
@@ -70,13 +73,14 @@ final class RouterImpl implements Router {
         
         //try {
         // first, take a look in the trie
-        Route route = trie.findExact(requestUri.toCharArray(), httpMethod);
+        TriePath route = trie.findExact(requestUri.toCharArray(), httpMethod);
         if (route != null) return route;
             
         // try with wildcard search
         route = trie.findRoute(requestUri.toCharArray(), httpMethod);
         if (route != null /*&& route.matches(requestUri)*/) {
             
+            route = TriePathParser.parseRequest(requestUri, route);
             trie.insert(requestUri, route); // cache it for later fast look-up
             return route;
             
@@ -101,7 +105,7 @@ final class RouterImpl implements Router {
         }*/
     }
     
-    private Route goThroughCustom(final HttpMethod httpMethod, final String requestUri) {
+    private TriePath goThroughCustom(final HttpMethod httpMethod, final String requestUri) {
         /*for (Route r : routes) {
             if (r.matches(requestUri)) {
                 
@@ -117,8 +121,9 @@ final class RouterImpl implements Router {
         }*/
         
         //throw throwThisIfNothingFound.get();
-        return Route.NOT_FOUND;//ctx -> ctx.resp().respond(Status.NOT_FOUND);
+        return NOT_FOUND;//Route.NOT_FOUND;//ctx -> ctx.resp().respond(Status.NOT_FOUND);
     }
+    static final TriePath NOT_FOUND = TriePathParser.parse(Route.NOT_FOUND);
     
     RouterImpl compileRoutes(final List<Route> routes) throws Up.RouteAlreadyExists {
         
@@ -132,18 +137,17 @@ final class RouterImpl implements Router {
 
     @Override
     public void addRoute(final Route route) {
-        Route lookup = trie.findRoute(route.path().toCharArray(), route.method().ordinal());
-        if (lookup != null && route.method() != HttpMethod.HEAD && route.path().equals(lookup.path())) {
+        TriePath lookup = trie.findRoute(route.path().toCharArray(), route.method().ordinal());
+        if (lookup != null && route.method() != HttpMethod.HEAD && route.path().equals(lookup.route.path())) {
             throw Up.RouteAlreadyExists(lookup.toString());
         }
         
-        if (TriePathParser.hasParams(route.path())) {
-            
-        }
+        TriePath triePath = TriePathParser.parse(route);
+        trie.insert(triePath.trieApplicable, triePath);
         
-        //if (route.isUrlFullyQualified()) {
+        /*if (route.isUrlFullyQualified()) {
             trie.insert(route.path(), route);
-        /*} else {
+        } else {
             trie.insert(route.wildcardedPath(), route);
             this.routes.add(route);
         }*/
@@ -174,11 +178,15 @@ final class RouterImpl implements Router {
             root.clear();
         }
         
-        public void insert(String uri, Route route) {
+        public void insert(TriePath path) {
+            insert(path.path, path);
+        }
+        
+        public void insert(String uri, TriePath route) {
             insert(uri.toCharArray(), route);
         }
         
-        public synchronized void insert(final char[] input, Route route) {
+        public synchronized void insert(final char[] input, TriePath route) {
             TrieNode current = root, child;
             for (char c : input) {
                 child = current.nodes[c];
@@ -188,7 +196,7 @@ final class RouterImpl implements Router {
                 }
                 current = child;
             }
-            current.routes[route.method().ordinal()] = route;
+            current.routes[route.route.method().ordinal()] = route;
             current.routes[HttpMethod.HEAD.ordinal()] = route; // TODO should be handled correctly (HEAD == GET ?) and by whatever is retrieving
             current.end = true;
         }
@@ -213,7 +221,7 @@ final class RouterImpl implements Router {
          * @param arr
          * @return
          */
-        public Route findExact(final char[] arr, final HttpMethod method) {
+        public TriePath findExact(final char[] arr, final HttpMethod method) {
             TrieNode current = root;
             for (int i = 0; i < arr.length; i++) {
                 char c = arr[i];
@@ -225,7 +233,7 @@ final class RouterImpl implements Router {
             return current.routes[method.ordinal()];//.get(method);
         }
         
-        public Route findExact(final char[] arr, final int method) {
+        public TriePath findExact(final char[] arr, final int method) {
             TrieNode current = root;
             for (int i = 0; i < arr.length; i++) {
                 char c = arr[i];
@@ -237,7 +245,7 @@ final class RouterImpl implements Router {
             return current.routes[method];
         }
         
-        public Route findExact(final CharSequence str, final HttpMethod method) {
+        public TriePath findExact(final CharSequence str, final HttpMethod method) {
             TrieNode current = root;
             for (int i = 0; i < str.length(); i++) {
                 char c = str.charAt(i);
@@ -254,7 +262,7 @@ final class RouterImpl implements Router {
          * @param arr
          * @return
          */
-        public final Route findRoute(final char[] arr, final int method) {
+        public final TriePath findRoute(final char[] arr, final int method) {
             TrieNode current = root;
             char c;
             for (int i = 0; i < arr.length; i++) {
@@ -289,7 +297,7 @@ final class RouterImpl implements Router {
             return current.routes[method];
         }
         
-        public final Route findRoute(final String path, final HttpMethod method) {
+        public final TriePath findRoute(final String path, final HttpMethod method) {
             return findRoute(path.toCharArray(), method.ordinal());
         }
         
@@ -326,14 +334,14 @@ final class RouterImpl implements Router {
         final class TrieNode {
             final TrieNode[] nodes;
             final char content;
-            final Route[] routes; // a route can exist for GET,POST,PUT,etc
+            final TriePath[] routes; // a route can exist for GET,POST,PUT,etc
             boolean end = false;
             
             TrieNode(char c) {
                 //nodes = new SearchTrie[255];//extended ascii
                 nodes = new TrieNode[128];//ascii
                 content = c;
-                routes = new Route[HttpMethod.values().length];
+                routes = new TriePath[HttpMethod.values().length];
             }
             
             public void clear() {
@@ -345,12 +353,12 @@ final class RouterImpl implements Router {
                 }
             }
             
-            public Route get(HttpMethod method) /*throws Up.RouteFoundWithDifferentMethod*/ {
+            public TriePath get(HttpMethod method) /*throws Up.RouteFoundWithDifferentMethod*/ {
                 // This *ought to* only be applicable if the Trie is used outside of the context of this Router
                 // I.e. as an isolated library
-                /*if (routes[method.ordinal()] == null) {
+                if (routes[method.ordinal()] == null) {
                     if (end) return null;//throw Up.RouteFoundWithDifferentMethod(method.name());
-                }*/
+                }
                 return routes[method.ordinal()];
             }
             
@@ -372,7 +380,7 @@ final class RouterImpl implements Router {
     /**
      * @author MTD (github/mtddk)
      */
-    static class TriePathParser {
+    static final class TriePathParser {
         
         // /{paramname}
         private static final char PARAM_START = '{';
@@ -386,7 +394,25 @@ final class RouterImpl implements Router {
             LinkedList<String> pn = new LinkedList<>();
             StringBuilder applicable = new StringBuilder(length);
             
-            for (int i = 0; i < length; i++) {
+            // Divide into path segments and handle each segment
+            StringUtil.split(originalPath, '/', segment -> {
+                applicable.append('/'); // keeping segmentation in the resulting applicable path
+                
+                // segment is a parameter
+                if (segment.charAt(0) == PARAM_START) {
+                    int end = segment.length() - 1;
+                    if (segment.charAt(end) != PARAM_END) end++;
+                    
+                    // add the parameter name to list
+                    pn.add(segment.substring(1, end));
+                    applicable.append(RouteTrie.WILDCARD); // replace the parameter with a wildcard
+                } else {
+                    applicable.append(segment);
+                    pn.add(null); // add null to list of parameters for later quick counting/lookup
+                }
+            });
+            
+            /*for (int i = 0; i < length; i++) {
                 char c = originalPath.charAt(i);
                 
                 if (c == PARAM_START) {
@@ -405,8 +431,11 @@ final class RouterImpl implements Router {
                     continue;
                 } else {
                     applicable.append(c);
+                    
+                    if (c == '/')
+                        pn.add(null);
                 }
-            }
+            }*/
             
             return new TriePath(route, applicable.toString(), pn);
         }
@@ -414,33 +443,76 @@ final class RouterImpl implements Router {
         static boolean hasParams(String path) {
             return path.indexOf(PARAM_START) > 0;
         }
-
-        // TODO could be a record
-        static class TriePath {
-            final Route route;
-            /**
-             * A route that can go into the Trie 
-             * (i.e. might contain wildcards that can be handled by the Trie or simply be a static route)
-             */
-            final String trieApplicable;
-            final List<String> parameterNames;
-            final boolean hasParams;
+        
+        // TODO Currently only for segmented paths and not handling if the path has a true wildcard at the end (or even middle)
+        static TriePath parseRequest(String requestPath, TriePath path) {
+            if (!path.hasParams) return path;
             
-            TriePath(Route r) {
-                this(r, r.path(), Collections.emptyList());
-            }
-            TriePath(Route r, String w, List<String> pn) {
-                route = r;
-                trieApplicable = w;
-                parameterNames = pn;
-                hasParams = !pn.isEmpty();
-            }
+            HashMap<String, String> pathParams = new HashMap<>(1);
             
-            void readParameters(String requestPath) {
-                
-            }
+            // segment the request
+            int[] index = {0};
+            StringUtil.split(requestPath, '/', segment -> {
+                String param = path.parameterNames[ index[0]++ ];
+                if (param != null)
+                    pathParams.put(param, segment);
+            });
+            
+            return new TriePath(path, pathParams);
         }
 
+    }
+    
+    // TODO could be a record
+    static class TriePath implements Router.RoutePath {
+        final Route route;
+        final char[] path;
+        /**
+         * A route that can go into the Trie 
+         * (i.e. might contain wildcards that can be handled by the Trie or simply be a static route)
+         */
+        final String trieApplicable;
+        final String[] parameterNames;
+        final boolean hasParams;
+        final Map<String, String> pathParameters;
+        final boolean isStatic;
+        
+        TriePath(Route r) {
+            this(r, r.path(), Collections.emptyList());
+        }
+        TriePath(Route r, String w, List<String> pn) {
+            route = r;
+            path = w.toCharArray();//r.path().toCharArray();
+            trieApplicable = w;
+            parameterNames = pn.toArray(String[]::new);
+            hasParams = !pn.isEmpty();
+            pathParameters = null;
+            isStatic = !hasParams;
+        }
+        TriePath(TriePath tp, Map<String, String> pp) {
+            route = tp.route;
+            path = tp.route.path().toCharArray();
+            trieApplicable = tp.trieApplicable;
+            parameterNames = tp.parameterNames;
+            hasParams = tp.hasParams;
+            pathParameters = pp;
+            isStatic = true;
+        }
+        
+        @Override
+        public Route route() {
+            return route;
+        }
+        
+        @Override
+        public Map<String, String> pathParameters() {
+            return pathParameters;
+        }
+        
+        @Override
+        public String toString() {
+            return route + " " + pathParameters;
+        }
     }
 
 }

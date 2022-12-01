@@ -29,6 +29,7 @@ public interface Context {
         String queryString();
         
         Value header(String name);
+        Value pathParam(String name);
         
         default boolean accept(MediaType contentType) {
             Value accept = header(ACCEPT);

@@ -23,4 +23,13 @@ public class AssertionsHelper {
             assertEquals(exp[i++], a);
         }
     }
+    
+    public static <T> void ass(T[] act, @SuppressWarnings("unchecked") T ... exp) {
+        assertEquals(exp.length, act.length);
+        
+        int i = 0;
+        for (T a : act) {
+            assertEquals(exp[i++], a);
+        }
+    }
 }

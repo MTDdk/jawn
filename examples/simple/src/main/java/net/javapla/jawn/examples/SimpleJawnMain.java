@@ -58,6 +58,10 @@ public class SimpleJawnMain extends Jawn {
         get("/json", () -> {
             return new JsonResponse("key","value");
         }).produces(MediaType.JSON).filter(new TimingFilter());
+        
+        get("/path/{param}", ctx -> {
+            return ctx.req().pathParam("param");
+        });
     }
     
     public static record JsonResponse(String key, String value) {}

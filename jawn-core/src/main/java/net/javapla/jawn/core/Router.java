@@ -2,6 +2,8 @@ package net.javapla.jawn.core;
 
 import java.util.Map;
 
+import net.javapla.jawn.core.internal.ReadOnlyContext;
+
 public interface Router {
     
     /*interface Match {
@@ -11,9 +13,9 @@ public interface Router {
 
     void addRoute(final Route route);
     
-    Route retrieve(final int httpMethod, final String path);
+    RoutePath retrieve(final int httpMethod, final String path);
     
-    default Route retrieve(final HttpMethod httpMethod, final String path) {
+    default RoutePath retrieve(final HttpMethod httpMethod, final String path) {
         return retrieve(httpMethod.ordinal(), path);
     }
     
@@ -30,5 +32,20 @@ public interface Router {
          * @return
          */
         Map<String, String> pathParameters();
+        
+        @Override
+        default void execute(Context ctx) {
+            ((AbstractContext)ctx).routePath = this;
+            Route route = route();
+            
+            /*try {
+            
+            } catch (Exception e) {
+                //x = e;
+            }*/
+            route.exec.execute(ctx);
+            
+            if (route.post != null) route.post.complete(new ReadOnlyContext(ctx));
+        }
     }
 }

@@ -48,13 +48,14 @@ public abstract class AbstractContext implements Context {
     
     
     // ** Route **
-    Route route;
+    //Route route;
     /*void route(Route route) {
         this.route = route;
     }
     Route route() {
         return route;
     }*/
+    Router.RoutePath routePath;
     
     
     
@@ -99,12 +100,17 @@ public abstract class AbstractContext implements Context {
         @Override
         public <T> T parse(Type type) {
             try {
-                return (T) route.parsers.get(contentType()).parse(AbstractContext.this, type);
+                return (T) routePath.route().parsers.get(contentType()).parse(AbstractContext.this, type);
             } catch (Exception e) {
                 throw Up.ParseError("", e);
             }
         }
         
+        @Override
+        public Value pathParam(String name) {
+            if (routePath.pathParameters() == null) return Value.empty();
+            return Value.of(routePath.pathParameters().get(name));
+        }
     }
     
     protected abstract class AbstractResponse implements Context.Response {
