@@ -32,4 +32,12 @@ public class AssertionsHelper {
             assertEquals(exp[i++], a);
         }
     }
+    
+    public static void ass(CharSequence exp, char[] act) {
+        assertEquals(exp.length(), act.length);
+        
+        for (int i = 0; i < act.length; i++) {
+            assertEquals(exp.charAt(i), act[i]);
+        }
+    }
 }

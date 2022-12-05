@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
+import net.javapla.jawn.core.AssertionsHelper;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.internal.RouterImpl.TriePath;
@@ -23,7 +24,7 @@ class RouteTrieTest {
         
         TriePath exact = trie.findExact(path, HttpMethod.GET);
         assertNotNull(exact);
-        assertEquals(path, exact.route.path());
+        AssertionsHelper.ass(path, exact.path);
         
         TriePath exact2 = trie.findExact(path.toCharArray(), HttpMethod.GET);
         assertEquals(exact, exact2);
@@ -40,7 +41,7 @@ class RouteTrieTest {
         
         TriePath r = trie.findRoute("/route/to/redemption", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.route.path());
+        AssertionsHelper.ass(path, r.path);
         
         // TODO a wildcard
         /*r = trie.findRoute("/route/along/the/way/to/redemption", HttpMethod.GET);
@@ -49,7 +50,7 @@ class RouteTrieTest {
         
         r = trie.findRoute("/route/along_the_way_to/redemption", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.route.path());
+        AssertionsHelper.ass(path, r.path);
     }
     
     @Test
@@ -80,19 +81,19 @@ class RouteTrieTest {
         
         TriePath r = trie.findRoute("/route/to/redemption", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.route.path());
+        AssertionsHelper.ass(path, r.path);
         
         r = trie.findRoute("/route/to/everywhere", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.route.path());
+        AssertionsHelper.ass(path, r.path);
         
         r = trie.findRoute("/route/to/along_the_way", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.route.path());
+        AssertionsHelper.ass(path, r.path);
         
         r = trie.findRoute("/route/to/along/the/way", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.route.path());
+        AssertionsHelper.ass(path, r.path);
     }
     
     @Test

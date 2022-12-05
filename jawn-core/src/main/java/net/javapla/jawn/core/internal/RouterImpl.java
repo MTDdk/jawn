@@ -1,14 +1,13 @@
 package net.javapla.jawn.core.internal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.javapla.jawn.core.AbstractContext;
-import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
@@ -139,8 +138,9 @@ final class RouterImpl implements Router {
 
     @Override
     public void addRoute(final Route route) {
-        TriePath lookup = trie.findRoute(route.path().toCharArray(), route.method().ordinal());
-        if (lookup != null && route.method() != HttpMethod.HEAD && route.path().equals(lookup.route.path())) {
+        char[] chars = route.path().toCharArray();
+        TriePath lookup = trie.findRoute(chars, route.method().ordinal());
+        if (lookup != null && route.method() != HttpMethod.HEAD && Arrays.equals(chars, lookup.path)/*route.path().equals(lookup.route.path())*/) {
             throw Up.RouteAlreadyExists(lookup.toString());
         }
         
@@ -202,7 +202,7 @@ final class RouterImpl implements Router {
                 }
                 current = child;
             }
-            current.routes[route.route.method().ordinal()] = route;
+            current.routes[route.method] = route;
             current.routes[HttpMethod.HEAD.ordinal()] = route; // TODO should be handled correctly (HEAD == GET ?) and by whatever is retrieving
             current.end = true;
         }
@@ -439,9 +439,10 @@ final class RouterImpl implements Router {
     }
     
     // TODO could be a record
-    static class TriePath implements Router.RoutePath {
-        final Route route;
+    static class TriePath extends Router.RoutePath {
+        //final Route route;
         final char[] path;
+        final int method;
         /**
          * A route that can go into the Trie 
          * (i.e. might contain wildcards that can be handled by the Trie or simply be a static route)
@@ -449,51 +450,53 @@ final class RouterImpl implements Router {
         final String trieApplicable;
         final String[] parameterNames;
         final boolean hasParams;
-        final Map<String, String> pathParameters;
+        //final Map<String, String> pathParameters;
         final boolean isStatic;
+        
         
         TriePath(Route r) {
             this(r, r.path(), Collections.emptyList());
         }
         TriePath(Route r, String w, List<String> pn) {
-            route = r;
+            super(r);
+            //route = r;
             path = w.toCharArray();//r.path().toCharArray();
+            method = r.method().ordinal();
             trieApplicable = w;
             parameterNames = pn.toArray(String[]::new);
             hasParams = !pn.isEmpty();
-            pathParameters = null;
+            //pathParameters = null;
             isStatic = !hasParams;
+            
+            
         }
         TriePath(TriePath tp, Map<String, String> pp) {
-            route = tp.route;
-            path = tp.route.path().toCharArray();
+            super(tp, pp);
+            //route = tp.route;
+            path = tp.path;//tp.route.path().toCharArray();
+            method = tp.method;
             trieApplicable = tp.trieApplicable;
             parameterNames = null;//tp.parameterNames;
             hasParams = tp.hasParams;
-            pathParameters = pp;
+            //pathParameters = pp;
             isStatic = true;
         }
         
-        @Override
+        /*@Override
         public Route route() {
             return route;
-        }
+        }*/
         
-        @Override
+        /*@Override
         public void execute(Context ctx) {
             ((AbstractContext)ctx).routePath = this;
             route.execute(ctx);
-        }
+        }*/
         
-        @Override
+        /*@Override
         public Map<String, String> pathParameters() {
             return pathParameters;
-        }
-        
-        @Override
-        public String toString() {
-            return route + " " + pathParameters;
-        }
+        }*/
     }
 
 }

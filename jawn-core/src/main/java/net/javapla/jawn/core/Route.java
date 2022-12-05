@@ -10,38 +10,37 @@ import java.util.function.Function;
 import net.javapla.jawn.core.internal.ReadOnlyContext;
 
 public final class Route {
-    
 
     private final HttpMethod method;
-    private final String path;
-    private final Handler handler;
-    final OnComplete post;
-    private final MediaType consumes;
-    //private final List<MediaType> produces;
-    //private final Renderer renderer;
-    private final Type returnType;
-    final Execution exec;
+    private final String     path;
+    private final Handler    handler;
+    final OnComplete         post;
+    private final MediaType  consumes;
+    // private final List<MediaType> produces;
+    // private final Renderer renderer;
+    private final Type          returnType;
+    final Execution             exec;
     final Parser.ParserProvider parsers;
-    
-    Route(
-            HttpMethod method,
-            String path,
-            Handler handler,
-            OnComplete post,
-            //List<MediaType> responseType, 
-            MediaType consumes,
-            //Renderer renderer,
-            Type returnType, Execution exec, 
-            Parser.ParserProvider parsers) {
+
+    Route(HttpMethod method,
+          String path,
+          Handler handler,
+          OnComplete post,
+          // List<MediaType> responseType,
+          MediaType consumes,
+          // Renderer renderer,
+          Type returnType,
+          Execution exec,
+          Parser.ParserProvider parsers) {
         this.method = method;
         this.path = path;
         this.handler = handler;
         this.post = post;
-        //this.produces = responseType;
+        // this.produces = responseType;
         this.consumes = consumes;
-        //this.renderer = renderer;
+        // this.renderer = renderer;
         this.returnType = returnType;
-        this.exec = exec; 
+        this.exec = exec;
         this.parsers = parsers;
     }
 
@@ -68,7 +67,7 @@ public final class Route {
     public Route.Handler handler() {
         return handler;
     }
-    
+
     /*public List<MediaType> produces() {
         return produces;
     }*/
@@ -76,42 +75,42 @@ public final class Route {
     public boolean consuming(MediaType type) {
         return consumes.matches(type);
     }
-    
+
     public Type returnType() {
         return returnType;
     }
-    
-    public void execute(Context ctx) {
+
+    /*public void execute(Context ctx) {
         exec.execute(ctx);
         if (post != null) post.complete(new ReadOnlyContext(ctx));
-    }
-    
-    public void execute(Context ctx, Router.RoutePath path) {
+    }*/
+
+    /*public void execute(Context ctx, Router.RoutePath path) {
         //((AbstractContext)ctx).route = this;
         ((AbstractContext)ctx).routePath = path;
             
-        /*try {
+        try {
         
         } catch (Exception e) {
             //x = e;
-        }*/
+        }
         exec.execute(ctx);
         
         if (post != null) post.complete(new ReadOnlyContext(ctx));
-    }
-    
+    }*/
+
     @Override
     public String toString() {
         return "[" + method + "] " + path;
     }
-    
 
     // TODO create static route which listens on /favicon.ico
-    //public static final Handler FAVICON = ctx -> ctx.resp().respond(Status.NOT_FOUND);
-    
+    // public static final Handler FAVICON = ctx ->
+    // ctx.resp().respond(Status.NOT_FOUND);
+
     public static interface Handler extends Serializable {
         Object handle(Context ctx) throws Exception;
-        
+
         default Handler after(After next) {
             return ctx -> {
                 Throwable cause = null;
@@ -122,7 +121,7 @@ public final class Route {
                     cause = e;
                     ctx.resp().status(Up.error(e).value());
                 }
-                
+
                 try {
                     if (ctx.resp().isResponseStarted()) {
                         next.after(new ReadOnlyContext(ctx), result, cause);
@@ -132,26 +131,23 @@ public final class Route {
                     }
                 } catch (Throwable e) {
                     result = null;
-                    if (cause == null)
-                        cause = e;
-                    else
-                        cause.addSuppressed(e);
+                    if (cause == null) cause = e;
+                    else cause.addSuppressed(e);
                 }
-                
+
                 if (cause == null) return result;
                 else {
-                    if (ctx.resp().isResponseStarted())
-                        return ctx;
+                    if (ctx.resp().isResponseStarted()) return ctx;
                     throw Up.IO(cause);
                 }
             };
         }
 
     }
-    
+
     public static interface Before {
         void before(Context ctx) throws Up;
-        
+
         default Before then(Before next) {
             return ctx -> {
                 before(ctx);
@@ -160,7 +156,7 @@ public final class Route {
                 }
             };
         }
-        
+
         default Handler then(Handler next) {
             return ctx -> {
                 before(ctx);
@@ -171,10 +167,10 @@ public final class Route {
             };
         }
     }
-    
+
     public static interface After {
         void after(Context ctx, Object result, Throwable cause);
-        
+
         default After then(After next) {
             return (ctx, result, cause) -> {
                 next.after(ctx, result, cause);
@@ -182,20 +178,22 @@ public final class Route {
             };
         }
     }
-    
+
     public static abstract class Filter implements Before, After, OnComplete {
         @Override
         public void before(Context ctx) throws Up {}
+
         @Override
         public void after(Context ctx, Object result, Throwable cause) {}
+
         @Override
         public void complete(Context ctx) {}
     }
-    
+
     // OnComplete
     public static interface OnComplete {
         void complete(Context ctx/*, Throwable error*/);
-        
+
         default OnComplete then(OnComplete next) {
             return (ctx) -> {
                 complete(ctx);
@@ -203,7 +201,7 @@ public final class Route {
             };
         }
     }
-    
+
     /*public static interface NoResultHandler extends Handler {
         void nothing(Context ctx) throws Exception;
         
@@ -213,62 +211,63 @@ public final class Route {
             // return ctx; // TODO which is better?
         }
     }*/
-    
+
     public static interface ZeroArgHandler extends Handler {
         Object zero() throws Exception;
-        
+
         default Object handle(Context ctx) throws Exception {
             return zero();
         }
     }
-    
-    
+
     public static interface MethodHandler extends Handler {
         // Action
         Method method();
-        
+
         // Route class
         Class<?> controller();
     }
-    
+
     /**
      * Promise to handle all exceptions
      */
     public static interface Execution {
         void execute(Context ctx);
     }
-    
+
     // TODO
     /*static class ExecutorTesting {
         Execution create(Handler handler) {
             return (ctx) -> {try { handler.handle(ctx); } catch (Throwable e) {}};
         }
     }*/
-    
-    
+
     public static interface RouteBuilder {
         RouteBuilder before(Before b);
+
         RouteBuilder after(After a);
+
         RouteBuilder filter(Filter f);
+
         RouteBuilder postResponse(OnComplete p);
-        
+
         RouteBuilder produces(MediaType type);
     }
-    
-    
+
     public static class Builder implements RouteBuilder {
-        
-        public final HttpMethod method;
-        public final String path; // original path (might contain path params)
-        public final Handler originalHandler; // action
-        private Handler handler; // pipeline
-        private OnComplete post;
-        private MediaType responseType = MediaType.PLAIN, consumes = MediaType.WILDCARD;
+
+        public final HttpMethod       method;
+        public final String           path; // original path (might contain path
+                                            // params)
+        public final Handler          originalHandler; // action
+        private Handler               handler; // pipeline
+        private OnComplete            post;
+        private MediaType             responseType  = MediaType.PLAIN, consumes = MediaType.WILDCARD;
         private final List<MediaType> responseTypes = new LinkedList<>();
-        //private Renderer renderer;
+        // private Renderer renderer;
         private Type returnType;
-        //private ErrorHandler err;
-        
+        // private ErrorHandler err;
+
         public Builder(String path) {
             this(HttpMethod.GET, path, ctx -> ctx);
         }
@@ -278,7 +277,7 @@ public final class Route {
             this.path = path;
             this.originalHandler = handler;
             this.handler = handler;
-            //this.responseTypes.add(responseType);
+            // this.responseTypes.add(responseType);
         }
         /*public Builder(HttpMethod method, String path, NoResultHandler handler) {
             this.method = method;
@@ -287,31 +286,34 @@ public final class Route {
             this.handler = handler;
             //this.responseTypes.add(responseType);
         }*/
-        
+
         public Builder consumes(MediaType type) {
             this.consumes = type;
             return this;
         }
+
         public MediaType consumes() {
             return consumes;
         }
-        
+
         public Builder produces(MediaType type) {
             responseType = type;
             responseTypes.add(type);
-            
+
             // Prepend the pipeline of handlers with setting the contentType
             // of the response, when setting it to something non-default
-            //before(ctx -> ctx.resp().contentType(type));
+            // before(ctx -> ctx.resp().contentType(type));
             return this;
         }
+
         public MediaType fallbackResponseType() {
             return responseType;
         }
+
         public List<MediaType> produces() {
             return responseTypes;
         }
-        
+
         /*public Builder renderer(Renderer renderer) {
             this.renderer = renderer;
             return this;
@@ -319,93 +321,99 @@ public final class Route {
         /*public Renderer renderer() {
             return this.renderer;
         }*/
-        
-        //private After after;
+
+        // private After after;
         public Builder after(After after) {
-            //if (this.after == null) this.after = after;
-            //else this.after = this.after.then(after);
+            // if (this.after == null) this.after = after;
+            // else this.after = this.after.then(after);
             handler = handler.after(after);
             return this;
         }
-        
-        //private Before before;
+
+        // private Before before;
         public Builder before(Before before) {
-            //if (this.before == null) this.before = before;
-            //else this.before = before.then(this.before);
+            // if (this.before == null) this.before = before;
+            // else this.before = before.then(this.before);
             handler = before.then(handler);
             return this;
         }
-        
+
         public Builder filter(Filter filter) {
             before(filter);
             after(filter);
-            
+
             if (post != null) post = post.then(filter);
             else post = filter;
-            
+
             return this;
         }
-        
+
         public Builder handler(Handler handler) {
             this.handler = handler;
             return this;
         }
+
         public Handler handler() {
             return handler;
         }
-        Execution exec; 
+
+        Execution exec;
+
         public Builder execution(Execution exec) {
             this.exec = exec;
             return this;
         }
+
         Builder executor() { // TODO
-            this.exec = (ctx) -> {try { handler.handle(ctx); } catch (Throwable e) {}}; // simple/default execution
+            this.exec = (ctx) -> {
+                try {
+                    handler.handle(ctx);
+                } catch (Throwable e) {}
+            }; // simple/default execution
             return this;
         }
-        
+
         public Builder postResponse(OnComplete r) {
-            if (post == null)
-                post = r;
-            else
-                post = post.then(r);
+            if (post == null) post = r;
+            else post = post.then(r);
             return this;
         }
-        
+
         public Builder returnType(Type type) {
             this.returnType = type;
             return this;
         }
+
         public Type returnType() {
             return returnType;
         }
-        
+
         private Parser.ParserProvider parsers;
+
         public Builder parsers(Parser.ParserProvider provider) {
             this.parsers = provider;
             return this;
         }
-        
+
         public Route build() {
-            return 
-                new Route(
-                    method,
-                    path,
-                    handler,
-                    post,
-                    //responseType,
-                    //responseTypes,
-                    consumes,
-                    //renderer,
-                    returnType,
-                    exec,
-                    parsers
-                );
+            return new Route(method, path, handler, post,
+                // responseType,
+                // responseTypes,
+                consumes,
+                // renderer,
+                returnType, exec, parsers);
         }
     }
-    
-    public static final Route NOT_FOUND = new Route.Builder(HttpMethod.GET, "/", ctx -> {ctx.resp().respond(Status.NOT_FOUND);return ctx;}).executor().build();
-    public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> {ctx.resp().respond(Status.METHOD_NOT_ALLOWED);return ctx;}).executor().build();
-    
+
+    public static final Route NOT_FOUND          = new Route.Builder(HttpMethod.GET, "/", ctx -> {
+                                                     ctx.resp().respond(Status.NOT_FOUND);
+                                                     return ctx;
+                                                 }).executor().build();
+    public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> {
+                                                     ctx.resp().respond(Status.METHOD_NOT_ALLOWED);
+                                                     return ctx;
+                                                 }).executor().build();
+
     /* Set the response type based on what the request asked for in the ACCEPT-header  */
     /*public static final Route.Before RESPONSE_CONTENT_TYPE = (ctx) -> {
         AbstractContext ac = (AbstractContext) ctx;
@@ -417,6 +425,5 @@ public final class Route {
         MediaType acceptable = ac.accept(responseTypes);
         ctx.resp().contentType(acceptable);
     };
-    
-}
 
+}

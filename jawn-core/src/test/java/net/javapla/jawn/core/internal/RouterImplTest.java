@@ -21,8 +21,8 @@ class RouterImplTest {
         
         RoutePath route = router.retrieve(HttpMethod.GET, "/simple");
         assertNotNull(route);
-        assertEquals("/simple", route.route().path());
-        assertEquals(HttpMethod.GET, route.route().method());
+        assertEquals("/simple", route.route.path());
+        assertEquals(HttpMethod.GET, route.route.method());
         
         route = router.retrieve(HttpMethod.GET, "/nothing");
         assertEquals(RouterImpl.NOT_FOUND, route);
@@ -51,8 +51,8 @@ class RouterImplTest {
         RoutePath route = router.retrieve(HttpMethod.GET, "/path/something");
         assertNotNull(route);
         assertNotEquals(RouterImpl.NOT_FOUND, route);
-        assertTrue(route.pathParameters().containsKey("param"));
-        assertEquals("something", route.pathParameters().get("param"));
+        assertTrue(route.pathParameters.containsKey("param"));
+        assertEquals("something", route.pathParameters.get("param"));
     }
     
     @Test
@@ -63,8 +63,8 @@ class RouterImplTest {
         RoutePath route = router.retrieve(HttpMethod.GET, "/path/something/else");
         assertNotNull(route);
         assertNotEquals(RouterImpl.NOT_FOUND, route);
-        assertEquals("something", route.pathParameters().get("param"));
-        assertEquals("else", route.pathParameters().get("param2"));
+        assertEquals("something", route.pathParameters.get("param"));
+        assertEquals("else", route.pathParameters.get("param2"));
         
     }
     
@@ -76,8 +76,8 @@ class RouterImplTest {
         RoutePath route = router.retrieve(HttpMethod.GET, "/path/something/else/ending/more");
         assertNotNull(route);
         assertNotEquals(RouterImpl.NOT_FOUND, route);
-        assertEquals("something", route.pathParameters().get("param"));
-        assertEquals("else", route.pathParameters().get("param2"));
+        assertEquals("something", route.pathParameters.get("param"));
+        assertEquals("else", route.pathParameters.get("param2"));
     }
     
     @Test
@@ -99,8 +99,8 @@ class RouterImplTest {
         path = router.trie.findExact("/path/first/second", HttpMethod.GET);
         assertNotNull(path);
         assertTrue(path.isStatic);
-        assertEquals("first", path.pathParameters().get("param"));
-        assertEquals("second", path.pathParameters().get("param2"));
+        assertEquals("first", path.pathParameters.get("param"));
+        assertEquals("second", path.pathParameters.get("param2"));
     }
 
     static Route route(HttpMethod method, String path) {

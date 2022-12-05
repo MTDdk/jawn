@@ -100,7 +100,7 @@ public abstract class AbstractContext implements Context {
         @Override
         public <T> T parse(Type type) {
             try {
-                return (T) routePath.route().parsers.get(contentType()).parse(AbstractContext.this, type);
+                return (T) routePath.route.parsers.get(contentType()).parse(AbstractContext.this, type);
             } catch (Exception e) {
                 throw Up.ParseError("", e);
             }
@@ -108,8 +108,8 @@ public abstract class AbstractContext implements Context {
         
         @Override
         public Value pathParam(String name) {
-            if (routePath.pathParameters() == null) return Value.empty();
-            return Value.of(routePath.pathParameters().get(name));
+            if (routePath.pathParameters == null) return Value.empty();
+            return Value.of(routePath.pathParameters.get(name));
         }
     }
     
