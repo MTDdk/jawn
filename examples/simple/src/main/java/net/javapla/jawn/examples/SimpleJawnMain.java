@@ -61,7 +61,7 @@ public class SimpleJawnMain extends Jawn {
         
         get("/path/{param}", ctx -> {
             return ctx.req().pathParam("param");
-        });
+        }).filter(new TimingFilter());
     }
     
     public static record JsonResponse(String key, String value) {}

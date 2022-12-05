@@ -7,6 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import net.javapla.jawn.core.AbstractContext;
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
@@ -15,7 +17,7 @@ import net.javapla.jawn.core.util.StringUtil;
 
 final class RouterImpl implements Router {
     
-    private final RouteTrie trie;
+    final RouteTrie trie;
     
     /** Used for wildcard routes */
     private final List<Route> routes = new ArrayList<>();
@@ -165,13 +167,17 @@ final class RouterImpl implements Router {
      */
     static final class RouteTrie {
         
-        public static final char WILDCARD = '*';
+        // According to RFC3986 we have a handful of characters that are reserved
+        // in the URI, so we can use these as delimiters in the trie
+        // https://www.rfc-editor.org/rfc/rfc3986#section-2.2
+        public static final char SEGMENT = '#'; // used to denote that a path segment is a variable
+        //public static final char WILDCARD = '*'; // rest of the string is valid (true wildcard)
         
         private final TrieNode root;
         
         
         public RouteTrie() {
-            root = new TrieNode('#');
+            root = new TrieNode(SEGMENT);
         }
         
         public void clear() {
@@ -268,7 +274,30 @@ final class RouterImpl implements Router {
             for (int i = 0; i < arr.length; i++) {
                 c = arr[i];
                 
-                if (current.nodes[c] == null) {
+                if (current.nodes[c] == null) { // might be a wildcard or segment
+                    
+                    if (current.nodes[SEGMENT] != null) {
+                        // are we at an end?
+                        if (current.nodes[SEGMENT].end) return current.nodes[SEGMENT].routes[method];
+                        
+                        // we are looking at a single parameter segment, so just continue to the next char, which should be a slash '/'
+                        current = current.nodes[SEGMENT].nodes['/'];
+                        
+                        // fast forward to the next segment of the input
+                        while(++i < arr.length && arr[i] != '/');
+                        
+                    } //else if (current.nodes[WILDCARD] != null)
+                    else {
+                        return null;
+                    }
+                    
+                } else {
+                    current = current.nodes[c];
+                }
+                
+                
+                
+                /*if (current.nodes[c] == null) {
                     // might be a wildcard search
                     if (current.nodes[WILDCARD] != null) {
                         // if this is the last part of a possible route, then just return the route
@@ -284,7 +313,8 @@ final class RouterImpl implements Router {
                         do {
                             // jump to next segment
                             while(++i < arr.length && arr[i] != '/');
-                            if (i == arr.length) return null; 
+                            if (i == arr.length) return current.routes[method];
+                            //if (arr[i] == '/') continue top;
                             i++;
                         } while (current.nodes[arr[i]] == null);
                         current = current.nodes[arr[i]];
@@ -292,7 +322,7 @@ final class RouterImpl implements Router {
                         return null;
                 } else {
                     current = current.nodes[c];
-                }
+                }*/
             }
             return current.routes[method];
         }
@@ -300,36 +330,6 @@ final class RouterImpl implements Router {
         public final TriePath findRoute(final String path, final HttpMethod method) {
             return findRoute(path.toCharArray(), method.ordinal());
         }
-        
-        /**
-         * Whenever a wildcard is detected during ordinary traversal,
-         * continue to the next concrete URL segment - if segment found, continue,
-         * if not, repeat.
-         * @return 
-         */
-        /*private final TrieNode doWildcardSearch(final TrieNode node, final char[] arr, final int i) {
-            // Start out by jumping to the next URL segment
-            int current = i + 1;
-            while(current < arr.length && arr[current++] != '/');
-            
-            // we are at the wildcard, so we continue to the next char, which should be a slash '/'
-            TrieNode n = node.nodes['/'];
-            
-            char c;
-            for (; current < arr.length; current++) {
-                c = arr[current];
-                if (n.nodes[c] == null) {
-                    // jump to next segment
-                    while(current < arr.length && arr[current++] != '/');
-                    // return if no more segments available
-                    if (current == arr.length) return null; // this should force the #findRoute to return null
-                } else {
-                    n = n.nodes[c];
-                }
-            }
-            
-            return n;
-        }*/
         
         final class TrieNode {
             final TrieNode[] nodes;
@@ -405,37 +405,12 @@ final class RouterImpl implements Router {
                     
                     // add the parameter name to list
                     pn.add(segment.substring(1, end));
-                    applicable.append(RouteTrie.WILDCARD); // replace the parameter with a wildcard
+                    applicable.append(RouteTrie.SEGMENT); // replace the parameter with a wildcard
                 } else {
                     applicable.append(segment);
                     pn.add(null); // add null to list of parameters for later quick counting/lookup
                 }
             });
-            
-            /*for (int i = 0; i < length; i++) {
-                char c = originalPath.charAt(i);
-                
-                if (c == PARAM_START) {
-                    // continue to end
-                    int end = i;
-                    while (++end < length && (originalPath.charAt(end) != PARAM_END && originalPath.charAt(end) != '/'));
-                    
-                    // add the parameter name to list
-                    pn.add(originalPath.substring(i+1, end));
-                    applicable.append(RouteTrie.WILDCARD); // replace the parameter with a wildcard
-                    
-                    if (end < length && originalPath.charAt(end) != PARAM_END) end--; // we found '/' and no '}', and we want the next char to be '/'
-                    // throw Up.ParseError("Route seems to be erroneous -> " + originalPath); // foul
-
-                    i = end; // jump
-                    continue;
-                } else {
-                    applicable.append(c);
-                    
-                    if (c == '/')
-                        pn.add(null);
-                }
-            }*/
             
             return new TriePath(route, applicable.toString(), pn);
         }
@@ -493,7 +468,7 @@ final class RouterImpl implements Router {
             route = tp.route;
             path = tp.route.path().toCharArray();
             trieApplicable = tp.trieApplicable;
-            parameterNames = tp.parameterNames;
+            parameterNames = null;//tp.parameterNames;
             hasParams = tp.hasParams;
             pathParameters = pp;
             isStatic = true;
@@ -502,6 +477,12 @@ final class RouterImpl implements Router {
         @Override
         public Route route() {
             return route;
+        }
+        
+        @Override
+        public void execute(Context ctx) {
+            ((AbstractContext)ctx).routePath = this;
+            route.execute(ctx);
         }
         
         @Override

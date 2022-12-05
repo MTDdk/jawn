@@ -55,7 +55,7 @@ public abstract class AbstractContext implements Context {
     Route route() {
         return route;
     }*/
-    Router.RoutePath routePath;
+    public Router.RoutePath routePath;
     
     
     

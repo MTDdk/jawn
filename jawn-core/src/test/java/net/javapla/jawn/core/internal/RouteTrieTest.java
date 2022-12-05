@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.internal.RouterImpl.TriePath;
-import net.javapla.jawn.core.internal.RouterImpl.TriePathParser;
 
 class RouteTrieTest {
 
@@ -31,10 +30,10 @@ class RouteTrieTest {
     }
     
     @Test
-    void wildcardInMiddle() {
+    void segmentInMiddle() {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
-        String path = "/route/*/redemption";
+        String path = "/route/#/redemption";
         TriePath route = new TriePath(route(HttpMethod.GET, path));
         
         trie.insert(route);
@@ -43,9 +42,10 @@ class RouteTrieTest {
         assertNotNull(r);
         assertEquals(path, r.route.path());
         
-        r = trie.findRoute("/route/along/the/way/to/redemption", HttpMethod.GET);
+        // TODO a wildcard
+        /*r = trie.findRoute("/route/along/the/way/to/redemption", HttpMethod.GET);
         assertNotNull(r);
-        assertEquals(path, r.route.path());
+        assertEquals(path, r.route.path());*/
         
         r = trie.findRoute("/route/along_the_way_to/redemption", HttpMethod.GET);
         assertNotNull(r);
@@ -53,10 +53,10 @@ class RouteTrieTest {
     }
     
     @Test
-    void wildcardInMiddle_notFound() {
+    void segmentInMiddle_notFound() {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
-        String path = "/route/*/redemption";
+        String path = "/route/#/redemption";
         TriePath route = new TriePath(route(HttpMethod.GET, path));
         
         trie.insert(route);
@@ -70,10 +70,10 @@ class RouteTrieTest {
     }
     
     @Test
-    void wildcardEnd() {
+    void segmentEnd() {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
-        String path = "/route/to/*";
+        String path = "/route/to/#";
         TriePath route = new TriePath(route(HttpMethod.GET, path));
         
         trie.insert(route);
@@ -96,10 +96,10 @@ class RouteTrieTest {
     }
     
     @Test
-    void wildcardEnd_notFound() {
+    void segmentEnd_notFound() {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
-        String path = "/route/to/*";
+        String path = "/route/to/#";
         TriePath route = new TriePath(route(HttpMethod.GET, path));
         
         trie.insert(route);
@@ -118,10 +118,10 @@ class RouteTrieTest {
     }
     
     @Test
-    void multipleWildcardEnd() {
+    void multipleSegmentEnd() {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
-        String path = "/path/*/*";
+        String path = "/path/#/#";
         TriePath route = new TriePath(route(HttpMethod.GET, path));
         
         trie.insert(route);

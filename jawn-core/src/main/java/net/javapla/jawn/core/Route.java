@@ -81,6 +81,11 @@ public final class Route {
         return returnType;
     }
     
+    public void execute(Context ctx) {
+        exec.execute(ctx);
+        if (post != null) post.complete(new ReadOnlyContext(ctx));
+    }
+    
     public void execute(Context ctx, Router.RoutePath path) {
         //((AbstractContext)ctx).route = this;
         ((AbstractContext)ctx).routePath = path;

@@ -30,7 +30,7 @@ class TriePathParserTest {
     void segmentEnd() {
         String p = "/simple/{param}";
         TriePath path = TriePathParser.parse(new Route.Builder(p).build());
-        assertEquals("/simple/*", path.trieApplicable);
+        assertEquals("/simple/#", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.parameterNames, null, "param");
     }
@@ -39,7 +39,7 @@ class TriePathParserTest {
     void segmentStart() {
         String p = "/{param}/simple";
         TriePath path = TriePathParser.parse(new Route.Builder(p).build());
-        assertEquals("/*/simple", path.trieApplicable);
+        assertEquals("/#/simple", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.parameterNames, "param", null);
     }
@@ -48,7 +48,7 @@ class TriePathParserTest {
     void segmentMiddle() {
         String p = "/simple/{param}/route";
         TriePath path = TriePathParser.parse(new Route.Builder(p).build());
-        assertEquals("/simple/*/route", path.trieApplicable);
+        assertEquals("/simple/#/route", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.parameterNames, null, "param", null);
     }
@@ -57,21 +57,31 @@ class TriePathParserTest {
     void multipleSegments() {
         String p = "/simple/{param1}/{param2}";
         TriePath path = TriePathParser.parse(new Route.Builder(p).build());
-        assertEquals("/simple/*/*", path.trieApplicable);
+        assertEquals("/simple/#/#", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.parameterNames, null, "param1","param2");
         
         p = "/simple/{param1}/{param2}/route/more";
         path = TriePathParser.parse(new Route.Builder(p).build());
-        assertEquals("/simple/*/*/route/more", path.trieApplicable);
+        assertEquals("/simple/#/#/route/more", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.parameterNames, null, "param1","param2", null, null);
         
         p = "/simple/{param1}/between/{param2}/route";
         path = TriePathParser.parse(new Route.Builder(p).build());
-        assertEquals("/simple/*/between/*/route", path.trieApplicable);
+        assertEquals("/simple/#/between/#/route", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.parameterNames, null, "param1", null, "param2", null);
+    }
+    
+    @Test
+    void parseRequest() {
+        String p = "/simple/{param}";
+        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath parsed = TriePathParser.parseRequest("/simple/pathparam", path);
+        assertTrue(parsed.hasParams);
+        assertTrue(parsed.isStatic);
+        assertEquals("pathparam", parsed.pathParameters.get("param"));
     }
     
     @Test
@@ -79,11 +89,11 @@ class TriePathParserTest {
         //assertThrows(Up.class, () -> RoutePathParser.parse("/simple/{param/route"));
         
         TriePath path = TriePathParser.parse(new Route.Builder("/simple/{param/route").build());
-        assertEquals("/simple/*/route", path.trieApplicable);
+        assertEquals("/simple/#/route", path.trieApplicable);
         AssertionsHelper.ass(path.parameterNames, null, "param", null);
         
         path = TriePathParser.parse(new Route.Builder("/simple/route/{param").build());
-        assertEquals("/simple/route/*", path.trieApplicable);
+        assertEquals("/simple/route/#", path.trieApplicable);
         AssertionsHelper.ass(path.parameterNames, null, null, "param");
     }
 }
