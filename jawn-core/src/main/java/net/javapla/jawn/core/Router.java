@@ -43,7 +43,16 @@ public interface Router {
     static abstract class RoutePath implements Route.Execution {
         
         public final Route route;
+        
+        /**
+         * If the original route contains path parameters and this is a parsed RoutePath,
+         * this map will contain the "path parameter name" -> "concrete value in the URI" pairs.
+         * 
+         * Otherwise map is null.
+         */
         public final Map<String, String> pathParameters;
+        
+        
         
 //        private final Route.Execution exec;
 //        private final Route.OnComplete post;
@@ -55,8 +64,8 @@ public interface Router {
 //            exec = route.exec;
 //            post = route.post;
         }
-        public RoutePath(RoutePath r, Map<String, String> pathParameters) {
-            this.route = r.route;
+        public RoutePath(RoutePath p, Map<String, String> pathParameters) {
+            this.route = p.route;
             this.pathParameters = pathParameters;
             
 //            exec = route.exec;

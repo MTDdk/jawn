@@ -140,12 +140,12 @@ final class RouterImpl implements Router {
     public void addRoute(final Route route) {
         char[] chars = route.path().toCharArray();
         TriePath lookup = trie.findRoute(chars, route.method().ordinal());
-        if (lookup != null && route.method() != HttpMethod.HEAD && Arrays.equals(chars, lookup.path)/*route.path().equals(lookup.route.path())*/) {
+        if (lookup != null && route.method() != HttpMethod.HEAD && Arrays.equals(chars, lookup.trieApplicable)/*route.path().equals(lookup.route.path())*/) {
             throw Up.RouteAlreadyExists(lookup.toString());
         }
         
         TriePath triePath = TriePathParser.parse(route);
-        trie.insert(triePath.trieApplicable, triePath);
+        trie.insert(triePath);
         
         /*if (route.isUrlFullyQualified()) {
             trie.insert(route.path(), route);
@@ -168,7 +168,8 @@ final class RouterImpl implements Router {
     static final class RouteTrie {
         
         // According to RFC3986 we have a handful of characters that are reserved
-        // in the URI, so we can use these as delimiters in the trie
+        // in the URI, so we can use these as delimiters in the trie as these ought
+        // not be a part of the search
         // https://www.rfc-editor.org/rfc/rfc3986#section-2.2
         public static final char SEGMENT = '#'; // used to denote that a path segment is a variable
         //public static final char WILDCARD = '*'; // rest of the string is valid (true wildcard)
@@ -177,7 +178,7 @@ final class RouterImpl implements Router {
         
         
         public RouteTrie() {
-            root = new TrieNode(SEGMENT);
+            root = new TrieNode('!');
         }
         
         public void clear() {
@@ -185,7 +186,7 @@ final class RouterImpl implements Router {
         }
         
         public void insert(TriePath path) {
-            insert(path.path, path);
+            insert(path.trieApplicable, path);
         }
         
         public void insert(String uri, TriePath route) {
@@ -269,7 +270,7 @@ final class RouterImpl implements Router {
          * @return
          */
         public final TriePath findRoute(final char[] arr, final int method) {
-            TrieNode current = root;
+            TrieNode current = root, segment = null;
             char c;
             for (int i = 0; i < arr.length; i++) {
                 c = arr[i];
@@ -277,53 +278,47 @@ final class RouterImpl implements Router {
                 if (current.nodes[c] == null) { // might be a wildcard or segment
                     
                     if (current.nodes[SEGMENT] != null) {
-                        // are we at an end?
-                        if (current.nodes[SEGMENT].end) return current.nodes[SEGMENT].routes[method];
                         
-                        // we are looking at a single parameter segment, so just continue to the next char, which should be a slash '/'
-                        current = current.nodes[SEGMENT].nodes['/'];
+                        // We are looking at a single parameter segment.
+                        current = current.nodes[SEGMENT];
                         
-                        // fast forward to the next segment of the input
+                        
+                        // Fast forward to the next segment of the input
                         while(++i < arr.length && arr[i] != '/');
                         
-                    } //else if (current.nodes[WILDCARD] != null)
-                    else {
-                        return null;
+                        // There were no more segments..
+                        // Just return what we found
+                        if (i == arr.length) break;
+                        
+                        
+                        // Still more segments in the input, so just continue to the next char in the trie, which should be a slash '/'
+                        current = current.nodes['/'];
+                        // (might be null, but gets caught by the guard outside the ifs)
+                        
+                        
+                    /*} /*else if (current.nodes[WILDCARD] != null) {
+                        // are we at an end?
+                        if (current.nodes[WILDCARD].end) return current.nodes[WILDCARD].routes[method];*/
+                    } else {
+                        
+                        // We have nothing of the sorts already in the trie, so see if we saved a segment
+                        // way back when
+                        current = segment;
+                        // (might be null, but gets caught by the guard outside the ifs)
                     }
+                    
+                    
+                    // We have nothing else to lookup in the trie
+                    if (current == null) return null;
                     
                 } else {
                     current = current.nodes[c];
+                    if (c == '/' && current.nodes[SEGMENT] != null) segment = current.nodes[SEGMENT];
                 }
                 
-                
-                
-                /*if (current.nodes[c] == null) {
-                    // might be a wildcard search
-                    if (current.nodes[WILDCARD] != null) {
-                        // if this is the last part of a possible route, then just return the route
-                        if (current.nodes[WILDCARD].end)
-                            return current.nodes[WILDCARD].routes[method];//routes.get(current.nodes[WILDCARD].routeIndex);
-                        
-                        // try the wildcard search
-//                        TrieNode node = doWildcardSearch(current.nodes[WILDCARD], arr, i);
-//                        if (node != null) return routes.get(node.routeIndex);
-                        
-                        // we are at the wildcard, so we continue to the next char, which should be a slash '/'
-                        current = current.nodes[WILDCARD].nodes['/'];
-                        do {
-                            // jump to next segment
-                            while(++i < arr.length && arr[i] != '/');
-                            if (i == arr.length) return current.routes[method];
-                            //if (arr[i] == '/') continue top;
-                            i++;
-                        } while (current.nodes[arr[i]] == null);
-                        current = current.nodes[arr[i]];
-                    } else
-                        return null;
-                } else {
-                    current = current.nodes[c];
-                }*/
             }
+            
+            if (current.routes[method] == null && segment != null) current = segment;
             return current.routes[method];
         }
         
@@ -382,8 +377,7 @@ final class RouterImpl implements Router {
      */
     static final class TriePathParser {
         
-        // /{paramname}
-        private static final char PARAM_START = '{';
+        private static final char PARAM_START = '{'; // /{paramname}
         private static final char PARAM_END = '}';
         
         static TriePath parse(Route route) {
@@ -423,15 +417,16 @@ final class RouterImpl implements Router {
         static TriePath parseRequest(String requestPath, TriePath path) {
             if (!path.hasParams) return path;
             
-            HashMap<String, String> pathParams = new HashMap<>(1);
+            HashMap<String, String> pathParams = new HashMap<>(1, 0.01f);
             
             // segment the request
             int[] index = {0};
             StringUtil.split(requestPath, '/', segment -> {
-                String param = path.parameterNames[ index[0]++ ];
+                String param = path.segments[ index[0]++ ];
                 if (param != null)
                     pathParams.put(param, segment);
             });
+            
             
             return new TriePath(path, pathParams);
         }
@@ -440,63 +435,62 @@ final class RouterImpl implements Router {
     
     // TODO could be a record
     static class TriePath extends Router.RoutePath {
-        //final Route route;
-        final char[] path;
-        final int method;
         /**
-         * A route that can go into the Trie 
+         * A path/URI that can go directly into the Trie 
          * (i.e. might contain wildcards that can be handled by the Trie or simply be a static route)
          */
-        final String trieApplicable;
-        final String[] parameterNames;
+        final char[] trieApplicable;
+        
+        /**
+         * The int value of the corresponding HttpMethod of the contained Route
+         */
+        final int method;
+        
+        /**
+         * An array of each segment of the original URI.
+         * A "segment" is the value between two forward slashes '/'.
+         * A segment can either be static, e.g. /static/path, or non-static, e.g. /static/{named_path_param}.
+         * 
+         * All static segments are simply represented as nulls in the array,
+         * and non-static segments are named, i.e. has a string value in the array.
+         * 
+         * For example:
+         * /static/path/{named} becomes -> [null, null, "named"]
+         */
+        final String[] segments;
+        
+        /**
+         * Indicates whether or not the original URI had any non-static segments.
+         */
         final boolean hasParams;
-        //final Map<String, String> pathParameters;
+        
+        /**
+         * Not currently used, but might be valuable for future extensions
+         * where it is needed to know whether or not this particular TriePath
+         * contains any sort of wildcards in the path or not.
+         */
         final boolean isStatic;
         
         
         TriePath(Route r) {
             this(r, r.path(), Collections.emptyList());
         }
-        TriePath(Route r, String w, List<String> pn) {
+        TriePath(Route r, String w, List<String> pn) { // RawTriePath
             super(r);
-            //route = r;
-            path = w.toCharArray();//r.path().toCharArray();
-            method = r.method().ordinal();
-            trieApplicable = w;
-            parameterNames = pn.toArray(String[]::new);
+            trieApplicable = w.toCharArray();
+            method = route.method().ordinal();
+            segments = pn.toArray(String[]::new);
             hasParams = !pn.isEmpty();
-            //pathParameters = null;
             isStatic = !hasParams;
-            
-            
         }
-        TriePath(TriePath tp, Map<String, String> pp) {
+        TriePath(TriePath tp, Map<String, String> pp) { // ParsedTriePath / StaticTriePath
             super(tp, pp);
-            //route = tp.route;
-            path = tp.path;//tp.route.path().toCharArray();
-            method = tp.method;
             trieApplicable = tp.trieApplicable;
-            parameterNames = null;//tp.parameterNames;
+            method = tp.method;
+            segments = tp.segments; // not necessary to save the segments as this is now a static TriePath, and the has all the path parameters parsed
             hasParams = tp.hasParams;
-            //pathParameters = pp;
             isStatic = true;
         }
-        
-        /*@Override
-        public Route route() {
-            return route;
-        }*/
-        
-        /*@Override
-        public void execute(Context ctx) {
-            ((AbstractContext)ctx).routePath = this;
-            route.execute(ctx);
-        }*/
-        
-        /*@Override
-        public Map<String, String> pathParameters() {
-            return pathParameters;
-        }*/
     }
 
 }
