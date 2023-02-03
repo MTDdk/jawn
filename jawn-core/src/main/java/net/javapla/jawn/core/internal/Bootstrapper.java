@@ -1,5 +1,6 @@
 package net.javapla.jawn.core.internal;
 
+import java.util.LinkedList;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
@@ -23,6 +24,8 @@ public class Bootstrapper {
     
     private final ClassLoader classLoader;
     private final Config config;
+    
+    private final LinkedList<Plugin> userPlugins = new LinkedList<>();
     
     
     public Bootstrapper(ClassLoader classLoader) {
@@ -84,10 +87,19 @@ public class Bootstrapper {
         return config;
     }
     
+    public void install(Plugin plugin) {
+        userPlugins.add(plugin);
+    }
+    
     private void installPlugins(Plugin.Application moduleConfig) {
         // read template engines
         ServiceLoader<Plugin> plugins = ServiceLoader.load(Plugin.class);
         plugins.forEach(plugin -> {
+            plugin.install(moduleConfig);
+        });
+        
+        // then register/overwrite with user plugins
+        userPlugins.forEach(plugin -> {
             plugin.install(moduleConfig);
         });
     }
@@ -97,126 +109,15 @@ public class Bootstrapper {
     }
     
     private void parseRoutes(Stream<Route.Builder> routes, RouterImpl router) {
-        ClassSource source = new ClassSource(classLoader);
-        RouteClassAnalyser analyser = new RouteClassAnalyser(source);
-        
-        
-        routes.map(bob -> {
+        try (ClassSource source = new ClassSource(classLoader)) {
             
-            return Pipeline.compile(source, analyser, engine, bob);
-            /*
-            // Add parsers to later be available in Context.
-            // Unfortunately we have to let them be chained 
-            // through Route.Builder -> Route -> AbstractContext
-            bob.parsers(engine);
+            RouteClassAnalyser analyser = new RouteClassAnalyser(source);
             
-            
-            // if the route has multiple possible response types, 
-            // we want to look at the request's ACCEPT-header to pick one of them for us.
-            if (bob.produces().size() > 1) {
-                bob.before(Route.RESPONSE_CONTENT_TYPE.apply(bob.produces()));
-            } else {
-                // If only a single option is available then always set response type accordingly.
-                bob.before(ctx -> ctx.resp().contentType(bob.fallbackResponseType()));
-            }
-            
-            // TODO insert Parsers somewhere, so they are reachable from handlers
-            // which probably means they have to be reachable from Context
-            
-            //bob.renderer(engine.render(bob.fallbackResponseType()));
-            
-            // pipeline
-            pipeline(bob, source, analyser);
+            routes.map(bob -> {
                 
-            return bob.build();*/
-        }).forEach(router::addRoute);
-
-        
-        source.close();
-    }
-    
-    /*private void pipeline(Route.Builder bob, ClassSource source, RouteClassAnalyser analyser) {
-        Type returnType = bob.returnType();
-        if (returnType == null) {
-            returnType = analyser.returnType(bob.originalHandler);
-        }
-        
-        Class<?> raw = TypeLiteral.rawType(returnType);
-        
-        bob.execution(execution(raw, bob));
-    }
-    
-    private Route.Execution execution(Class<?> raw, final Route.Builder bob) {
-        
-        // ** Bytes ** //
-        if (byte[].class == raw) {
-            final Route.Handler handler = bob.handler();
-            return ctx -> {
-                try {
-                    Object result = handler.handle(ctx);
-                    if (!ctx.resp().isResponseStarted()) {
-                        ctx.resp().respond((byte[])result);
-                    }
-                } catch (Exception e) {
-                    ctx.error(e);
-                }
-            };
-        }
-        if (ByteBuffer.class.isAssignableFrom(raw)) {
-            final Route.Handler handler = bob.handler();
-            return ctx -> {
-                try {
-                    Object result = handler.handle(ctx);
-                    if (!ctx.resp().isResponseStarted()) {
-                        ctx.resp().respond((ByteBuffer)result);
-                    }
-                } catch (Exception e) {
-                    ctx.error(e);
-                }
-            };
-        }
-        
-        // ** void ** //
-        if (void.class == raw) {
-            final Route.Handler handler = bob.handler();
-            return ctx -> {
-                try {
-                    handler.handle(ctx);
-                    if (!ctx.resp().isResponseStarted()) {
-                        ctx.resp().respond(Status.OK);
-                    }
-                } catch (Exception e) {
-                    ctx.error(e);
-                }
-            };
-        }
-        
-        return defaultExecution(bob);
-    }
-    
-    private Route.Execution defaultExecution(Route.Builder bob) {
-        final Route.Handler handler = bob.handler();
-        //final Renderer renderer = bob.renderer();
-        
-        return ctx -> {
-            
-            try {
-                Object result = handler.handle(ctx);
+                return Pipeline.compile(source, analyser, engine, bob);
                 
-                if (!ctx.resp().isResponseStarted()) {
-                    if (result instanceof Context) {
-                        ctx.resp().respond(Status.OK);
-                    } else {
-                        byte[] rendered = engine.render(ctx.resp().contentType()).render(ctx, result);
-                        if (rendered != null) {
-                            System.out.println("Response has not been handled");
-                            ctx.resp().respond(Status.NO_CONTENT);
-                        }
-                    }
-                }
-            } catch (Exception e ) {
-                ctx.error(e);
-            }
-        };
-    }*/
+            }).forEach(router::addRoute);
+        }
+    }
 }

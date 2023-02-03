@@ -101,6 +101,8 @@ public class Jawn {
         //Server service = loader.findFirst().get();
         //registry.register(Server.class, server);
         // TODO
+        
+        booter.install(plugin);
     }
     
     
