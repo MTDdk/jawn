@@ -13,6 +13,8 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.typesafe.config.Config;
+
 import net.javapla.jawn.core.Plugin.Application;
 import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.internal.Bootstrapper;
@@ -121,7 +123,8 @@ public class Jawn {
         }
         
         // start server
-        ServerConfig serverConfig = Server.ServerConfig.from(booter.config().getConfig("server"));
+        Config config = booter.config().hasPath("server") ? booter.config().getConfig("server") : null;
+        ServerConfig serverConfig = Server.ServerConfig.from(config);
         try {
             server.get().start(serverConfig, moduleConfig);
         } catch (Exception e) {
