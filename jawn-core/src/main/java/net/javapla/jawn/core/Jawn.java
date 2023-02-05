@@ -59,6 +59,12 @@ public class Jawn {
     /*protected Route.RouteBuilder post(final String path, final Route.NoResultHandler handler) {
         return _route(HttpMethod.POST, path, handler);
     }*/
+    protected Route.RouteBuilder put(final String path, final Route.Handler handler) {
+        return _route(HttpMethod.PUT, path, handler);
+    }
+    protected Route.RouteBuilder put(final String path, final Route.ZeroArgHandler handler) {
+        return _route(HttpMethod.PUT, path, handler);
+    }
     protected Route.Builder _route(HttpMethod method, final String path, final Route.Handler handler) {
         Route.Builder bob = new Route.Builder(method, _pathPrefix(path), handler);
         routes.add(bob);
@@ -103,6 +109,10 @@ public class Jawn {
         // TODO
         
         booter.install(plugin);
+    }
+    
+    protected <T> T require(Class<T> type) {
+        return booter.registry().require(type);
     }
     
     
@@ -157,6 +167,15 @@ public class Jawn {
         }
         
         try {
+            /*Jawn instance = null;
+            if (args.length > 0) {
+                try {
+                    instance = caller.getDeclaredConstructor(String[].class).newInstance(args);
+                } catch (NoSuchMethodException nothing) {}
+            }
+            
+            if (instance == null)
+                instance = caller.getDeclaredConstructor().newInstance();*/
             Jawn instance = caller.getDeclaredConstructor().newInstance();
             
             instance.start();

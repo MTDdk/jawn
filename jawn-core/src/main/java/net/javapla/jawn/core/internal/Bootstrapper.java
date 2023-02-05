@@ -24,19 +24,22 @@ public class Bootstrapper {
     
     private final ClassLoader classLoader;
     private final Config config;
+    private final InjectionRegistry registry;
     
     private final LinkedList<Plugin> userPlugins = new LinkedList<>();
+
     
     
     public Bootstrapper(ClassLoader classLoader) {
         this.classLoader = classLoader;
         this.config = ConfigFactory.parseResources(classLoader, "jawn.conf");
+        this.registry = new InjectionRegistry();
     }
     
     public synchronized Application boot(Stream<Route.Builder> routes) {
         
         RouterImpl router = new RouterImpl();
-        InjectionRegistry registry = new InjectionRegistry();
+        
         
         Plugin.Application moduleConfig = new Plugin.Application() {
 
@@ -85,6 +88,10 @@ public class Bootstrapper {
     
     public Config config() {
         return config;
+    }
+    
+    public Registry registry() {
+        return registry;
     }
     
     public void install(Plugin plugin) {
