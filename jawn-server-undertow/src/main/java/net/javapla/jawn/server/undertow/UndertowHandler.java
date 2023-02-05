@@ -101,11 +101,11 @@ class UndertowHandler implements HttpHandler {
                     
                     if (len > 0 && len <= bufferSize) {
                         receiver.receiveFullBytes(UndertowHandler.receiveFullBytes(context));
+                        router.retrieve(context.method.ordinal(), context.path).execute(context);
                     } else {
                         receiver.receivePartialBytes(new PartialBodyReceiver(context));
                     }
                     
-                    router.retrieve(context.method.ordinal(), context.path).execute(context);
                 }
                 
             } else {
@@ -186,6 +186,7 @@ class UndertowHandler implements HttpHandler {
                         // write the saved chunks of the body to file
                         saveBuffer();
                     }
+                    
                 }
                 
                 if (last) {
@@ -205,6 +206,8 @@ class UndertowHandler implements HttpHandler {
                     } else {
                         context.body = Body.of(toByteArray());
                     }
+                    
+                    router.retrieve(context.method.ordinal(), context.path).execute(context);
                 }
             } catch (IOException e) {
                 context.resp().status(Up.error(e));

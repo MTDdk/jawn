@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 public abstract class StreamUtil {
     
     public static final int _4KB = 4096;
-    public static final int _8KB = 8192;
-    public static final int _16KB = 16384;
+    public static final int _8KB = _4KB << 1;
+    public static final int _16KB = _8KB << 1;
     
     private StreamUtil() {}
 
