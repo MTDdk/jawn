@@ -186,24 +186,24 @@ class UndertowHandler implements HttpHandler {
                         // write the saved chunks of the body to file
                         saveBuffer();
                     }
-                    
-                    if (last) {
-                        // temp file created
-                        if (channel != null) {
-                            if (accumulated > 0) {
-                                // do the final write of the buffer
-                                saveBuffer();
-                            }
-                            
-                            exchange.addExchangeCompleteListener(exchangeEvent(file));
-                            channel.force(true);
-                            closeChannel();
-                            
-                            context.body = Body.of(file);
-                            
-                        } else {
-                            context.body = Body.of(toByteArray());
+                }
+                
+                if (last) {
+                    // temp file created
+                    if (channel != null) {
+                        if (accumulated > 0) {
+                            // do the final write of the buffer
+                            saveBuffer();
                         }
+                        
+                        exchange.addExchangeCompleteListener(exchangeEvent(file));
+                        channel.force(true);
+                        closeChannel();
+                        
+                        context.body = Body.of(file);
+                        
+                    } else {
+                        context.body = Body.of(toByteArray());
                     }
                 }
             } catch (IOException e) {
