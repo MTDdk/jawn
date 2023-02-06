@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal.reflection;
 /**
  * @deprecated Made obsolete by using java.util.ServiceLoader
  */
+@Deprecated
 public class ModuleLoader {
     
     /*private static final Package MODULE_PACKAGE = Thread.currentThread().getContextClassLoader().getDefinedPackage("net.javapla.");
