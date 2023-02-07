@@ -4,9 +4,11 @@ import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.TypeLiteral;
+import net.javapla.jawn.core.WebSocket;
 import net.javapla.jawn.core.internal.reflection.ClassSource;
 import net.javapla.jawn.core.internal.reflection.RouteClassAnalyser;
 
@@ -23,7 +25,6 @@ abstract class Pipeline {
         // through Route.Builder -> Route -> AbstractContext
         bob.parsers(engine);
         
-        
         // if the route has multiple possible response types, 
         // we want to look at the request's ACCEPT-header to pick one of them for us.
         if (bob.produces().size() > 1) {
@@ -37,9 +38,22 @@ abstract class Pipeline {
         // which probably means they have to be reachable from Context
         
         //bob.renderer(engine.render(bob.fallbackResponseType()));
+
         
         // pipeline
         pipeline(bob, source, analyser, engine);
+        
+        
+        if (bob.originalHandler instanceof WebSocket.WebSocketHandler) {
+            // some things are just for WS
+        } else {
+            // When everything else is set, look for request header "Content-Type"
+            // and make sure it is what the route expects
+            if (bob.consumes() != MediaType.WILDCARD) {
+                bob.before(Route.CONTENT_TYPE_SUPPORTED);
+                // TODO needs to be tested
+            }
+        }
             
         return bob.build();
     }

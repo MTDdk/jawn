@@ -252,13 +252,14 @@ public final class Route {
         RouteBuilder postResponse(OnComplete p);
 
         RouteBuilder produces(MediaType type);
+        
+        RouteBuilder consumes(MediaType type);
     }
 
     public static class Builder implements RouteBuilder {
 
         public final HttpMethod       method;
-        public final String           path; // original path (might contain path
-                                            // params)
+        public final String           path; // original path (might contain path params)
         public final Handler          originalHandler; // action
         private Handler               handler; // pipeline
         private OnComplete            post;
@@ -405,14 +406,9 @@ public final class Route {
         }
     }
 
-    public static final Route NOT_FOUND          = new Route.Builder(HttpMethod.GET, "/", ctx -> {
-                                                     ctx.resp().respond(Status.NOT_FOUND);
-                                                     return ctx;
-                                                 }).executor().build();
-    public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> {
-                                                     ctx.resp().respond(Status.METHOD_NOT_ALLOWED);
-                                                     return ctx;
-                                                 }).executor().build();
+    public static final Route NOT_FOUND          = new Route.Builder(HttpMethod.GET, "/", ctx -> { ctx.resp().respond(Status.NOT_FOUND); return ctx; }).executor().build();
+    public static final Route METHOD_NOT_ALLOWED = new Route.Builder(HttpMethod.GET, "/", ctx -> { ctx.resp().respond(Status.METHOD_NOT_ALLOWED); return ctx; }).executor().build();
+    
 
     /* Set the response type based on what the request asked for in the ACCEPT-header  */
     /*public static final Route.Before RESPONSE_CONTENT_TYPE = (ctx) -> {
@@ -424,6 +420,20 @@ public final class Route {
         AbstractContext ac = (AbstractContext) ctx;
         MediaType acceptable = ac.accept(responseTypes);
         ctx.resp().contentType(acceptable);
+    };
+    
+    public static final Route.Before CONTENT_TYPE_SUPPORTED =  ctx -> {
+        if (!ctx.req().isPreflight()) {
+            MediaType contentType = ctx.req().contentType();
+            if (contentType == null) {
+                throw Up.UnsupportedMediaType(null);
+            }
+            
+            AbstractContext ac = (AbstractContext) ctx;
+            if (ac.routePath.route.consumes != contentType) {
+                throw Up.UnsupportedMediaType(contentType.name());
+            }
+        }
     };
 
 }

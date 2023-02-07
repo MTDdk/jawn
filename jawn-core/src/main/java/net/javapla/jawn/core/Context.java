@@ -31,6 +31,10 @@ public interface Context {
         Value header(String name);
         Value pathParam(String name);
         
+        default boolean isPreflight() {
+            return httpMethod() == HttpMethod.OPTIONS && header("Access-Control-Request-Method").isMissing();
+        }
+        
         default boolean accept(MediaType contentType) {
             Value accept = header(ACCEPT);
             if (accept.isMissing()) {
