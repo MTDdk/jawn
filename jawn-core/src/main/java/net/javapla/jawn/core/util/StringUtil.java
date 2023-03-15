@@ -58,8 +58,8 @@ public abstract class StringUtil {
         
         final int len = input.length();
         
-        int lastMark = 1;
-        for (int i = lastMark; i < len; i++) {
+        int lastMark = 0;
+        for (int i = 1; i < len; i++) {
             if (input.charAt(i) == delimiter) {
                 callbackPerSubstring.accept(input.substring(lastMark, i));
                 lastMark = i + 1;// 1 == delimiter length

@@ -263,7 +263,7 @@ public final class Route {
         public final Handler          originalHandler; // action
         private Handler               handler; // pipeline
         private OnComplete            post;
-        private MediaType             responseType  = MediaType.PLAIN, consumes = MediaType.WILDCARD;
+        private MediaType             responseType  = MediaType.TEXT, consumes = MediaType.WILDCARD;
         private final List<MediaType> responseTypes = new LinkedList<>();
         // private Renderer renderer;
         private Type returnType;
@@ -431,7 +431,7 @@ public final class Route {
             
             AbstractContext ac = (AbstractContext) ctx;
             if (ac.routePath.route.consumes != contentType) {
-                throw Up.UnsupportedMediaType(contentType.name());
+                throw Up.UnsupportedMediaType(contentType.value());
             }
         }
     };

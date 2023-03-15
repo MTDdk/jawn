@@ -62,7 +62,7 @@ public interface Context {
     }
     
     interface Response {
-        static final String STANDARD_HEADER_CONTENT_TYPE = MediaType.PLAIN.name() + ";charset=" + StandardCharsets.UTF_8.name();
+        static final String STANDARD_HEADER_CONTENT_TYPE = MediaType.TEXT.value() + ";charset=" + StandardCharsets.UTF_8.name();
         
         Value header(String name);
         Response header(String name, String value);

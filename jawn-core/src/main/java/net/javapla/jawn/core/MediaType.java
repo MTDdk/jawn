@@ -1,15 +1,10 @@
 package net.javapla.jawn.core;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -21,167 +16,187 @@ public class MediaType implements Comparable<MediaType> {
      */
     public static final String CHARSET_PARAMETER = "charset";
     
+    private static final String UTF_8 = StandardCharsets.UTF_8.name().toLowerCase();
+    
     /** application/xml */
-    public final static MediaType XML = new MediaType("application", "xml");
+    public final static MediaType XML = new MediaType("application/xml", UTF_8);
     /** application/*+xml */
-    public final static MediaType XML_LIKE = new MediaType("application", "*+xml");
+    public final static MediaType XML_LIKE = new MediaType("application/*+xml", UTF_8);
     /** application/json */
-    public final static MediaType JSON = new MediaType("application", "json");
-    public final static String json = "application/json";
+    public final static MediaType JSON = new MediaType("application/json", UTF_8);
     /** application/*+json */
-    public final static MediaType JSON_LIKE = new MediaType("application", "*+json");
+    public final static MediaType JSON_LIKE = new MediaType("application/*+json", UTF_8);
     /** application/x-www-form-urlencoded */
-    public final static MediaType FORM = new MediaType("application", "x-www-form-urlencoded");
+    public final static MediaType FORM = new MediaType("application/x-www-form-urlencoded", UTF_8);
     /** multipart/form-data */
-    public final static MediaType MULTIPART = new MediaType("multipart", "form-data");
+    public final static MediaType MULTIPART = new MediaType("multipart/form-data", UTF_8);
     /** application/octet-stream */
-    public final static MediaType OCTET_STREAM = new MediaType("application", "octet-stream");
+    public final static MediaType OCTET_STREAM = new MediaType("application/octet-stream", null);
     /** text/plain */
-    public final static MediaType PLAIN = new MediaType("text", "plain");
+    public final static MediaType TEXT = new MediaType("text/plain", UTF_8);
     /** text/html */
-    public final static MediaType HTML = new MediaType("text", "html");
-    /** text/* */
-    public final static MediaType TEXT = new MediaType("text", WILDCARD_TYPE);
+    public final static MediaType HTML = new MediaType("text/html", UTF_8);
+    ///** text/* */
+    //public final static MediaType TEXT = new MediaType("text", WILDCARD_TYPE);
     /**
      * Server sent events media type.
      */
     /** text/event-stream */
-    public static final MediaType SERVER_SENT_EVENTS = new MediaType("text", "event-stream");
+    public static final MediaType SERVER_SENT_EVENTS = new MediaType("text/event-stream", null);
     /** {@link WILDCARD_TYPE}/{@link WILDCARD_TYPE} */
-    public final static MediaType WILDCARD = new MediaType(WILDCARD_TYPE, WILDCARD_TYPE);
+    public final static MediaType WILDCARD = new MediaType(WILDCARD_TYPE + "/" + WILDCARD_TYPE, null);
     
-    public final static List<MediaType> ALL = Collections.singletonList(WILDCARD);
-    
-
-    private final String type;
-    private final String subtype;
-    private final Map<String, String> parameters;
-    
-    private final String name;
-    private final int hashcode;
-    
-    /**
-     * True for wild-card types.
-     */
-    private final boolean wildcardType;
-
-    /**
-     * True for wild-card sub-types.
-     */
-    private final boolean wildcardSubtype;
+    //public final static List<MediaType> ALL = Collections.singletonList(WILDCARD);
     
     /**
      * Alias for most used types.
      */
-    private static final HashMap<String, List<MediaType>> cache = new HashMap<>(8, 1.0f);
-
+    private static final Map<String, MediaType> cache = new ConcurrentHashMap<>();
     static {
-      cache.put("html", Collections.singletonList(HTML));
-      cache.put("json", Collections.singletonList(JSON));
-      cache.put("octetstream", Collections.singletonList(OCTET_STREAM));
-      cache.put("form", Collections.singletonList(FORM));
-      cache.put("multipart", Collections.singletonList(MULTIPART));
-      cache.put("xml", Collections.singletonList(XML));
-      cache.put("plain", Collections.singletonList(PLAIN));
-      cache.put("*", ALL);
+        cache.put(HTML.subtype(), HTML);
+        cache.put(HTML.value, HTML);
+        cache.put("json", JSON);
+        cache.put("octetstream", OCTET_STREAM);
+        cache.put("form", FORM);
+        cache.put("multipart", MULTIPART);
+        cache.put("xml", XML);
+        cache.put("plain", TEXT);
+        cache.put("*", WILDCARD);
     }
     
-    // TODO: Perhaps a default/user defined mechanism, like jawn_defaults
-    /*static final Properties mimes = Config
-        .PropertiesLoader
-        .parseResource("mime.properties", ParseOptions.defaults());*/
-    static final Config mimes = ConfigFactory.parseResources("mime.properties");
-    
-    
-    MediaType(final String type, final String subtype, final Map<String, String> parameters) {
-        this(type, subtype, null, createParametersMap(parameters));
-    }
-    
-    public MediaType(final String type, final String subtype) {
-        this(type, subtype, null, null);
-    }
-    
-    public MediaType(final String type, final String subtype, final String charset) {
-        this(type, subtype, charset, null);
-    }
-    
-    /**
-     * Creates a new instance of {@code MediaType}, both type and subtype are wildcards.
-     * Consider using the constant {@link #WILDCARD_TYPE} instead.
-     */
-    MediaType() {
-        this(WILDCARD_TYPE, WILDCARD_TYPE, null, null);
-    }
-    
-    private MediaType(final String type, final String subtype, final String charset, final Map<String, String> parameters) {
-        this.type = type == null ? WILDCARD_TYPE : type;
-        this.subtype = subtype == null ? WILDCARD_TYPE : subtype;
-        this.name = this.type + '/' + this.subtype;
-        this.wildcardType = WILDCARD_TYPE.equals(this.type);
-        this.wildcardSubtype = WILDCARD_TYPE.equals(this.subtype);
 
-        TreeMap<String, String> params = createParametersMap(parameters);
-        if (charset != null && !charset.isEmpty()) {
-            params.put(CHARSET_PARAMETER, charset);
-        }
-        this.parameters = Collections.unmodifiableMap(params);
+    private final String raw, value;
+    private final int subtypeStart, subtypeEnd;
+    private final String charset;
+    
+    
+    private MediaType(String raw, String charset) throws Up.BadMediaType {
+        this.raw = raw;
         
-        this.hashcode = (this.type.toLowerCase() + this.subtype.toLowerCase()).hashCode() + this.parameters.hashCode();
+        this.subtypeStart = raw.indexOf('/');
+        if (subtypeStart < 1) throw Up.BadMediaType(raw);
+        
+        int subtypeEnd = raw.indexOf(';', subtypeStart);
+        if (subtypeEnd < subtypeStart) {
+            this.value = raw;
+            this.subtypeEnd = raw.length();
+        } else {
+            this.value = raw.substring(0, subtypeEnd);
+            this.subtypeEnd = subtypeEnd;
+        }
+        
+        String param = parameter("charset");
+        this.charset = param == null ? charset : param;
     }
     
     public String type() {
-        return type;
+        return raw.substring(0, subtypeStart);
     }
     
     public String subtype() {
-        return subtype;
+        return raw.substring(subtypeStart + 1, subtypeEnd);
     }
     
-    public Map<String, String> params() {
-        return parameters;
+    public String value() {
+        return value;
     }
     
-    public String name() {
-        return name;
+    public String charset() {
+        return this.charset;
     }
     
-    public boolean isAny() {
-        return this.wildcardType && this.wildcardSubtype;
+    public float quality() {
+        String q = parameter("q");
+        return q == null ? 1f : Float.parseFloat(q);
     }
     
-    public boolean isWildcardType() {
-        return wildcardType;
+    /**
+     * Get the parameter for this type or <code>null</code>
+     * 
+     * Examples:
+     * <ul>
+     * <li><code>Content-Type: text/html; charset=utf-8</code>
+     * <li><code>Content-Type: multipart/form-data; boundary=something</code>
+     * <li><code>Accept : text/html, application/xml;q=0.9, *{@literal /}*;q=0.8</code>
+     * 
+     * @param name
+     * @return value of <code>null</code>
+     */
+    public String parameter(String name) {
+        int paramNameStart = subtypeEnd + 1;
+        
+        do {
+            int paramNameEnd = raw.indexOf('=', paramNameStart);
+            if (paramNameEnd > paramNameStart) {
+                String paramName = raw.substring(paramNameStart, paramNameEnd).trim();
+                int paramValueEnd = raw.indexOf(';', paramNameEnd);
+                if (paramValueEnd < paramNameEnd) paramValueEnd = raw.length();
+                
+                if (name.equals(paramName)) {
+                    return raw.substring(paramNameEnd + 1, paramValueEnd);
+                }
+                
+                paramNameStart = paramValueEnd + 1;
+            }
+        } while (paramNameStart < raw.length());
+        
+        return null;
+    }
+
+    private int parameterCount() {
+        int count = 0;
+        for (int i = subtypeEnd; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+            if (c == '=') count++;
+        }
+        return count;
     }
     
-    public boolean isWildcardSubtype() {
-        return wildcardSubtype;
+    public boolean isTextual() {
+        if ("text".equals(type())) return true;
+        
+        String subtype = subtype();
+        return "json".equals(subtype)
+            || "javascript".equals(subtype)
+            || "xml".equals(subtype)
+            ;
     }
     
     public static MediaType valueOf(final String type) throws Up.BadMediaType {
-        return parse(type).get(0);
+        if (type == null || type.isBlank() || (type.length() == 1 && type.charAt(0) == '*')) return WILDCARD;
+        
+        return cache.computeIfAbsent(type, t -> new MediaType(t, null));
     }
     
     /**
      * Converts a comma-separated string into a list of MediaTypes 
      */
-    public static List<MediaType> parse(final String type) throws Up.BadMediaType {
-        return cache.computeIfAbsent(type, MediaType::_parse);
+    public static List<MediaType> parse(final String types) throws Up.BadMediaType {
+        LinkedList<MediaType> result = new LinkedList<>();
+        
+        StringUtil.split(types, ',', raw -> {
+            String type = raw.trim();
+            if (!type.isBlank())
+                result.add(valueOf(type));
+        });
+        
+        return result;
     }
     
     public boolean matches(final MediaType that) {
-        if (this == that || this.wildcardType || that.wildcardType) {
+        if (this == that /*|| this.wildcardType || that.wildcardType*/) {
             // same or */*
             return true;
         }
-        if (type.equals(that.type)) {
-            if (subtype.equals(that.subtype) || this.wildcardSubtype || that.wildcardSubtype) {
+        if (type().equals(that.type())) {
+            if (subtype().equals(that.subtype()) /*|| this.wildcardSubtype || that.wildcardSubtype*/) {
                 return true;
             }
-            if (subtype.startsWith("*+")) {
-                return that.subtype.endsWith(subtype.substring(2));
+            if (subtype().startsWith("*+")) {
+                return that.subtype().endsWith(subtype().substring(2));
             }
-            if (subtype.startsWith(WILDCARD_TYPE)) {
-                return that.subtype.endsWith(subtype.substring(1));
+            if (subtype().startsWith(WILDCARD_TYPE)) {
+                return that.subtype().endsWith(subtype().substring(1));
             }
         }
         return false;
@@ -198,72 +213,50 @@ public class MediaType implements Comparable<MediaType> {
         }
         if (obj instanceof MediaType) {
             MediaType that = (MediaType) obj;
-            return this.hashCode() == that.hashCode();
             
-            // #hashCode might actually be sufficient if we are looking at the same values correctly
-            //return type.equals(that.type) && subtype.equals(that.subtype) && parameters.equals(that.parameters);
+            // #hashCode is not always sufficient, as the content-type might have parameters appended
+            //return this.hashCode() == that.hashCode();
+            
+            return type().equals(this.type()) && subtype().equals(that.subtype()); 
+            // && parameters.equals(that.parameters);
         }
         return false;
     }
     
     @Override
     public int hashCode() {
-        return hashcode;
+        return raw.hashCode();
     }
+    
+    private int score() {
+        int precedence = 0;
+        
+        return precedence;
+    }
+    
     
     @Override
     public int compareTo(MediaType that) {
         if (this == that) {
             return 0;
         }
-        if (this.wildcardType && !that.wildcardType) {
-            return 1;
+        
+        int diff = that.score() - score();
+        if (diff == 0) {
+            diff = Float.compare(that.quality(), quality());
+            if (diff == 0)
+                return that.parameterCount() - parameterCount();
         }
-
-        if (that.wildcardType && !this.wildcardType) {
-            return -1;
-        }
-
-        if (this.wildcardSubtype && !that.wildcardSubtype) {
-            return 1;
-        }
-
-        if (that.wildcardSubtype && !this.wildcardSubtype) {
-            return -1;
-        }
-
-        if (!this.type().equals(that.type())) {
-            return 0;
-        }
-
-        // parameters size
-        int paramsSize1 = this.parameters.size();
-        int paramsSize2 = that.parameters.size();
-        return (paramsSize2 < paramsSize1 ? -1 : (paramsSize2 == paramsSize1 ? 0 : 1));
+        
+        return diff;
     }
 
     @Override
     public String toString() {
-        return name;
-    }
-
-    private static TreeMap<String, String> createParametersMap(Map<String, String> initialValues) {
-        final TreeMap<String, String> map = new TreeMap<String, String>(new Comparator<String>() {
-
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareToIgnoreCase(o2);
-            }
-        });
-        if (initialValues != null) {
-            for (Map.Entry<String, String> e : initialValues.entrySet()) {
-                map.put(e.getKey().toLowerCase(), e.getValue());
-            }
-        }
-        return map;
+        return raw;
     }
     
-    private static List<MediaType> _parse(final String value) {
+    /*private static List<MediaType> _parse(final String value) {
         String[] types = StringUtil.split(value, ',');
         List<MediaType> result = new ArrayList<>(types.length);
         for (String type : types) {
@@ -297,7 +290,7 @@ public class MediaType implements Comparable<MediaType> {
             Collections.sort(result);
         }
         return result;
-    }
+    }*/
 
     public static MediaType byPath(final String path) {
         int last = path.lastIndexOf('.');
@@ -309,10 +302,41 @@ public class MediaType implements Comparable<MediaType> {
     }
 
     public static MediaType byExtension(final String ext) {
-        String key = "mime." + ext;
-        if (mimes.hasPath(key)) {
-            return MediaType.valueOf(mimes.getString(key));
+        switch(ext) {
+            
+            case "gif": return valueOf("image/gif");
+            case "jpg": return valueOf("image/jpg");
+            case "jpeg":
+            case "jpe": 
+                return valueOf("image/jpeg");
+            case "png": return valueOf("image/png");
+            case "svg": return valueOf("image/svg+xml");
+            
+            case "txt": return TEXT;
+            case "css": 
+            case "scss": 
+                return valueOf("text/css");
+            case "js": 
+            case "coffee": 
+                return valueOf("text/javascript");
+            case "mjs": return valueOf("text/javascript");
+            
+            case "mp4": return valueOf("video/mp4");
+            case "webm": return valueOf("video/webm");
+            case "mpeg": return valueOf("video/mpeg");
+            
+            case "json": return JSON;
+            case "xml": return XML;
+            case "zip": return valueOf("application/zip");
+            case "gz":
+            case "gzip": 
+                return valueOf("application/gzip");
+            case "otf": valueOf("application/x-font-opentype");
+            case "ttf": valueOf("application/x-font-truetype");
+            case "woff": valueOf("application/font-woff");
+            case "woff2": valueOf("application/font-woff2");
         }
+        
         return OCTET_STREAM;
     }
 }

@@ -45,7 +45,7 @@ public class ParserRenderEngine implements Parser.ParserProvider {
     
     
     public Parser get(MediaType type) {
-        return parsers.getOrDefault(type, (ctx, t) -> {throw Up.UnsupportedMediaType(type.name());});
+        return parsers.getOrDefault(type, (ctx, t) -> {throw Up.UnsupportedMediaType(type.value());});
     }
     Renderer render(MediaType type) {
         return renderers.getOrDefault(type, SIMPLE_RENDERER);
