@@ -389,7 +389,7 @@ final class RouterImpl implements Router {
             StringBuilder applicable = new StringBuilder(length);
             
             // Divide into path segments and handle each segment
-            StringUtil.split(originalPath, '/', segment -> {
+            StringUtil.split(originalPath.substring(1), '/', segment -> { // using .substring(1) to remove the leading '/' as this will confuse the split
                 applicable.append('/'); // keeping segmentation in the resulting applicable path
                 
                 // segment is a parameter
@@ -421,7 +421,7 @@ final class RouterImpl implements Router {
             
             // segment the request
             int[] index = {0};
-            StringUtil.split(requestPath, '/', segment -> {
+            StringUtil.split(requestPath.substring(1), '/', segment -> {
                 String param = path.segments[ index[0]++ ];
                 if (param != null)
                     pathParams.put(param, segment);
