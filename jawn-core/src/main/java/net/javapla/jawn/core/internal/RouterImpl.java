@@ -67,18 +67,12 @@ final class RouterImpl implements Router {
     
     @Override
     public RoutePath retrieve(final int httpMethod, final String requestUri) /*throws Up.RouteMissing, Up.RouteFoundWithDifferentMethod*/ {
-        //final HttpMethod httpMethod = context.req().httpMethod();
-        //final String requestUri = context.req().path();
-        
-        //final char[] uri = requestUri.toCharArray();
-        
-        //try {
         // first, take a look in the trie
         TriePath route = trie.findExact(requestUri.toCharArray(), httpMethod);
         if (route != null) return route;
             
         // try with wildcard search
-        route = trie.findRoute(requestUri.toCharArray(), httpMethod);
+        route = trie.lookForWildcard(requestUri.toCharArray(), httpMethod);
         if (route != null /*&& route.matches(requestUri)*/) {
             
             route = TriePathParser.parseRequest(requestUri, route);
@@ -87,27 +81,15 @@ final class RouterImpl implements Router {
             
         } else {
             // The trie did not have any for us..
+            return NOT_FOUND;
+            
             // Have a look in the custom routes then
-            return goThroughCustom(HttpMethod.values()[httpMethod], requestUri);//, () -> Up.RouteMissing("Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri));
+            //return goThroughCustom(HttpMethod.values()[httpMethod], requestUri);//, () -> Up.RouteMissing("Failed to map resource to URI: " + httpMethod.name() + " : " + requestUri));
         }
-            /*if (route == null) {
-                
-            }
-            
-            return route;
-            */
-        /*} catch (Up.RouteFoundWithDifferentMethod e) {
-            
-            return goThroughCustom(httpMethod, requestUri);
-            
-            // Not even the custom routes had any,
-            // so it seems the original assessment of "route found" was correct,
-            // which is why we re-throw Up
-        }*/
     }
     
-    private TriePath goThroughCustom(final HttpMethod httpMethod, final String requestUri) {
-        /*for (Route r : routes) {
+    /*private TriePath goThroughCustom(final HttpMethod httpMethod, final String requestUri) {
+        for (Route r : routes) {
             if (r.matches(requestUri)) {
                 
                 if (r.method() == httpMethod || HttpMethod.HEAD == httpMethod) {
@@ -119,11 +101,11 @@ final class RouterImpl implements Router {
                 //throwThisIfNothingFound = () -> new Up.RouteFoundWithDifferentMethod(httpMethod.name());
                 return Route.METHOD_NOT_ALLOWED;
             }
-        }*/
+        }
         
         //throw throwThisIfNothingFound.get();
         return NOT_FOUND;//Route.NOT_FOUND;//ctx -> ctx.resp().respond(Status.NOT_FOUND);
-    }
+    }*/
     static final TriePath NOT_FOUND = TriePathParser.parse(Route.NOT_FOUND);
     
     RouterImpl compileRoutes(final List<Route> routes) throws Up.RouteAlreadyExists {
@@ -139,7 +121,7 @@ final class RouterImpl implements Router {
     @Override
     public void addRoute(final Route route) {
         char[] chars = route.path().toCharArray();
-        TriePath lookup = trie.findRoute(chars, route.method().ordinal());
+        TriePath lookup = trie.lookForWildcard(chars, route.method().ordinal());
         if (lookup != null && route.method() != HttpMethod.HEAD && Arrays.equals(chars, lookup.trieApplicable)/*route.path().equals(lookup.route.path())*/) {
             throw Up.RouteAlreadyExists(lookup.toString());
         }
@@ -266,64 +248,104 @@ final class RouterImpl implements Router {
         
         /**
          * Can only handle if a route starts with '/'
-         * @param arr
+         * @param path
+         * @param method
          * @return
          */
-        public final TriePath findRoute(final char[] arr, final int method) {
-            TrieNode current = root, segment = null;
+        final TriePath lookForWildcard(final char[] path, int method) {
+            TrieNode recursive = recursive(path, 0, root);
+            
+            if (recursive == null) return null;
+            
+            return recursive.routes[method];
+        }
+        
+        private TrieNode recursive(char[] path, int i, TrieNode current) {
             char c;
-            for (int i = 0; i < arr.length; i++) {
-                c = arr[i];
+            for (; i < path.length; i++) {
+                c = path[i];
                 
-                if (current.nodes[c] == null) { // might be a wildcard or segment
+                if (current.nodes[c] == null) return null;
+                current = current.nodes[c]; 
+                
+                if (c == '/' && current.nodes[SEGMENT] != null) {
+                    // Fast forward to the next segment of the input
+                    int index = i;
+                    while(++index < path.length && path[index] != '/');
                     
-                    if (current.nodes[SEGMENT] != null) {
-                        
-                        // We are looking at a single parameter segment.
-                        current = current.nodes[SEGMENT];
-                        
-                        
-                        // Fast forward to the next segment of the input
-                        while(++i < arr.length && arr[i] != '/');
-                        
-                        // There were no more segments..
-                        // Just return what we found
-                        if (i == arr.length) break;
-                        
-                        
-                        // Still more segments in the input, so just continue to the next char in the trie, which should be a slash '/'
-                        current = current.nodes['/'];
-                        // (might be null, but gets caught by the guard outside the ifs)
-                        
-                        
-                    /*} /*else if (current.nodes[WILDCARD] != null) {
-                        // are we at an end?
-                        if (current.nodes[WILDCARD].end) return current.nodes[WILDCARD].routes[method];*/
-                    } else {
-                        
-                        // We have nothing of the sorts already in the trie, so see if we saved a segment
-                        // way back when
-                        current = segment;
-                        // (might be null, but gets caught by the guard outside the ifs)
-                    }
+                    // There were no more segments..
+                    // Just return what we found
+                    if (index == path.length) return current.nodes[SEGMENT];
                     
-                    
-                    // We have nothing else to lookup in the trie
-                    if (current == null) return null;
-                    
-                } else {
-                    current = current.nodes[c];
-                    if (c == '/' && current.nodes[SEGMENT] != null) segment = current.nodes[SEGMENT];
+                    TrieNode node = recursive(path, index, current.nodes[SEGMENT]);
+                    if (node != null) return node;
                 }
                 
             }
-            
-            if (current.routes[method] == null && segment != null) current = segment;
-            return current.routes[method];
+            return current;
         }
+//        
+//        /**
+//         * Can only handle if a route starts with '/'
+//         * @param arr
+//         * @return
+//         */
+//        public final TriePath findRoute(final char[] arr, final int method) {
+//            TrieNode current = root, segment = null;
+//            char c;
+//            for (int i = 0; i < arr.length; i++) {
+//                c = arr[i];
+//                
+//                if (current.nodes[c] == null) { // might be a wildcard or segment
+//                    
+//                    if (current.nodes[SEGMENT] != null) {
+//                        
+//                        // We are looking at a single parameter segment.
+//                        current = current.nodes[SEGMENT];
+//                        
+//                        
+//                        // Fast forward to the next segment of the input
+//                        while(++i < arr.length && arr[i] != '/');
+//                        
+//                        // There were no more segments..
+//                        // Just return what we found
+//                        if (i == arr.length) break;
+//                        
+//                        
+//                        // Still more segments in the input, so just continue to the next char in the trie, which should be a slash '/'
+//                        current = current.nodes['/'];
+//                        // (might be null, but gets caught by the guard outside the ifs)
+//                        
+//                        
+//                    /*} /*else if (current.nodes[WILDCARD] != null) {
+//                        // are we at an end?
+//                        if (current.nodes[WILDCARD].end) return current.nodes[WILDCARD].routes[method];*/
+//                    } else {
+//                        
+//                        // We have nothing of the sorts already in the trie, so see if we saved a segment
+//                        // way back when
+//                        current = segment;
+//                        // (might be null, but gets caught by the guard outside the ifs)
+//                    }
+//                    
+//                    
+//                    // We have nothing else to lookup in the trie
+//                    if (current == null) return null;
+//                    
+//                } else {
+//                    current = current.nodes[c];
+//                    if (c == '/' && current.nodes[SEGMENT] != null) segment = current.nodes[SEGMENT];
+//                }
+//                
+//            }
+//            
+//            if (current.routes[method] == null && segment != null) current = segment;
+//            return current.routes[method];
+//        }
         
-        public final TriePath findRoute(final String path, final HttpMethod method) {
-            return findRoute(path.toCharArray(), method.ordinal());
+        public final TriePath lookForWildcard(final String path, final HttpMethod method) {
+            //return findRoute(path.toCharArray(), method.ordinal());
+            return lookForWildcard(path.toCharArray(), method.ordinal());
         }
         
         final class TrieNode {

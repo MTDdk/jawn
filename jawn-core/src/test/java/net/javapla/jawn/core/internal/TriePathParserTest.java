@@ -96,4 +96,5 @@ class TriePathParserTest {
         AssertionsHelper.ass("/simple/route/#", path.trieApplicable);
         AssertionsHelper.ass(path.segments, null, null, "param");
     }
+    
 }

@@ -41,7 +41,7 @@ class RouteTrieTest {
         
         trie.insert(route);
         
-        TriePath r = trie.findRoute("/route/to/redemption", HttpMethod.GET);
+        TriePath r = trie.lookForWildcard("/route/to/redemption", HttpMethod.GET);
         assertNotNull(r);
         AssertionsHelper.ass(path, r.trieApplicable);
         
@@ -50,7 +50,7 @@ class RouteTrieTest {
         assertNotNull(r);
         assertEquals(path, r.route.path());*/
         
-        r = trie.findRoute("/route/along_the_way_to/redemption", HttpMethod.GET);
+        r = trie.lookForWildcard("/route/along_the_way_to/redemption", HttpMethod.GET);
         assertNotNull(r);
         AssertionsHelper.ass(path, r.trieApplicable);
     }
@@ -65,10 +65,10 @@ class RouteTrieTest {
         trie.insert(route);
         
         // should not be found
-        TriePath r = trie.findRoute("/route/redemption", HttpMethod.GET);
+        TriePath r = trie.lookForWildcard("/route/redemption", HttpMethod.GET);
         assertNull(r);
         
-        r = trie.findRoute("/route/r/edemption", HttpMethod.GET);
+        r = trie.lookForWildcard("/route/r/edemption", HttpMethod.GET);
         assertNull(r);
     }
     
@@ -81,20 +81,20 @@ class RouteTrieTest {
         
         trie.insert(route);
         
-        TriePath r = trie.findRoute("/route/to/redemption", HttpMethod.GET);
+        TriePath r = trie.lookForWildcard("/route/to/redemption", HttpMethod.GET);
         assertNotNull(r);
         AssertionsHelper.ass(path, r.trieApplicable);
         
-        r = trie.findRoute("/route/to/everywhere", HttpMethod.GET);
+        r = trie.lookForWildcard("/route/to/everywhere", HttpMethod.GET);
         assertNotNull(r);
         AssertionsHelper.ass(path, r.trieApplicable);
         
-        r = trie.findRoute("/route/to/along_the_way", HttpMethod.GET);
+        r = trie.lookForWildcard("/route/to/along_the_way", HttpMethod.GET);
         assertNotNull(r);
         AssertionsHelper.ass(path, r.trieApplicable);
         
         // only applicable to true WILDCARD
-        r = trie.findRoute("/route/to/along/the/way", HttpMethod.GET);
+        r = trie.lookForWildcard("/route/to/along/the/way", HttpMethod.GET);
         assertNull(r);
     }
     
@@ -112,7 +112,7 @@ class RouteTrieTest {
         assertNull(r);
         
         // first actual try
-        r = trie.findRoute("/path/oncelong", HttpMethod.GET);
+        r = trie.lookForWildcard("/path/oncelong", HttpMethod.GET);
         assertNotNull(r);
         AssertionsHelper.ass(path, r.trieApplicable);
         
@@ -126,7 +126,7 @@ class RouteTrieTest {
         r = trie.findExact("/path/once", HttpMethod.GET);
         assertNull(r);
         
-        r = trie.findRoute("/path/once", HttpMethod.GET);
+        r = trie.lookForWildcard("/path/once", HttpMethod.GET);
         assertNotNull(r);
         AssertionsHelper.ass(path, r.trieApplicable);
         
@@ -134,7 +134,7 @@ class RouteTrieTest {
         // third try, same route, appended to same URI
         r = trie.findExact("/path/oncelonger", HttpMethod.GET);
         assertNull(r);
-        r = trie.findRoute("/path/oncelonger", HttpMethod.GET);
+        r = trie.lookForWildcard("/path/oncelonger", HttpMethod.GET);
         assertNotNull(r);
     }
     
@@ -147,13 +147,13 @@ class RouteTrieTest {
         
         trie.insert(route);
         
-        TriePath r = trie.findRoute("/route/redemption", HttpMethod.GET);
+        TriePath r = trie.lookForWildcard("/route/redemption", HttpMethod.GET);
         assertNull(r);
         
-        r = trie.findRoute("/routing/to/everywhere", HttpMethod.GET);
+        r = trie.lookForWildcard("/routing/to/everywhere", HttpMethod.GET);
         assertNull(r);
         
-        r = trie.findRoute("/route/to", HttpMethod.GET);
+        r = trie.lookForWildcard("/route/to", HttpMethod.GET);
         assertNull(r);
         
         // TODO should this be treated as found?
@@ -170,10 +170,36 @@ class RouteTrieTest {
         
         trie.insert(route);
         
-        TriePath r = trie.findRoute("/path/something/else", HttpMethod.GET);
+        TriePath r = trie.lookForWildcard("/path/something/else", HttpMethod.GET);
         assertNotNull(r);
     }
-
+    
+    @Test
+    void realworld_segmentedPutNotFound() {
+        RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
+        
+        trie.insert(new TriePath(route(HttpMethod.GET, "/api/podcasts")));
+        trie.insert(new TriePath(route(HttpMethod.PUT, "/api/podcasts/#/database"))); // <--- was not found
+        trie.insert(new TriePath(route(HttpMethod.POST, "/api/podcasts/test/episode/#")));
+        trie.insert(new TriePath(route(HttpMethod.PUT, "/api/podcasts/test/episode/#")));
+        trie.insert(new TriePath(route(HttpMethod.GET, "/api/podcasts/test/episode/#")));
+        trie.insert(new TriePath(route(HttpMethod.PUT, "/api/podcasts/#/dag")));
+        trie.insert(new TriePath(route(HttpMethod.GET, "/#"))); // <--- because of this
+        
+        TriePath path = trie.lookForWildcard("/api/podcasts/test/database", HttpMethod.PUT);
+        assertNotNull(path);
+        
+        path = trie.lookForWildcard("/api/podcasts/test/dag", HttpMethod.PUT);
+        assertNotNull(path);
+        
+        // Not correct path
+        path = trie.lookForWildcard("/api/podcasts/test/da", HttpMethod.PUT);
+        assertNull(path);
+        
+        // Not PUT
+        path = trie.lookForWildcard("/api/podcasts/test/database", HttpMethod.GET);
+        assertNull(path);
+    }
 
     static Route route(HttpMethod method, String path) {
         return new Route.Builder(method, path, (ctx) -> ctx).build();
