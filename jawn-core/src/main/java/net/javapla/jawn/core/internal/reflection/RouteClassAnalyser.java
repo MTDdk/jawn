@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal.reflection;
 import static java.util.Optional.ofNullable;
 import static java.util.Spliterator.ORDERED;
 
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -66,6 +67,7 @@ public class RouteClassAnalyser {
             
             Class<?> returnType = method.getReturnType();
             if (returnType != Object.class) {
+                if (returnType.isPrimitive()) return returnType;
                 return method.getGenericReturnType();
             }
             
@@ -75,7 +77,11 @@ public class RouteClassAnalyser {
             reader.accept(visitor, 0);
             
             if (debug) {
-                
+                System.out.println(method);
+                PrintWriter writer = new PrintWriter(System.out);
+                visitor.printer.print(writer);
+                writer.flush();
+                // "writer" not to be closed, as this closes the System.out
             }
             
             return visitor.find(typeParser);
@@ -254,7 +260,6 @@ public class RouteClassAnalyser {
                     }
                 }
             }
-            
             
             return types.isEmpty() ? Object.class : parser.commonAncestor(types);
         }
@@ -454,11 +459,10 @@ public class RouteClassAnalyser {
                 case '[':
                     return simpleType(descriptor, at + 1, true);
             }
-            if (descriptor.equals("Ljava/lang/String;")) {
-                return String.class;
-            }
-            if (descriptor.equals("[Ljava/lang/String;")) {
-                return String[].class;
+            switch(descriptor) {
+                case "Ljava/lang/String;": return String.class;
+                case "[Ljava/lang/String;": return String[].class;
+                // case "Ljava/lang/Integer;": return int.class; // TODO do we want this?
             }
             return null;
         }

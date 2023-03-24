@@ -59,9 +59,8 @@ public class Materialise {
      *
      * @return a {@link java.io.Serializable serializable} parameterized type.
      */
-    public static ParameterizedType newParameterizedTypeWithOwner(
-        Type ownerType, Type rawType, Type... typeArguments) {
-      return new ParameterizedTypeImpl(ownerType, rawType, typeArguments);
+    public static ParameterizedType newParameterizedTypeWithOwner(Type ownerType, Type rawType, Type... typeArguments) {
+        return new ParameterizedTypeImpl(ownerType, rawType, typeArguments);
     }
 
     
@@ -270,6 +269,8 @@ public class Materialise {
 
         @Override
         public String toString() {
+            if (typeArguments.length == 0) return typeToString(rawType);
+            
             StringBuilder stringBuilder = new StringBuilder(30 * (typeArguments.length + 1));
             stringBuilder.append(typeToString(rawType));
 
