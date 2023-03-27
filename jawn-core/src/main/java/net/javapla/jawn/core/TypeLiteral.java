@@ -34,7 +34,7 @@ import net.javapla.jawn.core.internal.reflection.Materialise;
  * 
  * @see https://cr.openjdk.java.net/~briangoetz/valhalla/erasure.html
  */
-public class TypeLiteral<T> {
+public final class TypeLiteral<T> {
     
     public final Class<? super T> rawType;
     public final Type type;
