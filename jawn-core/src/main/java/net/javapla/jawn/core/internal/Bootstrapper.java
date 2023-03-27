@@ -122,7 +122,7 @@ public class Bootstrapper {
             
             routes.map(bob -> {
                 
-                return Pipeline.compile(source, analyser, engine, bob);
+                return Pipeline.compile(analyser, engine, bob);
                 
             }).forEach(router::addRoute);
         }

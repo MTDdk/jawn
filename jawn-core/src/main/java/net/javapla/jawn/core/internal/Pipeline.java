@@ -9,7 +9,6 @@ import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.TypeLiteral;
 import net.javapla.jawn.core.WebSocket;
-import net.javapla.jawn.core.internal.reflection.ClassSource;
 import net.javapla.jawn.core.internal.reflection.RouteClassAnalyser;
 
 abstract class Pipeline {
@@ -18,7 +17,7 @@ abstract class Pipeline {
     
     
     
-    static Route compile(ClassSource source, RouteClassAnalyser analyser, ParserRenderEngine engine, Route.Builder bob) {
+    static Route compile(RouteClassAnalyser analyser, ParserRenderEngine engine, Route.Builder bob) {
          
         // Add parsers to later be available in Context.
         // Unfortunately we have to let them be chained 
@@ -41,7 +40,7 @@ abstract class Pipeline {
 
         
         // pipeline
-        pipeline(bob, source, analyser, engine);
+        pipeline(bob, analyser, engine);
         
         
         if (bob.originalHandler instanceof WebSocket.WebSocketHandler) {
@@ -58,7 +57,7 @@ abstract class Pipeline {
         return bob.build();
     }
     
-    private static void pipeline(Route.Builder bob, ClassSource source, RouteClassAnalyser analyser, ParserRenderEngine engine) {
+    private static void pipeline(Route.Builder bob, RouteClassAnalyser analyser, ParserRenderEngine engine) {
         Type returnType = bob.returnType();
         if (returnType == null) {
             returnType = analyser.returnType(bob.originalHandler);
