@@ -33,7 +33,7 @@ public class ConstructorProxyFactory {
         }
     }
     
-    interface ConstructorProxy<T> {
+    public interface ConstructorProxy<T> {
         /** Constructs an instance of {@code T} for the given arguments. */
         T newInstance(Object... arguments) throws InvocationTargetException;
         

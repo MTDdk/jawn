@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import net.javapla.jawn.core.Up.RegistryException;
+import net.javapla.jawn.core.internal.reflection.Materialise;
 
 
 /**
@@ -36,9 +37,9 @@ public interface Registry {
          * @param service
          * @return Any previously registered service or <code>null</code>
          */
-        <T> T register(RegistryKey<T> key, T service);
+        <T> Supplier<T> register(RegistryKey<T> key, T service);
         
-        default <T> T register(Class<T> clazz, T service) {
+        default <T> Supplier<T> register(Class<T> clazz, T service) {
             return register(RegistryKey.of(clazz), service);
         }
         
@@ -51,9 +52,9 @@ public interface Registry {
          * @param service
          * @return Any previously registered service or <code>null</code>
          */
-        <T> T register(RegistryKey<T> key, Supplier<T> service);
+        <T> Supplier<T> register(RegistryKey<T> key, Supplier<T> service);
         
-        default <T> T register(Class<T> clazz, Supplier<T> service) {
+        default <T> Supplier<T> register(Class<T> clazz, Supplier<T> service) {
             return register(RegistryKey.of(clazz), service);
         }
         
@@ -68,15 +69,27 @@ public interface Registry {
         }
     }
     
+    public static final class ProvisionException extends RuntimeException {
+        public ProvisionException(Throwable cause) {
+            super(cause);
+        }
+        
+        private static final long serialVersionUID = 1L;
+    }
+    
     public static final class RegistryKey<T> {
-        public final Class<T> type; // TODO do we need Guice TypeLiteral equivalent?
+        public final TypeLiteral<T> typeLiteral;
         
         public final int hash;
         
         public final String name;
         
         private RegistryKey(Class<T> type, String name) {
-            this.type = type;
+            this(TypeLiteral.get(type), name);
+        }
+        
+        private RegistryKey(TypeLiteral<T> type, String name) {
+            this.typeLiteral = Materialise.canonicalizeKey(type);
             this.hash = Arrays.hashCode(new Object[]{type, name}); // automatically checks for null
             this.name = name;
         }
@@ -90,15 +103,15 @@ public interface Registry {
         public boolean equals(Object obj) {
             if (obj instanceof RegistryKey) {
                 RegistryKey<?> that = (RegistryKey<?>) obj;
-                return this.type == that.type && Objects.equals(this.name, that.name);
+                return this.typeLiteral == that.typeLiteral && Objects.equals(this.name, that.name);
             }
             return false;
         }
         
         @Override
         public String toString() {
-            if (name == null) return type.getName();
-            return type.getName() + "(" + name + ")";
+            if (name == null) return typeLiteral.type.getTypeName();
+            return typeLiteral.type.getTypeName() + "(" + name + ")";
         }
         
         public static <T> RegistryKey<T> of(Class<T> type) {
@@ -107,6 +120,10 @@ public interface Registry {
         
         public static <T> RegistryKey<T> of(Class<T> type, String name) {
             return new RegistryKey<>(type, name);
+        }
+        
+        public static <T> RegistryKey<T> of(TypeLiteral<T> type) {
+            return new RegistryKey<>(type, null);
         }
     }
     

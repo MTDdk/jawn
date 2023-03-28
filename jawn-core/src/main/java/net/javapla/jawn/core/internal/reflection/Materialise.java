@@ -10,6 +10,7 @@ import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Objects;
 
+import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.TypeLiteral;
 
 /**
@@ -54,6 +55,58 @@ public class Materialise {
     }
     
     /**
+     * Returns a key that doesn't hold any references to parent classes. This is necessary for
+     * anonymous keys, so ensure we don't hold a ref to the containing module (or class) forever.
+     */
+    public static <T> Registry.RegistryKey<T> canonicalizeKey(Registry.RegistryKey<T> key) {
+        // If we know this isn't a subclass, return as-is.
+        // Otherwise, recreate the key to avoid the subclass
+        if (key.getClass() == Registry.RegistryKey.class) {
+            return key;
+        } else {
+            return Registry.RegistryKey.of(key.typeLiteral);
+        }
+    }
+    
+    public static <T> TypeLiteral<T> canonicalizeKey(TypeLiteral<T> typeLiteral) {
+        Type type = typeLiteral.type;
+        if (!isFullySpecified(type)) {
+            // TODO ConfigurationException
+            throw new AssertionError();
+        }
+        
+        if (typeLiteral.rawType == jakarta.inject.Provider.class) {
+            ParameterizedType parameterisedType = (ParameterizedType) type;
+            
+            TypeLiteral<T> providerType = 
+                TypeLiteral.get(providerOf(parameterisedType.getActualTypeArguments()[0]));
+            return providerType;
+        }
+        
+        if (typeLiteral.rawType.isPrimitive()) {
+            //return wrapped; TODO
+        }
+        
+        if (typeLiteral.getClass() == TypeLiteral.class) {
+            return typeLiteral;
+        }
+        
+        // recreate to avoid anonymous TypeLiterals from holding refs
+        TypeLiteral<T> recreated = TypeLiteral.get(typeLiteral.type);
+        return recreated;
+    }
+    
+    /**
+     * Returns a new parameterized type, applying {@code typeArguments} to {@code rawType}. The
+     * returned type does not have an owner type.
+     *
+     * @return a {@link java.io.Serializable serializable} parameterized type.
+     */
+    public static ParameterizedType newParameterizedType(Type rawType, Type... typeArguments) {
+        return newParameterizedTypeWithOwner(null, rawType, typeArguments);
+    }
+    
+    /**
      * Returns a new parameterized type, applying {@code typeArguments} to
      * {@code rawType} and enclosed by {@code ownerType}.
      *
@@ -61,6 +114,15 @@ public class Materialise {
      */
     public static ParameterizedType newParameterizedTypeWithOwner(Type ownerType, Type rawType, Type... typeArguments) {
         return new ParameterizedTypeImpl(ownerType, rawType, typeArguments);
+    }
+    
+    /**
+     * Returns a type modelling a {@link Provider} that provides elements of type {@code elementType}.
+     *
+     * @return a {@link java.io.Serializable serializable} parameterized type.
+     */
+    public static ParameterizedType providerOf(Type providedType) {
+      return newParameterizedType(jakarta.inject.Provider.class, providedType);
     }
 
     

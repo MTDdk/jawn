@@ -99,6 +99,10 @@ public final class TypeLiteral<T> {
         return new TypeLiteral<>(type);
     }
     
+    public static <T> TypeLiteral<T> get(Type type) {
+        return new TypeLiteral<>(type);
+    }
+    
     /**
      * Get raw type (class) from given type.
      *

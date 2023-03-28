@@ -1,11 +1,15 @@
 package net.javapla.jawn.core.internal;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Up.RegistryException;
+import net.javapla.jawn.core.internal.reflection.injection.ConstructorProxyFactory;
+import net.javapla.jawn.core.internal.reflection.injection.ConstructorProxyFactory.ConstructorProxy;
+import net.javapla.jawn.core.internal.reflection.injection.InjectionPoint;
 
 /**
  * Simple dependency injection implementation
@@ -16,27 +20,50 @@ class InjectionRegistry implements Registry.ServiceRegistry {
     
 
     @Override
-    @SuppressWarnings("unchecked") // we only put in BindingImpls that match their key types 
     public <T> T require(RegistryKey<T> key) throws RegistryException {
         Supplier<?> provider = bindings.get(key);
         
-        if (provider == null) return null;
+        if (provider != null) {
+            @SuppressWarnings("unchecked") // we only put in BindingImpls that match their key types 
+            T t = (T) provider.get();
+            return t;
+        }
         
-        return (T) provider.get();
+        // just-in-time binding
+        return justInTimeBinding(key);
     }
-
+    
+    private <T> T justInTimeBinding(RegistryKey<T> key) {
+        Supplier<T> binding = provide(key);
+        register(key, binding);
+        return binding.get();
+    }
+    
     @Override
-    public <T> T register(RegistryKey<T> key, T service) {
+    public <T> Supplier<T> register(RegistryKey<T> key, T service) {
         return register(key, provide(service));
     }
 
     @Override
     @SuppressWarnings("unchecked") // we only put in BindingImpls that match their key types
-    public <T> T register(RegistryKey<T> key, Supplier<T> service) {
-        return (T) bindings.put(key, service);
+    public <T> Supplier<T> register(RegistryKey<T> key, Supplier<T> service) {
+        return (Supplier<T>) bindings.put(key, service);
     }
 
     private static <T> Supplier<T> provide(T service) {
         return () -> service;
+    }
+    
+    <T> Supplier<T> provide(Registry.RegistryKey<T> key) {
+        ConstructorProxy<T> proxy = ConstructorProxyFactory.create(InjectionPoint.forConstructorOf(key.typeLiteral));
+        
+        return () -> {
+            try {
+                // TODO handle injectables
+                return proxy.newInstance();
+            } catch (InvocationTargetException e) {
+                throw new Registry.ProvisionException(e);
+            }
+        };
     }
 }
