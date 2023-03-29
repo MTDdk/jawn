@@ -122,10 +122,6 @@ public class Jawn {
         // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
         
-        // bootstrap
-        //bootstrap.boot(mode, serverConfig, sessionConfig.sessionStore, this::buildRoutes);
-        Application moduleConfig = booter.boot(buildRoutes());
-        
         
         // find server
         ServiceLoader<Server> loader = ServiceLoader.load(Server.class);
@@ -133,6 +129,13 @@ public class Jawn {
         if (server.isEmpty()) {
             throw new IllegalStateException("Server not found");
         }
+        
+        
+        // bootstrap
+        //bootstrap.boot(mode, serverConfig, sessionConfig.sessionStore, this::buildRoutes);
+        Application moduleConfig = booter.boot(buildRoutes());
+        
+        // TODO ServiceLoader.load Registries after everything else is loaded 
         
         // start server
         Config config = booter.config().hasPath("server") ? booter.config().getConfig("server") : null;

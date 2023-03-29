@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import jakarta.inject.Provider;
 import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Up.RegistryException;
 import net.javapla.jawn.core.internal.reflection.injection.ConstructorProxyFactory;
@@ -40,14 +41,15 @@ class InjectionRegistry implements Registry.ServiceRegistry {
     }
     
     @Override
-    public <T> Supplier<T> register(RegistryKey<T> key, T service) {
+    public <T> InjectionRegistry register(RegistryKey<T> key, T service) {
         return register(key, provide(service));
     }
 
     @Override
-    @SuppressWarnings("unchecked") // we only put in BindingImpls that match their key types
-    public <T> Supplier<T> register(RegistryKey<T> key, Supplier<T> service) {
-        return (Supplier<T>) bindings.put(key, service);
+    public <T> InjectionRegistry register(RegistryKey<T> key, Supplier<T> service) {
+        //@SuppressWarnings("unchecked") // we only put in BindingImpls that match their key types
+        bindings.put(key, service);
+        return this;
     }
 
     private static <T> Supplier<T> provide(T service) {
@@ -65,5 +67,15 @@ class InjectionRegistry implements Registry.ServiceRegistry {
                 throw new Registry.ProvisionException(e);
             }
         };
+    }
+
+    @Override
+    public <T> ServiceRegistry register(Key<T> key, Provider<T> service) {
+        return null;
+    }
+
+    @Override
+    public <T> ServiceRegistry register(Key<T> key, T service) {
+        return null;
     }
 }

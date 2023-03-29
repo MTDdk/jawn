@@ -124,6 +124,15 @@ public class Materialise {
     public static ParameterizedType providerOf(Type providedType) {
       return newParameterizedType(jakarta.inject.Provider.class, providedType);
     }
+    
+    /**
+     * Returns an array type whose elements are all instances of {@code componentType}.
+     *
+     * @return a {@link java.io.Serializable serializable} generic array type.
+     */
+    public static GenericArrayType arrayOf(Type type) {
+        return new GenericArrayTypeImpl(type);
+    }
 
     
     
