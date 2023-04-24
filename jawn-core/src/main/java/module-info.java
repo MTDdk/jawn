@@ -7,7 +7,7 @@ module net.javapla.jawn.core {
    * Core dependencies
    */
   requires transitive org.slf4j;
-  requires transitive typesafe.config;
+  requires typesafe.config;
   requires jakarta.inject;
   
   requires org.objectweb.asm;
