@@ -27,6 +27,7 @@ public interface Context {
         HttpMethod httpMethod();
         String path();
         String queryString();
+        String address();
         
         Value header(String name);
         Value pathParam(String name);
