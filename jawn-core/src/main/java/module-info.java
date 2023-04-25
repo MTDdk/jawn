@@ -1,3 +1,4 @@
+@SuppressWarnings("requires-transitive-automatic")
 module net.javapla.jawn.core {
 
   exports net.javapla.jawn.core;
@@ -6,7 +7,7 @@ module net.javapla.jawn.core {
   /*
    * Core dependencies
    */
-  requires transitive org.slf4j;
+  requires org.slf4j;
   requires typesafe.config;
   requires jakarta.inject;
   
