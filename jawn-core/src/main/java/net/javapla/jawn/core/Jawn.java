@@ -28,6 +28,7 @@ public class Jawn {
     
     private final Bootstrapper booter = new Bootstrapper(getClass().getClassLoader()); // Core?
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
+    private final ServerConfig serverConfig = new ServerConfig();
     
     
     
@@ -111,6 +112,10 @@ public class Jawn {
         booter.install(plugin);
     }
     
+    protected ServerConfig server() {
+        return serverConfig;
+    }
+    
     protected <T> T require(Class<T> type) {
         return booter.registry().require(type);
     }
@@ -139,7 +144,7 @@ public class Jawn {
         
         // start server
         Config config = booter.config().hasPath("server") ? booter.config().getConfig("server") : null;
-        ServerConfig serverConfig = Server.ServerConfig.from(config);
+        serverConfig.config(config);
         try {
             server.get().start(serverConfig, moduleConfig);
         } catch (Exception e) {
