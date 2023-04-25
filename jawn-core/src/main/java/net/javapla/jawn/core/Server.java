@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 import net.javapla.jawn.core.util.StreamUtil;
 
@@ -63,12 +64,21 @@ public interface Server {
             this.config = config;
         }
         
+        public ServerConfig() {
+            this.config = ConfigFactory.empty();
+        }
+        
         public String host() {
             return host;
         }
         
         public int port() {
             return port;
+        }
+        
+        public ServerConfig port(int port) {
+            this.port = port;
+            return this;
         }
         
         public int backlog() {
@@ -111,17 +121,32 @@ public interface Server {
             return maxRequestSize;
         }
         
+        public ServerConfig config(Config config) {
+            if (config != null) {
+                if (config.hasPath("server")) config = config.getConfig("server");
+                
+                this.config.resolveWith(config);
+                
+                if (config != null /*&& config.hasPath("server")*/) {
+                    if (config.hasPath("bufferSize")) { // server.bufferSize
+                        bufferSize = config.getInt("bufferSize");
+                    }
+                    if (config.hasPath("maxRequestSize")) { // server.maxRequestSize
+                        maxRequestSize = config.getLong("maxRequestSize");
+                    }
+                    if (config.hasPath("port")) { // server.port
+                        port = config.getInt("port");
+                    }
+                }
+            }
+            
+            return this;
+        }
+        
         public static ServerConfig from(Config config) {
             ServerConfig options = new ServerConfig(config);
             
-            if (config != null && config.hasPath("server")) {
-                if (config.hasPath("server.bufferSize")) {
-                    options.bufferSize = config.getInt("server.bufferSize");
-                }
-                if (config.hasPath("server.maxRequestSize")) {
-                    options.maxRequestSize = config.getLong("server.maxRequestSize");
-                }
-            }
+            options.config(config);
             
             return options;
         }
