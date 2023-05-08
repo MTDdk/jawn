@@ -4,6 +4,9 @@ import java.util.LinkedList;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
@@ -15,25 +18,29 @@ import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Renderer;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
+import net.javapla.jawn.core.internal.injection.Injector;
 import net.javapla.jawn.core.internal.reflection.ClassSource;
 import net.javapla.jawn.core.internal.reflection.RouteClassAnalyser;
 
 public class Bootstrapper {
+    protected static final Logger log = LoggerFactory.getLogger(Bootstrapper.class);
     
     private final ParserRenderEngine engine = new ParserRenderEngine();
     
     private final ClassLoader classLoader;
     private final Config config;
-    private final InjectionRegistry registry;
+    private final /*InjectionRegistry*/ Injector registry;
     
     private final LinkedList<Plugin> userPlugins = new LinkedList<>();
+    private final LinkedList<Runnable> onStartup = new LinkedList<>();
+    private final LinkedList<Runnable> onShutdown = new LinkedList<>();
 
     
     
     public Bootstrapper(ClassLoader classLoader) {
         this.classLoader = classLoader;
         this.config = ConfigFactory.parseResources(classLoader, "jawn.conf");
-        this.registry = new InjectionRegistry();
+        this.registry = new Injector();//new InjectionRegistry();
     }
     
     public synchronized Application boot(Stream<Route.Builder> routes) {
@@ -83,6 +90,9 @@ public class Bootstrapper {
         
         parseRoutes(routes, router);
         
+        // signal startup
+        startup();
+        
         return moduleConfig;
     }
     
@@ -94,8 +104,25 @@ public class Bootstrapper {
         return registry;
     }
     
+    public void onStartup(Runnable task) {
+        onStartup.add(task);
+    }
+    public void onShutdown(Runnable task) {
+        onShutdown.add(task);
+    }
+    
     public void install(Plugin plugin) {
         userPlugins.add(plugin);
+    }
+    
+    private void startup() {
+        onStartup.forEach(run -> {
+            try {
+                run.run();
+            } catch (Exception e) {
+                log.error("Failed an onStartup task", e);
+            }
+        });
     }
     
     private void installPlugins(Plugin.Application moduleConfig) {
@@ -111,7 +138,7 @@ public class Bootstrapper {
         });
     }
     
-    private void registerCoreClasses(InjectionRegistry registry, Config config) {
+    private void registerCoreClasses(Injector/*InjectionRegistry*/ registry, Config config) {
         registry.register(Config.class, config);
     }
     

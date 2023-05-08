@@ -49,7 +49,8 @@ public interface Registry {
         <T> ServiceRegistry register(RegistryKey<T> key, T service);
         
         default <T> ServiceRegistry register(Class<T> clazz, T service) {
-            return register(RegistryKey.of(clazz), service);
+            //return register(RegistryKey.of(clazz), service);
+            return register(Key.of(clazz), service);
         }
         
         /**
@@ -77,7 +78,7 @@ public interface Registry {
         
         @Override
         default <T> T require(Class<T> type) throws RegistryException {
-            return require(RegistryKey.of(type));
+            return require(Key.of(type));//require(RegistryKey.of(type));
         }
         
         @Override
@@ -119,6 +120,11 @@ public interface Registry {
                 return this.type.equals(that.type) && Objects.equals(this.name, that.name);
             }
             return false;
+        }
+        
+        @Override
+        public int hashCode() {
+            return hashCode;
         }
         
         @Override

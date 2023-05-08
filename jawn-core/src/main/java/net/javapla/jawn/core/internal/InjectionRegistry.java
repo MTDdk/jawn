@@ -18,11 +18,17 @@ import net.javapla.jawn.core.internal.reflection.injection.InjectionPoint;
 class InjectionRegistry implements Registry.ServiceRegistry {
     
     private final Map<RegistryKey<?>, Supplier<?>> bindings = new ConcurrentHashMap<>();
+    private final Map<Key<?>, Provider<?>> b = new ConcurrentHashMap<>();
     
 
     @Override
     public <T> T require(RegistryKey<T> key) throws RegistryException {
         Supplier<?> provider = bindings.get(key);
+        System.out.println(bindings);
+        System.out.println(key);
+        System.out.println(key.name);
+        System.out.println(key.hashCode());
+        System.out.println(provider);
         
         if (provider != null) {
             @SuppressWarnings("unchecked") // we only put in BindingImpls that match their key types 
@@ -32,6 +38,20 @@ class InjectionRegistry implements Registry.ServiceRegistry {
         
         // just-in-time binding
         return justInTimeBinding(key);
+    }
+    
+    
+    public <T> T require(Key<T> key) throws RegistryException {
+        Provider<?> provider = b.get(key);
+        
+        if (provider != null) {
+            @SuppressWarnings("unchecked") // we only put in BindingImpls that match their key types
+            T object = (T) provider.get();
+            return object;
+        }
+        
+        // just-in-time binding
+        return justInTimeBinding(RegistryKey.of(key.type));
     }
     
     private <T> T justInTimeBinding(RegistryKey<T> key) {
@@ -49,6 +69,10 @@ class InjectionRegistry implements Registry.ServiceRegistry {
     public <T> InjectionRegistry register(RegistryKey<T> key, Supplier<T> service) {
         //@SuppressWarnings("unchecked") // we only put in BindingImpls that match their key types
         bindings.put(key, service);
+        System.out.println(".............................................");
+        System.out.println(key);
+        System.out.println(key.name);
+        System.out.println(key.hashCode());
         return this;
     }
 
@@ -71,11 +95,17 @@ class InjectionRegistry implements Registry.ServiceRegistry {
 
     @Override
     public <T> ServiceRegistry register(Key<T> key, Provider<T> service) {
-        return null;
+        b.put(key, service);
+        return this;
     }
 
     @Override
     public <T> ServiceRegistry register(Key<T> key, T service) {
-        return null;
+        return register(key, new Provider<>() {
+            @Override
+            public T get() {
+                return service;
+            }
+        });
     }
 }

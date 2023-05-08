@@ -120,6 +120,13 @@ public class Jawn {
         return booter.registry().require(type);
     }
     
+    // life cycle
+    protected Jawn onStartup(Runnable task) {
+        booter.onStartup(task);
+        return this;
+    }
+
+    
     
     public void start() {
         long startupTime = System.currentTimeMillis();

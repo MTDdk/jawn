@@ -3,6 +3,12 @@ task uberJar(type: Jar) {
   archiveClassifier = 'uber'
 
   from sourceSets.main.output
+  //from sourceSets.main.allJava
+  /*dependsOn classes
+  from sourceSets.main.output {
+    configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+  }*/
+  
   
   dependsOn configurations.runtimeClasspath
   from {

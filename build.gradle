@@ -12,11 +12,12 @@ allprojects {
   
   repositories { mavenCentral() }
   
-/*  jar {
+  /*jar {
     from {
       configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
   }*/
+  
 }
 
 
