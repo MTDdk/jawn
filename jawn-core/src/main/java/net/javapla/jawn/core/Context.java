@@ -19,6 +19,7 @@ import net.javapla.jawn.core.util.MultiList;
 
 public interface Context {
     
+    
     // Often used headers
     static final String ACCEPT = "Accept";
     static final String LOCATION = "Location";
@@ -185,7 +186,7 @@ public interface Context {
     //Route route();
     default void error(Throwable t) {
         if (t instanceof Up) {
-            System.out.println( ((Up)t).getMessage() );
+            Jawn.SYS_ERROR_LOG.error(((Up)t).getMessage(), t);
             resp().status(((Up) t).status());
         } else {
             t.printStackTrace();
@@ -193,7 +194,7 @@ public interface Context {
     }
     default void error(String message, Throwable t) {
         if (t instanceof Up) {
-            System.out.println( message ); // TODO log instead
+            Jawn.SYS_ERROR_LOG.error(message, t);
             resp().status(((Up) t).status());
         } else {
             t.printStackTrace();

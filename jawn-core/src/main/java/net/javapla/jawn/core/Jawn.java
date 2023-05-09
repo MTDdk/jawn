@@ -24,6 +24,7 @@ import net.javapla.jawn.core.util.StringUtil;
 public class Jawn {
     
     protected static final Logger log = LoggerFactory.getLogger(Jawn.class);
+    static final Logger SYS_ERROR_LOG = LoggerFactory.getLogger("JawnError");
     
     
     private final Bootstrapper booter = new Bootstrapper(getClass().getClassLoader()); // Core?
