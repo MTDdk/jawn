@@ -48,7 +48,7 @@ public class ParserRenderEngine implements Parser.ParserProvider {
         return parsers.getOrDefault(type, (ctx, t) -> {throw Up.UnsupportedMediaType(type.value());});
     }
     Renderer render(MediaType type) {
-        return renderers.getOrDefault(type, SIMPLE_RENDERER);
+        return SIMPLE_RENDERER;//renderers.getOrDefault(type, SIMPLE_RENDERER);
     }
     
     
@@ -92,8 +92,8 @@ public class ParserRenderEngine implements Parser.ParserProvider {
                 return null;
             }
             
-            /*Renderer r = renderers.get(ctx.resp().contentType());
-            if (r != null) return r.render(ctx, value);*/
+            Renderer r = renderers.get(ctx.resp().contentType());
+            if (r != null) return r.render(ctx, value);
             
             // String, CharSequence, Number
             ctx.resp().respond(TO_STRING.render(ctx, value));

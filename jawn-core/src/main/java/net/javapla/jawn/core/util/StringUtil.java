@@ -87,6 +87,17 @@ public abstract class StringUtil {
         }
     }
     
+    public static void split(String line, char delimiter, BiConsumer<String,String> callback) {
+        if (line == null || line.isEmpty()) return;
+        
+        int del = line.indexOf(delimiter);
+        if (del > 0) {
+            callback.accept(line.substring(0, del).trim(), line.substring(del + 1).trim());
+        } else {
+            callback.accept(line.trim(), "");
+        }
+    }
+    
     
     /**
      * Generates a camel case version of a phrase from underscore.
