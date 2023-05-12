@@ -90,7 +90,13 @@ public interface Router {
         public void execute(Context ctx) {
             ((AbstractContext)ctx).routePath = this;
             route.exec.execute(ctx);
-            if (route.post != null) route.post.complete(new ReadOnlyContext(ctx));
+            if (route.post != null) {
+                try {
+                    route.post.complete(new ReadOnlyContext(ctx));
+                } catch (Exception e) {
+                    ctx.error("When executing 'complete'", e);
+                }
+            }
         }
         
         @Override

@@ -185,19 +185,15 @@ public interface Context {
     // ** Route ** //
     //Route route();
     default void error(Throwable t) {
+        Jawn.SYS_ERROR_LOG.error(((Up)t).getMessage(), t);
         if (t instanceof Up) {
-            Jawn.SYS_ERROR_LOG.error(((Up)t).getMessage(), t);
             resp().status(((Up) t).status());
-        } else {
-            t.printStackTrace();
         }
     }
     default void error(String message, Throwable t) {
+        Jawn.SYS_ERROR_LOG.error(message, t);
         if (t instanceof Up) {
-            Jawn.SYS_ERROR_LOG.error(message, t);
             resp().status(((Up) t).status());
-        } else {
-            t.printStackTrace();
         }
     }
 

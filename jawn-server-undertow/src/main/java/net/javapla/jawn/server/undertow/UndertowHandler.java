@@ -90,6 +90,7 @@ class UndertowHandler implements HttpHandler {
                     } catch (Exception e) {
                         context.resp().respond(Status.BAD_REQUEST);
                         // TODO log the error
+                        context.error(e);
                     }
                     
                 } else {
