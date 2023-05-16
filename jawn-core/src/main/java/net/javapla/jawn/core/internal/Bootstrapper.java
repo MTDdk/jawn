@@ -39,7 +39,7 @@ public class Bootstrapper {
     
     public Bootstrapper(ClassLoader classLoader) {
         this.classLoader = classLoader;
-        this.config = ConfigFactory.parseResources(classLoader, "jawn.conf");
+        this.config = ConfigFactory.load(classLoader);
         this.registry = new Injector();//new InjectionRegistry();
     }
     
