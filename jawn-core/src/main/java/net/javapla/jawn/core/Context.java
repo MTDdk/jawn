@@ -185,7 +185,7 @@ public interface Context {
     // ** Route ** //
     //Route route();
     default void error(Throwable t) {
-        Jawn.SYS_ERROR_LOG.error(((Up)t).getMessage(), t);
+        Jawn.SYS_ERROR_LOG.error(t.getMessage(), t);
         if (t instanceof Up) {
             resp().status(((Up) t).status());
         }
