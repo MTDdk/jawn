@@ -4,7 +4,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,6 +15,7 @@ import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.annotation.Consumes;
 import net.javapla.jawn.core.annotation.DELETE;
 import net.javapla.jawn.core.annotation.GET;
 import net.javapla.jawn.core.annotation.HEAD;
@@ -25,14 +25,15 @@ import net.javapla.jawn.core.annotation.PUT;
 import net.javapla.jawn.core.annotation.Path;
 import net.javapla.jawn.core.annotation.Produces;
 
-public class AnnotationScanner {
+public abstract class AnnotationScanner {
     static final List<Class<? extends Annotation>> VERBS = Arrays.asList(GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class);
     static final List<Class<? extends Annotation>> GET_VERB = Collections.singletonList(GET.class);
 
     
     public static List<Route.Builder> scan(Class<?> controller, Registry registry) {
         final String rootPath = path(controller);
-        final MediaType rootProduces = produces(controller);
+        final MediaType rootConsumes = consumes(controller, null);
+        final MediaType rootProduces = produces(controller, null);
         
         // map all methods and their verbs
         Map<Method, List<Class<? extends Annotation>>> actions = methods(controller);
@@ -43,15 +44,18 @@ public class AnnotationScanner {
             String path = mergePaths(rootPath, action);
             if (path == null) return;
             
-            MediaType produces = produces(action);
+            MediaType consumes = consumes(action, rootConsumes);
+            MediaType produces = produces(action, rootProduces);
             
             for (Class<? extends Annotation> annotation : verbs) {
                 HttpMethod method = HttpMethod.valueOf(annotation.getSimpleName());
                 
-                routes.add(
-                    new Route.Builder(method, path, new ActionHandler(action, controller, registry))
-                    .produces(produces != null ? produces : rootProduces)
-                );
+                Route.Builder bob = new Route.Builder(method, path, new ActionHandler(action, controller, registry));
+                
+                if (consumes != null) bob.consumes(consumes);
+                if (produces != null) bob.produces(produces);
+                
+                routes.add(bob);
             }
         });
         
@@ -71,14 +75,24 @@ public class AnnotationScanner {
             return path.value();
     }
     
-    static MediaType produces(AnnotatedElement elm) {
+    static MediaType consumes(AnnotatedElement elm, MediaType fallback) {
+        Consumes annotation = elm.getAnnotation(Consumes.class);
+        
+        if (annotation != null) {
+            return MediaType.valueOf(annotation.value());
+        }
+        
+        return fallback;
+    }
+    
+    static MediaType produces(AnnotatedElement elm, MediaType fallback) {
         Produces annotation = elm.getAnnotation(Produces.class);
         
         if (annotation != null) {
             return MediaType.valueOf(annotation.value());
         }
         
-        return null;
+        return fallback;
     }
     
     static Map<Method, List<Class<? extends Annotation>>> methods(Class<?> controller) {
@@ -95,9 +109,12 @@ public class AnnotationScanner {
      * @return 
      */
     static Map<Method, List<Class<? extends Annotation>>> methods(Class<?> controller, Map<Method, List<Class<? extends Annotation>>> actions) {
-        if (controller != Object.class) return actions; // stop condition for the recursive call
+        if (controller == Object.class) return actions; // stop condition for the recursive call
         
-        Method[] methods = controller.getDeclaredMethods();
+        Method[] methods = controller.getMethods(); 
+        // .getDeclaredMethods vs .getMethods -> 
+        // the former returns ONLY declared in this particular class,
+        // the latter returns ALL in the hierarchy
         
         for (Method method : methods) {
             if ( Modifier.isPublic(method.getModifiers()) &&

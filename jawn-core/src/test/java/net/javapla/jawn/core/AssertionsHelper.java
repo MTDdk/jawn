@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collection;
 
-public class AssertionsHelper {
+public abstract class AssertionsHelper {
 
     public static <T> void ass(T[] exp, Collection<T> act) {
         assertEquals(exp.length, act.size());

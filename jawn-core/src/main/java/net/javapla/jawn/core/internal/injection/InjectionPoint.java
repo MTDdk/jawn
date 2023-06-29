@@ -10,11 +10,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 import jakarta.inject.Inject;
+import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Registry.Key;
 
 public final class InjectionPoint {
     
-    private final Member member;
+    final Member member;
     final Class<?> declaringType;
     final List<Dependency<?>> dependencies;
     
@@ -38,7 +39,7 @@ public final class InjectionPoint {
         for (Class<?> parameterType : parameterTypes) {
             Annotation[] annotations = parameterAnnotations[index];
             Annotation qualifier = qualifier(annotations);
-            Key<?> key = qualifier != null ? Key.of(parameterType, qualifier) : Key.of(type);
+            Key<?> key = qualifier != null ? Key.of(parameterType, qualifier) : Key.of(parameterType);
             dependencies.add(newDependency(key, Nullability.allowsNull(annotations), index));
             index++;
         }
@@ -48,6 +49,9 @@ public final class InjectionPoint {
     
     private static Annotation qualifier(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
+            if (annotation.annotationType().isAnnotationPresent(jakarta.inject.Named.class)) {
+                return annotation;
+            }
             if (annotation.annotationType().isAnnotationPresent(jakarta.inject.Qualifier.class)) {
                 return annotation;
             }
@@ -93,7 +97,10 @@ public final class InjectionPoint {
             Inject inject = constructor.getAnnotation(Inject.class);
             if (inject == null) {
                 continue;
-                // TODO throw exception instead when multiple @Inject are found?
+            }
+            
+            if (injectableConstructor != null) {
+                throw new Registry.ProvisionException("Multiple @" + Inject.class + " annotated constructors found");
             }
             
             injectableConstructor = constructor;
@@ -110,13 +117,13 @@ public final class InjectionPoint {
             if ( Modifier.isPrivate(noArgConstructor.getModifiers()) &&
                 !Modifier.isPrivate(rawType.getModifiers())) {
                 // TODO log the missing constructor for 'type'
-                throw new AssertionError("");
+                throw new Registry.ProvisionException("Missing default constructor for: " + rawType);
             }
             
             return new InjectionPoint(rawType, noArgConstructor);
         } catch (NoSuchMethodException e) {
             // TODO log the missing constructor for 'type'
-            throw new AssertionError("", e);
+            throw new Registry.ProvisionException("Missing default constructor for: " + rawType);
         }
     }
     

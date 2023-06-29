@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 
 import jakarta.inject.Named;
 import jakarta.inject.Provider;
-import net.javapla.jawn.core.Up.RegistryException;
 import net.javapla.jawn.core.internal.reflection.Materialise;
 
 
@@ -23,18 +22,21 @@ public interface Registry {
     
     <T> T require(Class<T> type, String name) throws Up.RegistryException;
     
-    @Deprecated
-    <T> T require(RegistryKey<T> key) throws Up.RegistryException;
+    <T> T require(Key<T> key) throws Up.RegistryException;
     
-    default <T> T require(Key<T> key) throws Up.RegistryException {
-        return require(key.type);
+    <T> Registry register(Key<T> key, T instance);
+
+    <T> Registry register(Key<T> key, Provider<T> provider);
+    
+    default <T> Registry register(Class<T> clazz, T service) {
+        return register(Key.of(clazz), service);
     }
     
     
     /**
      * Registry for storing services in a simple key/value mechanism.
      */
-    public static interface ServiceRegistry extends Registry {
+    public static interface ServiceRegistry {
         
         /**
          * Register a service. 
@@ -76,15 +78,15 @@ public interface Registry {
             return register(Key.of(clazz), service);
         }
         
-        @Override
+        /*@Override
         default <T> T require(Class<T> type) throws RegistryException {
             return require(Key.of(type));//require(RegistryKey.of(type));
         }
         
         @Override
         default <T> T require(Class<T> type, String name) throws RegistryException {
-            return require(RegistryKey.of(type, name));
-        }
+            return require(type, name);//require(RegistryKey.of(type, name));
+        }*/
 
         <T> ServiceRegistry register(Key<T> key, T service);
     }
@@ -92,6 +94,10 @@ public interface Registry {
     public static final class ProvisionException extends RuntimeException {
         public ProvisionException(Throwable cause) {
             super(cause);
+        }
+        
+        public ProvisionException(String msg) {
+            super(msg);
         }
         
         private static final long serialVersionUID = 1L;
@@ -107,7 +113,7 @@ public interface Registry {
             this.type = type;
             this.name = name;
             this.annotation = annotation;
-            this.hashCode = Arrays.hashCode(new Object[]{type, name}); // automatically checks for null
+            this.hashCode = Arrays.hashCode(new Object[]{type, name, annotation}); // automatically checks for null
         }
         
         @Override
@@ -115,11 +121,10 @@ public interface Registry {
             if (this == obj) return true;
             if (obj == null || getClass() != obj.getClass()) return false;
             
-            if (obj instanceof Key) {
-                Key<?> that = (Key<?>) obj;
-                return this.type.equals(that.type) && Objects.equals(this.name, that.name);
-            }
-            return false;
+            if (!(obj instanceof Key)) return false;
+            
+            Key<?> that = (Key<?>) obj;
+            return this.type.equals(that.type) && Objects.equals(this.name, that.name) && Objects.equals(this.annotation, that.annotation);
         }
         
         @Override
@@ -129,8 +134,10 @@ public interface Registry {
         
         @Override
         public String toString() {
-            if (name == null) return type.getName();
-            return type.getName() + "(" + name + ")";
+            String s = type.getName();
+            if (name != null) s += "(" + name + ")";
+            if (annotation != null) s += "@" + annotation.getSimpleName();
+            return s;
         }
         
         public static <T> Key<T> of(Class<T> type) {
@@ -150,6 +157,7 @@ public interface Registry {
         }
     }
     
+    @Deprecated
     public static final class RegistryKey<T> {
         public final TypeLiteral<T> typeLiteral;
         

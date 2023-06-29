@@ -52,7 +52,7 @@ public class Types {
         // this implementation is made a little more complicated in an attempt to avoid object-creation
         while (true) {
             if (toResolve instanceof TypeVariable) {
-                TypeVariable original = (TypeVariable) toResolve;
+                TypeVariable<?> original = (TypeVariable<?>) toResolve;
                 toResolve = resolveTypeVariable(typeLiteral.type, typeLiteral.rawType, original);
                 if (toResolve == original) {
                     return toResolve;
@@ -148,7 +148,7 @@ public class Types {
 
         // we skip searching through interfaces if unknown is an interface
         if (toResolve.isInterface()) {
-            Class[] interfaces = rawType.getInterfaces();
+            Class<?>[] interfaces = rawType.getInterfaces();
             for (int i = 0, length = interfaces.length; i < length; i++) {
                 if (interfaces[i] == toResolve) {
                     return rawType.getGenericInterfaces()[i];

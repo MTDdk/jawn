@@ -15,5 +15,11 @@ public final class Dependency<T> {
         this.nullable = nullable;
         this.parameterIndex = index;
     }
+    
+    @Override
+    public String toString() {
+        return new D(injectionPoint, key, nullable, parameterIndex).toString();
+    }
 
+    record D<T>(InjectionPoint injectionPoint, Key<T> key, boolean nullable, int index) {}
 }

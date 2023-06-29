@@ -1,21 +1,25 @@
 package net.javapla.jawn.core.internal.injection;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Up.RegistryException;
 
-public class Injector implements Registry.ServiceRegistry {
+/**
+ * Simple dependency injection implementation
+ */
+public class Injector implements Registry {
     
     private final Map<Key<?>, Provider<?>> bindings = new ConcurrentHashMap<>();
     
     public Injector() {
         // reference yourself
-        bindings.put(Key.of(Injector.class), provider(this));
+        bindings.put(Key.of(Injector.class), singleton(this));
     }
 
     @Override
@@ -35,7 +39,7 @@ public class Injector implements Registry.ServiceRegistry {
     
     @Override
     public <T> Injector register(Key<T> key, T instance) {
-        bindings.put(key, provider(instance));
+        bindings.put(key, singleton(instance));
         return this;
     }
 
@@ -45,44 +49,68 @@ public class Injector implements Registry.ServiceRegistry {
         return this;
     }
 
-    private static <T> Provider<T> provider(T instance) {
+    private static <T> Provider<T> singleton(T instance) {
         return () -> instance;
     }
     
+    <T> Provider<T> provider(Key<T> key) {
+        InjectionPoint injectionPoint = InjectionPoint.forConstructorOf(key.type);
+        ConstructorProxy<T> proxy = ConstructorProxy.create(injectionPoint);
+        
+        return () -> {
+            try {
+                return proxy.newInstance(params(injectionPoint));
+            } catch (InvocationTargetException e) {
+                throw new Registry.ProvisionException(e);
+            }
+        };
+    }
+    
     private <T> Provider<T> getBinding(Key<T> key) {
-        @SuppressWarnings("unchecked")
-        Provider<T> existing = (Provider<T>) bindings.get(key);
-        if (existing != null) return existing;
+        Provider<?> existing = bindings.get(key);
+        
+        if (existing != null) {
+            @SuppressWarnings("unchecked") // we only put in bindings that match their key types
+            Provider<T> provider = (Provider<T>) existing;
+            return provider;
+        }
+        
         // nothing already exists
         
+        
+        
+        //justInTimeBinding(key);
+        Provider<T> provider = provider(key);
+        
+        if (key.type.isAnnotationPresent(Singleton.class)) {
+            // instantiate and save as singleton
+            provider = singleton(provider.get());
+        }
+        
+        register(key, provider);
+        
+        return provider;
+    }
+    
+    /*private <T> void justInTimeBinding(Key<T> key) {
         InjectionPoint constructor = InjectionPoint.forConstructorOf(key.type);
         //parameterProviders(constructor);
         
-            
-        return null;
-    }
-    
-    private static void parameterProviders(InjectionPoint point) {
-        System.out.println(point);
         
-        System.out.println(point.dependencies);
+    }*/
+    
+    final Object[] emptyParams = new Object[0];
+    private Object[] params(InjectionPoint point) {
+        if (point.dependencies.isEmpty()) return emptyParams;
+        
+        Object[] params = new Object[point.dependencies.size()];
+        
+        int index = 0;
+        for (var dependency : point.dependencies) {
+            params[index++] = require(dependency.key);
+        }
+        
+        return params;
     }
     
-    
-
-    
-    @Override
-    public <T> T require(RegistryKey<T> key) throws Up.RegistryException {
-        throw new UnsupportedOperationException();
-    }
-    @Override
-    public <T> ServiceRegistry register(RegistryKey<T> key, Supplier<T> service) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> ServiceRegistry register(RegistryKey<T> key, T service) {
-        throw new UnsupportedOperationException();
-    }
-
 }

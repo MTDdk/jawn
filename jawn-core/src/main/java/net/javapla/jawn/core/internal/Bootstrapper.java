@@ -52,7 +52,8 @@ public class Bootstrapper {
 
             @Override
             public Registry.ServiceRegistry registry() {
-                return registry;
+                // TODO
+                return null;//registry;
             }
 
             @Override

@@ -7,6 +7,9 @@ import java.util.function.Supplier;
 
 import jakarta.inject.Provider;
 import net.javapla.jawn.core.Registry;
+import net.javapla.jawn.core.Registry.Key;
+import net.javapla.jawn.core.Registry.RegistryKey;
+import net.javapla.jawn.core.Registry.ServiceRegistry;
 import net.javapla.jawn.core.Up.RegistryException;
 import net.javapla.jawn.core.internal.reflection.injection.ConstructorProxyFactory;
 import net.javapla.jawn.core.internal.reflection.injection.ConstructorProxyFactory.ConstructorProxy;
@@ -21,7 +24,7 @@ class InjectionRegistry implements Registry.ServiceRegistry {
     private final Map<Key<?>, Provider<?>> b = new ConcurrentHashMap<>();
     
 
-    @Override
+    /*@Override
     public <T> T require(RegistryKey<T> key) throws RegistryException {
         Supplier<?> provider = bindings.get(key);
         System.out.println(bindings);
@@ -38,7 +41,7 @@ class InjectionRegistry implements Registry.ServiceRegistry {
         
         // just-in-time binding
         return justInTimeBinding(key);
-    }
+    }*/
     
     
     public <T> T require(Key<T> key) throws RegistryException {
@@ -53,6 +56,7 @@ class InjectionRegistry implements Registry.ServiceRegistry {
         // just-in-time binding
         return justInTimeBinding(RegistryKey.of(key.type));
     }
+    
     
     private <T> T justInTimeBinding(RegistryKey<T> key) {
         Supplier<T> binding = provide(key);

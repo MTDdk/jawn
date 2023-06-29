@@ -103,6 +103,9 @@ public class Jawn {
         return _route(HttpMethod.GET, path, new WebSocket.WebSocketHandler(initialiser)).returnType(Context.class);
     }
     
+    protected /*Route.RouteBuilder*/void controller(final Class<?> controller) {
+        // TODO
+    }
     
     
     protected void install(Plugin plugin) {
