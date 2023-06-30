@@ -25,12 +25,12 @@ import net.javapla.jawn.core.annotation.PUT;
 import net.javapla.jawn.core.annotation.Path;
 import net.javapla.jawn.core.annotation.Produces;
 
-public abstract class AnnotationScanner {
+public abstract class MvcCompiler {
     static final List<Class<? extends Annotation>> VERBS = Arrays.asList(GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class);
     static final List<Class<? extends Annotation>> GET_VERB = Collections.singletonList(GET.class);
 
     
-    public static List<Route.Builder> scan(Class<?> controller, Registry registry) {
+    public static List<Route.Builder> compile(Class<?> controller, Registry registry) {
         final String rootPath = path(controller);
         final MediaType rootConsumes = consumes(controller, null);
         final MediaType rootProduces = produces(controller, null);
@@ -54,6 +54,8 @@ public abstract class AnnotationScanner {
                 
                 if (consumes != null) bob.consumes(consumes);
                 if (produces != null) bob.produces(produces);
+                processReturnType(bob, action);
+                
                 
                 routes.add(bob);
             }
@@ -174,5 +176,9 @@ public abstract class AnnotationScanner {
         } else {
             return rootPath + action;
         }
+    }
+    
+    static void processReturnType(Route.Builder bob, Method action) {
+        bob.returnType(action.getReturnType());
     }
 }

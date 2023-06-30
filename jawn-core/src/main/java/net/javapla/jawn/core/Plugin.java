@@ -11,7 +11,7 @@ public interface Plugin {
     
     public static interface Application {
         
-        Registry.ServiceRegistry registry();
+        Registry/*.ServiceRegistry*/ registry();
         
         Router router();
         

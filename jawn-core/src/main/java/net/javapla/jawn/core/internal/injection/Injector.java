@@ -4,11 +4,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
 import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Up.RegistryException;
+import net.javapla.jawn.core.annotation.Singleton;
 
 /**
  * Simple dependency injection implementation
@@ -38,6 +37,11 @@ public class Injector implements Registry {
     }
     
     @Override
+    public <T> Provider<T> provider(Key<T> key) throws RegistryException {
+        return getBinding(key);
+    }
+    
+    @Override
     public <T> Injector register(Key<T> key, T instance) {
         bindings.put(key, singleton(instance));
         return this;
@@ -53,19 +57,6 @@ public class Injector implements Registry {
         return () -> instance;
     }
     
-    <T> Provider<T> provider(Key<T> key) {
-        InjectionPoint injectionPoint = InjectionPoint.forConstructorOf(key.type);
-        ConstructorProxy<T> proxy = ConstructorProxy.create(injectionPoint);
-        
-        return () -> {
-            try {
-                return proxy.newInstance(params(injectionPoint));
-            } catch (InvocationTargetException e) {
-                throw new Registry.ProvisionException(e);
-            }
-        };
-    }
-    
     private <T> Provider<T> getBinding(Key<T> key) {
         Provider<?> existing = bindings.get(key);
         
@@ -77,10 +68,11 @@ public class Injector implements Registry {
         
         // nothing already exists
         
-        
-        
-        //justInTimeBinding(key);
-        Provider<T> provider = provider(key);
+        return justInTimeBinding(key);
+    }
+    
+    private <T> Provider<T> justInTimeBinding(Key<T> key) {
+        Provider<T> provider = createProvider(key);
         
         if (key.type.isAnnotationPresent(Singleton.class)) {
             // instantiate and save as singleton
@@ -92,13 +84,19 @@ public class Injector implements Registry {
         return provider;
     }
     
-    /*private <T> void justInTimeBinding(Key<T> key) {
-        InjectionPoint constructor = InjectionPoint.forConstructorOf(key.type);
-        //parameterProviders(constructor);
+    <T> Provider<T> createProvider(Key<T> key) {
+        InjectionPoint injectionPoint = InjectionPoint.forConstructorOf(key.type);
+        ConstructorProxy<T> proxy = ConstructorProxy.create(injectionPoint);
         
-        
-    }*/
-    
+        return () -> {
+            try {
+                return proxy.newInstance(params(injectionPoint));
+            } catch (InvocationTargetException e) {
+                throw new Registry.ProvisionException(e);
+            }
+        };
+    }
+
     final Object[] emptyParams = new Object[0];
     private Object[] params(InjectionPoint point) {
         if (point.dependencies.isEmpty()) return emptyParams;

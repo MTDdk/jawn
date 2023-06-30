@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Status;
@@ -101,16 +102,20 @@ abstract class Pipeline {
         /* void */
         if (void.class == raw) {
             final Route.Handler handler = bob.handler();
+            
+            final Status status = bob.method == HttpMethod.DELETE ? Status.NO_CONTENT : Status.OK;
+            
             return ctx -> {
                 try {
                     handler.handle(ctx);
                     if (!ctx.resp().isResponseStarted()) {
-                        ctx.resp().respond(Status.OK);
+                        ctx.resp().respond(status);
                     }
                 } catch (Exception e) {
                     ctx.error(e);
                 }
             };
+            
         }
         
         return defaultExecution(bob, engine);

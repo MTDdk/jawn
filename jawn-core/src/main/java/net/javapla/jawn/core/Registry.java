@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import jakarta.inject.Named;
-import jakarta.inject.Provider;
+import net.javapla.jawn.core.annotation.Named;
+import net.javapla.jawn.core.internal.injection.Provider;
 import net.javapla.jawn.core.internal.reflection.Materialise;
 
 
@@ -17,12 +17,14 @@ import net.javapla.jawn.core.internal.reflection.Materialise;
 public interface Registry {
 // formerly known as Injection
     
-    
+    // TODO come back to all the throwables
     <T> T require(Class<T> type) throws Up.RegistryException;
     
     <T> T require(Class<T> type, String name) throws Up.RegistryException;
     
     <T> T require(Key<T> key) throws Up.RegistryException;
+    
+    <T> Provider<T> provider(Key<T> key) throws Up.RegistryException;
     
     <T> Registry register(Key<T> key, T instance);
 
@@ -107,13 +109,13 @@ public interface Registry {
         public final Class<T> type;
         public final String name;
         public final int hashCode;
-        public final Class<? extends Annotation> annotation;
+        public final Class<? extends Annotation> qualifier;
         
-        private Key(Class<T> type, String name, Class<? extends Annotation> annotation) {
+        private Key(Class<T> type, String name, Class<? extends Annotation> qualifier) {
             this.type = type;
             this.name = name;
-            this.annotation = annotation;
-            this.hashCode = Arrays.hashCode(new Object[]{type, name, annotation}); // automatically checks for null
+            this.qualifier = qualifier;
+            this.hashCode = Arrays.hashCode(new Object[]{type, name, qualifier}); // automatically checks for null
         }
         
         @Override
@@ -124,7 +126,7 @@ public interface Registry {
             if (!(obj instanceof Key)) return false;
             
             Key<?> that = (Key<?>) obj;
-            return this.type.equals(that.type) && Objects.equals(this.name, that.name) && Objects.equals(this.annotation, that.annotation);
+            return this.type.equals(that.type) && Objects.equals(this.name, that.name) && Objects.equals(this.qualifier, that.qualifier);
         }
         
         @Override
@@ -136,7 +138,7 @@ public interface Registry {
         public String toString() {
             String s = type.getName();
             if (name != null) s += "(" + name + ")";
-            if (annotation != null) s += "@" + annotation.getSimpleName();
+            if (qualifier != null) s += "@" + qualifier.getSimpleName();
             return s;
         }
         

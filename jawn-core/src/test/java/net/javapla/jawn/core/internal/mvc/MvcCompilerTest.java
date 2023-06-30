@@ -17,18 +17,18 @@ import net.javapla.jawn.core.annotation.POST;
 import net.javapla.jawn.core.annotation.PUT;
 import net.javapla.jawn.core.annotation.Path;
 
-class AnnotationScannerTest {
+class MvcCompilerTest {
 
     @Test
     void paths() throws NoSuchMethodException, SecurityException {
-        String path = AnnotationScanner.path(ControllerT1.class);
+        String path = MvcCompiler.path(ControllerT1.class);
         assertEquals("/cookie", path);
         
-        path = AnnotationScanner.path(ControllerT1.class.getDeclaredMethod("action"));
+        path = MvcCompiler.path(ControllerT1.class.getDeclaredMethod("action"));
         assertEquals("/import", path);
         
-        assertEquals("/flash", AnnotationScanner.path(ControllerT2.class));
-        path = AnnotationScanner.path(ControllerT2.class.getMethod("action"));
+        assertEquals("/flash", MvcCompiler.path(ControllerT2.class));
+        path = MvcCompiler.path(ControllerT2.class.getMethod("action"));
         assertEquals("/import", path);
     }
     
@@ -36,21 +36,21 @@ class AnnotationScannerTest {
     @Test
     void multipleVerbs() throws NoSuchMethodException, SecurityException {
         Method method = ControllerVerbs.class.getMethod("multiple");
-        List<Class<? extends Annotation>> verbs = AnnotationScanner.verbs(method);
+        List<Class<? extends Annotation>> verbs = MvcCompiler.verbs(method);
         ass(verbs, GET.class, POST.class, PUT.class);
     }
     
     @Test
     void methods() {
-        Map<Method,List<Class<? extends Annotation>>> methods = AnnotationScanner.methods(ControllerT1.class);
+        Map<Method,List<Class<? extends Annotation>>> methods = MvcCompiler.methods(ControllerT1.class);
         assertNotNull(methods);
         assertTrue(methods.size() == 3);
     }
     
     
     @Test
-    void scan() {
-        List<Builder> builders = AnnotationScanner.scan(ControllerT1.class, null);
+    void compile() {
+        List<Builder> builders = MvcCompiler.compile(ControllerT1.class, null);
         assertEquals(3, builders.size());
         
         List<String> paths = builders.stream().map(bob -> bob.path).collect(Collectors.toList());
@@ -58,7 +58,7 @@ class AnnotationScannerTest {
         
         
         // extends
-        builders = AnnotationScanner.scan(ControllerT2.class, null);
+        builders = MvcCompiler.compile(ControllerT2.class, null);
         assertEquals(3, builders.size());
         
         paths = builders.stream().map(bob -> bob.path).collect(Collectors.toList());

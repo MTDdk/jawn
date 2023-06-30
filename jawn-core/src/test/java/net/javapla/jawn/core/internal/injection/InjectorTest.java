@@ -1,22 +1,26 @@
 package net.javapla.jawn.core.internal.injection;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 import net.javapla.jawn.core.Registry;
+import net.javapla.jawn.core.annotation.Inject;
+import net.javapla.jawn.core.annotation.Named;
+import net.javapla.jawn.core.annotation.Singleton;
 
 class InjectorTest {
 
+    Injector injector;
+    
     @BeforeEach
     void init() {
         injector = new Injector();
     }
-    Injector injector;
     
 
     @Test
@@ -63,6 +67,16 @@ class InjectorTest {
     }
     
     @Test
+    void multipleNamedInjectables() {
+        injector.register(Registry.Key.of(String.class, "appid"), "cookie");
+        injector.register(Registry.Key.of(String.class, "secret"), "monster");
+        
+        LoginBigger login = injector.require(LoginBigger.class);
+        assertEquals("cookie", login.appId);
+        assertEquals("monster", login.secret);
+    }
+    
+    @Test
     void fail_when_missingSuitableConstructor() {
         assertThrows(Registry.ProvisionException.class, () -> injector.require(MissingInjectAnnotation.class));
     }
@@ -94,8 +108,14 @@ class InjectorTest {
         @Inject
         public Login(@Named("password") String password) { this.password = password; }
     }
+    static class LoginBigger {
+        final String appId, secret;
+        @Inject
+        public LoginBigger(@Named("appid") String appId, @Named("secret") String secret) { this.appId = appId; this.secret = secret; }
+    }
     
     static class MissingInjectAnnotation {
         MissingInjectAnnotation(TestClass c) {}
     }
 }
+

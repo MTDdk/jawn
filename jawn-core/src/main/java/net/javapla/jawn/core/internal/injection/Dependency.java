@@ -18,8 +18,7 @@ public final class Dependency<T> {
     
     @Override
     public String toString() {
-        return new D(injectionPoint, key, nullable, parameterIndex).toString();
+        return String.format(getClass().getSimpleName() + "[injectionPoint=%s, key=%s, nullable=%s, parameterIndex=%d]", injectionPoint, key, nullable, parameterIndex);
     }
 
-    record D<T>(InjectionPoint injectionPoint, Key<T> key, boolean nullable, int index) {}
 }

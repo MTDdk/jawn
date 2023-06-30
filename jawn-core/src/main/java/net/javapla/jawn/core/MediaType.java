@@ -10,6 +10,15 @@ import net.javapla.jawn.core.util.StringUtil;
 
 public class MediaType implements Comparable<MediaType> {
     
+    public static final String xml = "application/xml";
+    public static final String xml_like = "application/*+xml";
+    public static final String json = "application/json";
+    public static final String json_like = "application/*+json";
+    public static final String form = "application/x-www-form-urlencoded";
+    public static final String multipart = "multipart/form-data";
+    public static final String octet_stream = "application/octet-stream";
+    public static final String text = "text/plain";
+    public static final String html = "text/html";
     public static final String WILDCARD_TYPE = "*";
     /**
      * The media type {@code charset} parameter name.
@@ -19,23 +28,23 @@ public class MediaType implements Comparable<MediaType> {
     private static final String UTF_8 = StandardCharsets.UTF_8.name().toLowerCase();
     
     /** application/xml */
-    public final static MediaType XML = new MediaType("application/xml", UTF_8);
+    public final static MediaType XML = new MediaType(xml, UTF_8);
     /** application/*+xml */
-    public final static MediaType XML_LIKE = new MediaType("application/*+xml", UTF_8);
+    public final static MediaType XML_LIKE = new MediaType(xml_like, UTF_8);
     /** application/json */
-    public final static MediaType JSON = new MediaType("application/json", UTF_8);
+    public final static MediaType JSON = new MediaType(json, UTF_8);
     /** application/*+json */
-    public final static MediaType JSON_LIKE = new MediaType("application/*+json", UTF_8);
+    public final static MediaType JSON_LIKE = new MediaType(json_like, UTF_8);
     /** application/x-www-form-urlencoded */
-    public final static MediaType FORM = new MediaType("application/x-www-form-urlencoded", UTF_8);
+    public final static MediaType FORM = new MediaType(form, UTF_8);
     /** multipart/form-data */
-    public final static MediaType MULTIPART = new MediaType("multipart/form-data", UTF_8);
+    public final static MediaType MULTIPART = new MediaType(multipart, UTF_8);
     /** application/octet-stream */
-    public final static MediaType OCTET_STREAM = new MediaType("application/octet-stream", null);
+    public final static MediaType OCTET_STREAM = new MediaType(octet_stream, null);
     /** text/plain */
-    public final static MediaType TEXT = new MediaType("text/plain", UTF_8);
+    public final static MediaType TEXT = new MediaType(text, UTF_8);
     /** text/html */
-    public final static MediaType HTML = new MediaType("text/html", UTF_8);
+    public final static MediaType HTML = new MediaType(html, UTF_8);
     ///** text/* */
     //public final static MediaType TEXT = new MediaType("text", WILDCARD_TYPE);
     /**
@@ -97,7 +106,7 @@ public class MediaType implements Comparable<MediaType> {
         return raw.substring(subtypeStart + 1, subtypeEnd);
     }
     
-    public String value() {
+    public final String value() {
         return value;
     }
     

@@ -9,9 +9,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import jakarta.inject.Inject;
 import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Registry.Key;
+import net.javapla.jawn.core.annotation.Inject;
+import net.javapla.jawn.core.annotation.Qualifier;
 
 public final class InjectionPoint {
     
@@ -49,10 +50,7 @@ public final class InjectionPoint {
     
     private static Annotation qualifier(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
-            if (annotation.annotationType().isAnnotationPresent(jakarta.inject.Named.class)) {
-                return annotation;
-            }
-            if (annotation.annotationType().isAnnotationPresent(jakarta.inject.Qualifier.class)) {
+            if (annotation.annotationType().isAnnotationPresent(Qualifier.class)) { // @Named is a @Qualifier
                 return annotation;
             }
         }

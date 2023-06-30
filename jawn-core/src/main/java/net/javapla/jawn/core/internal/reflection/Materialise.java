@@ -10,8 +10,8 @@ import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Objects;
 
-import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.TypeLiteral;
+import net.javapla.jawn.core.internal.injection.Provider;
 
 /**
  * {@link TypeLiteral} is an implementation of what is called "Reified Generics".
@@ -58,7 +58,7 @@ public class Materialise {
      * Returns a key that doesn't hold any references to parent classes. This is necessary for
      * anonymous keys, so ensure we don't hold a ref to the containing module (or class) forever.
      */
-    public static <T> Registry.RegistryKey<T> canonicalizeKey(Registry.RegistryKey<T> key) {
+    /*public static <T> Registry.RegistryKey<T> canonicalizeKey(Registry.RegistryKey<T> key) {
         // If we know this isn't a subclass, return as-is.
         // Otherwise, recreate the key to avoid the subclass
         if (key.getClass() == Registry.RegistryKey.class) {
@@ -66,7 +66,7 @@ public class Materialise {
         } else {
             return Registry.RegistryKey.of(key.typeLiteral);
         }
-    }
+    }*/
     
     public static <T> TypeLiteral<T> canonicalizeKey(TypeLiteral<T> typeLiteral) {
         Type type = typeLiteral.type;
@@ -75,7 +75,7 @@ public class Materialise {
             throw new AssertionError();
         }
         
-        if (typeLiteral.rawType == jakarta.inject.Provider.class) {
+        if (typeLiteral.rawType == Provider.class) {
             ParameterizedType parameterisedType = (ParameterizedType) type;
             
             TypeLiteral<T> providerType = 
@@ -122,7 +122,7 @@ public class Materialise {
      * @return a {@link java.io.Serializable serializable} parameterized type.
      */
     public static ParameterizedType providerOf(Type providedType) {
-      return newParameterizedType(jakarta.inject.Provider.class, providedType);
+      return newParameterizedType(Provider.class, providedType);
     }
     
     /**

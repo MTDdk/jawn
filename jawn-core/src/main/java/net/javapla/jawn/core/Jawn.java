@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -16,8 +17,10 @@ import org.slf4j.LoggerFactory;
 import com.typesafe.config.Config;
 
 import net.javapla.jawn.core.Plugin.Application;
+import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.internal.Bootstrapper;
+import net.javapla.jawn.core.internal.mvc.MvcCompiler;
 import net.javapla.jawn.core.internal.reflection.Reflection;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -105,6 +108,8 @@ public class Jawn {
     
     protected /*Route.RouteBuilder*/void controller(final Class<?> controller) {
         // TODO
+        List<Builder> list = MvcCompiler.compile(controller, booter.registry());
+        routes.addAll(list);
     }
     
     

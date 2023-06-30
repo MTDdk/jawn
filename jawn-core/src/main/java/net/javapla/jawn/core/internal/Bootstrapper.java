@@ -51,9 +51,9 @@ public class Bootstrapper {
         Plugin.Application moduleConfig = new Plugin.Application() {
 
             @Override
-            public Registry.ServiceRegistry registry() {
+            public Registry/*.ServiceRegistry*/ registry() {
                 // TODO
-                return null;//registry;
+                return registry;
             }
 
             @Override
