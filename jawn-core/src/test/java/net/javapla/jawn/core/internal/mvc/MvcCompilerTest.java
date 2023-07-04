@@ -11,11 +11,14 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import static net.javapla.jawn.core.AssertionsHelper.*;
+
+import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.annotation.GET;
 import net.javapla.jawn.core.annotation.POST;
 import net.javapla.jawn.core.annotation.PUT;
 import net.javapla.jawn.core.annotation.Path;
+import net.javapla.jawn.core.internal.injection.Injector;
 
 class MvcCompilerTest {
 
@@ -47,22 +50,22 @@ class MvcCompilerTest {
         assertTrue(methods.size() == 3);
     }
     
-    
     @Test
     void compile() {
-        List<Builder> builders = MvcCompiler.compile(ControllerT1.class, null);
+        Registry registry = new Injector();
+        List<Builder> builders = MvcCompiler.compile(ControllerT1.class, registry);
         assertEquals(3, builders.size());
         
         List<String> paths = builders.stream().map(bob -> bob.path).collect(Collectors.toList());
-        ass(paths, "/cookie/import", "/cookie/outport","/cookie/port");
+        ass(paths, "/cookie/import", "/cookie/port","/cookie/outport");
         
         
         // extends
-        builders = MvcCompiler.compile(ControllerT2.class, null);
+        builders = MvcCompiler.compile(ControllerT2.class, registry);
         assertEquals(3, builders.size());
         
         paths = builders.stream().map(bob -> bob.path).collect(Collectors.toList());
-        ass(paths, "/flash/import", "/flash/outport","/flash/port");
+        ass(paths, "/flash/import", "/flash/port","/flash/outport");
     }
     
     

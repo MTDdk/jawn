@@ -18,3 +18,11 @@ dependencies {
   implementation 'org.ow2.asm:asm-util:' + asm_version
   
 }
+
+sourceSets {
+  test {
+    java {
+      srcDirs += file('src/it/java')
+    }
+  }
+}

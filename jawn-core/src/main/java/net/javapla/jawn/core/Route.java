@@ -404,6 +404,11 @@ public final class Route {
                 // renderer,
                 returnType, exec, parsers);
         }
+        
+        @Override
+        public String toString() {
+            return "Route.Builder[" + method + " " + path + "]";
+        }
     }
 
     public static final Route NOT_FOUND          = new Route.Builder(HttpMethod.GET, "/", ctx -> { ctx.resp().respond(Status.NOT_FOUND); return ctx; }).executor().build();

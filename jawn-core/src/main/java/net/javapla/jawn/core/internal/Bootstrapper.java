@@ -1,6 +1,7 @@
 package net.javapla.jawn.core.internal;
 
 import java.util.LinkedList;
+import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
@@ -41,6 +42,9 @@ public class Bootstrapper {
         this.classLoader = classLoader;
         this.config = ConfigFactory.load(classLoader);
         this.registry = new Injector();//new InjectionRegistry();
+    }
+    Bootstrapper() {
+        this(Bootstrapper.class.getClassLoader());
     }
     
     public synchronized Application boot(Stream<Route.Builder> routes) {
@@ -127,16 +131,22 @@ public class Bootstrapper {
     }
     
     private void installPlugins(Plugin.Application moduleConfig) {
-        // read template engines
-        ServiceLoader<Plugin> plugins = ServiceLoader.load(Plugin.class);
-        plugins.forEach(plugin -> {
-            plugin.install(moduleConfig);
-        });
         
-        // then register/overwrite with user plugins
-        userPlugins.forEach(plugin -> {
-            plugin.install(moduleConfig);
-        });
+        try {
+            // read template engines
+            ServiceLoader<Plugin> plugins = ServiceLoader.load(Plugin.class);
+            plugins.forEach(plugin -> {
+                plugin.install(moduleConfig);
+            });
+            
+            // then register/overwrite with user plugins
+            userPlugins.forEach(plugin -> {
+                plugin.install(moduleConfig);
+            });
+        } catch (ServiceConfigurationError error) {
+            log.debug("installPlugins",error);
+        }
+        
     }
     
     private void registerCoreClasses(Injector/*InjectionRegistry*/ registry, Config config) {
