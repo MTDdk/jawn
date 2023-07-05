@@ -24,6 +24,7 @@ import net.javapla.jawn.core.annotation.POST;
 import net.javapla.jawn.core.annotation.PUT;
 import net.javapla.jawn.core.annotation.Path;
 import net.javapla.jawn.core.annotation.Produces;
+import net.javapla.jawn.core.internal.reflection.ClassMeta;
 
 public abstract class MvcCompiler {
     static final List<Class<? extends Annotation>> VERBS = Arrays.asList(GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class);
@@ -37,6 +38,7 @@ public abstract class MvcCompiler {
         
         // map all methods and their verbs
         Map<Method, List<Class<? extends Annotation>>> actions = methods(controller);
+        ActionParameterExtractor extractor = new ActionParameterExtractor(registry.require(ClassMeta.class), controller);
         
         LinkedList<Route.Builder> routes = new LinkedList<>();
         
@@ -50,7 +52,7 @@ public abstract class MvcCompiler {
             for (Class<? extends Annotation> annotation : verbs) {
                 HttpMethod method = HttpMethod.valueOf(annotation.getSimpleName());
                 
-                Route.Builder bob = new Route.Builder(method, path, new ActionHandler(action, controller, registry));
+                Route.Builder bob = new Route.Builder(method, path, new ActionHandler(action, controller, registry, extractor));
                 
                 if (consumes != null) bob.consumes(consumes);
                 if (produces != null) bob.produces(produces);

@@ -69,7 +69,12 @@ class MvcCompilerTest {
     }
     
     
-
+/* 
+ * ************
+ * TEST CLASSES
+ * ************
+ */
+    
     @Path("/cookie")
     private static class ControllerT1 {
         

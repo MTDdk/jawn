@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Parser;
 import net.javapla.jawn.core.Plugin;
@@ -28,7 +29,8 @@ public class Bootstrapper {
     
     private final ParserRenderEngine engine = new ParserRenderEngine();
     
-    private final ClassLoader classLoader;
+    //private final ClassLoader classLoader;
+    private final ClassSource source;
     private final Config config;
     private final /*InjectionRegistry*/ Injector registry;
     
@@ -39,12 +41,13 @@ public class Bootstrapper {
     
     
     public Bootstrapper(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+        //this.classLoader = classLoader;
+        this.source = new ClassSource(classLoader);
         this.config = ConfigFactory.load(classLoader);
         this.registry = new Injector();//new InjectionRegistry();
     }
     Bootstrapper() {
-        this(Bootstrapper.class.getClassLoader());
+        this(Jawn.class.getClassLoader());
     }
     
     public synchronized Application boot(Stream<Route.Builder> routes) {
@@ -56,7 +59,6 @@ public class Bootstrapper {
 
             @Override
             public Registry/*.ServiceRegistry*/ registry() {
-                // TODO
                 return registry;
             }
 
@@ -121,6 +123,8 @@ public class Bootstrapper {
     }
     
     private void startup() {
+        onShutdown(() -> source.close());
+        
         onStartup.forEach(run -> {
             try {
                 run.run();
@@ -151,18 +155,18 @@ public class Bootstrapper {
     
     private void registerCoreClasses(Injector/*InjectionRegistry*/ registry, Config config) {
         registry.register(Config.class, config);
+        registry.register(ClassSource.class, source);
     }
     
     private void parseRoutes(Stream<Route.Builder> routes, RouterImpl router) {
-        try (ClassSource source = new ClassSource(classLoader)) {
+        // TODO use ClassSource as field in order to remove bytecode in case we want to autoreload classes
             
-            RouteClassAnalyser analyser = new RouteClassAnalyser(source);
+        RouteClassAnalyser analyser = new RouteClassAnalyser(source);
+        
+        routes.map(bob -> {
             
-            routes.map(bob -> {
-                
-                return Pipeline.compile(analyser, engine, bob);
-                
-            }).forEach(router::addRoute);
-        }
+            return Pipeline.compile(analyser, engine, bob);
+            
+        }).forEach(router::addRoute);
     }
 }

@@ -5,7 +5,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import net.javapla.jawn.core.util.StringUtil;
+import net.javapla.jawn.core.util.URLCodec;
 
 public abstract class AbstractContext implements Context {
 
@@ -13,11 +17,11 @@ public abstract class AbstractContext implements Context {
     // flash
     // attributes
     
-    
+    /* Attributes  */
     private HashMap<String, Object> attributes;
     
     private void instantiateAttributes() {
-        if (attributes == null) attributes = new HashMap<>(5);
+        if (attributes == null) attributes = new HashMap<>(3);
     }
     
     private Object attributeOrNull(final String name) {
@@ -110,6 +114,23 @@ public abstract class AbstractContext implements Context {
         public Value pathParam(String name) {
             if (routePath.pathParameters == null) return Value.empty();
             return Value.of(routePath.pathParameters.get(name));
+        }
+        
+        
+        /* Query */
+        private Map<String, String> query;
+        private void instantiateQuery() {
+            if (query != null) return;
+            
+            String[] split = StringUtil.split(req().queryString(), '&');
+            HashMap<String, String> query = new HashMap<>(split.length);
+            StringUtil.split(split, '=', (k,v) -> query.put(k, URLCodec.decode(v, StandardCharsets.UTF_8)));
+        }
+        
+        @Override
+        public String queryParam(String name) {
+            instantiateQuery();
+            return query.get(name);
         }
     }
     

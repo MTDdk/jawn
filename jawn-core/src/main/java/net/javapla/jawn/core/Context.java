@@ -28,6 +28,7 @@ public interface Context {
         HttpMethod httpMethod();
         String path();
         String queryString();
+        String queryParam(String name); // URLDecoded
         String address();
         
         Value header(String name);
@@ -61,6 +62,7 @@ public interface Context {
         <T> T parse(Type type);
         
         void upgrade(WebSocket.Initialiser init);
+        
     }
     
     interface Response {
