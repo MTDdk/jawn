@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import net.javapla.jawn.core.Jawn;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Parser;
 import net.javapla.jawn.core.Plugin;
@@ -46,8 +45,8 @@ public class Bootstrapper {
         this.config = ConfigFactory.load(classLoader);
         this.registry = new Injector();//new InjectionRegistry();
     }
-    Bootstrapper() {
-        this(Jawn.class.getClassLoader());
+    public Bootstrapper() {
+        this(ClassLoader.getSystemClassLoader());
     }
     
     public synchronized Application boot(Stream<Route.Builder> routes) {

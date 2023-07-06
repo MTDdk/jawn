@@ -30,7 +30,7 @@ public class Jawn {
     static final Logger SYS_ERROR_LOG = LoggerFactory.getLogger("JawnError");
     
     
-    private final Bootstrapper booter = new Bootstrapper(getClass().getClassLoader()); // Core?
+    private final Bootstrapper booter = new Bootstrapper(); // Core?
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
     private final ServerConfig serverConfig = new ServerConfig();
     
@@ -110,6 +110,12 @@ public class Jawn {
         // TODO
         List<Builder> list = MvcCompiler.compile(controller, booter.registry());
         routes.addAll(list);
+    }
+    protected void controllers(String packageToScan) {
+        
+    }
+    protected void controllers(Package packageToScan) {
+        controllers(packageToScan.getName());
     }
     
     
