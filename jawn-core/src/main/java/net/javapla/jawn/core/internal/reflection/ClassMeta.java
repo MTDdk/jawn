@@ -39,7 +39,7 @@ public class ClassMeta {
             ClassMethodsVisitor visitor = new ClassMethodsVisitor(owner);
             
             new ClassReader(classSource.byteCode(owner)).accept(visitor, 0);
-            classSource.reload(owner);
+            classSource.reload(owner); // clean up after yourself - enforces the framework to reload the class from disk if revisited
             
             return visitor.parameterNames;
         //});

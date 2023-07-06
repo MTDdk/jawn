@@ -27,7 +27,14 @@ import net.javapla.jawn.core.annotation.Produces;
 import net.javapla.jawn.core.internal.reflection.ClassMeta;
 
 public abstract class MvcCompiler {
-    static final List<Class<? extends Annotation>> VERBS = Arrays.asList(GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class);
+    static final List<Class<? extends Annotation>> VERBS = Arrays.asList(
+        GET.class, 
+        POST.class, 
+        PUT.class, 
+        DELETE.class, 
+        HEAD.class, 
+        OPTIONS.class
+    );
     static final List<Class<? extends Annotation>> GET_VERB = Collections.singletonList(GET.class);
 
     
