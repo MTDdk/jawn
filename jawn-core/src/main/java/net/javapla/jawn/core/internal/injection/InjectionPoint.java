@@ -12,7 +12,7 @@ import java.util.List;
 import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Registry.Key;
 import net.javapla.jawn.core.annotation.Inject;
-import net.javapla.jawn.core.annotation.Qualifier;
+import net.javapla.jawn.core.annotation.Named;
 
 public final class InjectionPoint {
     
@@ -39,8 +39,8 @@ public final class InjectionPoint {
         List<Class<?>> parameterTypes = Types.getParameterTypes(type, member);
         for (Class<?> parameterType : parameterTypes) {
             Annotation[] annotations = parameterAnnotations[index];
-            Annotation qualifier = qualifier(annotations);
-            Key<?> key = qualifier != null ? Key.of(parameterType, qualifier) : Key.of(parameterType);
+            Annotation named = named(annotations);
+            Key<?> key = named != null ? Key.of(parameterType, named) : Key.of(parameterType);
             dependencies.add(newDependency(key, Nullability.allowsNull(annotations), index));
             index++;
         }
@@ -48,9 +48,9 @@ public final class InjectionPoint {
         return Collections.unmodifiableList(dependencies);
     }
     
-    private static Annotation qualifier(Annotation[] annotations) {
+    private static Annotation named(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
-            if (annotation.annotationType().isAnnotationPresent(Qualifier.class)) { // @Named is a @Qualifier
+            if (annotation.annotationType().isAnnotationPresent(Named.class)) {
                 return annotation;
             }
         }

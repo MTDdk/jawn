@@ -109,13 +109,13 @@ public interface Registry {
         public final Class<T> type;
         public final String name;
         public final int hashCode;
-        public final Class<? extends Annotation> qualifier;
+        public final Class<? extends Annotation> annotation;
         
-        private Key(Class<T> type, String name, Class<? extends Annotation> qualifier) {
+        private Key(Class<T> type, String name, Class<? extends Annotation> annotation) {
             this.type = type;
             this.name = name;
-            this.qualifier = qualifier;
-            this.hashCode = Arrays.hashCode(new Object[]{type, name, qualifier}); // automatically checks for null
+            this.annotation = annotation;
+            this.hashCode = Arrays.hashCode(new Object[]{type, name, annotation}); // automatically checks for null
         }
         
         @Override
@@ -126,7 +126,7 @@ public interface Registry {
             if (!(obj instanceof Key)) return false;
             
             Key<?> that = (Key<?>) obj;
-            return this.type.equals(that.type) && Objects.equals(this.name, that.name) && Objects.equals(this.qualifier, that.qualifier);
+            return this.type.equals(that.type) && Objects.equals(this.name, that.name) && Objects.equals(this.annotation, that.annotation);
         }
         
         @Override
@@ -138,7 +138,7 @@ public interface Registry {
         public String toString() {
             String s = type.getName();
             if (name != null) s += "(" + name + ")";
-            if (qualifier != null) s += "@" + qualifier.getSimpleName();
+            if (annotation != null) s += "@" + annotation.getSimpleName();
             return s;
         }
         

@@ -11,7 +11,6 @@ import java.lang.annotation.Target;
 /**
  * Annotates named things.
  */
-@Qualifier
 @Documented
 @Retention(RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD})
