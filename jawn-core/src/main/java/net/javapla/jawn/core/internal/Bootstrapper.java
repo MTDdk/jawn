@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal;
 import java.util.LinkedList;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ public class Bootstrapper {
     
     private final ParserRenderEngine engine = new ParserRenderEngine();
     
-    //private final ClassLoader classLoader;
+    private final ClassLoader classLoader;
     private final ClassSource source;
     private final Config config;
     private final /*InjectionRegistry*/ Injector registry;
@@ -40,7 +41,7 @@ public class Bootstrapper {
     
     
     public Bootstrapper(ClassLoader classLoader) {
-        //this.classLoader = classLoader;
+        this.classLoader = classLoader;
         this.source = new ClassSource(classLoader);
         this.config = ConfigFactory.load(classLoader);
         this.registry = new Injector();//new InjectionRegistry();
@@ -49,7 +50,7 @@ public class Bootstrapper {
         this(ClassLoader.getSystemClassLoader());
     }
     
-    public synchronized Application boot(Stream<Route.Builder> routes) {
+    public synchronized Application boot(Function<Registry, Stream<Route.Builder>> routes) {
         
         RouterImpl router = new RouterImpl();
         
@@ -110,6 +111,10 @@ public class Bootstrapper {
         return registry;
     }
     
+    public ClassLoader classLoader() {
+        return classLoader;
+    }
+    
     public void onStartup(Runnable task) {
         onStartup.add(task);
     }
@@ -157,12 +162,12 @@ public class Bootstrapper {
         registry.register(ClassSource.class, source);
     }
     
-    private void parseRoutes(Stream<Route.Builder> routes, RouterImpl router) {
+    private void parseRoutes(Function<Registry, Stream<Route.Builder>> routes, RouterImpl router) {
         // TODO use ClassSource as field in order to remove bytecode in case we want to autoreload classes
             
         RouteClassAnalyser analyser = new RouteClassAnalyser(source);
         
-        routes.map(bob -> {
+        routes.apply(registry).map(bob -> {
             
             return Pipeline.compile(analyser, engine, bob);
             

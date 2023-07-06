@@ -27,8 +27,7 @@ class E2eMvcTest {
     static void beforeAll() {
         Bootstrapper booter = new Bootstrapper();
         
-        List<Builder> builders = MvcCompiler.compile(ControllerParams.class, booter.registry());
-        application = booter.boot(builders.stream());
+        application = booter.boot(reg -> MvcCompiler.compile(ControllerParams.class, reg).stream());
     }
     
     

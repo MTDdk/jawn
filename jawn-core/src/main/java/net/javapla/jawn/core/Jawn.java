@@ -21,6 +21,7 @@ import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.internal.Bootstrapper;
 import net.javapla.jawn.core.internal.mvc.MvcCompiler;
+import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.Reflection;
 import net.javapla.jawn.core.util.StringUtil;
 
@@ -32,6 +33,7 @@ public class Jawn {
     
     private final Bootstrapper booter = new Bootstrapper(); // Core?
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
+    private final LinkedList<Class<?>> mvcControllers = new LinkedList<>();
     private final ServerConfig serverConfig = new ServerConfig();
     
     
@@ -108,14 +110,26 @@ public class Jawn {
     
     protected /*Route.RouteBuilder*/void controller(final Class<?> controller) {
         // TODO
-        List<Builder> list = MvcCompiler.compile(controller, booter.registry());
-        routes.addAll(list);
+        //List<Builder> list = MvcCompiler.compile(controller, booter.registry());
+        //routes.addAll(list);
+        mvcControllers.add(controller);
     }
     protected void controllers(String packageToScan) {
-        
+        ClassLocator.list(packageToScan, booter.classLoader()).forEach(this::controller);
     }
     protected void controllers(Package packageToScan) {
         controllers(packageToScan.getName());
+    }
+    /**
+     * Look for MVC controllers at the standard package by convention.
+     * <p>
+     * I.e.: The 'controllers' package next to this implementor of {@link Jawn}
+     * 
+     * <p>
+     * This is just a short-hand for <code>controllers(this.getClass().getPackageName() + ".controllers");</code>
+     */
+    protected void controllers() {
+        controllers(this.getClass().getPackageName() + ".controllers");
     }
     
     
@@ -160,7 +174,7 @@ public class Jawn {
         
         // bootstrap
         //bootstrap.boot(mode, serverConfig, sessionConfig.sessionStore, this::buildRoutes);
-        Application moduleConfig = booter.boot(buildRoutes());
+        Application moduleConfig = booter.boot(this::buildRoutes);
         
         // TODO ServiceLoader.load Registries after everything else is loaded 
         
@@ -225,7 +239,12 @@ public class Jawn {
         return map;
     }
     
-    private Stream<Route.Builder> buildRoutes() {
+    private Stream<Route.Builder> buildRoutes(Registry registry) {
+        mvcControllers.forEach(controller -> {
+            List<Builder> list = MvcCompiler.compile(controller, registry);
+            routes.addAll(list);
+        });
+        
         return routes.stream();
     }
 }
