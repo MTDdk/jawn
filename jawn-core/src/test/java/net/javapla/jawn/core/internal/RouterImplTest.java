@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router.RoutePath;
+import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.internal.RouterImpl.TriePath;
 
 class RouterImplTest {
@@ -101,6 +102,12 @@ class RouterImplTest {
         assertTrue(path.isStatic);
         assertEquals("first", path.pathParameters.get("param"));
         assertEquals("second", path.pathParameters.get("param2"));
+    }
+    
+    @Test()
+    void samePath_should_throw() {
+        List<Route> routes = Arrays.asList(route(HttpMethod.PUT, "/simple/{slug}/database"), route(HttpMethod.PUT, "/simple/{slug}/database"));
+        assertThrowsExactly(Up.RouteAlreadyExists.class, () -> new RouterImpl(routes));
     }
     
     static Route route(HttpMethod method, String path) {

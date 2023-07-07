@@ -122,8 +122,8 @@ final class RouterImpl implements Router {
     public void addRoute(final Route route) {
         char[] chars = route.path().toCharArray();
         TriePath lookup = trie.lookForWildcard(chars, route.method().ordinal());
-        if (lookup != null && route.method() != HttpMethod.HEAD && Arrays.equals(chars, lookup.trieApplicable)/*route.path().equals(lookup.route.path())*/) {
-            throw Up.RouteAlreadyExists(lookup.toString());
+        if (lookup != null && route.method() != HttpMethod.HEAD && Arrays.equals(TriePathParser.parse(route).trieApplicable, lookup.trieApplicable)) {
+            throw Up.RouteAlreadyExists(route + " -> " + lookup.toString());
         }
         
         TriePath triePath = TriePathParser.parse(route);
