@@ -33,7 +33,7 @@ public class Jawn {
     
     private final Bootstrapper booter = new Bootstrapper(); // Core?
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
-    private final LinkedList<Class<?>> mvcControllers = new LinkedList<>();
+    private final LinkedList<Object> mvcControllers = new LinkedList<>();
     private final ServerConfig serverConfig = new ServerConfig();
     
     
@@ -108,10 +108,17 @@ public class Jawn {
         return _route(HttpMethod.GET, path, new WebSocket.WebSocketHandler(initialiser)).returnType(Context.class);
     }
     
+    
+/* ******************************************
+ * MVC
+ * ****************************************** */
     protected /*Route.RouteBuilder*/void controller(final Class<?> controller) {
         // TODO
         //List<Builder> list = MvcCompiler.compile(controller, booter.registry());
         //routes.addAll(list);
+        mvcControllers.add(controller);
+    }
+    protected void controller(Object controller) {
         mvcControllers.add(controller);
     }
     protected void controllers(String packageToScan) {
@@ -145,11 +152,22 @@ public class Jawn {
         return serverConfig;
     }
     
+/* ******************************************
+ * Registry
+ * ****************************************** */
     protected <T> T require(Class<T> type) {
         return booter.registry().require(type);
     }
     
-    // life cycle
+    // TODO
+    /*protected void register(Object type) {
+        
+    }*/
+    
+    
+/* ******************************************
+ * Life cycle
+ * ****************************************** */
     protected Jawn onStartup(Runnable task) {
         booter.onStartup(task);
         return this;
@@ -241,8 +259,13 @@ public class Jawn {
     
     private Stream<Route.Builder> buildRoutes(Registry registry) {
         mvcControllers.forEach(controller -> {
-            List<Builder> list = MvcCompiler.compile(controller, registry);
-            routes.addAll(list);
+            if (controller instanceof Class<?>) {
+                List<Builder> list = MvcCompiler.compile((Class<?>)controller, registry);
+                routes.addAll(list);
+            } else {
+                List<Builder> list = MvcCompiler.compile(controller.getClass(), () -> controller, registry);
+                routes.addAll(list);
+            }
         });
         
         return routes.stream();

@@ -1,7 +1,6 @@
 package net.javapla.jawn.core;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
@@ -220,13 +219,13 @@ public final class Route {
         }
     }
 
-    public static interface MethodHandler extends Handler {
+    /*public static interface MethodHandler extends Handler {
         // Action
         Method method();
 
         // Route class
         Class<?> controller();
-    }
+    }*/
 
     /**
      * Promise to handle all exceptions

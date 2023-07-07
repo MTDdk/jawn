@@ -20,14 +20,14 @@ class ActionHandlerTest {
         ActionParameterExtractor controllerExtractor = new ActionParameterExtractor(registry.require(ClassMeta.class), Controller.class);
         Context context = mock(Context.class);
         
-        Handler indexHandler = new ActionHandler(Controller.class.getDeclaredMethod("index"), Controller.class, registry, controllerExtractor);
+        Handler indexHandler = new ActionHandler(Controller.class.getDeclaredMethod("index"), registry.provider(Controller.class), controllerExtractor);
         
         assertEquals(0, Controller.indexCalled);
         indexHandler.handle(context);
         assertEquals(1, Controller.indexCalled);
         
         
-        Handler statusHandler = new ActionHandler(Controller.class.getDeclaredMethod("status"), Controller.class, registry, controllerExtractor);
+        Handler statusHandler = new ActionHandler(Controller.class.getDeclaredMethod("status"), registry.provider(Controller.class), controllerExtractor);
         
         assertEquals(0, Controller.statusCalled);
         Object result = statusHandler.handle(context);
@@ -42,9 +42,10 @@ class ActionHandlerTest {
         ActionParameterExtractor controllerExtractor = new ActionParameterExtractor(registry.require(ClassMeta.class), Controller.class);
         Context context = mock(Context.class);
         
-        Handler injectableHandler = new ActionHandler(Controller.class.getDeclaredMethod("injectable", Context.class), Controller.class, registry, controllerExtractor);
+        Handler injectableHandler = new ActionHandler(Controller.class.getDeclaredMethod("injectable", Context.class), registry.provider(Controller.class), controllerExtractor);
         Object result = injectableHandler.handle(context);
-        System.out.println(result);
+        assertEquals(1, Controller.injectableCalled);
+        assertNull(result);
     }
 
 /* 
