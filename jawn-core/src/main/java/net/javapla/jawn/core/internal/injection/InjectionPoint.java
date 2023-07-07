@@ -50,14 +50,14 @@ public final class InjectionPoint {
     
     private static Annotation named(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
-            if (annotation.annotationType().isAnnotationPresent(Named.class)) {
+            if (annotation.annotationType().equals(Named.class)) {
                 return annotation;
             }
         }
         return null;
     }
     
-    // This metohd is necessary to create a Dependency<T> with proper generic type information
+    // This method is necessary to create a Dependency<T> with proper generic type information
     private <T> Dependency<T> newDependency(Key<T> key, boolean allowsNull, int index) {
         return new Dependency<T>(this, key, allowsNull, index);
     }

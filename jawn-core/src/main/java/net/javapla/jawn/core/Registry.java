@@ -26,6 +26,10 @@ public interface Registry {
     
     <T> Provider<T> provider(Key<T> key) throws Up.RegistryException;
     
+    default <T> Provider<T> provider(Class<T> clazz) {
+        return provider(Key.of(clazz));
+    }
+    
     <T> Registry register(Key<T> key, T instance);
 
     <T> Registry register(Key<T> key, Provider<T> provider);

@@ -94,11 +94,11 @@ public class Bootstrapper {
         
         installPlugins(moduleConfig);
         
-        
-        parseRoutes(routes, router);
-        
         // signal startup
         startup();
+
+        // parse routes after startup as some classes might need to be registered before some MVC controllers
+        parseRoutes(routes, router);
         
         return moduleConfig;
     }
