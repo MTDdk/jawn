@@ -121,7 +121,7 @@ public final class InjectionPoint {
             return new InjectionPoint(rawType, noArgConstructor);
         } catch (NoSuchMethodException e) {
             // TODO log the missing constructor for 'type'
-            throw new Registry.ProvisionException("Missing default constructor for: " + rawType);
+            throw new Registry.ProvisionException("Missing suitable constructor for: " + rawType);
         }
     }
     
