@@ -44,6 +44,15 @@ class ActionParameterExtractorTest {
         ActionParameter[] parameters = extractor.parameters(Controller.class.getMethod("pathparam", String.class));
         
         assertEquals("somethingelse", parameters[0].name);
+        assertTrue(parameters[0].annotation == PathParam.class);
+    }
+    
+    @Test
+    void pathParam_convert_long() throws NoSuchMethodException, SecurityException {
+        ActionParameterExtractor extractor = new ActionParameterExtractor(meta, Controller.class);
+        ActionParameter[] parameters = extractor.parameters(Controller.class.getMethod("pathparam", long.class));
+        
+        assertEquals("id", parameters[0].name);
     }
 
     
@@ -68,6 +77,10 @@ class ActionParameterExtractorTest {
         
         public void pathparam(@PathParam("somethingelse") String anno) {
             System.out.println(anno);
+        }
+        
+        public void pathparam(@PathParam long id) {
+            System.out.println(id);
         }
     }
 }

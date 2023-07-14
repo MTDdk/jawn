@@ -161,7 +161,7 @@ public interface Value extends Iterable<Value> { // SimpleValue
     }
     
     // Commented out until we know if we ever are going to need it
-    /*default Object to(Type type) {
+    /*default Object as(Type type) {
         return ValueParser.to(this, type);
     }*/
     
@@ -243,40 +243,12 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
-    /*default <U> Optional<U> mapBoolean(Function<Boolean, U> mapper) {
-        if (!isPresent()) {
-            return Optional.empty();
-        } else {
-            return Optional.ofNullable(mapper.apply(booleanValue()));
-        }
-    }
-    
-    default <U> Optional<U> mapDouble(Function<Double, U> mapper) {
-        if (!isPresent()) {
-            return Optional.empty();
-        } else {
-            return Optional.ofNullable(mapper.apply(doubleValue()));
-        }
-    }
-    
-    default <U> Optional<U> mapInteger(Function<Integer, U> mapper) {
-        if (!isPresent()) {
-            return Optional.empty();
-        } else {
-            return Optional.ofNullable(mapper.apply(intValue()));
-        }
-    }
-    
-    default <U> Optional<U> mapLong(Function<Long, U> mapper) {
-        if (!isPresent()) {
-            return Optional.empty();
-        } else {
-            return Optional.ofNullable(mapper.apply(longValue()));
-        }
-    }*/
-    
     static Value of(final String value) {
         return new StringValue(value);
+    }
+    
+    static Value of(Number value) {
+        return new NumberValue(value);
     }
     
     static Value of(final String ... valuables) {
@@ -335,6 +307,53 @@ public interface Value extends Iterable<Value> { // SimpleValue
         }
     }
     
+    final class NumberValue implements Value {
+        private final Number value;
+        
+        public NumberValue() {
+            this(null);
+        }
+        
+        public NumberValue(Number n) {
+            this.value = n;
+        }
+
+        @Override
+        public String value() {
+            return String.valueOf(value);
+        }
+        
+        @Override
+        public int asInt() {
+            if (!isPresent()) throw Up.ParseError("Value is missing");
+            return value.intValue();
+        }
+        
+        @Override
+        public long asLong() {
+            if (!isPresent()) throw Up.ParseError("Value is missing");
+            return value.longValue();
+        }
+        
+        @Override
+        public double asDouble() {
+            if (!isPresent()) throw Up.ParseError("Value is missing");
+            return value.doubleValue();
+        }
+        
+        @Override
+        public boolean isPresent() {
+            return value != null;
+        }
+        
+        @Override
+        public String toString() {
+            return value != null
+                ? String.format("%s[%s]", this.getClass().getSimpleName(), value)
+                : "Value.empty";
+        }
+    }
+    
     final class ListValue implements Value {
         
         private final List<Value> valuables;
@@ -368,6 +387,12 @@ public interface Value extends Iterable<Value> { // SimpleValue
             return valuables.iterator();
         }
         
+        @Override
+        public String toString() {
+            return valuables != null
+                ? String.format("%s[%s]", this.getClass().getSimpleName(), valuables)
+                : "Value.empty";
+        }
     }
     
     interface ByteArrayValue extends Value {
