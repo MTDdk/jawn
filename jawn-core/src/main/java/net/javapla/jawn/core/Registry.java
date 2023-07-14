@@ -38,6 +38,11 @@ public interface Registry {
         return register(Key.of(clazz), service);
     }
     
+    @SuppressWarnings("unchecked")
+    default <T> Registry register(T service) {
+        return register( (Class<T>) service.getClass(), service);
+    }
+    
     
     /**
      * Registry for storing services in a simple key/value mechanism.

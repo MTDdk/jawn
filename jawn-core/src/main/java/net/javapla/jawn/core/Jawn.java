@@ -159,10 +159,9 @@ public class Jawn {
         return booter.registry().require(type);
     }
     
-    // TODO
-    /*protected void register(Object type) {
-        
-    }*/
+    protected void register(Object instance) {
+        booter.registry().register(instance);
+    }
     
     
 /* ******************************************
@@ -170,6 +169,10 @@ public class Jawn {
  * ****************************************** */
     protected Jawn onStartup(Runnable task) {
         booter.onStartup(task);
+        return this;
+    }
+    protected Jawn onShutdown(Runnable task) {
+        booter.onShutdown(task);
         return this;
     }
 
@@ -258,6 +261,8 @@ public class Jawn {
     }
     
     private Stream<Route.Builder> buildRoutes(Registry registry) {
+        
+        // Execute / instantiate controllers after all other potential classes have been created and are available
         mvcControllers.forEach(controller -> {
             if (controller instanceof Class<?>) {
                 List<Builder> list = MvcCompiler.compile((Class<?>)controller, registry);
