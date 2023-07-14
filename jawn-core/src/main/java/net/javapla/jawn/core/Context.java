@@ -27,9 +27,9 @@ public interface Context {
     interface Request {
         HttpMethod httpMethod();
         String path();
-        String queryString();
-        String queryParam(String name); // URLDecoded
         String address();
+        String queryString();
+        Value queryParam(String name); // URLDecoded
         
         Value header(String name);
         Value pathParam(String name);

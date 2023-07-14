@@ -123,14 +123,14 @@ public abstract class AbstractContext implements Context {
             if (query != null) return;
             
             String[] split = StringUtil.split(req().queryString(), '&');
-            HashMap<String, String> query = new HashMap<>(split.length);
+            query = new HashMap<>(split.length);
             StringUtil.split(split, '=', (k,v) -> query.put(k, URLCodec.decode(v, StandardCharsets.UTF_8)));
         }
         
         @Override
-        public String queryParam(String name) {
+        public Value queryParam(String name) {
             instantiateQuery();
-            return query.get(name);
+            return Value.of(query.get(name));
         }
     }
     
