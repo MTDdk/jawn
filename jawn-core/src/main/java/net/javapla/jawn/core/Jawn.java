@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -17,10 +16,9 @@ import org.slf4j.LoggerFactory;
 import com.typesafe.config.Config;
 
 import net.javapla.jawn.core.Plugin.Application;
-import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.internal.Bootstrapper;
-import net.javapla.jawn.core.internal.mvc.MvcCompiler;
+import net.javapla.jawn.core.internal.mvc.MvcRouteBuilder;
 import net.javapla.jawn.core.internal.reflection.ClassLocator;
 import net.javapla.jawn.core.internal.reflection.Reflection;
 import net.javapla.jawn.core.util.StringUtil;
@@ -33,7 +31,7 @@ public class Jawn {
     
     private final Bootstrapper booter = new Bootstrapper(); // Core?
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
-    private final LinkedList<Object> mvcControllers = new LinkedList<>();
+    private final LinkedList<MvcRouteBuilder> mvcControllers = new LinkedList<>();
     private final ServerConfig serverConfig = new ServerConfig();
     
     
@@ -103,7 +101,7 @@ public class Jawn {
     }
     
     
-    protected Route.Builder ws(final String path, WebSocket.Initialiser initialiser) {
+    protected Route.RouteBuilder ws(final String path, WebSocket.Initialiser initialiser) {
         // Only GET is supported to start the handshake
         return _route(HttpMethod.GET, path, new WebSocket.WebSocketHandler(initialiser)).returnType(Context.class);
     }
@@ -112,14 +110,15 @@ public class Jawn {
 /* ******************************************
  * MVC
  * ****************************************** */
-    protected /*Route.RouteBuilder*/void controller(final Class<?> controller) {
-        // TODO
-        //List<Builder> list = MvcCompiler.compile(controller, booter.registry());
-        //routes.addAll(list);
-        mvcControllers.add(controller);
+    protected Route.RouteBuilder controller(final Class<?> controller) {
+        MvcRouteBuilder bob = new MvcRouteBuilder(controller);
+        mvcControllers.add(bob);
+        return bob;
     }
-    protected void controller(Object controller) {
-        mvcControllers.add(controller);
+    protected Route.RouteBuilder controller(Object controller) {
+        MvcRouteBuilder bob = new MvcRouteBuilder(controller);
+        mvcControllers.add(bob);
+        return bob;
     }
     protected void controllers(String packageToScan) {
         ClassLocator.list(packageToScan, booter.classLoader()).forEach(this::controller);
@@ -263,15 +262,7 @@ public class Jawn {
     private Stream<Route.Builder> buildRoutes(Registry registry) {
         
         // Execute / instantiate controllers after all other potential classes have been created and are available
-        mvcControllers.forEach(controller -> {
-            if (controller instanceof Class<?>) {
-                List<Builder> list = MvcCompiler.compile((Class<?>)controller, registry);
-                routes.addAll(list);
-            } else {
-                List<Builder> list = MvcCompiler.compile(controller.getClass(), () -> controller, registry);
-                routes.addAll(list);
-            }
-        });
+        mvcControllers.forEach(bob -> routes.addAll(bob.build(registry)));
         
         return routes.stream();
     }

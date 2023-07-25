@@ -3,6 +3,7 @@ package net.javapla.jawn.core.internal.mvc;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +13,11 @@ import org.junit.jupiter.api.Test;
 
 import static net.javapla.jawn.core.AssertionsHelper.*;
 
+import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Registry;
+import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Route.Builder;
+import net.javapla.jawn.core.annotation.Filter;
 import net.javapla.jawn.core.annotation.GET;
 import net.javapla.jawn.core.annotation.POST;
 import net.javapla.jawn.core.annotation.PUT;
@@ -68,6 +72,21 @@ class MvcCompilerTest {
         ass(paths, "/flash/import", "/flash/port","/flash/outport");
     }
     
+    @Test
+    void filter_annotation() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+        Registry registry = new Injector();
+        List<Builder> builders = MvcCompiler.compile(ControllerFilters.class, registry);
+        assertEquals(1, builders.size());
+
+        // read the private field
+        Field field = Route.Builder.class.getDeclaredField("post");
+        field.setAccessible(true);
+        
+        Object setFilter = field.get(builders.get(0));
+        assertNotNull(setFilter);
+        assertTrue(setFilter.getClass().equals(F1.class));
+    }
+    
     
 /* 
  * ************
@@ -99,6 +118,25 @@ class MvcCompilerTest {
         @PUT
         @POST
         public void multiple() { }
+    }
+    
+    @Filter(F1.class)
+    private static class ControllerFilters {
+        @Path("/index")
+        public void index() {}
+    }
+ 
+/* 
+ * ************
+ * TEST FILTERS
+ * ************
+ */
+    
+    public static class F1 extends Route.Filter {
+        @Override
+        public void after(Context ctx, Object result, Throwable cause) {
+            System.out.println(result);
+        }
     }
     
 }

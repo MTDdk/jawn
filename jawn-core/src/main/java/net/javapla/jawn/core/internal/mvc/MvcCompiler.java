@@ -15,8 +15,11 @@ import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.annotation.AfterFilter;
+import net.javapla.jawn.core.annotation.BeforeFilter;
 import net.javapla.jawn.core.annotation.Consumes;
 import net.javapla.jawn.core.annotation.DELETE;
+import net.javapla.jawn.core.annotation.Filter;
 import net.javapla.jawn.core.annotation.GET;
 import net.javapla.jawn.core.annotation.HEAD;
 import net.javapla.jawn.core.annotation.OPTIONS;
@@ -44,8 +47,11 @@ public abstract class MvcCompiler {
 
     public static List<Route.Builder> compile(Class<?> controller, Provider<?> controllerProvider, Registry registry) {
         final String rootPath = path(controller);
-        final MediaType rootConsumes = consumes(controller, null);
-        final MediaType rootProduces = produces(controller, null);
+        final MediaType rootConsumes  = consumes(controller, null);
+        final MediaType rootProduces  = produces(controller, null);
+        final Route.Filter rootFilter = filter(controller, registry);
+        final Route.After rootAfter   = after(controller, registry);
+        final Route.Before rootBefore = before(controller, registry);
 
         // map all methods and their verbs
         Map<Method, List<Class<? extends Annotation>>> actions = methods(controller);
@@ -59,6 +65,9 @@ public abstract class MvcCompiler {
 
             MediaType consumes = consumes(action, rootConsumes);
             MediaType produces = produces(action, rootProduces);
+            Route.Filter filter = filter(action, registry);
+            Route.After after = after(action, registry);
+            Route.Before before = before(action, registry);
 
             for (Class<? extends Annotation> annotation : verbs) {
                 HttpMethod method = HttpMethod.valueOf(annotation.getSimpleName());
@@ -67,6 +76,16 @@ public abstract class MvcCompiler {
 
                 if (consumes != null) bob.consumes(consumes);
                 if (produces != null) bob.produces(produces);
+                
+                if (rootBefore != null) bob.before(rootBefore);
+                if (before != null) bob.before(before);
+                
+                if (rootFilter != null) bob.filter(rootFilter);
+                if (filter != null) bob.filter(filter);
+                
+                if (rootAfter != null) bob.after(rootAfter);
+                if (after != null) bob.after(after);
+                
                 processReturnType(bob, action);
 
                 routes.add(bob);
@@ -107,6 +126,39 @@ public abstract class MvcCompiler {
         }
 
         return fallback;
+    }
+    
+    static Route.Filter filter(AnnotatedElement elm, Registry registry) {
+        Filter annotation = elm.getAnnotation(Filter.class);
+        
+        if (annotation != null) {
+            Class<? extends net.javapla.jawn.core.Route.Filter> fclass = annotation.value();
+            return registry.require(fclass);
+        }
+        
+        return null;
+    }
+    
+    static Route.After after(AnnotatedElement elm, Registry registry) {
+        AfterFilter annotation = elm.getAnnotation(AfterFilter.class);
+        
+        if (annotation != null) {
+            Class<? extends net.javapla.jawn.core.Route.After> fclass = annotation.value();
+            return registry.require(fclass);
+        }
+        
+        return null;
+    }
+    
+    static Route.Before before(AnnotatedElement elm, Registry registry) {
+        BeforeFilter annotation = elm.getAnnotation(BeforeFilter.class);
+        
+        if (annotation != null) {
+            Class<? extends net.javapla.jawn.core.Route.Before> fclass = annotation.value();
+            return registry.require(fclass);
+        }
+        
+        return null;
     }
 
     static Map<Method, List<Class<? extends Annotation>>> methods(Class<?> controller) {
