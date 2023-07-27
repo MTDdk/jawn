@@ -9,10 +9,11 @@ import java.lang.reflect.Parameter;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.engine.JupiterTestEngine;
 import org.junit.platform.commons.JUnitException;
+import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.UniqueId;
 
 import net.javapla.jawn.core.AssertionsHelper;
@@ -35,12 +36,12 @@ class ClassMetaTest {
 
     @Test
     void test() throws NoSuchMethodException, SecurityException {
-        Method method = Assertions.class.getDeclaredMethod("fail", String.class);
+        Method method = JupiterTestEngine.class.getDeclaredMethod("discover", EngineDiscoveryRequest.class, UniqueId.class);
         Parameter parameter = method.getParameters()[0];
         assertEquals("arg0", parameter.getName());
         
         String[] parameterNames = meta.parameterNames(method);
-        AssertionsHelper.ass(parameterNames, "message");
+        AssertionsHelper.ass(parameterNames, "discoveryRequest", "uniqueId");
     }
     
     @Test

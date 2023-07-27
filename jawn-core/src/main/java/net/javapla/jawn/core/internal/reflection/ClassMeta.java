@@ -66,16 +66,21 @@ public class ClassMeta {
         }
         
         private void readMethodDescriptors() {
-            for (Method method : c.getDeclaredMethods()) {
+            for (Method method : c.getMethods()) {
                 String descriptor = Type.getMethodDescriptor(method);
                 //System.out.println(method.getName() + descriptor);
                 methods.put(method.getName() + descriptor, method);
             }
             
-            for (Constructor<?> constructor : c.getDeclaredConstructors()) {
+            for (Constructor<?> constructor : c.getConstructors()) {
                 String descriptor = Type.getConstructorDescriptor(constructor);
                 methods.put("<init>" + descriptor, constructor);
             }
+            
+            // .getDeclaredMethods vs .getMethods ->
+            // the former returns ONLY declared in this particular class,
+            // the latter returns ALL in the hierarchy
+            // - and we probably want that in this class
         }
         
         @Override
@@ -85,7 +90,7 @@ public class ClassMeta {
             Executable method = methods.get(name + descriptor);
             if (method == null) return null;
             
-            int arguments = Type.getArgumentTypes(descriptor).length;
+            final int arguments = Type.getArgumentTypes(descriptor).length;
             if (arguments == 0) {
                 parameterNames.put(method, NO_ARG);
                 return null;
@@ -93,7 +98,7 @@ public class ClassMeta {
             
             if (debug) System.out.println(method);
             
-            String[] names = new String[arguments];
+            final String[] names = new String[arguments];
             parameterNames.put(method, names);
             
             return new MethodVisitor(Opcodes.ASM9) {
@@ -108,14 +113,16 @@ public class ClassMeta {
                 
                 @Override
                 public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int i) {
-                    if ("this".equals(name) || index == names.length) {
-                        // used in constructors
+                    
+                    if (i == 0 || i > arguments) {
+                        // current variable is either "this" or some other variable within the method scope not part of the parameter list
                         return;
                     }
                     
                     if (debug) System.out.println("--  " + name + "  " + descriptor + "  " + signature + "  " + i);
                     
                     names[index++] = name;
+                    
                 }
                 @Override
                 public void visitEnd() {
