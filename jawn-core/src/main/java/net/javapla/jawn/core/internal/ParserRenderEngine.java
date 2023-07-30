@@ -13,6 +13,7 @@ import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Parser;
 import net.javapla.jawn.core.Renderer;
 import net.javapla.jawn.core.Status;
+import net.javapla.jawn.core.TemplateRenderer;
 import net.javapla.jawn.core.Up;
 
 public class ParserRenderEngine implements Parser.ParserProvider {
@@ -34,11 +35,15 @@ public class ParserRenderEngine implements Parser.ParserProvider {
     }
     
     public ParserRenderEngine add(MediaType type, Renderer renderer) {
-        if (renderer instanceof Renderer.TemplateRenderer) {
-            
+        if (renderer instanceof TemplateRenderer) {
+            renderers.put(type, (ctx, value) -> {
+                if (value instanceof CharSequence) return TO_STRING.render(ctx, value);
+                return renderer.render(ctx, value);
+            });
         } else {
             renderers.put(type, renderer);
         }
+        //renderers.put(type, renderer);
         
         return this;
     }
@@ -48,7 +53,7 @@ public class ParserRenderEngine implements Parser.ParserProvider {
         return parsers.getOrDefault(type, (ctx, t) -> {throw Up.UnsupportedMediaType(type.value());});
     }
     Renderer render(MediaType type) {
-        return SIMPLE_RENDERER;//renderers.getOrDefault(type, SIMPLE_RENDERER);
+        return renderers.getOrDefault(type, SIMPLE_RENDERER);
     }
     
     
@@ -113,9 +118,9 @@ public class ParserRenderEngine implements Parser.ParserProvider {
             }*/
         }
     
-        Renderer TO_STRING = (ctx, value) -> {
-            return value.toString().getBytes(ctx.resp().charset());
-        };
     }
+    Renderer TO_STRING = (ctx, value) -> {
+        return value.toString().getBytes(ctx.resp().charset());
+    };
     
 }

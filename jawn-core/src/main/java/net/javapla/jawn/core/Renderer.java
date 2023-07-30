@@ -13,10 +13,6 @@ public interface Renderer {
 //        throw Up.NotAcceptable(ctx.req().header("Accept").value());
 //    };
     
-    // TemplateEngine
-    public static interface TemplateRenderer extends Renderer {
-        
-    }
 
     /**
      * 

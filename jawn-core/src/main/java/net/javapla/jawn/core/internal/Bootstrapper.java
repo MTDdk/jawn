@@ -23,6 +23,7 @@ import net.javapla.jawn.core.Router;
 import net.javapla.jawn.core.internal.injection.Injector;
 import net.javapla.jawn.core.internal.reflection.ClassSource;
 import net.javapla.jawn.core.internal.reflection.RouteClassAnalyser;
+import net.javapla.jawn.core.internal.template.LoxTemplateRenderer;
 
 public class Bootstrapper {
     protected static final Logger log = LoggerFactory.getLogger(Bootstrapper.class);
@@ -93,6 +94,7 @@ public class Bootstrapper {
         registerCoreClasses(registry, config);
         
         installPlugins(moduleConfig);
+        engine.add(MediaType.HTML, new LoxTemplateRenderer());
         
         // signal startup
         startup();
