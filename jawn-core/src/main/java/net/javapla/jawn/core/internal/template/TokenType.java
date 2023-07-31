@@ -10,5 +10,7 @@ enum TokenType {
     
     IF, TRUE, FALSE,
     
+    CODE_START, CODE_END,
+    
     EOF
 }
