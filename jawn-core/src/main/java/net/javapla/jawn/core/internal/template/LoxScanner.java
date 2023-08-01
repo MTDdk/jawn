@@ -37,7 +37,7 @@ class LoxScanner {
         tokens.add(new Token(TokenType.EOF, "", null, line));
         return tokens;
     }
-
+    
     List<Token> scanTokens() {
         while (!isAtEnd()) {
             // We are at the beginning of the next lexeme
@@ -61,11 +61,17 @@ class LoxScanner {
         switch (c) {
             case '{':
                 if (match('{')) {
-                    codestart();
+                    String value = source.substring(start, current - 1);
+                    addToken(TokenType.STRING, value);
+                    
+                    start = current;
+                    addToken(TokenType.CODE_START);
+                    start = current;
+                    scanToken();
                 }
                 break;
             default:
-                string2();
+                //string2();
                 break;
         }
     }
@@ -134,6 +140,14 @@ class LoxScanner {
         return true;
     }
     
+    private boolean match(char expected1, char expected2) {
+        if (isAtEnd()) return false;
+        if (source.charAt(current) != expected1 && source.charAt(current + 1) != expected2) return false;
+        
+        current += 2;
+        return true;
+    }
+    
     private char peek() {
         if (isAtEnd()) return '\0';
         return source.charAt(current);
@@ -159,10 +173,12 @@ class LoxScanner {
     }
     
     private void string2() {
-        while (peek() != '{' && !isAtEnd()) {
+        while (peek() != '{' && peekNext() != '{' && !isAtEnd()) {
             if (peek() == '\n') line++;
             advance();
         }
+        
+        //if (peek() == '{') advance();
         
         String value = source.substring(start, current);
         addToken(TokenType.STRING, value);
@@ -219,7 +235,4 @@ class LoxScanner {
         tokens.add(new Token(type, text, literal, line));
     }
     
-    private void codestart() {
-        addToken(TokenType.CODE_START);
-    }
 }
