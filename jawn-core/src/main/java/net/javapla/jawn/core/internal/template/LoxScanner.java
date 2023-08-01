@@ -28,15 +28,45 @@ class LoxScanner {
     }
     
     List<Token> scan() {
-        while (!isAtEnd()) {
-            // We are at the beginning of the next lexeme
-            start = current;
-            scanString();
+        if (isCodeStart()) {
+            scanCode();
         }
+        
+        while (!isAtEnd()) {
+            advance();
+            if (isCodeStart()) {
+                str();
+                scanCode();
+            }
+        }
+        
+        str();
         
         tokens.add(new Token(TokenType.EOF, "", null, line));
         return tokens;
     }
+    
+    private void str() {
+        if (start == current) return;
+        String value = source.substring(start, current);
+        addToken(TokenType.STRING, value);
+    }
+    
+    private void scanCode() {
+        tokens.add(new Token(TokenType.CODE_START, "{{", null, line));
+        current += 2;
+        
+        while (!isCodeEnd()) {
+            // We are at the beginning of the next lexeme
+            start = current;
+            scanToken();
+        }
+        
+        tokens.add(new Token(TokenType.CODE_END, "}}", null, line));
+        current += 2;
+        start = current;
+    }
+    
     
     List<Token> scanTokens() {
         while (!isAtEnd()) {
@@ -53,6 +83,16 @@ class LoxScanner {
         return current >= source.length();
     }
     
+    private boolean isCodeStart() {
+        if (current + 1 >= source.length()) return false; // at end
+        return source.charAt(current) == '{' && source.charAt(current + 1) == '{';
+    }
+    
+    private boolean isCodeEnd() {
+        if (current + 1 >= source.length()) return false; // at end
+        return source.charAt(current) == '}' && source.charAt(current + 1) == '}';
+    }
+    
     // Scan string literals until a code block is found.
     // A bit reverse of ordinary code scanning
     
@@ -61,17 +101,13 @@ class LoxScanner {
         switch (c) {
             case '{':
                 if (match('{')) {
-                    String value = source.substring(start, current - 1);
-                    addToken(TokenType.STRING, value);
-                    
-                    start = current;
                     addToken(TokenType.CODE_START);
                     start = current;
                     scanToken();
                 }
                 break;
             default:
-                //string2();
+                string2();
                 break;
         }
     }
@@ -79,11 +115,6 @@ class LoxScanner {
     private void scanToken() {
         char c = advance();
         switch (c) {
-            case '}':
-                if (match('}')) {
-                    identifier();
-                }
-                break;
             case '(': addToken(TokenType.LEFT_PAREN); break;
             case ')': addToken(TokenType.RIGHT_PAREN); break;
             case ',': addToken(TokenType.COMMA); break;
@@ -153,6 +184,11 @@ class LoxScanner {
         return source.charAt(current);
     }
     
+    private char peekNext() {
+        if (current + 1 >= source.length()) return '\0';
+        return source.charAt(current + 1);
+    }
+
     private void string() {
         while (peek() != '"' && !isAtEnd()) {
             if (peek() == '\n') line++;
@@ -178,7 +214,7 @@ class LoxScanner {
             advance();
         }
         
-        //if (peek() == '{') advance();
+        if (peekNext() == '{') advance();
         
         String value = source.substring(start, current);
         addToken(TokenType.STRING, value);
@@ -219,11 +255,6 @@ class LoxScanner {
         TokenType type = keywords.get(text);
         if (type == null) type = TokenType.IDENTIFIER;
         addToken(type);
-    }
-    
-    private char peekNext() {
-        if (current + 1 >= source.length()) return '\0';
-        return source.charAt(current + 1);
     }
     
     private void addToken(TokenType type) {
