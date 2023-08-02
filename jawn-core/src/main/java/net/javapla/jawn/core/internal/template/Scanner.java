@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class LoxScanner {
+// Scan string literals until a code block is found.
+// A bit reverse of ordinary code scanning
+public class Scanner {
     
     private static final Map<String, TokenType> keywords;
     static {
@@ -16,30 +18,96 @@ class LoxScanner {
         keywords.put("true", TokenType.TRUE);
         keywords.put("false", TokenType.FALSE);
     }
-    
-    
+
     private final String source;
     private final List<Token> tokens = new ArrayList<>();
     
-    private int start = 0, current = 0, line = 1;
+    private int start = 0, current = 0, line = 1, posInLine = 0;
 
-    LoxScanner(String source) {
+    Scanner(String source) {
         this.source = source;
     }
     
-    List<Token> scanTokens() {
+    List<Token> scan() {
+        if (isCodeStart()) {
+            scanCode();
+        }
+        
         while (!isAtEnd()) {
+            advance();
+            if (isCodeStart()) {
+                str();
+                scanCode();
+            }
+        }
+        
+        str();
+        
+        tokens.add(new Token(TokenType.EOF, "", null, line, posInLine));
+        return tokens;
+    }
+    
+    /*private void scanString() {
+        char c = advance();
+        switch (c) {
+            case '{':
+                if (match('{')) {
+                    addToken(TokenType.CODE_START);
+                    start = current;
+                    scanToken();
+                }
+                break;
+            default:
+                string2();
+                break;
+        }
+    }*/
+    
+    private void str() {
+        if (start == current) return;
+        String value = source.substring(start, current);
+        addToken(TokenType.STRING, value);
+    }
+    
+    /*private void string2() {
+        while (peek() != '{' && peekNext() != '{' && !isAtEnd()) {
+            if (peek() == '\n') line++;
+            advance();
+        }
+        
+        if (peekNext() == '{') advance();
+        
+        String value = source.substring(start, current);
+        addToken(TokenType.STRING, value);
+    }*/
+    
+    private void scanCode() {
+        tokens.add(new Token(TokenType.CODE_START, "{{", null, line, posInLine));
+        current += 2;
+        
+        while (!isCodeEnd()) {
             // We are at the beginning of the next lexeme
             start = current;
             scanToken();
         }
         
-        tokens.add(new Token(TokenType.EOF, "", null, line));
-        return tokens;
+        tokens.add(new Token(TokenType.CODE_END, "}}", null, line, posInLine));
+        current += 2;
+        start = current;
     }
     
     private boolean isAtEnd() {
         return current >= source.length();
+    }
+    
+    private boolean isCodeStart() {
+        if (current + 1 >= source.length()) return false; // at end
+        return source.charAt(current) == '{' && source.charAt(current + 1) == '{';
+    }
+    
+    private boolean isCodeEnd() {
+        if (current + 1 >= source.length()) return false; // at end
+        return source.charAt(current) == '}' && source.charAt(current + 1) == '}';
     }
     
     private void scanToken() {
@@ -75,12 +143,9 @@ class LoxScanner {
                 line++;
                 break;
                 
-            case '"': string(); break;
             
             default:
-                if (isDigit(c)) {
-                    number();
-                } else if (isAlpha(c)) {
+                if (isAlphaNumeric(c)) {
                     identifier();
                 } else {
                     Lox.error(line, "Unexpected character.");
@@ -89,15 +154,38 @@ class LoxScanner {
         }
     }
     
-    private char advance() {
-        return source.charAt(current++);
+    private char advance() { // should probably be called 'consume'
+        char c = source.charAt(current);
+        _advance();
+        return c;
+        //return source.charAt(current++);
+    }
+    
+    private void _advance() {
+        if (current < source.length()) {
+            posInLine++;
+            if (source.charAt(current) == '\n') {
+                line++;
+                posInLine = 0;
+            }
+            current++; 
+        }
     }
     
     private boolean match(char expected) {
         if (isAtEnd()) return false;
         if (source.charAt(current) != expected) return false;
         
-        current++;
+        //current++;
+        _advance();
+        return true;
+    }
+    
+    private boolean match(char expected1, char expected2) {
+        if (isAtEnd()) return false;
+        if (source.charAt(current) != expected1 && source.charAt(current + 1) != expected2) return false;
+        
+        current += 2;
         return true;
     }
     
@@ -109,25 +197,6 @@ class LoxScanner {
     private char peekNext() {
         if (current + 1 >= source.length()) return '\0';
         return source.charAt(current + 1);
-    }
-
-    private void string() {
-        while (peek() != '"' && !isAtEnd()) {
-            if (peek() == '\n') line++;
-            advance();
-        }
-        
-        if (isAtEnd()) {
-            Lox.error(line, "Unterminated string.");
-            return;
-        }
-        
-        // The closing "
-        advance();
-        
-        // Trim the surrounding quotes
-        String value = source.substring(start + 1, current -1);
-        addToken(TokenType.STRING, value);
     }
     
     private boolean isDigit(char c) {
@@ -142,20 +211,6 @@ class LoxScanner {
     
     private boolean isAlphaNumeric(char c) {
         return isAlpha(c) || isDigit(c);
-    }
-    
-    private void number() {
-        while (isDigit(peek())) advance();
-        
-        // Look for a fractional part
-        if (peek() == '.' && isDigit(peekNext())) {
-            // Consume the "."
-            advance();
-            
-            while (isDigit(peek())) advance();
-        }
-        
-        addToken(TokenType.NUMBER, Double.parseDouble(source.substring(start, current)));
     }
     
     private void identifier() {
@@ -173,7 +228,6 @@ class LoxScanner {
     
     private void addToken(TokenType type, Object literal) {
         String text = source.substring(start, current);
-        tokens.add(new Token(type, text, literal, line));
+        tokens.add(new Token(type, text, literal, line, posInLine));
     }
-    
 }

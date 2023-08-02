@@ -5,7 +5,7 @@ import java.util.List;
 public class Lox {
     
     static void run(String source) {
-        LoxScanner scanner = new LoxScanner(source);
+        Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scan();
         
         // just printing
