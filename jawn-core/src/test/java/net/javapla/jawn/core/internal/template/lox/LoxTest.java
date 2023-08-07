@@ -1,10 +1,11 @@
-package net.javapla.jawn.core.internal.template;
+package net.javapla.jawn.core.internal.template.lox;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+
 
 class LoxTest {
 

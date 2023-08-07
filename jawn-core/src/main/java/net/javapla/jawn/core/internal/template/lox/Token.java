@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.template;
+package net.javapla.jawn.core.internal.template.lox;
 
 class Token {
 

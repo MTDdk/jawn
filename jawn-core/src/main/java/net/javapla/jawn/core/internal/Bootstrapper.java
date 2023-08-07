@@ -94,7 +94,7 @@ public class Bootstrapper {
         registerCoreClasses(registry, config);
         
         installPlugins(moduleConfig);
-        engine.add(MediaType.HTML, new LoxTemplateRenderer());
+        //engine.add(MediaType.HTML, new LoxTemplateRenderer());
         
         // signal startup
         startup();
