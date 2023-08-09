@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.template.lox.source;
+package net.javapla.jawn.core.internal.template.lixt.source;
 
 public class CharArraySource implements Source {
 

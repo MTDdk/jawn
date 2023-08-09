@@ -1,12 +1,12 @@
-package net.javapla.jawn.core.internal.template.lox;
+package net.javapla.jawn.core.internal.template.lixt;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import net.javapla.jawn.core.internal.template.lox.TemplateScanner.BlockPredicate;
-import net.javapla.jawn.core.internal.template.lox.source.Source;
+import net.javapla.jawn.core.internal.template.lixt.TemplateScanner.BlockPredicate;
+import net.javapla.jawn.core.internal.template.lixt.source.Source;
 
 // Tokeniser?
 public class CodeScanner {
@@ -56,7 +56,7 @@ public class CodeScanner {
                 if (isAlphaNumeric(c)) {
                     identifier();
                 } else {
-                    Lox.error(source.line(), "Unexpected character.");
+                    Lixt.error(source.line(), "Unexpected character.");
                 }
                 break;
         }

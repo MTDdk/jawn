@@ -1,9 +1,7 @@
-package net.javapla.jawn.core.internal.template.lox;
+package net.javapla.jawn.core.internal.template.lixt;
 
-import java.util.List;
-
-public class Lox {
-    private static final Interpreter interpreter = new Interpreter();
+public class Lixt {
+    
     static boolean hadError = false;
     static boolean hadRuntimeError = false;
     
@@ -14,15 +12,22 @@ public class Lox {
     }
     
     static void run(String source) {
-        Scanner scanner = new Scanner(source);
-        List<Token> tokens = scanner.scanTokens();
+        /*WIPScanner scanner = new WIPScanner(source);
+        List<Token> tokens = scanner.scan();
         Parser parser = new Parser(tokens);
-        List<Stmt> statements = parser.parse();
+        Expr expression = parser.parse();
         
         // Stop if there was a syntax error
         if (hadError) return;
         
-        interpreter.interpret(statements);
+        interpreter.interpret(expression);
+        
+        System.out.println(expression);
+        
+        // just printing
+        for (Token token : tokens) {
+            System.out.println(token);
+        }*/
     }
     
     static void error(int line, String message) {

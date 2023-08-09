@@ -9,30 +9,33 @@ abstract class Expr {
         R visitLiteral(Literal expr);
         R visitThis(This expr);
         R visitUnary(Unary expr);
+        R visitVariable(Variable expr);
     }
     
     abstract <R> R accept(Visitor<R> visitor);
     
-    static class Assign extends Unary { // changed from "extends Expr"
-        
+    static class Assign extends Expr {
+        final Token name;
+        final Expr value;
+
         Assign(Token name, Expr value) {
-            super(name, value);
+            this.name = name;
+            this.value = value;
         }
 
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitAssign(this);
         }
-        
     }
     
     static class Binary extends Expr {
-        final Expr expr;
+        final Expr left;
         final Token operator;
         final Expr right;
 
         Binary(Expr left, Token operator, Expr right) {
-            this.expr = left;
+            this.left = left;
             this.operator = operator;
             this.right = right;
         }
@@ -94,6 +97,19 @@ abstract class Expr {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitUnary(this);
+        }
+    }
+    
+    static class Variable extends Expr {
+        final Token name;
+
+        Variable(Token name) {
+            this.name = name;
+        }
+        
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitVariable(this);
         }
     }
 }
