@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.template.lixt;
+package net.javapla.jawn.core.internal.template.lix;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -6,7 +6,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import net.javapla.jawn.core.internal.template.lixt.source.Source;
+import net.javapla.jawn.core.internal.template.lix.TemplateScanner;
+import net.javapla.jawn.core.internal.template.lix.Token;
+import net.javapla.jawn.core.internal.template.lix.TokenType;
+import net.javapla.jawn.core.internal.template.lix.source.Source;
 
 class TemplateTest {
 

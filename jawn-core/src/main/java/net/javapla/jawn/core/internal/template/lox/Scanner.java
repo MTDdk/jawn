@@ -69,6 +69,15 @@ class Scanner {
             case '!': 
                 addToken(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG); 
                 break;
+            case '=':
+                addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); 
+                break;
+            case '<':
+                addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS); 
+                break;
+            case '>':
+                addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER); 
+                break;
             case '/': 
                 if (match('/')) {
                     // A comment goes until the end of the line

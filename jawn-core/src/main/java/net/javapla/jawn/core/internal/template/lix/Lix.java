@@ -1,6 +1,6 @@
-package net.javapla.jawn.core.internal.template.lixt;
+package net.javapla.jawn.core.internal.template.lix;
 
-public class Lixt {
+public class Lix {
     
     static boolean hadError = false;
     static boolean hadRuntimeError = false;

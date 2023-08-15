@@ -1,10 +1,10 @@
-package net.javapla.jawn.core.internal.template.lixt.source;
+package net.javapla.jawn.core.internal.template.lix.source;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-import net.javapla.jawn.core.internal.template.lixt.source.CharArraySource;
+import net.javapla.jawn.core.internal.template.lix.source.CharArraySource;
 
 
 class CharArraySourceTest {

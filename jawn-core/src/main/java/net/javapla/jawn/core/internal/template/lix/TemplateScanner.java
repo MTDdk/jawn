@@ -1,9 +1,9 @@
-package net.javapla.jawn.core.internal.template.lixt;
+package net.javapla.jawn.core.internal.template.lix;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import net.javapla.jawn.core.internal.template.lixt.source.Source;
+import net.javapla.jawn.core.internal.template.lix.source.Source;
 
 public class TemplateScanner {
     

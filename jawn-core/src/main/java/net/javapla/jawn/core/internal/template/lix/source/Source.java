@@ -1,4 +1,4 @@
-package net.javapla.jawn.core.internal.template.lixt.source;
+package net.javapla.jawn.core.internal.template.lix.source;
 
 public interface Source {
     

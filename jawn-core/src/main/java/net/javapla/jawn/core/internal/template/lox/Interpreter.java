@@ -9,6 +9,7 @@ import net.javapla.jawn.core.internal.template.lox.Expr.Literal;
 import net.javapla.jawn.core.internal.template.lox.Expr.This;
 import net.javapla.jawn.core.internal.template.lox.Expr.Unary;
 import net.javapla.jawn.core.internal.template.lox.Expr.Variable;
+import net.javapla.jawn.core.internal.template.lox.Stmt.Block;
 import net.javapla.jawn.core.internal.template.lox.Stmt.Expression;
 import net.javapla.jawn.core.internal.template.lox.Stmt.Print;
 import net.javapla.jawn.core.internal.template.lox.Stmt.Var;
@@ -157,6 +158,25 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     
     private void execute(Stmt stmt) {
         stmt.accept(this);
+    }
+    
+    private void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment previous = this.environment;
+        try {
+            this.environment = environment;
+            
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
+    
+    @Override
+    public Void visitBlock(Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
     }
     
     @Override
