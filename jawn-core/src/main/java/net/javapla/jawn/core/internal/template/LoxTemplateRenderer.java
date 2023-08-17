@@ -1,6 +1,5 @@
 package net.javapla.jawn.core.internal.template;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,7 +27,7 @@ public class LoxTemplateRenderer implements TemplateRenderer {
         //BufferedReader reader = Files.newBufferedReader(view, StandardCharsets.UTF_8);
         String source = Files.readString(view, StandardCharsets.UTF_8);
         
-        return null;
+        return source.getBytes();
     }
 
 }
