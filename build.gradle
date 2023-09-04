@@ -1,9 +1,6 @@
 allprojects {
   apply plugin: 'java'
   
-  // maven metadata
-  group = 'net.javapla.jawn'
-  
   
   // compiler options
   compileJava {
@@ -12,12 +9,7 @@ allprojects {
   
   repositories { mavenCentral() }
   
-  /*jar {
-    from {
-      configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-  }*/
-  
+  apply from: "$rootProject.projectDir/maven.gradle"
 }
 
 
