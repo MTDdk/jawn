@@ -9,6 +9,7 @@ allprojects {
   
   repositories { mavenCentral() }
   
+  // gradle publish | publishToMavenLocal
   apply from: "$rootProject.projectDir/maven.gradle"
 }
 

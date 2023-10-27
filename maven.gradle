@@ -1,4 +1,5 @@
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 // maven metadata
 group = 'net.javapla.jawn'
@@ -20,9 +21,11 @@ java {
   withSourcesJar()
 }
 
+ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
+
 publishing {
   publications {
-    maven(MavenPublication) {
+    mavenJava(MavenPublication) {
     
       from components.java
       
@@ -61,8 +64,43 @@ publishing {
           url = 'https://github.com/MTDdk/jawn'
         }
       }
+      
+      
+      repositories {
+        maven {
+          def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+          def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+          url = isReleaseVersion ? releasesRepoUrl : snapshotsRepoUrl
+        
+        
+          gradle.taskGraph.whenReady { taskGraph ->
+            if (taskGraph.hasTask(':generatePomFileForMavenJavaPublication') && !taskGraph.hasTask(':publishToMavenLocal')) {
+            
+              // only do any maven related if we have the needed properties available
+              if (project.hasProperty('ossrhUsername') && project.hasProperty('ossrhPassword')) {
+                credentials {
+                  username = ossrhUsername
+                  password = ossrhPassword
+                }
+              } else {
+                throw new GradleException('You do not have your credentials stated')
+              }
+            }
+          }
+
+          
+        }
+      }
+      
     }
   }
+}
+
+
+
+signing {
+  required { isReleaseVersion }
+  sign publishing.publications.mavenJava
 }
 
 javadoc {
