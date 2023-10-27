@@ -34,9 +34,10 @@ public class Bootstrapper {
     private final Config config;
     private final /*InjectionRegistry*/ Injector registry;
     
-    private final LinkedList<Plugin> userPlugins = new LinkedList<>();
-    private final LinkedList<Runnable> onStartup = new LinkedList<>();
-    private final LinkedList<Runnable> onShutdown = new LinkedList<>();
+    private final LinkedList<Plugin> userPlugins       = new LinkedList<>();
+    private final LinkedList<Runnable> onStartup       = new LinkedList<>();
+    private final LinkedList<Runnable> onShutdown      = new LinkedList<>();
+    private final LinkedList<Runnable> onServerStarted = new LinkedList<>();
 
     
     
@@ -83,21 +84,27 @@ public class Bootstrapper {
             }
 
             @Override
-            public void onStartup(Runnable task) {}
+            public void onStartup(Runnable task) {
+                onStartup(task);
+            }
 
             @Override
-            public void onShutdown(Runnable task) {}
+            public void onShutdown(Runnable task) {
+                onShutdown(task);
+            }
+            
+            // TODO onServerStarted
             
         };
         
-        registerCoreClasses(registry, config);
+        registerCoreClasses();
         
         installPlugins(moduleConfig);
         //engine.add(MediaType.HTML, new LoxTemplateRenderer());
         
-        // signal startup
+        // signal startup 
         startup();
-
+        
         // parse routes after startup as some classes might need to be registered before some MVC controllers
         parseRoutes(routes, router);
         
@@ -122,6 +129,9 @@ public class Bootstrapper {
     public void onShutdown(Runnable task) {
         onShutdown.add(task);
     }
+    public void onServerStarted(Runnable task) {
+        onServerStarted.add(task);
+    }
     
     public void install(Plugin plugin) {
         userPlugins.add(plugin);
@@ -135,6 +145,26 @@ public class Bootstrapper {
                 run.run();
             } catch (Exception e) {
                 log.error("Failed an onStartup task", e);
+            }
+        });
+    }
+    
+    public void shutdown() {
+        onShutdown.forEach(run -> {
+            try {
+                run.run();
+            } catch (Exception e) {
+                log.error("Failed an onShutdown task", e);
+            }
+        });
+    }
+    
+    public void serverStarted() {
+        onServerStarted.forEach(run -> {
+            try {
+                run.run();
+            } catch (Exception e) {
+                log.error("Failed an onServerStarted task", e);
             }
         });
     }
@@ -158,7 +188,7 @@ public class Bootstrapper {
         
     }
     
-    private void registerCoreClasses(Injector/*InjectionRegistry*/ registry, Config config) {
+    private void registerCoreClasses() {
         registry.register(Config.class, config);
         registry.register(ClassSource.class, source);
     }

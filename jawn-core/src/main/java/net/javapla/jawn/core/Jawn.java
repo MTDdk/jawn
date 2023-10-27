@@ -70,6 +70,12 @@ public class Jawn {
     protected Route.RouteBuilder put(final String path, final Route.ZeroArgHandler handler) {
         return _route(HttpMethod.PUT, path, handler);
     }
+    protected Route.RouteBuilder delete(final String path, final Route.Handler handler) {
+        return _route(HttpMethod.DELETE, path, handler);
+    }
+    protected Route.RouteBuilder delete(final String path, final Route.ZeroArgHandler handler) {
+        return _route(HttpMethod.DELETE, path, handler);
+    }
     protected Route.Builder _route(HttpMethod method, final String path, final Route.Handler handler) {
         Route.Builder bob = new Route.Builder(method, _pathPrefix(path), handler);
         routes.add(bob);
@@ -174,6 +180,13 @@ public class Jawn {
         booter.onShutdown(task);
         return this;
     }
+    /**
+     * Running tasks when the server definitely is ready to receive
+     */
+    protected Jawn onServerStarted(Runnable task) {
+        booter.onServerStarted(task);
+        return this;
+    }
 
     
     
@@ -209,6 +222,9 @@ public class Jawn {
             return;
         }
         
+        // Signal server has started
+        booter.serverStarted();
+        
         //log.info(FrameworkBootstrap.FRAMEWORK_SPLASH);
         log.info("Bootstrap of framework started in: " + (System.currentTimeMillis() - startupTime) + " ms");
         //log.info("Jawn: Environment:                 " + mode.name());
@@ -216,7 +232,7 @@ public class Jawn {
     }
     
     public void stop() {
-        System.out.println("STOP");
+        booter.shutdown();
     }
 
     
