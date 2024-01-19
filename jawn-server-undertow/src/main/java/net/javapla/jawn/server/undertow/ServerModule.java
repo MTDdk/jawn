@@ -49,6 +49,8 @@ public class ServerModule implements Server {
         server = bob.build();
         server.start();
         
+        //handler.worker = server.getWorker();
+        
         return this;
     }
     

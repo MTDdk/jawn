@@ -38,6 +38,8 @@ class UndertowHandler implements HttpHandler {
     private final boolean addDefaultHeaders;
     
     private final FormParserFactory parserFactory;
+    
+    //Executor worker;
 
     public UndertowHandler(Router router, ServerConfig serverConfig) {
         this.router = router;
@@ -58,8 +60,40 @@ class UndertowHandler implements HttpHandler {
     
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
-                
+        // If the handlers are doing IO like writing directly to the response outputstream,
+        // the request have to be dispatched in to a worker thread.
+        // This, of course it not always the case, but it is far better to just always have the request delegated
+        // to a worker thread.
+        // Ideally, this worker thread could be configured by the developer if they do not want to use
+        // the worker pool of the server.
+        /*if (exchange.isInIoThread()) {
+            exchange.dispatch(this);
+            return;
+        }*/
+        
         UndertowContext context = new UndertowContext(exchange, config);
+        if (exchange.isInIoThread()) {
+            exchange.dispatch(null, () -> {
+                try {
+                    run(context, exchange);
+                } catch (Exception e) {
+                    context.error(e);
+                }
+            });
+        } else {
+            run(context, exchange);
+        }
+        /*worker.execute(() -> {
+            try {
+                run(context, exchange);
+            } catch (Exception e) {
+                context.error(e);
+            }
+        });*/
+        
+    }
+    
+    private void run(UndertowContext context, HttpServerExchange exchange) throws Exception {
         
         HeaderMap headers = exchange.getResponseHeaders();
         headers.put(Headers.CONTENT_TYPE, Context.Response.STANDARD_HEADER_CONTENT_TYPE);
