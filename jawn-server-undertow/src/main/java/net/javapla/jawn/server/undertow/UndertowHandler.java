@@ -75,13 +75,13 @@ class UndertowHandler implements HttpHandler {
         if (exchange.isInIoThread()) {
             exchange.dispatch(null, () -> {
                 try {
-                    run(context, exchange);
+                    handle(context, exchange);
                 } catch (Exception e) {
                     context.error(e);
                 }
             });
         } else {
-            run(context, exchange);
+            handle(context, exchange);
         }
         /*worker.execute(() -> {
             try {
@@ -93,7 +93,7 @@ class UndertowHandler implements HttpHandler {
         
     }
     
-    private void run(UndertowContext context, HttpServerExchange exchange) throws Exception {
+    private void handle(UndertowContext context, HttpServerExchange exchange) throws Exception {
         
         HeaderMap headers = exchange.getResponseHeaders();
         headers.put(Headers.CONTENT_TYPE, Context.Response.STANDARD_HEADER_CONTENT_TYPE);
