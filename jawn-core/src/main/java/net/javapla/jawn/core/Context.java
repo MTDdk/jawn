@@ -191,12 +191,16 @@ public interface Context {
         Jawn.SYS_ERROR_LOG.error(t.getMessage(), t);
         if (t instanceof Up) {
             resp().status(((Up) t).status());
+        } else {
+            resp().respond(Status.SERVER_ERROR);
         }
     }
     default void error(String message, Throwable t) {
         Jawn.SYS_ERROR_LOG.error(message, t);
         if (t instanceof Up) {
             resp().status(((Up) t).status());
+        } else {
+            resp().respond(Status.SERVER_ERROR);
         }
     }
 
