@@ -1,6 +1,7 @@
 module net.javapla.jawn.core {
 
   exports net.javapla.jawn.core;
+  exports net.javapla.jawn.core.annotation;
   exports net.javapla.jawn.core.util;
   
   /*
