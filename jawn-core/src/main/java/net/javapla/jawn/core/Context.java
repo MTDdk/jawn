@@ -11,6 +11,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -33,6 +34,8 @@ public interface Context {
         
         Value header(String name);
         Value pathParam(String name);
+        Value cookie(String name);
+        Map<String,String> cookies();
         
         default boolean isPreflight() {
             return httpMethod() == HttpMethod.OPTIONS && header("Access-Control-Request-Method").isMissing();
@@ -71,6 +74,8 @@ public interface Context {
         Value header(String name);
         Response header(String name, String value);
         Response removeHeader(String name);
+        Response cookie(Cookie cookie);
+        
         MediaType contentType();
         Response contentType(MediaType type);
         Response rendererContentType(MediaType type);

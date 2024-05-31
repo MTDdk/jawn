@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.util.Map;
 
 import net.javapla.jawn.core.WebSocket.Initialiser;
 import net.javapla.jawn.core.util.MultiList;
@@ -55,6 +56,16 @@ public class TestableContext extends AbstractContext {
             
             @Override
             public String address() {
+                return null;
+            }
+
+            @Override
+            public Value cookie(String name) {
+                return null;
+            }
+
+            @Override
+            public Map<String, String> cookies() {
                 return null;
             }
         };
@@ -136,6 +147,11 @@ public class TestableContext extends AbstractContext {
             
             @Override
             public Response charset(Charset encoding) {
+                return null;
+            }
+
+            @Override
+            public Response cookie(Cookie cookie) {
                 return null;
             }
         };

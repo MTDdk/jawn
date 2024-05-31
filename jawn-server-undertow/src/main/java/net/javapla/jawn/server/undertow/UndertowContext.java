@@ -14,6 +14,8 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import io.undertow.connector.PooledByteBuffer;
 import io.undertow.io.IoCallback;
@@ -99,6 +101,15 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             @Override
             public Value header(String name) {
                 return Value.of(exchange.getRequestHeaders().get(name));
+            }
+            
+            @Override
+            public Map<String,String> cookies() {
+                Map<String,String> cookies = new LinkedHashMap<>();
+                for (var cookie : exchange.requestCookies()) {
+                    cookies.put(cookie.getName(), cookie.getValue());
+                }
+                return cookies;
             }
 
             @Override
@@ -330,7 +341,6 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             public boolean isResponseStarted() {
                 return exchange.isResponseStarted();
             }
-
         };
     }
 

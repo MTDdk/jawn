@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -132,17 +133,37 @@ public abstract class AbstractContext implements Context {
             instantiateQuery();
             return Value.of(query.get(name));
         }
+        
+        /* Cookies */
+        @Override
+        public Value cookie(String name) {
+            return null;
+        }
     }
     
     protected abstract class AbstractResponse implements Context.Response {
         protected MediaType responseType = MediaType.TEXT;
         protected MediaType defaultResponseType = null;
         protected Charset cs = StandardCharsets.UTF_8;
+        protected Map<String,String> responseCookies = null;
         
         
         @Override
         public Response rendererContentType(MediaType type) {
             defaultResponseType = type;
+            return this;
+        }
+        
+        @Override
+        public Response cookie(Cookie cookie) {
+            if ( responseCookies == null) responseCookies = new LinkedHashMap<>();
+            // if we ever are going to support "context path", this is where to put it
+            //cookie.path( cookie.path() == null ? contextPath() : cookie.path())
+            responseCookies.put(cookie.name(), cookie.toString());
+            removeHeader("Set-Cookie"); // removes all
+            for (String value : responseCookies.values()) {
+                header("Set-Cookie", value);
+            }
             return this;
         }
         
