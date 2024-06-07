@@ -1,5 +1,11 @@
 package net.javapla.jawn.core;
 
+import java.util.function.Supplier;
+
+import net.javapla.jawn.core.Context.FormItem;
+import net.javapla.jawn.core.util.MultiList;
+import net.javapla.jawn.core.util.StringUtil;
+
 /**
  * 
  * @author MTD
@@ -95,6 +101,38 @@ public enum HttpMethod {
                 if (ba.byteAt(1) == 'U') return HttpMethod.PUT;
                 return HttpMethod.POST;
         }
+        throw new IllegalArgumentException();
+    }
+    
+    public static HttpMethod _getMethod(final ByteArray ba, Supplier<MultiList<FormItem>> formdata) {
+        switch (ba.byteAt(0)) {
+            case 'G':
+                return HttpMethod.GET;
+            case 'D':
+                return HttpMethod.DELETE;
+            case 'H':
+                return HttpMethod.HEAD;
+            case 'O':
+                return HttpMethod.OPTIONS;
+            case 'P':
+                if (ba.byteAt(1) == 'U') return HttpMethod.PUT;
+                
+                // assume POST
+                
+                // Sometimes an ajax request can only be sent as GET or POST.
+                // We can emulate PUT and DELETE by sending a parameter '_method=PUT' or '_method=DELETE'.
+                // Under the assumption that a request method always is sent in upper case
+                FormItem param = formdata.get().first(AJAX_METHOD_PARAMETER);
+                if (param != null && param.value().isPresent()) {
+                    final String methodParam = param.value().get();
+                    // assume DELETE
+                    if (StringUtil.startsWith(methodParam, 'D', 'E', 'L')) return HttpMethod.DELETE;
+                    // PUT
+                    if (StringUtil.startsWith(methodParam, 'P', 'U', 'T')) return HttpMethod.PUT;
+                }
+                return HttpMethod.POST;
+        }
+        
         throw new IllegalArgumentException();
     }
     

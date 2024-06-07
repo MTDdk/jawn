@@ -60,11 +60,10 @@ final class UndertowContext extends AbstractContext implements IoCallback {
         // this.req = _req();
         this.resp = _resp();
 
-        // this.method =
-        // HttpMethod._getMethod(exchange.getRequestMethod().toString()/*, () ->
-        // req.multipart()*/);
-        final HttpString m = exchange.getRequestMethod();
-        this.method = HttpMethod._getMethod(m::byteAt);
+        this.method =
+            HttpMethod._getMethod(exchange.getRequestMethod()::byteAt, () -> req().multipart());
+        //final HttpString m = exchange.getRequestMethod();
+        //this.method = HttpMethod._getMethod(m::byteAt);
     }
 
     private Request _req() {
