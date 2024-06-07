@@ -93,7 +93,7 @@ class UndertowHandler implements HttpHandler {
         
     }
     
-    private void handle(UndertowContext context, HttpServerExchange exchange) throws Exception {
+    private void handle(final UndertowContext context, final HttpServerExchange exchange) throws Exception {
         
         HeaderMap headers = exchange.getResponseHeaders();
         headers.put(Headers.CONTENT_TYPE, Context.Response.STANDARD_HEADER_CONTENT_TYPE);
@@ -156,7 +156,11 @@ class UndertowHandler implements HttpHandler {
     private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir"));
 
     private static HttpHandler execute(Router router, UndertowContext context) {
-        return exchange -> router.retrieve(context.method.ordinal(), context.path).execute(context);
+        return exchange -> {
+            // At this point, the FORM_DATA has been parsed, so there might be a change to HttpMethod within the form data
+            context.updateMethod();
+            router.retrieve(context.method.ordinal(), context.path).execute(context);
+        };
     }
     
     private static Receiver.FullBytesCallback receiveFullBytes(UndertowContext context) {

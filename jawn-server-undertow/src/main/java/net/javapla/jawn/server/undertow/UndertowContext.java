@@ -45,7 +45,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
     private final HttpServerExchange exchange;
     private final ServerConfig       config;
 
-    final HttpMethod method;
+          HttpMethod method;
     final String     path;
 
     private Request        req;
@@ -60,10 +60,15 @@ final class UndertowContext extends AbstractContext implements IoCallback {
         // this.req = _req();
         this.resp = _resp();
 
-        this.method =
-            HttpMethod._getMethod(exchange.getRequestMethod()::byteAt, () -> req().multipart());
-        //final HttpString m = exchange.getRequestMethod();
-        //this.method = HttpMethod._getMethod(m::byteAt);
+        //this.method =
+        //    HttpMethod._getMethod(exchange.getRequestMethod()::byteAt, () -> req().multipart());
+        final HttpString m = exchange.getRequestMethod();
+        this.method = HttpMethod._getMethod(m::byteAt);
+    }
+
+    // Only used if we have FORM_DATA and method=POST
+    void updateMethod() {
+        this.method = HttpMethod._getMethod(this.method, () -> req().multipart());
     }
 
     private Request _req() {
@@ -465,7 +470,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             action.run();
         }
     }
-
+    
     /* *******************************
      * IoCallback
      ******************************* */
