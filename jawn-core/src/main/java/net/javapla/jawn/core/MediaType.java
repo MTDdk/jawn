@@ -348,4 +348,5 @@ public class MediaType implements Comparable<MediaType> {
         
         return OCTET_STREAM;
     }
+
 }

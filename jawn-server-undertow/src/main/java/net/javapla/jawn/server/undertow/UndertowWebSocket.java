@@ -8,11 +8,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.xnio.IoUtils;
+import org.xnio.Pooled;
 
 import io.undertow.Handlers;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.websockets.WebSocketProtocolHandshakeHandler;
 import io.undertow.websockets.core.AbstractReceiveListener;
+import io.undertow.websockets.core.BufferedBinaryMessage;
 import io.undertow.websockets.core.BufferedTextMessage;
 import io.undertow.websockets.core.CloseMessage;
 import io.undertow.websockets.core.WebSocketCallback;
@@ -169,6 +171,21 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
             context.dispatch(wrap(() -> onMessage.onMessage(this, WebSocket.WebSocketMessage.create(message.getData(), StandardCharsets.UTF_8))));
         }
     }
+    
+    @Override
+    protected void onFullBinaryMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {
+        waitForConnect();
+        
+        if (onMessage != null) {
+            Pooled<ByteBuffer[]> data = message.getData();
+            try {
+                ByteBuffer buffer = WebSockets.mergeBuffers(data.getResource());
+                context.dispatch(wrap(() -> onMessage.onMessage(this, WebSocket.WebSocketMessage.create(toArray(buffer)))));
+            } finally {
+                
+            }
+        }
+    }
 
     // Default behaviour is already what we want
     // The channel respond to a ping with the same message as a pong, and automatically discards any pong messages
@@ -192,7 +209,7 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
         
         System.out.println("onFullPongMessage  [" +  bob + "]");
     }*/
-    // TODO handle binary messages?
+    
     
     @Override
     protected void onError(WebSocketChannel channel, Throwable error) {
@@ -261,6 +278,15 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
                 onError(null, e);
             }
         };
+    }
+    
+    private byte[] toArray(ByteBuffer buffer) {
+        if (buffer.hasArray()) {
+            return buffer.array();
+        }
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
+        return bytes;
     }
     
     private void handleClose(WebSocket.WebSocketCloseStatus status) {
