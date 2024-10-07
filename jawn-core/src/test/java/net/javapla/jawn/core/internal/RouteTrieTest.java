@@ -200,6 +200,25 @@ class RouteTrieTest {
         path = trie.lookForWildcard("/api/podcasts/test/database", HttpMethod.GET);
         assertNull(path);
     }
+    
+    @Test
+    void realworld_segmentedPostNotFound() {
+        RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
+        
+        trie.insert(new TriePath(route(HttpMethod.POST,   "/upload/video")));
+        trie.insert(new TriePath(route(HttpMethod.POST,   "/upload/image")));
+        trie.insert(new TriePath(route(HttpMethod.POST,   "/upload/video/flight/#"))); // <--- was not found
+        trie.insert(new TriePath(route(HttpMethod.POST,   "/upload/image/flight/#"))); // <--- was not found
+        trie.insert(new TriePath(route(HttpMethod.POST,   "/upload/poster/flight/#"))); // <--- was not found
+        trie.insert(new TriePath(route(HttpMethod.DELETE, "/upload/#/flight/#"))); // <--- because of this
+
+        TriePath path = trie.findExact("/upload/poster/flight/41", HttpMethod.DELETE);
+        System.out.println(path);
+        
+        path = trie.lookForWildcard("/upload/image/flight/41", HttpMethod.POST);
+        System.out.println(path);
+        assertNotNull(path);
+    }
 
     static Route route(HttpMethod method, String path) {
         return new Route.Builder(method, path, (ctx) -> ctx).build();
