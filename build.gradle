@@ -20,6 +20,8 @@ subprojects {
   
   dependencies {
   
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+  
     // mocking framework
     testImplementation 'org.mockito:mockito-core:5.4.0'
     
@@ -31,20 +33,22 @@ subprojects {
   
   
   test {
+    useJUnitPlatform()
+  
     // show standard out and standard error of the test JVM(s) on the console
     testLogging.showStandardStreams true
     
     ignoreFailures false
     
   }
-  testing {
+  /*testing {
 	  suites {
 	    test {
 	      // Use JUnit Jupiter test framework
 	      useJUnitJupiter('5.10.1')
 	    }
 	  }
-	}
+	}*/
   
 }
 
@@ -57,4 +61,4 @@ dependencies {
   implementation project(':jawn-jackson')
 }
 
-apply from: 'uberjar.gradle'
+//apply from: 'uberjar.gradle'

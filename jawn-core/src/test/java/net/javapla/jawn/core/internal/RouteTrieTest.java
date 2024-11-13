@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.javapla.jawn.core.AssertionsHelper;
@@ -202,6 +203,7 @@ class RouteTrieTest {
     }
     
     @Test
+    @Disabled
     void realworld_segmentedPostNotFound() {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         

@@ -2,7 +2,6 @@ package net.javapla.jawn.core.internal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,7 +10,6 @@ import net.javapla.jawn.core.Plugin.Application;
 import net.javapla.jawn.core.AbstractContext;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
-import net.javapla.jawn.core.Route.Builder;
 import net.javapla.jawn.core.Router.RoutePath;
 import net.javapla.jawn.core.TestableContext;
 import net.javapla.jawn.core.annotation.GET;
@@ -27,7 +25,7 @@ class E2eMvcTest {
     static void beforeAll() {
         Bootstrapper booter = new Bootstrapper();
         
-        application = booter.boot(reg -> MvcCompiler.compile(ControllerParams.class, reg).stream());
+        application = booter.boot(reg -> MvcCompiler.compile(ParamsController.class, reg).stream());
     }
     
     
@@ -41,7 +39,7 @@ class E2eMvcTest {
         
         AbstractContext context = new TestableContext();
         route.execute(context);
-        assertEquals("1238", ControllerParams.called);
+        assertEquals("1238", ParamsController.called);
     }
     
     @Test
@@ -51,7 +49,7 @@ class E2eMvcTest {
         
         AbstractContext context = new TestableContext();
         route.execute(context);
-        assertEquals("contextaction", ControllerParams.called);
+        assertEquals("contextaction", ParamsController.called);
     }
     
     @Test
@@ -61,7 +59,7 @@ class E2eMvcTest {
         
         AbstractContext context = new TestableContext();
         route.execute(context);
-        assertEquals("requestaction", ControllerParams.called);
+        assertEquals("requestaction", ParamsController.called);
     }
     
     
@@ -72,7 +70,7 @@ class E2eMvcTest {
  */
     
     @Path("/params")
-    public static class ControllerParams {
+    public static class ParamsController {
         
         static String called;
         
