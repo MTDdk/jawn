@@ -3,8 +3,10 @@ allprojects {
   
   
   // compiler options
-  compileJava {
-    options.release = 17
+  java {
+    toolchain {
+      languageVersion = JavaLanguageVersion.of(17)
+    }
   }
   
   repositories { mavenCentral() }
@@ -33,6 +35,7 @@ subprojects {
   
   
   test {
+    // Use JUnit Jupiter test framework
     useJUnitPlatform()
   
     // show standard out and standard error of the test JVM(s) on the console
