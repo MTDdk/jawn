@@ -33,6 +33,7 @@ public interface Context {
         Value queryParam(String name); // URLDecoded
         
         Value header(String name);
+        MultiList<String> headers();
         Value pathParam(String name);
         Value cookie(String name);
         Map<String,String> cookies();

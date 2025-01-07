@@ -118,6 +118,13 @@ public abstract class AbstractContext implements Context {
         }
         
         
+        /* Headers */
+        @Override
+        public Value header(String name) {
+            return Value.of(headers().first(name));
+        }
+        
+        
         /* Query */
         private Map<String, String> query;
         private void instantiateQuery() {

@@ -45,6 +45,11 @@ public class TestableContext extends AbstractContext {
             }
             
             @Override
+            public MultiList<String> headers() {
+                return null;
+            }
+            
+            @Override
             public long contentLength() {
                 return 0;
             }

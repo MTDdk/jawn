@@ -104,7 +104,18 @@ final class UndertowContext extends AbstractContext implements IoCallback {
 
             @Override
             public Value header(String name) {
+                // TODO possibly remove in exchange for caching #headers() and leaving it up to AbstractContext
                 return Value.of(exchange.getRequestHeaders().get(name));
+            }
+            
+            @Override
+            public MultiList<String> headers() {
+                HeaderMap headers = exchange.getRequestHeaders();
+                
+                MultiList<String> converted = new MultiList<>();
+                headers.forEach(header -> header.forEach(value -> converted.put(header.getHeaderName().toString(), value)));
+                
+                return converted;
             }
             
             @Override
