@@ -12,7 +12,7 @@ dependencies {
   
   
   // bytecode reading
-  def asm_version = '9.4'
+  def asm_version = '9.7.1'
   implementation 'org.ow2.asm:asm:' + asm_version
   implementation 'org.ow2.asm:asm-tree:' + asm_version
   implementation 'org.ow2.asm:asm-util:' + asm_version
