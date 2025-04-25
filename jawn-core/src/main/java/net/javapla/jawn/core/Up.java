@@ -87,7 +87,6 @@ public abstract class Up extends RuntimeException {
     public static boolean isFatal(Throwable x) {
         return x instanceof InterruptedException
             || x instanceof LinkageError
-            || x instanceof ThreadDeath
             || x instanceof VirtualMachineError;
     }
     
