@@ -1,0 +1,13 @@
+plugins {
+  id 'java-library'
+}
+
+dependencies {
+
+  // framework
+  api project(':jawn-core')
+  
+  // template engine
+  // antlr/stringtemplate4
+  implementation 'org.antlr:ST4:4.3.4' 
+}

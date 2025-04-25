@@ -23,7 +23,7 @@ public class LoxTemplateRenderer implements TemplateRenderer {
     @Override
     public byte[] render(Context ctx, Template template) throws IOException {
         
-        Path view = basedir.resolve(template.viewName);
+        Path view = basedir.resolve(template.view());
         //BufferedReader reader = Files.newBufferedReader(view, StandardCharsets.UTF_8);
         String source = Files.readString(view, StandardCharsets.UTF_8);
         

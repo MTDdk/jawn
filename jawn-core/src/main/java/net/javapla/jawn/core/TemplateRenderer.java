@@ -19,19 +19,10 @@ public interface TemplateRenderer extends Renderer {
     }
     
     
-    public static class Template {
-        
-        public final String viewName;
-        public final Map<String, Object> data;
-
-        public Template(String view, Map<String, Object> data) {
-            this.viewName = view;
-            this.data = data;
-        }
-        
+    public static record Template(String view, Map<String, Object> data) {
+        // data = view model
         public Template(String view) {
             this(view, new HashMap<>());
         }
-        
     }
 }

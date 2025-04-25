@@ -169,6 +169,11 @@ public class Bootstrapper {
         });
     }
     
+    private void registerCoreClasses() {
+        registry.register(Config.class, config);
+        registry.register(ClassSource.class, source);
+    }
+    
     private void installPlugins(Plugin.Application moduleConfig) {
         
         try {
@@ -186,11 +191,6 @@ public class Bootstrapper {
             log.debug("installPlugins",error);
         }
         
-    }
-    
-    private void registerCoreClasses() {
-        registry.register(Config.class, config);
-        registry.register(ClassSource.class, source);
     }
     
     private void parseRoutes(Function<Registry, Stream<Route.Builder>> routes, RouterImpl router) {
