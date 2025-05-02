@@ -28,6 +28,7 @@ public class ViewTemplateLoader {
         Path f = viewsParent.resolve(p);
         if (Files.exists(f)) {
             try (var stream = Files.newInputStream(f)) {
+                System.out.println("file");
                 return readTemplateFromDisk(stream);
             } catch (IOException e) {
                 // TODO Auto-generated catch block
@@ -38,6 +39,7 @@ public class ViewTemplateLoader {
         
         // try reading from resources
         try (var stream = getClass().getClassLoader().getResourceAsStream(p)) {
+            System.out.println("stream");
             return readTemplateFromDisk(stream);
         } catch (IOException e) {
             // TODO Auto-generated catch block
@@ -63,6 +65,12 @@ public class ViewTemplateLoader {
         
         p = Paths.get("src","main","resources");
         if (Files.exists(p)) return p;
+        
+        String parent = System.getProperty(TemplateRenderer.ENV_TEMPLATE_PATH_LOCATION);
+        if (parent != null) {
+            p = Paths.get(parent, TemplateRenderer.DEFAULT_TEMPLATE_PATH);
+            if (Files.exists(p)) return p.getParent();
+        }
         
         p = Paths.get(TemplateRenderer.DEFAULT_TEMPLATE_PATH);
         if (Files.exists(p)) return p.getParent();

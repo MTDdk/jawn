@@ -3,12 +3,18 @@ package net.javapla.jawn.template.stringtemplate;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.TemplateRenderer;
 
 class ViewLoadTest {
+    
+    @BeforeAll
+    static void setup() {
+        System.setProperty(TemplateRenderer.ENV_TEMPLATE_PATH_LOCATION, "src/test/resources");
+    }
 
     @Test
     void test() throws Exception {

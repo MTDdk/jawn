@@ -5,6 +5,9 @@ import java.util.Map;
 
 public interface TemplateRenderer extends Renderer {
     
+    String ENV_TEMPLATE_PATH_LOCATION = "views.location";
+    
+    // if we do not want to call it "views"
     String ENV_TEMPLATE_PATH_KEY = "views.path";
     
     String DEFAULT_TEMPLATE_PATH = "views";
