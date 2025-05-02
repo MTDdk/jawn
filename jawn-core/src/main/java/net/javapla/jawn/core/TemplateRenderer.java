@@ -24,5 +24,10 @@ public interface TemplateRenderer extends Renderer {
         public Template(String view) {
             this(view, new HashMap<>());
         }
+        
+        public Template put(String key, Object value) {
+            data.put(key, value);
+            return this;
+        }
     }
 }

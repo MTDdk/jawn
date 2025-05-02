@@ -1,5 +1,7 @@
 package net.javapla.jawn.template.stringtemplate.rewrite;
 
+import java.nio.file.NoSuchFileException;
+
 import org.stringtemplate.v4.InstanceScope;
 import org.stringtemplate.v4.Interpreter;
 import org.stringtemplate.v4.ModelAdaptor;
@@ -100,7 +102,11 @@ public class FastSTGroup extends STGroup {
         
         // TODO not fully tested and does clearly not handle if templateLoader returns an invalid response
         if (code == null) { // we might need to look at the filesystem
-            code = loadTemplate(fullyQualifiedName, templateLoader.loadTemplate(fullyQualifiedName + TEMPLATE_FILE_EXTENSION));
+            try {
+                code = loadTemplate(fullyQualifiedName, templateLoader.loadTemplate(fullyQualifiedName + TEMPLATE_FILE_EXTENSION));
+            } catch (NoSuchFileException e) {
+                code = NOT_FOUND_ST;
+            }
         }
         
         

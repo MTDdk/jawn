@@ -1,5 +1,6 @@
 package net.javapla.jawn.template.stringtemplate;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -8,6 +9,10 @@ public class NoNewlineFileInputStream extends FileInputStream {
 
     public NoNewlineFileInputStream(String filePath) throws FileNotFoundException {
         super(filePath);
+    }
+    
+    public NoNewlineFileInputStream(File file) throws FileNotFoundException {
+        super(file);
     }
 
     @Override
