@@ -27,6 +27,8 @@ subprojects {
     // mocking framework
     testImplementation 'org.mockito:mockito-core:5.4.0'
     
+    // logging
+    testImplementation 'ch.qos.logback:logback-classic:1.4.4'
   }
   
   
