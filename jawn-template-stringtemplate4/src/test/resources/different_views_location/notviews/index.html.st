@@ -1,0 +1,5 @@
+<html>
+<body>
+$template()$
+</body>
+</html>

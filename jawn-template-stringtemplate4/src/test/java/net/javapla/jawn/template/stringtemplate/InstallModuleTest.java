@@ -22,4 +22,8 @@ class InstallModuleTest {
         assertTrue(renderer instanceof StringTemplateTemplateRenderer);
     }
 
+    /*@Test
+    void fullJawn() {
+        
+    }*/
 }

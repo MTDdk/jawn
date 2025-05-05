@@ -1,0 +1,1 @@
+injected into layout along with $somevalue$

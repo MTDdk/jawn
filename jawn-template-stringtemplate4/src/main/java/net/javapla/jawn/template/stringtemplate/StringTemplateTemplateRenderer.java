@@ -11,10 +11,11 @@ import org.stringtemplate.v4.misc.STMessage;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.TemplateRenderer;
+import net.javapla.jawn.core.View;
 import net.javapla.jawn.template.stringtemplate.rewrite.FastSTGroup;
 
 public class StringTemplateTemplateRenderer implements TemplateRenderer {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass().getSimpleName());
     
     private final FastSTGroup group;
     private final ViewTemplateLoader templateLoader;
@@ -27,7 +28,7 @@ public class StringTemplateTemplateRenderer implements TemplateRenderer {
     }
 
     @Override
-    public byte[] render(Context ctx, Template template) throws Exception {
+    public byte[] render(Context ctx, View template) throws Exception {
         long time = System.currentTimeMillis();
         
         ST view = group.getInstanceOf(template.view(), templateLoader.loadTemplate(template.view() + FastSTGroup.TEMPLATE_FILE_EXTENSION));
@@ -41,7 +42,7 @@ public class StringTemplateTemplateRenderer implements TemplateRenderer {
         return view.render().getBytes(StandardCharsets.UTF_8);
     }
     
-    private void inject(ST view, Template template) {
+    private void inject(ST view, View template) {
         template.data().forEach((key, val) -> {
             try {
                 view.add(key, val);

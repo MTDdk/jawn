@@ -15,6 +15,7 @@ import net.javapla.jawn.core.Renderer;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.TemplateRenderer;
 import net.javapla.jawn.core.Up;
+import net.javapla.jawn.core.View;
 
 public class ParserRenderEngine implements Parser.ParserProvider {
     
@@ -22,6 +23,8 @@ public class ParserRenderEngine implements Parser.ParserProvider {
     
     private final Map<MediaType, Parser>   parsers = new HashMap<>();
     private final Map<MediaType, Renderer> renderers = new HashMap<>();
+    private TemplateRenderer templateEngine = null; 
+    // For now we only support a single template engine at a time. We could make each engine tell us their preferred file extension, and filter on that.
     
     public ParserRenderEngine() {
         //add(MediaType.PLAIN, this);
@@ -35,11 +38,12 @@ public class ParserRenderEngine implements Parser.ParserProvider {
     }
     
     public ParserRenderEngine add(MediaType type, Renderer renderer) {
-        if (renderer instanceof TemplateRenderer) {
+        if (renderer instanceof TemplateRenderer engine) {
             renderers.put(type, (ctx, value) -> {
                 if (value instanceof CharSequence) return TO_STRING.render(ctx, value);
                 return renderer.render(ctx, value);
             });
+            templateEngine = engine;
         } else {
             renderers.put(type, renderer);
         }
@@ -95,6 +99,15 @@ public class ParserRenderEngine implements Parser.ParserProvider {
             if (value instanceof ByteBuffer) {
                 ctx.resp().respond((ByteBuffer) value);
                 return null;
+            }
+            
+            /** View */
+            if (value instanceof View view) {
+                if (templateEngine != null) {
+                    templateEngine.render(ctx, view);
+                } else {
+                    throw new IllegalArgumentException("No template engine found for " + view.view());
+                }
             }
             
             Renderer r = renderers.get(ctx.resp().contentType());

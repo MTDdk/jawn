@@ -9,7 +9,8 @@ public class StringTemplateModule implements Plugin {
     @Override
     public void install(Application config) {
         
-        StringTemplateTemplateRenderer renderer = new StringTemplateTemplateRenderer(new ViewTemplateLoader());
+        //config.registry().require(DeploymentInfo.class)
+        StringTemplateTemplateRenderer renderer = new StringTemplateTemplateRenderer(new ViewTemplateLoader(new DeploymentInfo()));
         
         config.renderer(MediaType.HTML, renderer);
         
