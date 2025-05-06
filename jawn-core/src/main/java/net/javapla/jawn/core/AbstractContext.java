@@ -149,15 +149,16 @@ public abstract class AbstractContext implements Context {
     }
     
     protected abstract class AbstractResponse implements Context.Response {
-        protected MediaType responseType = MediaType.TEXT;
-        protected MediaType defaultResponseType = null;
+        protected MediaType responseType = null;
+        //protected MediaType defaultResponseType = MediaType.TEXT;
         protected Charset cs = StandardCharsets.UTF_8;
         protected Map<String,String> responseCookies = null;
         
         
         @Override
         public Response rendererContentType(MediaType type) {
-            defaultResponseType = type;
+            //defaultResponseType = type;
+            if (responseType == null) contentType(type);
             return this;
         }
         

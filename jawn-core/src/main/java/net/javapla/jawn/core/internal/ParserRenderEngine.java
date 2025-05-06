@@ -17,9 +17,9 @@ import net.javapla.jawn.core.TemplateRenderer;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.View;
 
-public class ParserRenderEngine implements Parser.ParserProvider {
+public class ParserRenderEngine implements Parser.ParserProvider, Renderer {
     
-    private final Renderer SIMPLE_RENDERER = new SimpleRenderer();
+    //private final Renderer SIMPLE_RENDERER = new SimpleRenderer();
     
     private final Map<MediaType, Parser>   parsers = new HashMap<>();
     private final Map<MediaType, Renderer> renderers = new HashMap<>();
@@ -56,8 +56,62 @@ public class ParserRenderEngine implements Parser.ParserProvider {
     public Parser get(MediaType type) {
         return parsers.getOrDefault(type, (ctx, t) -> {throw Up.UnsupportedMediaType(type.value());});
     }
-    Renderer render(MediaType type) {
+    /*Renderer render(MediaType type) {
         return renderers.getOrDefault(type, SIMPLE_RENDERER);
+    }*/
+    
+    @Override
+    public byte[] render(Context ctx, Object value) throws Exception {
+        return switch (value) {
+            /** View */
+            case View view -> {
+                if (templateEngine != null) {
+                    yield templateEngine.render(ctx, value);
+                } else {
+                    throw new IllegalArgumentException("No template engine found for " + view.view());
+                }
+            }
+            
+            case Status status -> {
+                ctx.resp().respond(status);
+                yield null;
+            }
+            
+            case InputStream stream -> {
+                ctx.resp().respond(stream);
+                yield null;
+            }
+            
+            /** File */
+            case FileChannel channel -> {
+                ctx.resp().respond(channel);
+                yield null;
+            }
+            case File f -> {
+                ctx.resp().contentType(MediaType.byPath(f.getName()));
+                ctx.resp().respond(FileChannel.open(f.toPath()));
+                yield null;
+            }
+            case Path p -> {
+                ctx.resp().contentType(MediaType.byPath(p.getFileName().toString()));
+                ctx.resp().respond(FileChannel.open(p));
+                yield null;
+            }
+            
+            /** bytes */
+            case ByteBuffer buffer -> {
+                ctx.resp().respond(buffer);
+                yield null;
+            }
+            
+            default -> {
+                Renderer r = renderers.get(ctx.resp().contentType());
+                if (r != null) yield r.render(ctx, value);
+                
+                // String, CharSequence, Number
+                yield TO_STRING.render(ctx, value);
+            }
+        };
     }
     
     
@@ -103,8 +157,9 @@ public class ParserRenderEngine implements Parser.ParserProvider {
             
             /** View */
             if (value instanceof View view) {
+                System.out.println(view);
                 if (templateEngine != null) {
-                    templateEngine.render(ctx, view);
+                    return templateEngine.render(ctx, view);
                 } else {
                     throw new IllegalArgumentException("No template engine found for " + view.view());
                 }

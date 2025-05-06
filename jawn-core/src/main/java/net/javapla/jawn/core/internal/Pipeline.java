@@ -134,10 +134,12 @@ abstract class Pipeline {
                     if (result instanceof Context) {
                         ctx.resp().respond(Status.OK);
                     } else {
-                        byte[] rendered = engine.render(ctx.resp().contentType()).render(ctx, result);
+                        //byte[] rendered = engine.render(ctx.resp().contentType()).render(ctx, result);
+                        byte[] rendered = engine.render(ctx, result);
                         if (rendered != null) {
-                            System.out.println("Response has not been handled");
-                            ctx.resp().respond(Status.NO_CONTENT);
+                            /*System.out.println("Response has not been handled");
+                            ctx.resp().respond(Status.NO_CONTENT);*/
+                            ctx.resp().respond(rendered);
                         }
                     }
                 }

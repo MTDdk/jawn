@@ -1,9 +1,8 @@
 package net.javapla.jawn.template.stringtemplate;
 
-import java.nio.charset.StandardCharsets;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.stringtemplate.v4.AutoIndentWriter;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STErrorListener;
 import org.stringtemplate.v4.misc.ErrorManager;
@@ -31,6 +30,8 @@ public class StringTemplateTemplateRenderer implements TemplateRenderer {
     public byte[] render(Context ctx, View template) throws Exception {
         long time = System.currentTimeMillis();
         
+        //clearCache();
+        
         ST view = group.getInstanceOf(template.view(), templateLoader.loadTemplate(template.view() + FastSTGroup.TEMPLATE_FILE_EXTENSION));
         
         inject(view, template);
@@ -38,8 +39,14 @@ public class StringTemplateTemplateRenderer implements TemplateRenderer {
         // see if a key is used in the template
         //if (view.impl.formalArguments != null) System.out.println(view.impl.formalArguments.containsKey("methodname"));
         
+        try (var writer = ctx.resp().writer()) {
+            view.write(new AutoIndentWriter(writer));
+            //view.write(new NoIndentWriter(writer));
+        }
+        //byte[] result = view.render().getBytes(StandardCharsets.UTF_8);
         log.debug("Rendered template {} in {}ms", template.view(), (System.currentTimeMillis() - time));
-        return view.render().getBytes(StandardCharsets.UTF_8);
+        return null;
+        //return result;
     }
     
     private void inject(ST view, View template) {
@@ -71,5 +78,10 @@ public class StringTemplateTemplateRenderer implements TemplateRenderer {
         });
         
         return group;
+    }
+    
+    @SuppressWarnings("unused")
+    private void clearCache() {
+        group.unload();
     }
 }

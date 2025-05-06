@@ -199,13 +199,11 @@ final class UndertowContext extends AbstractContext implements IoCallback {
 
             @Override
             public MediaType contentType() {
-                return defaultResponseType == null ? responseType : defaultResponseType;
+                return responseType == null ? MediaType.TEXT : responseType;
             }
 
             protected void setContentType() {
-                if (this.responseType != null) {
-                    exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, responseType + (cs != null ? (";charset=" + cs) : ""));
-                }
+                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, contentType() + (cs != null ? (";charset=" + cs) : ""));
             }
 
             @Override
@@ -223,6 +221,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             @Override
             public OutputStream stream() {
                 startBlocking();
+                //setContentType();
                 setChunked();
                 return exchange.getOutputStream();
             }

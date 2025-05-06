@@ -14,7 +14,8 @@ public interface TemplateRenderer extends Renderer {
     
     @Override
     default byte[] render(Context ctx, Object value) throws Exception {
-        ctx.resp().rendererContentType(MediaType.HTML);
+        //ctx.resp().rendererContentType(MediaType.HTML);
+        ctx.resp().contentType(MediaType.HTML);
         return render(ctx, (View) value);
     }
 }
