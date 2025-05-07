@@ -18,8 +18,7 @@ public class PrintJournalist extends Writer {
 
     @Override
     public void write(char[] cbuf, int off, int len) throws IOException {
-        byte[] bytes = new String(cbuf, off, len).getBytes(charset);
-        out.write(bytes, 0, bytes.length);
+        write(new String(cbuf, off, len));
     }
 
     @Override
@@ -30,41 +29,18 @@ public class PrintJournalist extends Writer {
 
     @Override
     public void write(String str, int off, int len) throws IOException {
-        write(str.substring(off, len));
+        if (off == 0 && str.length() == len) {
+            write(str);
+        } else {
+            write(str.substring(off, len));
+        }
     }
 
     @Override
     public void write(int c) throws IOException {
-        out.write((char) c);
-    }
-
-    @Override
-    public void write(char[] cbuf) throws IOException {
-        write(cbuf, 0, cbuf.length);
-    }
-
-    @Override
-    public Writer append(char c) throws IOException {
-        out.write(c);
-        return this;
-    }
-
-    @Override
-    public Writer append(CharSequence csq) throws IOException {
-        if (csq == null) {
-            throw new NullPointerException("CharSequence");
-        }
-        write(csq.toString());
-        return this;
-    }
-
-    @Override
-    public Writer append(CharSequence csq, int start, int end) throws IOException {
-        if (csq == null) {
-            throw new NullPointerException("CharSequence");
-        }
-        append(csq.subSequence(start, end));
-        return this;
+        char[] cbuf = new char[1];
+        cbuf[0] = (char) c;
+        write(cbuf, 0, 1);
     }
 
     @Override
