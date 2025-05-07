@@ -262,7 +262,7 @@ public final class Route {
         public final Handler          originalHandler; // action
         private Handler               handler; // pipeline
         private OnComplete            post;
-        private MediaType             responseType  = MediaType.TEXT, consumes = MediaType.WILDCARD;
+        private MediaType             responseType  = null, consumes = MediaType.WILDCARD;
         private final List<MediaType> responseTypes = new LinkedList<>();
         // private Renderer renderer;
         private Type returnType;
