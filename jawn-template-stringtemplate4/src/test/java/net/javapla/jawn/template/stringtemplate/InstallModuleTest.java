@@ -1,6 +1,7 @@
 package net.javapla.jawn.template.stringtemplate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.stream.Stream;
 
@@ -21,6 +22,16 @@ class InstallModuleTest {
         assertNotNull(renderer);
         assertTrue(renderer instanceof StringTemplateTemplateRenderer);
     }
+    
+    /*@Test
+    void install() {
+        Jawn jawn = new Jawn();
+        
+        TemplateRenderer renderer = jawn.require(TemplateRenderer.class);
+        
+        assertNotNull(renderer);
+        assertTrue(renderer instanceof StringTemplateTemplateRenderer);
+    }*/
 
     /*@Test
     void fullJawn() {

@@ -38,6 +38,15 @@ class ViewLoadTest {
     }
     
     @Test
+    void evaluateTemplateFromVariable() throws Exception {
+        
+        byte[] render = renderer.render(null, new View("simple_template_eval")
+            .put("templatename", "simple_inject")
+            .put("methodname", "evaluateTemplateFromVariable()"));
+        assertEquals("ViewLoadTest ViewLoadTest evaluateTemplateFromVariable()", new String(render));
+    }
+
+    @Test
     void differentViewsLocation() throws Exception {
         System.setProperty(TemplateRenderer.ENV_RESOURCES_PATH_LOCATION, "src/test/resources/different_views_location");
         System.setProperty(TemplateRenderer.ENV_TEMPLATE_PATH_NAME, TemplateRenderer.DEFAULT_TEMPLATE_NAME);
@@ -60,7 +69,7 @@ class ViewLoadTest {
         
         assertTrue(new String(render).replaceAll("\n", "").endsWith("</body></html>"));
     }
-
+    
     @Test
     void simpleObjectAsViewModel() throws Exception {
         record Something(int number, String string) {};
