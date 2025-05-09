@@ -64,6 +64,7 @@ dependencies {
   implementation project(':jawn-core')
   implementation project(':jawn-server-undertow')
   implementation project(':jawn-jackson')
+  implementation project(':jawn-template-stringtemplate4')
 }
 
 //apply from: 'uberjar.gradle'
