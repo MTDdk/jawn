@@ -36,6 +36,15 @@ class TriePathParserTest {
     }
     
     @Test
+    void wildcardEnd() {
+        String p = "/simple/more/{*param}";
+        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        AssertionsHelper.ass("/simple/more/*", path.trieApplicable);
+        assertTrue(path.hasParams);
+        AssertionsHelper.ass(path.segments, null, null, "param");
+    }
+    
+    @Test
     void segmentStart() {
         String p = "/{param}/simple";
         TriePath path = TriePathParser.parse(new Route.Builder(p).build());
@@ -82,6 +91,16 @@ class TriePathParserTest {
         assertTrue(parsed.hasParams);
         assertTrue(parsed.isStatic);
         assertEquals("pathparam", parsed.pathParameters.get("param"));
+    }
+    
+    @Test
+    void parseRequest_with_wildcard() {
+        String p = "/simple/more/{*filepath}";
+        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath parsed = TriePathParser.parseRequest("/simple/more/folder/image.jpg", path);
+        assertTrue(parsed.hasParams);
+        assertTrue(parsed.isStatic);
+        assertEquals("folder/image.jpg", parsed.pathParameters.get("filepath"));
     }
     
     @Test

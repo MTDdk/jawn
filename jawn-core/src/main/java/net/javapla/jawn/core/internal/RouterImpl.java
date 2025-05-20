@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -154,7 +155,7 @@ final class RouterImpl implements Router {
         // not be a part of the search
         // https://www.rfc-editor.org/rfc/rfc3986#section-2.2
         public static final char SEGMENT = '#'; // used to denote that a path segment is a variable
-        //public static final char WILDCARD = '*'; // rest of the string is valid (true wildcard)
+        public static final char WILDCARD = '*'; // rest of the string is valid (true wildcard)
         
         private final TrieNode root;
         
@@ -266,19 +267,21 @@ final class RouterImpl implements Router {
                 c = path[i];
                 
                 if (current.nodes[c] == null) return null;
-                current = current.nodes[c]; 
+                current = current.nodes[c];
                 
                 if (c == '/' && current.nodes[SEGMENT] != null) {
                     // Fast forward to the next segment of the input
                     int index = i;
                     while(++index < path.length && path[index] != '/');
                     
-                    // There were no more segments..
+                    // There were no more segments in the "path"..
                     // Just return what we found
                     if (index == path.length) return current.nodes[SEGMENT];
                     
                     TrieNode node = recursive(path, index, current.nodes[SEGMENT]);
                     if (node != null) return node;
+                } else if (c == '/' && current.nodes[WILDCARD] != null) {
+                    return current.nodes[WILDCARD];
                 }
                 
             }
@@ -407,7 +410,7 @@ final class RouterImpl implements Router {
             if (!hasParams(originalPath)) return new TriePath(route);
             
             int length = originalPath.length();
-            LinkedList<String> pn = new LinkedList<>();
+            LinkedList<Segment> pn = new LinkedList<>();
             StringBuilder applicable = new StringBuilder(length);
             
             // Divide into path segments and handle each segment
@@ -419,9 +422,23 @@ final class RouterImpl implements Router {
                     int end = segment.length() - 1;
                     if (segment.charAt(end) != PARAM_END) end++;
                     
-                    // add the parameter name to list
-                    pn.add(segment.substring(1, end));
-                    applicable.append(RouteTrie.SEGMENT); // replace the parameter with a wildcard
+                    // if wildcard
+                    if (segment.charAt(1) == RouteTrie.WILDCARD) {
+                        // add the parameter name to list
+                        //pn.add(segment.substring(2, end));
+                        pn.add(Segment.wildcard(segment.substring(2, end)));
+                        
+                        applicable.append(RouteTrie.WILDCARD); // replace the parameter with a wildcard
+                    } else {
+                        
+                        // add the parameter name to list
+                        //pn.add(segment.substring(1, end));
+                        pn.add(Segment.simple(segment.substring(1, end)));
+                        
+                        applicable.append(RouteTrie.SEGMENT); 
+                    }
+                    
+                    
                 } else {
                     applicable.append(segment);
                     pn.add(null); // add null to list of parameters for later quick counting/lookup
@@ -442,15 +459,78 @@ final class RouterImpl implements Router {
             HashMap<String, String> pathParams = new HashMap<>(1, 0.01f);
             
             // segment the request
-            int[] index = {0};
+            int segmentIndex = 0;
+            PathTokenizer tokenizer = new PathTokenizer(requestPath);
+            while (tokenizer.hasNext()) {
+                Segment segment = path.segments[segmentIndex++];
+                if (segment != null) {
+                    if (segment.wildcard) pathParams.put(segment.name, tokenizer.rest());
+                    else pathParams.put(segment.name, tokenizer.next());
+                }
+                //System.out.println(tokenizer.next());
+            }
+            
+            /*int start = 1; // skipping the first '/'
+            int next = requestPath.indexOf('/', start);
+            
+            do {
+                String segment = requestPath.substring(start, next);
+                System.out.println(segment);
+                start = next +1;
+                next = requestPath.indexOf('/', start);
+            } while(next > start);*/
+            //while (/*start < requestPath.length() &&*/ next > start) { // we assume the path does not end with a '/'
+                
+            //}
+            //System.out.println(requestPath.substring(start));
+            
+            
+            /*int[] index = {0};
             StringUtil.split(requestPath.substring(1), '/', segment -> {
-                String param = path.segments[ index[0]++ ];
-                if (param != null)
-                    pathParams.put(param, segment);
-            });
+                Segment param = path.segments[ index[0]++ ];
+                if (param != null) {
+                    //if (param.wildcard) pathParams.put(param.name, requestPath)
+                    pathParams.put(param.name, segment);
+                }
+            });*/
             
             
             return new TriePath(path, pathParams);
+        }
+        
+        private static class PathTokenizer implements Iterator<String> {
+            
+            private final String path;
+            private final int l;
+            private int start, end = 0;
+
+            PathTokenizer(String path) {
+                this.path = path;
+                this.l = path.length();
+            }
+            
+            private int end() {
+                int n = path.indexOf('/', start);
+                return (n == -1) ? l : n;
+            }
+
+            @Override
+            public boolean hasNext() {
+                start = end + 1;
+                int e = end;
+                end = end();
+                return e < l;
+            }
+
+            @Override
+            public String next() {
+                return path.substring(start, end);
+            }
+            
+            public String rest() {
+                end = l;
+                return path.substring(start);
+            }
         }
 
     }
@@ -479,7 +559,8 @@ final class RouterImpl implements Router {
          * For example:
          * /static/path/{named} becomes -> [null, null, "named"]
          */
-        final String[] segments;
+        //final String[] segments;
+        final Segment[] segments;
         
         /**
          * Indicates whether or not the original URI had any non-static segments.
@@ -497,11 +578,11 @@ final class RouterImpl implements Router {
         TriePath(Route r) {
             this(r, r.path(), Collections.emptyList());
         }
-        TriePath(Route r, String w, List<String> pn) { // RawTriePath
+        TriePath(Route r, String w, List<Segment> pn) { // RawTriePath
             super(r);
             trieApplicable = w.toCharArray();
             method = route.method().ordinal();
-            segments = pn.toArray(String[]::new);
+            segments = pn.toArray(Segment[]::new);
             hasParams = !pn.isEmpty();
             isStatic = !hasParams;
         }
@@ -509,10 +590,22 @@ final class RouterImpl implements Router {
             super(tp, pp);
             trieApplicable = tp.trieApplicable;
             method = tp.method;
-            segments = tp.segments; // not necessary to save the segments as this is now a static TriePath, and the has all the path parameters parsed
+            segments = tp.segments; // not necessary to save the segments as this is now a static TriePath, and this has all the path parameters parsed
             hasParams = tp.hasParams;
             isStatic = true;
         }
     }
-
+    
+    record Segment(String name, boolean wildcard) {
+        static Segment simple(String name) {
+            return new Segment(name, false);
+        }
+        static Segment wildcard(String name) {
+            return new Segment(name, true);
+        }
+        @Override
+        public final boolean equals(Object arg0) {
+            return name.equals(arg0);
+        }
+    }
 }

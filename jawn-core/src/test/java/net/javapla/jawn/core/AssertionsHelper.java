@@ -29,7 +29,7 @@ public abstract class AssertionsHelper {
         
         int i = 0;
         for (T a : act) {
-            assertEquals(exp[i++], a);
+            assertEquals(a, exp[i++]);
         }
     }
     

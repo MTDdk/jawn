@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import net.javapla.jawn.core.AssertionsHelper;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
+import net.javapla.jawn.core.internal.RouterImpl.Segment;
 import net.javapla.jawn.core.internal.RouterImpl.TriePath;
 
 class RouteTrieTest {
@@ -100,11 +101,34 @@ class RouteTrieTest {
     }
     
     @Test
+    void wildcardAtEnd() {
+        RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
+        
+        String path = "/route/to/*";
+        TriePath route = new TriePath(route(HttpMethod.GET, "/route/to/{*param}"), path, Arrays.asList(null, null, Segment.wildcard("param")));
+        
+        trie.insert(route);
+        
+        TriePath r = trie.lookForWildcard("/route/to/redemption", HttpMethod.GET);
+        assertNotNull(r);
+        AssertionsHelper.ass(path, r.trieApplicable);
+        
+        r = trie.lookForWildcard("/route/to/everywhere", HttpMethod.GET);
+        assertNotNull(r);
+        AssertionsHelper.ass(path, r.trieApplicable);
+        
+        // only applicable to true WILDCARD
+        r = trie.lookForWildcard("/route/to/along/the/way", HttpMethod.GET);
+        assertNotNull(r);
+        AssertionsHelper.ass(path, r.trieApplicable);
+    }
+
+    @Test
     void segmentEnd_startingWithLongerParam() {
         RouterImpl.RouteTrie trie = new RouterImpl.RouteTrie();
         
         String path = "/path/#";
-        TriePath route = new TriePath(route(HttpMethod.GET, "/path/{param}"), path, Arrays.asList(null, "param"));
+        TriePath route = new TriePath(route(HttpMethod.GET, "/path/{param}"), path, Arrays.asList(null, Segment.simple("param")));
         
         trie.insert(route);
         
