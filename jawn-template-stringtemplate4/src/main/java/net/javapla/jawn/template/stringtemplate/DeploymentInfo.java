@@ -39,6 +39,7 @@ public class DeploymentInfo {
     }
     
     public Path resolve(String path) {
+        if (path.charAt(0) == '/') return resources.resolve(path.substring(1));
         return resources.resolve(path);
     }
     

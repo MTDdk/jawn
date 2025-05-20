@@ -10,7 +10,10 @@ public class StringTemplateModule implements Plugin {
     public void install(Application config) {
         
         //config.registry().require(DeploymentInfo.class)
-        StringTemplateTemplateRenderer renderer = new StringTemplateTemplateRenderer(new ViewTemplateLoader(new DeploymentInfo()));
+        DeploymentInfo info = new DeploymentInfo();
+        config.registry().register(info);
+        
+        StringTemplateTemplateRenderer renderer = new StringTemplateTemplateRenderer(new ViewTemplateLoader(info));
         
         config.renderer(MediaType.HTML, renderer);
         
