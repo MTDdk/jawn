@@ -22,7 +22,7 @@ public class DeploymentInfo {
     private Path locateResourcesFolder() {
         Path p;
         
-        String resourcesFolder = System.getProperty(TemplateRenderer.ENV_RESOURCES_PATH_LOCATION);
+        String resourcesFolder = System.getProperty(TemplateRenderer.ENV_RESOURCES_PATH_LOCATION, TemplateRenderer.DEFAULT_RESOURCES_PATH_LOCATION);
         
         if (resourcesFolder != null) {
             p = Paths.get(resourcesFolder);

@@ -35,7 +35,7 @@ public class ViewTemplateLoader {
     }
     
     private Path locateViewsFolder(DeploymentInfo info) {
-        String viewsFolder = System.getProperty(TemplateRenderer.ENV_TEMPLATE_PATH_NAME, TemplateRenderer.DEFAULT_TEMPLATE_NAME);
+        String viewsFolder = System.getProperty(TemplateRenderer.ENV_TEMPLATE_FOLDER_NAME, TemplateRenderer.DEFAULT_TEMPLATE_FOLDER_NAME);
         
         Path p = info.resolve(viewsFolder);
         if (Files.exists(p)) return p;

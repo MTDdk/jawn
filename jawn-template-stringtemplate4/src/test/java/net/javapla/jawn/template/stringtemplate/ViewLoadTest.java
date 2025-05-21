@@ -49,7 +49,7 @@ class ViewLoadTest {
     @Test
     void differentViewsLocation() throws Exception {
         System.setProperty(TemplateRenderer.ENV_RESOURCES_PATH_LOCATION, "src/test/resources/different_views_location");
-        System.setProperty(TemplateRenderer.ENV_TEMPLATE_PATH_NAME, TemplateRenderer.DEFAULT_TEMPLATE_NAME);
+        System.setProperty(TemplateRenderer.ENV_TEMPLATE_FOLDER_NAME, TemplateRenderer.DEFAULT_TEMPLATE_FOLDER_NAME);
         
         StringTemplateTemplateRenderer renderer = new StringTemplateTemplateRenderer(new ViewTemplateLoader(new DeploymentInfo()));
         
@@ -61,7 +61,7 @@ class ViewLoadTest {
     @Test
     void differentViewsFolderName() throws Exception {
         System.setProperty(TemplateRenderer.ENV_RESOURCES_PATH_LOCATION, "src/test/resources/different_views_location");
-        System.setProperty(TemplateRenderer.ENV_TEMPLATE_PATH_NAME, "notviews");
+        System.setProperty(TemplateRenderer.ENV_TEMPLATE_FOLDER_NAME, "notviews");
         
         StringTemplateTemplateRenderer renderer = new StringTemplateTemplateRenderer(new ViewTemplateLoader(new DeploymentInfo()));
         
