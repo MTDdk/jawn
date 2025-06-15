@@ -30,7 +30,7 @@ public class TestableContext extends AbstractContext {
             }
             
             @Override
-            public MultiList<FormItem> multipart() {
+            public Form multipart() {
                 return null;
             }
             

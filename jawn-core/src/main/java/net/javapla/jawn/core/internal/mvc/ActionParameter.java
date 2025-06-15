@@ -11,6 +11,7 @@ import java.util.function.Function;
 import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Value;
+import net.javapla.jawn.core.Form;
 import net.javapla.jawn.core.annotation.HeaderParam;
 import net.javapla.jawn.core.annotation.PathParam;
 import net.javapla.jawn.core.annotation.QueryParam;
@@ -44,6 +45,8 @@ public class ActionParameter {
         strategies.put(Context.Request.class, (c, p) -> c.req());
         strategies.put(Context.Response.class, (c, p) -> c.resp());
         strategies.put(Body.class, (c, p) -> c.req().body());
+        
+        strategies.put(Form.class, (c, p) -> c.req().form());
         
         //strategies.put(Cookie.class, (c, p) -> c.);
     }

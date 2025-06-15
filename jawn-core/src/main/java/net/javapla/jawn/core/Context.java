@@ -57,8 +57,8 @@ public interface Context {
         }
         
         
-        MultiList<FormItem> multipart();
-        default MultiList<FormItem> form() {
+        Form multipart();
+        default Form form() {
             return multipart();
         }
         

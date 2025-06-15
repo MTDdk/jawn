@@ -28,6 +28,7 @@ import io.undertow.util.HttpString;
 import net.javapla.jawn.core.AbstractContext;
 import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.Form;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Server.ServerConfig;
@@ -73,7 +74,7 @@ final class UndertowContext extends AbstractContext implements IoCallback {
 
     private Request _req() {
         return new AbstractRequest() {
-            private MultiList<FormItem> multipart = null;
+            private Form multipart = null;
 
             @Override
             public String path() {
@@ -128,10 +129,10 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             }
 
             @Override
-            public MultiList<FormItem> multipart() {
+            public Form multipart() {
                 if (multipart == null) {
 
-                    MultiList<FormItem> list = MultiList.empty();
+                    Form list = new Form();
                     formData(list);
 
                     multipart = list;
