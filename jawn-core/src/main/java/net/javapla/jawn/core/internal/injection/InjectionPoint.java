@@ -90,6 +90,7 @@ public final class InjectionPoint {
         //Class<?> rawType = Materialise.getRawType(type.type);
         
         Constructor<?> injectableConstructor = null;
+        
         for (Constructor<?> constructor : rawType.getDeclaredConstructors()) {
             
             Inject inject = constructor.getAnnotation(Inject.class);

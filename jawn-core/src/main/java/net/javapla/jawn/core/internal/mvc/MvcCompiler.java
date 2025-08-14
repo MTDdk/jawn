@@ -60,6 +60,7 @@ public abstract class MvcCompiler {
         LinkedList<Route.Builder> routes = new LinkedList<>();
 
         actions.forEach((action, verbs) -> {
+            //TODO allow for multiple paths
             String path = mergePaths(rootPath, action);
             if (path == null) return;
 
@@ -95,6 +96,11 @@ public abstract class MvcCompiler {
         return routes;
     }
 
+    static boolean hasPath(Object controller) {
+        if (controller instanceof Class<?> c) return path(c) != null;
+        return path(controller.getClass()) != null;
+    }
+    
     static String path(AnnotatedElement elm) {
         Path path = elm.getAnnotation(Path.class);
         if (path == null) return null;

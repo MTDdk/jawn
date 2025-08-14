@@ -22,7 +22,8 @@ subprojects {
   
   dependencies {
   
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.13.2'
+    testImplementation 'org.junit.platform:junit-platform-launcher:1.13.2'
   
     // mocking framework
     testImplementation 'org.mockito:mockito-core:5.4.0'

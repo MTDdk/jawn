@@ -14,7 +14,9 @@ public class MvcRouteBuilder implements Route.RouteBuilder {
     
     private final Object controller;
     
-    public MvcRouteBuilder(final Object controller) {
+    public MvcRouteBuilder(final Object controller) throws AssertionError {
+        if (!MvcCompiler.hasPath(controller)) throw new AssertionError("Does not have a @Path, not considered controller");
+        
         this.controller = controller;
     }
     

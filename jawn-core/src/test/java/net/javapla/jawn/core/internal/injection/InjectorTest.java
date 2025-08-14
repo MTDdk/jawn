@@ -80,7 +80,6 @@ class InjectorTest {
     void fail_when_missingSuitableConstructor() {
         assertThrows(Registry.ProvisionException.class, () -> injector.require(MissingInjectAnnotation.class));
     }
-    
 
 
     
@@ -117,5 +116,6 @@ class InjectorTest {
     static class MissingInjectAnnotation {
         MissingInjectAnnotation(TestClass c) {}
     }
+    
 }
 

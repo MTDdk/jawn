@@ -117,17 +117,20 @@ public class Jawn {
  * MVC
  * ****************************************** */
     protected Route.RouteBuilder controller(final Class<?> controller) {
-        MvcRouteBuilder bob = new MvcRouteBuilder(controller);
-        mvcControllers.add(bob);
-        return bob;
+        return _controller(controller);
     }
     protected Route.RouteBuilder controller(Object controller) {
+        return _controller(controller);
+    }
+    private Route.RouteBuilder _controller(Object controller) {
         MvcRouteBuilder bob = new MvcRouteBuilder(controller);
         mvcControllers.add(bob);
         return bob;
     }
     protected void controllers(String packageToScan) {
-        ClassLocator.list(packageToScan, booter.classLoader()).forEach(this::controller);
+        ClassLocator.list(packageToScan, booter.classLoader()).forEach( cl -> {
+            try { controller(cl); } catch (AssertionError ignore) {/**/}
+        });
     }
     protected void controllers(Package packageToScan) {
         controllers(packageToScan.getName());
