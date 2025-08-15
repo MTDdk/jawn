@@ -8,6 +8,7 @@ import net.javapla.jawn.core.annotation.Inject;
 
 public class AssetHandler implements Route.Handler {
 
+    private static final long serialVersionUID = -3366943711791220509L;
     private final DeploymentInfo info;
 
     @Inject

@@ -8,5 +8,5 @@ dependencies {
   api project(':jawn-core')
   
   // server
-  implementation 'io.undertow:undertow-core:2.3.0.Final' 
+  implementation 'io.undertow:undertow-core:2.3.18.Final' 
 }
