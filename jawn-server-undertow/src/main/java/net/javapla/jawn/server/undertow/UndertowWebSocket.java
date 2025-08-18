@@ -172,6 +172,7 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
         }
     }
     
+    @SuppressWarnings("deprecation")
     @Override
     protected void onFullBinaryMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {
         waitForConnect();
