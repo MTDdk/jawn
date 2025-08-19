@@ -46,7 +46,7 @@ public abstract class MvcCompiler {
     }
 
     public static List<Route.Builder> compile(Class<?> controller, Provider<?> controllerProvider, Registry registry) {
-        final String rootPath = path(controller);
+        final String[] rootPaths = paths(controller);
         final MediaType rootConsumes  = consumes(controller, null);
         final MediaType rootProduces  = produces(controller, null);
         final Route.Filter rootFilter = filter(controller, registry);
@@ -60,9 +60,8 @@ public abstract class MvcCompiler {
         LinkedList<Route.Builder> routes = new LinkedList<>();
 
         actions.forEach((action, verbs) -> {
-            //TODO allow for multiple paths
-            String path = mergePaths(rootPath, action);
-            if (path == null) return;
+            String[] paths = mergePaths(rootPaths, action);
+            if (paths == null) return;
 
             MediaType consumes = consumes(action, rootConsumes);
             MediaType produces = produces(action, rootProduces);
@@ -72,24 +71,27 @@ public abstract class MvcCompiler {
 
             for (Class<? extends Annotation> annotation : verbs) {
                 HttpMethod method = HttpMethod.valueOf(annotation.getSimpleName());
+                
+                for (String path : paths) {
 
-                Route.Builder bob = new Route.Builder(method, path, new ActionHandler(action, controllerProvider, extractor));
-
-                if (consumes != null) bob.consumes(consumes);
-                if (produces != null) bob.produces(produces);
-                
-                if (rootBefore != null) bob.before(rootBefore);
-                if (before != null) bob.before(before);
-                
-                if (rootFilter != null) bob.filter(rootFilter);
-                if (filter != null) bob.filter(filter);
-                
-                if (rootAfter != null) bob.after(rootAfter);
-                if (after != null) bob.after(after);
-                
-                processReturnType(bob, action);
-
-                routes.add(bob);
+                    Route.Builder bob = new Route.Builder(method, path, new ActionHandler(action, controllerProvider, extractor));
+    
+                    if (consumes != null) bob.consumes(consumes);
+                    if (produces != null) bob.produces(produces);
+                    
+                    if (rootBefore != null) bob.before(rootBefore);
+                    if (before != null) bob.before(before);
+                    
+                    if (rootFilter != null) bob.filter(rootFilter);
+                    if (filter != null) bob.filter(filter);
+                    
+                    if (rootAfter != null) bob.after(rootAfter);
+                    if (after != null) bob.after(after);
+                    
+                    processReturnType(bob, action);
+    
+                    routes.add(bob);
+                }
             }
         });
 
@@ -97,14 +99,20 @@ public abstract class MvcCompiler {
     }
 
     static boolean hasPath(Object controller) {
-        if (controller instanceof Class<?> c) return path(c) != null;
-        return path(controller.getClass()) != null;
+        if (controller instanceof Class<?> c) return paths(c) != null;
+        return paths(controller.getClass()) != null;
     }
     
-    static String path(AnnotatedElement elm) {
-        Path path = elm.getAnnotation(Path.class);
-        if (path == null) return null;
-        return ensureLeadingSlash(path);
+    static String[] paths(AnnotatedElement elm) {
+        // It is possible to have multiple @Path
+        Path[] paths = elm.getAnnotationsByType(Path.class);
+        if (paths == null || paths.length == 0) return null;
+        
+        String[] result = new String[paths.length];
+        for (int i = 0; i < paths.length; i++) 
+            result[i] = ensureLeadingSlash(paths[i]);
+        
+        return result;
     }
 
     static String ensureLeadingSlash(Path path) {
@@ -218,7 +226,7 @@ public abstract class MvcCompiler {
 
         if (annotations.size() > 0) {
             return annotations;
-        } else if (method.isAnnotationPresent(Path.class)) {
+        } else if (method.isAnnotationPresent(Path.class) || method.isAnnotationPresent(Path.Paths.class)) {
             // assume GET
             return GET_VERB;
         }
@@ -226,26 +234,38 @@ public abstract class MvcCompiler {
         return null;
     }
 
-    static String mergePaths(final String rootPath, final Method method) {
-        String action = path(method);
+    static String[] mergePaths(final String[] rootPaths, final Method method) {
+        String[] actions = paths(method);
 
-        if (rootPath == null) {
-            if (action == null) {
+        if (rootPaths == null) {
+            if (actions == null) {
                 // throw new IllegalArgumentException("No path found for: " + method);
                 return null;
             }
-            return action;
+            return actions;
         }
 
-        if (action == null) {
-            return rootPath;
+        if (actions == null) {
+            return rootPaths;
         }
 
-        if (rootPath.equals("/")) { // the 'index' / standard case
-            return action;
-        } else {
-            return rootPath + action;
+        
+        // calculate rootPaths + action
+        String[] result = new String[rootPaths.length * actions.length];
+        int r = 0;
+        for (String root : rootPaths) {
+            for (String action : actions) {
+                if (rootPaths.equals("/")) { // the 'index' / standard case
+                    result[r] = action;
+                } else {
+                    result[r] = root + action;
+                }
+                
+                r++;
+            }
         }
+        
+        return result;
     }
 
     static void processReturnType(Route.Builder bob, Method action) {

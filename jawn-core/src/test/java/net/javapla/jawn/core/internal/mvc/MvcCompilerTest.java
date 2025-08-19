@@ -7,7 +7,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -28,15 +27,16 @@ class MvcCompilerTest {
 
     @Test
     void paths() throws NoSuchMethodException, SecurityException {
-        String path = MvcCompiler.path(ControllerT1.class);
-        assertEquals("/cookie", path);
+        String[] path = MvcCompiler.paths(ControllerT1.class);
+        ass(path, "/cookie");
         
-        path = MvcCompiler.path(ControllerT1.class.getDeclaredMethod("action"));
-        assertEquals("/import", path);
+        path = MvcCompiler.paths(ControllerT1.class.getDeclaredMethod("action"));
+        ass(path, "/import");
         
-        assertEquals("/flash", MvcCompiler.path(ControllerT2.class));
-        path = MvcCompiler.path(ControllerT2.class.getMethod("action"));
-        assertEquals("/import", path);
+        ass(MvcCompiler.paths(ControllerT2.class), "/flash");
+        
+        path = MvcCompiler.paths(ControllerT2.class.getMethod("action"));
+        ass(path, "/import");
     }
     
     @SuppressWarnings("unchecked")
@@ -59,17 +59,22 @@ class MvcCompilerTest {
         Registry registry = new Injector();
         List<Builder> builders = MvcCompiler.compile(ControllerT1.class, registry);
         assertEquals(3, builders.size());
-        
-        List<String> paths = builders.stream().map(bob -> bob.path).collect(Collectors.toList());
-        ass(paths, "/cookie/import", "/cookie/port","/cookie/outport");
+        ass(builders, bob -> bob.path, "/cookie/import", "/cookie/port","/cookie/outport");
         
         
         // extends
         builders = MvcCompiler.compile(ControllerT2.class, registry);
         assertEquals(3, builders.size());
+        ass(builders, bob -> bob.path, "/flash/import", "/flash/port","/flash/outport");
+    }
+    
+    @Test
+    void multiplePaths() {
+        Registry registry = new Injector();
+        List<Builder> builders = MvcCompiler.compile(MultiplePathsController.class, registry);
+        assertEquals(4, builders.size());
         
-        paths = builders.stream().map(bob -> bob.path).collect(Collectors.toList());
-        ass(paths, "/flash/import", "/flash/port","/flash/outport");
+        ass(builders, bob -> bob.path, "/multiple/first", "/multiple/second","/multiple/third","/multiple/fourth");
     }
     
     @Test
@@ -120,12 +125,23 @@ class MvcCompilerTest {
         public void multiple() { }
     }
     
+    @Path("/multiple")
+    private static class MultiplePathsController {
+        @Path("/first")
+        @Path("/second")
+        public void multiple() { }
+        
+        @Path("/third")
+        @Path("/fourth")
+        public void multiple2() { }
+    }
+    
     @Filter(F1.class)
     private static class ControllerFilters {
         @Path("/index")
         public void index() {}
     }
- 
+    
 /* 
  * ************
  * TEST FILTERS
