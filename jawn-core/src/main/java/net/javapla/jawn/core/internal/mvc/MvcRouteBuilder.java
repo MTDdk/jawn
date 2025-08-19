@@ -22,8 +22,8 @@ public class MvcRouteBuilder implements Route.RouteBuilder {
     
     public List<Route.Builder> build(Registry registry) {
         List<Route.Builder> list;
-        if (controller instanceof Class<?>) {
-            list = MvcCompiler.compile((Class<?>)controller, registry);
+        if (controller instanceof Class<?> c) {
+            list = MvcCompiler.compile(c, registry);
         } else {
             list = MvcCompiler.compile(controller.getClass(), () -> controller, registry);
         }
