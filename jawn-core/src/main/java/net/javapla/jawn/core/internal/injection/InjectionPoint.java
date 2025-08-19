@@ -116,13 +116,13 @@ public final class InjectionPoint {
             if ( Modifier.isPrivate(noArgConstructor.getModifiers()) &&
                 !Modifier.isPrivate(rawType.getModifiers())) {
                 // TODO log the missing constructor for 'type'
-                throw new Registry.ProvisionException("Missing default constructor for: " + rawType);
+                throw new Registry.ProvisionException("Missing default constructor for: " + rawType, rawType);
             }
             
             return new InjectionPoint(rawType, noArgConstructor);
         } catch (NoSuchMethodException e) {
             // TODO log the missing constructor for 'type'
-            throw new Registry.ProvisionException("Missing suitable constructor for: " + rawType);
+            throw new Registry.ProvisionException("Missing suitable constructor for: " + rawType, rawType);
         }
     }
     

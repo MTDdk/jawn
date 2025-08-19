@@ -128,9 +128,10 @@ public class Jawn {
         return bob;
     }
     protected void controllers(String packageToScan) {
-        ClassLocator.list(packageToScan, booter.classLoader()).forEach( cl -> {
-            try { controller(cl); } catch (AssertionError ignore) {/**/}
-        });
+        ClassLocator.list(packageToScan, booter.classLoader()) // the ClassLocator finds ALL classes, including internal ones
+            .stream()
+            .filter(cl -> !cl.isRecord()) // ignore records, as they are currently not eligible as controllers
+            .forEach(this::controller);
     }
     protected void controllers(Package packageToScan) {
         controllers(packageToScan.getName());
@@ -281,7 +282,15 @@ public class Jawn {
     private Stream<Route.Builder> buildRoutes(Registry registry) {
         
         // Execute / instantiate controllers after all other potential classes have been created and are available
-        mvcControllers.forEach(bob -> routes.addAll(bob.build(registry)));
+        mvcControllers.forEach(bob -> {
+            try {
+                routes.addAll(bob.build(registry));
+            } catch (Registry.ProvisionException ignore) {
+                // Ignore classes that could not be instantiated by Registry.
+                // It will often be due to internal classes used as outputs, and not as controllers.
+                log.debug("{} :: Not considered a controller", ignore.rawType);
+            }
+        });
         
         return routes.stream();
     }

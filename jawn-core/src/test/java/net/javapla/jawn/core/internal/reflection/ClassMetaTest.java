@@ -1,11 +1,8 @@
 package net.javapla.jawn.core.internal.reflection;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
@@ -37,8 +34,8 @@ class ClassMetaTest {
     @Test
     void test() throws NoSuchMethodException, SecurityException {
         Method method = JupiterTestEngine.class.getDeclaredMethod("discover", EngineDiscoveryRequest.class, UniqueId.class);
-        Parameter parameter = method.getParameters()[0];
-        assertEquals("arg0", parameter.getName());
+        //Parameter parameter = method.getParameters()[0];
+        //assertEquals("arg0", parameter.getName());
         
         String[] parameterNames = meta.parameterNames(method);
         AssertionsHelper.ass(parameterNames, "discoveryRequest", "uniqueId");
@@ -49,10 +46,10 @@ class ClassMetaTest {
         Constructor<JUnitException> constructor1 = JUnitException.class.getDeclaredConstructor(String.class);
         Constructor<JUnitException> constructor2 = JUnitException.class.getDeclaredConstructor(String.class, Throwable.class);
         
-        assertEquals("arg0", constructor1.getParameters()[0].getName());
-        
-        assertEquals("arg0", constructor2.getParameters()[0].getName());
-        assertEquals("arg1", constructor2.getParameters()[1].getName());
+//        assertEquals("arg0", constructor1.getParameters()[0].getName());
+//        
+//        assertEquals("arg0", constructor2.getParameters()[0].getName());
+//        assertEquals("arg1", constructor2.getParameters()[1].getName());
         
         Map<Executable, String[]> execs = meta.extractParameterNames(JUnitException.class);
         

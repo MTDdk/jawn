@@ -21,16 +21,17 @@ public abstract class AssertionsHelper {
         
         int i = 0;
         for (T a : act) {
-            assertEquals(a, exp[i++]);
+            //assertEquals(exp[i++], a);
+            assertEquals(a,exp[i++]);
         }
     }
     
-    public static <T,R> void ass(T[] act, Function<T, R> mapper, @SuppressWarnings("unchecked") R ... exp) {
+    public static <T,R> void ass(Function<T, R> mapper, T[] act, @SuppressWarnings("unchecked") R ... exp) {
         assertEquals(exp.length, act.length);
         
         int i = 0;
         for (T a : act) {
-            assertEquals(mapper.apply(a), exp[i++]);
+            assertEquals(exp[i++], mapper.apply(a));
         }
     }
     
@@ -43,7 +44,7 @@ public abstract class AssertionsHelper {
         }
     }
     
-    public static <T,R> void ass(Collection<T> act, Function<? super T, ? extends R> mapper, @SuppressWarnings("unchecked") R ... exp) {
+    public static <T,R> void ass(Function<? super T, ? extends R> mapper, Collection<T> act, @SuppressWarnings("unchecked") R ... exp) {
         assertEquals(exp.length, act.size());
         
         int i = 0;

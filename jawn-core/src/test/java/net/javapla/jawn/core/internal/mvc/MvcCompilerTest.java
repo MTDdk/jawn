@@ -59,13 +59,18 @@ class MvcCompilerTest {
         Registry registry = new Injector();
         List<Builder> builders = MvcCompiler.compile(ControllerT1.class, registry);
         assertEquals(3, builders.size());
-        ass(builders, bob -> bob.path, "/cookie/import", "/cookie/port","/cookie/outport");
+        ass(bob -> bob.path, builders, "/cookie/import", "/cookie/port","/cookie/outport");
         
         
         // extends
         builders = MvcCompiler.compile(ControllerT2.class, registry);
         assertEquals(3, builders.size());
-        ass(builders, bob -> bob.path, "/flash/import", "/flash/port","/flash/outport");
+        ass(bob -> bob.path, builders, "/flash/import", "/flash/port","/flash/outport");
+        
+        
+        // no controller path to add to action
+        builders = MvcCompiler.compile(IndexController.class, registry);
+        ass(bob -> bob.path, builders, "/missing/root", "/missing/root/action2");
     }
     
     @Test
@@ -74,7 +79,7 @@ class MvcCompilerTest {
         List<Builder> builders = MvcCompiler.compile(MultiplePathsController.class, registry);
         assertEquals(4, builders.size());
         
-        ass(builders, bob -> bob.path, "/multiple/first", "/multiple/second","/multiple/third","/multiple/fourth");
+        ass(bob -> bob.path, builders, "/multiple/first", "/multiple/second","/multiple/third","/multiple/fourth");
     }
     
     @Test
@@ -115,6 +120,15 @@ class MvcCompilerTest {
     @Path("flash")
     private static class ControllerT2 extends ControllerT1 {
         
+    }
+    
+    @Path("/")
+    private static class IndexController {
+        @Path("missing/root") // omitted start '/' on purpose
+        public Object action() { return null; }
+        
+        @Path("/missing/root/action2")
+        public void action2() { }
     }
     
     @Path("/verbs")

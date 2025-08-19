@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.function.Function;
+
 import org.junit.jupiter.api.Test;
 
 import net.javapla.jawn.core.AssertionsHelper;
@@ -41,7 +43,7 @@ class TriePathParserTest {
         TriePath path = TriePathParser.parse(new Route.Builder(p).build());
         AssertionsHelper.ass("/simple/more/*", path.trieApplicable);
         assertTrue(path.hasParams);
-        AssertionsHelper.ass(path.segments, null, null, "param");
+        AssertionsHelper.ass(SEGMENT_MAPPER, path.segments, null, null, "param");
     }
     
     @Test
@@ -116,4 +118,5 @@ class TriePathParserTest {
         AssertionsHelper.ass(path.segments, null, null, "param");
     }
     
+    static final Function<RouterImpl.Segment, String> SEGMENT_MAPPER = segment -> segment == null ? null : segment.name();
 }

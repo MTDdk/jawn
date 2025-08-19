@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import net.javapla.jawn.core.Up.RegistryException;
 import net.javapla.jawn.core.annotation.Named;
 import net.javapla.jawn.core.internal.injection.Provider;
 import net.javapla.jawn.core.internal.reflection.Materialise;
@@ -24,9 +25,9 @@ public interface Registry {
     
     <T> T require(Key<T> key) throws Up.RegistryException;
     
-    <T> Provider<T> provider(Key<T> key) throws Up.RegistryException;
+    <T> Provider<T> provider(Key<T> key) throws RegistryException;//Up.RegistryException;
     
-    default <T> Provider<T> provider(Class<T> clazz) {
+    default <T> Provider<T> provider(Class<T> clazz) throws RegistryException {
         return provider(Key.of(clazz));
     }
     
@@ -103,12 +104,21 @@ public interface Registry {
     }
     
     public static final class ProvisionException extends RuntimeException {
+        public final Class<?> rawType;
+
         public ProvisionException(Throwable cause) {
             super(cause);
+            this.rawType = null;
         }
         
         public ProvisionException(String msg) {
             super(msg);
+            this.rawType = null;
+        }
+        
+        public ProvisionException(String msg, Class<?> rawType) {
+            super(msg);
+            this.rawType = rawType;
         }
         
         private static final long serialVersionUID = 1L;
@@ -151,7 +161,7 @@ public interface Registry {
             return s;
         }
         
-        public static <T> Key<T> of(Class<T> type) {
+        public static <T> Key<T> of(Class<T> type) throws ProvisionException {
             return new Key<>(type, null, null);
         }
         

@@ -41,7 +41,7 @@ public abstract class MvcCompiler {
     );
     static final List<Class<? extends Annotation>> GET_VERB = Collections.singletonList(GET.class);
 
-    public static List<Route.Builder> compile(Class<?> controller, Registry registry) {
+    public static List<Route.Builder> compile(Class<?> controller, Registry registry) throws Registry.ProvisionException {
         return compile(controller, registry.provider(Registry.Key.of(controller)), registry);
     }
 
@@ -255,7 +255,7 @@ public abstract class MvcCompiler {
         int r = 0;
         for (String root : rootPaths) {
             for (String action : actions) {
-                if (rootPaths.equals("/")) { // the 'index' / standard case
+                if (root.equals("/")) { // the 'index' / standard case
                     result[r] = action;
                 } else {
                     result[r] = root + action;

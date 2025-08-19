@@ -15,12 +15,12 @@ public class MvcRouteBuilder implements Route.RouteBuilder {
     private final Object controller;
     
     public MvcRouteBuilder(final Object controller) throws AssertionError {
-        if (!MvcCompiler.hasPath(controller)) throw new AssertionError("Does not have a @Path, not considered controller");
+        if (controller instanceof Class<?> c && c.isRecord()) throw new AssertionError(controller + " is of type 'record', which is not currently eligible as controller");
         
         this.controller = controller;
     }
     
-    public List<Route.Builder> build(Registry registry) {
+    public List<Route.Builder> build(Registry registry) throws Registry.ProvisionException {
         List<Route.Builder> list;
         if (controller instanceof Class<?> c) {
             list = MvcCompiler.compile(c, registry);
