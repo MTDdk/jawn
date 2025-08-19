@@ -98,11 +98,6 @@ public abstract class MvcCompiler {
         return routes;
     }
 
-    static boolean hasPath(Object controller) {
-        if (controller instanceof Class<?> c) return paths(c) != null;
-        return paths(controller.getClass()) != null;
-    }
-    
     static String[] paths(AnnotatedElement elm) {
         // It is possible to have multiple @Path
         Path[] paths = elm.getAnnotationsByType(Path.class);
