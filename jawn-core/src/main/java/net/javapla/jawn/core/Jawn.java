@@ -46,9 +46,9 @@ public class Jawn {
     protected Route.RouteBuilder get(final String path, final Route.Handler handler) {
         return _route(HttpMethod.GET, path, handler);
     }
-    /*protected Route.RouteBuilder get(final String path, final Route.NoResultHandler handler) {
+    protected Route.RouteBuilder get(final String path, final Route.NoResultHandler handler) {
         return _route(HttpMethod.GET, path, handler);
-    }*/
+    }
     protected Route.RouteBuilder get(final String path, final Route.ZeroArgHandler handler) {
         return _route(HttpMethod.GET, path, handler);
     }
@@ -61,10 +61,16 @@ public class Jawn {
     protected Route.RouteBuilder post(final String path, final Route.Handler handler) {
         return _route(HttpMethod.POST, path, handler);
     }
-    /*protected Route.RouteBuilder post(final String path, final Route.NoResultHandler handler) {
+    protected Route.RouteBuilder post(final String path, final Route.NoResultHandler handler) {
         return _route(HttpMethod.POST, path, handler);
-    }*/
+    }
+    protected Route.RouteBuilder post(final String path, final Route.ZeroArgHandler handler) {
+        return _route(HttpMethod.POST, path, handler);
+    }
     protected Route.RouteBuilder put(final String path, final Route.Handler handler) {
+        return _route(HttpMethod.PUT, path, handler);
+    }
+    protected Route.RouteBuilder put(final String path, final Route.NoResultHandler handler) {
         return _route(HttpMethod.PUT, path, handler);
     }
     protected Route.RouteBuilder put(final String path, final Route.ZeroArgHandler handler) {
@@ -73,8 +79,20 @@ public class Jawn {
     protected Route.RouteBuilder delete(final String path, final Route.Handler handler) {
         return _route(HttpMethod.DELETE, path, handler);
     }
+    protected Route.RouteBuilder delete(final String path, final Route.NoResultHandler handler) {
+        return _route(HttpMethod.DELETE, path, handler);
+    }
     protected Route.RouteBuilder delete(final String path, final Route.ZeroArgHandler handler) {
         return _route(HttpMethod.DELETE, path, handler);
+    }
+    protected Route.RouteBuilder options(final String path, final Route.Handler handler) {
+        return _route(HttpMethod.OPTIONS, path, handler);
+    }
+    protected Route.RouteBuilder options(final String path, final Route.NoResultHandler handler) {
+        return _route(HttpMethod.OPTIONS, path, handler);
+    }
+    protected Route.RouteBuilder options(final String path, final Route.ZeroArgHandler handler) {
+        return _route(HttpMethod.OPTIONS, path, handler);
     }
     protected Route.Builder _route(HttpMethod method, final String path, final Route.Handler handler) {
         Route.Builder bob = new Route.Builder(method, _pathPrefix(path), handler);

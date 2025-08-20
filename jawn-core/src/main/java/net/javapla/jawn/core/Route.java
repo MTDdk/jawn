@@ -201,7 +201,7 @@ public final class Route {
         }
     }
 
-    /*public static interface NoResultHandler extends Handler {
+    public static interface NoResultHandler extends Handler {
         void nothing(Context ctx) throws Exception;
         
         default Object handle(Context ctx) throws Exception {
@@ -209,7 +209,7 @@ public final class Route {
             return null;
             // return ctx; // TODO which is better?
         }
-    }*/
+    }
 
     public static interface ZeroArgHandler extends Handler {
         Object zero() throws Exception;
@@ -267,10 +267,6 @@ public final class Route {
         // private Renderer renderer;
         private Type returnType;
         // private ErrorHandler err;
-
-        public Builder(String path) {
-            this(HttpMethod.GET, path, ctx -> ctx);
-        }
 
         public Builder(HttpMethod method, String path, Handler handler) {
             this.method = method;

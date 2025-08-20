@@ -9,6 +9,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 
 import net.javapla.jawn.core.AssertionsHelper;
+import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.internal.RouterImpl.TriePath;
 import net.javapla.jawn.core.internal.RouterImpl.TriePathParser;
@@ -18,12 +19,12 @@ class TriePathParserTest {
     @Test
     void simplePaths() {
         String p = "/simple";
-        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath path = TriePathParser.parse(route(p).build());
         AssertionsHelper.ass(p, path.trieApplicable);
         assertFalse(path.hasParams);
         
         p = "/simple/more/segments";
-        path = TriePathParser.parse(new Route.Builder(p).build());
+        path = TriePathParser.parse(route(p).build());
         AssertionsHelper.ass(p, path.trieApplicable);
         assertFalse(path.hasParams);
     }
@@ -31,7 +32,7 @@ class TriePathParserTest {
     @Test
     void segmentEnd() {
         String p = "/simple/{param}";
-        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath path = TriePathParser.parse(route(p).build());
         AssertionsHelper.ass("/simple/#", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.segments, null, "param");
@@ -40,7 +41,7 @@ class TriePathParserTest {
     @Test
     void wildcardEnd() {
         String p = "/simple/more/{*param}";
-        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath path = TriePathParser.parse(route(p).build());
         AssertionsHelper.ass("/simple/more/*", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(SEGMENT_MAPPER, path.segments, null, null, "param");
@@ -49,7 +50,7 @@ class TriePathParserTest {
     @Test
     void segmentStart() {
         String p = "/{param}/simple";
-        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath path = TriePathParser.parse(route(p).build());
         AssertionsHelper.ass("/#/simple", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.segments, "param", null);
@@ -58,7 +59,7 @@ class TriePathParserTest {
     @Test
     void segmentMiddle() {
         String p = "/simple/{param}/route";
-        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath path = TriePathParser.parse(route(p).build());
         AssertionsHelper.ass("/simple/#/route", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.segments, null, "param", null);
@@ -67,19 +68,19 @@ class TriePathParserTest {
     @Test
     void multipleSegments() {
         String p = "/simple/{param1}/{param2}";
-        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath path = TriePathParser.parse(route(p).build());
         AssertionsHelper.ass("/simple/#/#", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.segments, null, "param1","param2");
         
         p = "/simple/{param1}/{param2}/route/more";
-        path = TriePathParser.parse(new Route.Builder(p).build());
+        path = TriePathParser.parse(route(p).build());
         AssertionsHelper.ass("/simple/#/#/route/more", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.segments, null, "param1","param2", null, null);
         
         p = "/simple/{param1}/between/{param2}/route";
-        path = TriePathParser.parse(new Route.Builder(p).build());
+        path = TriePathParser.parse(route(p).build());
         AssertionsHelper.ass("/simple/#/between/#/route", path.trieApplicable);
         assertTrue(path.hasParams);
         AssertionsHelper.ass(path.segments, null, "param1", null, "param2", null);
@@ -88,7 +89,7 @@ class TriePathParserTest {
     @Test
     void parseRequest() {
         String p = "/simple/{param}";
-        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath path = TriePathParser.parse(route(p).build());
         TriePath parsed = TriePathParser.parseRequest("/simple/pathparam", path);
         assertTrue(parsed.hasParams);
         assertTrue(parsed.isStatic);
@@ -98,7 +99,7 @@ class TriePathParserTest {
     @Test
     void parseRequest_with_wildcard() {
         String p = "/simple/more/{*filepath}";
-        TriePath path = TriePathParser.parse(new Route.Builder(p).build());
+        TriePath path = TriePathParser.parse(route(p).build());
         TriePath parsed = TriePathParser.parseRequest("/simple/more/folder/image.jpg", path);
         assertTrue(parsed.hasParams);
         assertTrue(parsed.isStatic);
@@ -109,14 +110,17 @@ class TriePathParserTest {
     void erroneous() {
         //assertThrows(Up.class, () -> RoutePathParser.parse("/simple/{param/route"));
         
-        TriePath path = TriePathParser.parse(new Route.Builder("/simple/{param/route").build());
+        TriePath path = TriePathParser.parse(route("/simple/{param/route").build());
         AssertionsHelper.ass("/simple/#/route", path.trieApplicable);
         AssertionsHelper.ass(path.segments, null, "param", null);
         
-        path = TriePathParser.parse(new Route.Builder("/simple/route/{param").build());
+        path = TriePathParser.parse(route("/simple/route/{param").build());
         AssertionsHelper.ass("/simple/route/#", path.trieApplicable);
         AssertionsHelper.ass(path.segments, null, null, "param");
     }
     
+    private Route.Builder route(String p) {
+        return new Route.Builder(HttpMethod.GET, p, ctx -> ctx);
+    }
     static final Function<RouterImpl.Segment, String> SEGMENT_MAPPER = segment -> segment == null ? null : segment.name();
 }
