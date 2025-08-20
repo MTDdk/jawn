@@ -118,4 +118,4 @@ javadoc {
 // <AUTH> can be generated with https://central.sonatype.com/api-doc
 // or as described in https://central.sonatype.org/publish/publish-portal-api/#authentication-authorization
 // $ printf "example_username:example_password" | base64
-//curl -XPOST -i -H 'Authorization: Basic <AUTH>' 'https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/net.javapla.jawn'
+//curl -XPOST -i -H 'Authorization: Bearer <AUTH>' 'https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/net.javapla.jawn'
