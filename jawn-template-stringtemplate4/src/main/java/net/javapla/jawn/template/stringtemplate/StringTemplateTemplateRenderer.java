@@ -30,7 +30,7 @@ public class StringTemplateTemplateRenderer implements TemplateRenderer {
     public byte[] render(Context ctx, View template) throws Exception {
         long time = System.currentTimeMillis();
         
-        clearCache();
+        clearCache();// TODO ought to take some MODE into consideration
         
         ST view = group.getInstanceOf(template.view(), templateLoader.loadTemplate(template.view() + FastSTGroup.TEMPLATE_FILE_EXTENSION));
         
@@ -83,7 +83,6 @@ public class StringTemplateTemplateRenderer implements TemplateRenderer {
         return group;
     }
     
-    @SuppressWarnings("unused")
     private void clearCache() {
         group.unload();
     }
