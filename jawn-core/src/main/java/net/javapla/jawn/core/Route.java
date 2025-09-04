@@ -201,7 +201,7 @@ public final class Route {
         }
     }
 
-    public static interface NoResultHandler extends Handler {
+    /*public static interface NoResultHandler extends Handler {
         void nothing(Context ctx) throws Exception;
         
         default Object handle(Context ctx) throws Exception {
@@ -209,7 +209,7 @@ public final class Route {
             return null;
             // return ctx; // TODO which is better?
         }
-    }
+    }*/ // README: interferes with ZeroArgHandler, as they cannot be distinguished, which breaks implementations 
 
     public static interface ZeroArgHandler extends Handler {
         Object zero() throws Exception;
