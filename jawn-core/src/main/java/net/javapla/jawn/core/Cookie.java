@@ -18,6 +18,20 @@ import net.javapla.jawn.core.util.URLCodec;
  */
 public class Cookie {
     
+    /**
+     * The number of seconds in one day (= 60 * 60 * 24).
+     */
+    public static final int ONE_DAY = 60 * 60 * 24;
+    /**
+     * The number of seconds in one year (= 60 * 60 * 24 * 365).
+     */
+    public static final int ONE_YEAR = ONE_DAY * 365;
+    /**
+     * The number of seconds in half a year (= 60 * 60 * 24 * 365 / 2).
+     */
+    public static final int HALF_YEAR = ONE_YEAR >> 1;
+    
+    
     private final String name;
     private final String value;
     private String domain;
