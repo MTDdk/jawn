@@ -1,6 +1,13 @@
 package net.javapla.jawn.core;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public interface SessionStore {
 
@@ -78,5 +85,252 @@ public interface SessionStore {
      *            Session.
      */
     void renewSessionToken(Context ctx, Session session);
+    
+    
+    
+    static SessionStore memory() {
+        return memory(SessionToken.SESSION_COOKIE);
+    }
+    
+    static SessionStore memory(Duration timeout) {
+        return memory(SessionToken.SESSION_COOKIE, timeout);
+    }
+    
+    static SessionStore memory(Cookie cookie) {
+        return memory(SessionToken.cookieToken(cookie));
+    }
+    
+    static SessionStore memory(Cookie cookie, Duration timeout) {
+        return memory(SessionToken.cookieToken(cookie), timeout);
+    }
+    
+    /**
+     * Creates a session store that save data in memory.
+     * - Session expires after 30 minutes of inactivity.
+     * - Session data is not keep after restart.
+     *
+     * @param token Session token.
+     * @return Session store.
+     */
+    static SessionStore memory(final SessionToken token) {
+        return memory(token, DEFAULT_TIMEOUT);
+    }
+    
+    static SessionStore memory(final SessionToken token, final Duration to) {
+        return new SessionStore() {
+            final Duration timeout  = to.toMillis() > 0 ? null : to;
+            final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
+            /*class Data {
+                //private Instant lastAccessedTime;
+                private Instant creationTime;
+                private Map<String, String> data;
+            
+                public Data(Instant creationTime, Instant lastAccessedTime, Map<String, String> data) {
+                    this.creationTime = creationTime;
+                    //this.lastAccessedTime = lastAccessedTime;
+                    this.data = data;
+                }
+            
+                public boolean isExpired(Duration timeout) {
+                    Duration timeElapsed = Duration.between(creationTime lastAccessedTime, Instant.now());
+                    return timeElapsed.compareTo(timeout) > 0;
+                }
+            }*/
+
+            @Override
+            public Session newSession(Context ctx) {
+                String sessionId = token.generateId();
+                Session session = getOrCreate(ctx, sessionId);
+
+                //Session session = restore(ctx, sessionId, data);
+
+                token.saveToken(ctx, sessionId);
+                return session;
+            }
+
+            @Override
+            public Session findSession(Context ctx) {
+                purge();
+                
+                String sessionId = token.findToken(ctx);
+                if (sessionId == null) {
+                    return null;
+                }
+                Session session = sessions.get(sessionId);//getOrNull(sessionId);
+                if (session != null) {
+                    //Session session = restore(ctx, sessionId, data);
+                    token.saveToken(ctx, sessionId);
+                    return session;
+                }
+                return null;
+            }
+            
+            @Override
+            public void saveSession(Context ctx, Session session) {
+                String sessionId = session.id();
+                session.updateAccess();
+                sessions.put(sessionId, session);//new Data(session.getCreationTime(), Instant.now(), session.toMap()));
+            }
+
+            @Override
+            public void touchSession(Context ctx, Session session) {
+                saveSession(ctx, session);
+                token.saveToken(ctx, session.id());
+            }
+
+            @Override
+            public void renewSessionToken(Context ctx, Session session) {
+                String oldId = session.id();
+                /*Data data = sessions.remove(oldId);
+                if (data != null) {
+                    String newId = token.newToken();
+                    session.setId(newId);
+
+                    put(newId, data);
+                }*/
+                Session old = sessions.remove(oldId);
+                if (old != null) {
+                    String newId = token.generateId();
+                    sessions.put(newId, Session.create(this, ctx, newId, session.created(), session.data()));
+                }
+                
+            }
+
+            @Override
+            public void deleteSession(Context ctx, Session session) {
+                String sessionId = session.id();
+                sessions.remove(sessionId);
+                token.deleteToken(ctx, sessionId);
+            }
+
+            private Session getOrCreate(Context ctx, String sessionId) {
+                return sessions.computeIfAbsent(sessionId, sid -> Session.create(this, ctx, sessionId));//new Data(Instant.now(), Instant.now(), new ConcurrentHashMap<>()));
+            }
+
+            /*private Session restore(Context ctx, String sessionId, Data data) {
+                return Session.create(ctx, sessionId, data.creationTime, data.data);
+            }*/
+            
+            /**
+            * Check for expired session and delete them.
+            */
+           private void purge() {
+               if (timeout != null) {
+                   Iterator<Map.Entry<String, Session>> iterator = sessions.entrySet().iterator();
+                   while (iterator.hasNext()) {
+                       Map.Entry<String, Session> entry = iterator.next();
+                       Session session = entry.getValue();
+                       if (session.isExpired(timeout)) {
+                           iterator.remove();
+                       }
+                   }
+               }
+           }
+        };
+    }
+    
+    
+    static SessionStore signed(String secret) {
+        return signed(secret, SessionToken.SESSION_COOKIE);
+    }
+    
+    static SessionStore signed(String secret, Cookie cookie) {
+        return signed(secret, SessionToken.cookieToken(cookie));
+    }
+    
+    /**
+     * Creates a session store that uses (un)signed data. Session data is signed it using
+     * <code>HMAC_SHA256</code>.
+     *
+     * @param secret Secret token to signed data.
+     * @param token Session token to use.
+     * @return A browser session store.
+     */
+    static SessionStore signed(String secret, SessionToken token) {
+        final Crypto.Signer signer = Crypto.Signer.SHA256(secret);
+        
+        Function<String, Map<String, String>> decoder = value -> {
+            value = new String(
+                Base64.getDecoder().decode(value.getBytes(StandardCharsets.UTF_8)), 
+                StandardCharsets.UTF_8);
+            
+            int sep = value.indexOf("|");
+            if (sep <= 0) {
+                return null;
+            }
+            
+            String data = value.substring(sep + 1);
+            String sign = value.substring(0, sep);
+            
+            String unsign = signer.sign(data).equals(sign) ? data : null;
+            if (unsign == null) {
+                return null;
+            }
+
+            return Cookie.CookieCodec.decode(unsign);
+        };
+        
+        Function<Map<String, String>, String> encoder = attributes -> {
+            String encoded = Cookie.CookieCodec.encode(attributes);
+            encoded = signer.sign(encoded) + "|" + encoded;
+            return new String(Base64.getEncoder().withoutPadding().encode(encoded.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
+        };
+        
+        return signed(token, decoder, encoder);
+    }
+    
+    /**
+     * Creates a session store that save data into Cookie. Cookie data is (un)signed it using the given
+     * decoder and encoder.
+     *
+     * @param token Token to use.
+     * @param decoder Decoder to use.
+     * @param encoder Encoder to use.
+     * @return Cookie session store.
+     */
+    static SessionStore signed(SessionToken token, Function<String, Map<String, String>> decoder, Function<Map<String, String>, String> encoder) {
+        return new SessionStore() {
+
+            @Override
+            public Session newSession(Context ctx) {
+                // No id as we do not save the session
+                return Session.create(this, ctx, null);//.setNew(true);
+            }
+
+            @Override
+            public Session findSession(Context ctx) {
+                String signed = token.findToken(ctx);
+                if (signed == null) {
+                    return null;
+                }
+                Map<String, String> attributes = decoder.apply(signed);
+                if (attributes == null || attributes.size() == 0) {
+                    return null;
+                }
+                return Session.create(this, ctx, signed, Instant.now(), attributes);//.setNew(false);
+            }
+
+            @Override
+            public void deleteSession(Context ctx, Session session) {
+                token.deleteToken(ctx, null);
+            }
+
+            @Override
+            public void touchSession(Context ctx, Session session) {
+                token.saveToken(ctx, encoder.apply(session.data()));
+            }
+
+            @Override
+            public void saveSession(Context ctx, Session session) {
+                // no saving internally
+            }
+
+            @Override
+            public void renewSessionToken(Context ctx, Session session) {
+                token.saveToken(ctx, encoder.apply(session.data()));
+            }
+
+        };
+    }
 
 }

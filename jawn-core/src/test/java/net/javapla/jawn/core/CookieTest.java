@@ -97,7 +97,7 @@ class CookieTest {
         Cookie cookie = new Cookie("name", "value");
         assertEquals("/", cookie.path());
         
-        cookie = new Cookie(cookie).path("/test");
+        cookie = cookie.clone().path("/test");
         assertEquals("/test", cookie.path());
     }
 }

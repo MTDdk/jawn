@@ -3,6 +3,7 @@ package net.javapla.jawn.core;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface Session {
     
@@ -75,96 +76,98 @@ public interface Session {
         Duration timeElapsed = Duration.between(lastAccessed(), Instant.now());
         return timeElapsed.compareTo(timeout) > 0;
     }
+    
+    
 
     
-    class SessionImpl implements Session {
-        
-        private Instant lastAccessed = Instant.now();
-        
-        private final SessionStore store;
-        private final Context context;
-        private final String id;
-        private final Instant created;
-        private final Map<String, String> attributes;
-        
-        private SessionImpl(final SessionStore sessionStore, final Context context, final String id, final Instant createdTime, final Map<String, String> attributes) {
-            this.store = sessionStore;
-            this.context = context;
-            this.id = id;
-            this.created = createdTime;
-            this.attributes = attributes;
-        }
-
-        @Override
-        public String id() {
-            return id;
-        }
-
-        @Override
-        public Value get(String name) {
-            return Value.of(attributes.get(name));
-        }
-
-        @Override
-        public Session put(String name, String value) {
-            attributes.put(name, value);
-            updateState();
-            return this;
-        }
-        
-        @Override
-        public boolean has(String key) {
-            return attributes.containsKey(key);
-        }
-
-        @Override
-        public Value remove(String name) {
-            String attr = attributes.remove(name);
-            updateState();
-            return Value.of(attr);
-        }
-
-        @Override
-        public Map<String, String> data() {
-            return attributes; //TODO read-only
-        }
-
-        @Override
-        public Session clear() {
-            attributes.clear();
-            updateState();
-            return this;
-        }
-        
-        @Override
-        public void invalidate() { // destroy
-            context.removeAttribute(NAME);
-            attributes.clear();
-            store.deleteSession(context, this);
-        }
-
-        @Override
-        public Instant created() {
-            return created;
-        }
-
-        @Override
-        public Instant lastAccessed() {
-            return lastAccessed;
-        }
-        
-        @Override
-        public void updateAccess() {
-            lastAccessed = Instant.now();
-        }
-        
-        private void updateState() {
-            updateAccess();
-            store.touchSession(context, this);
-        }
+    static Session create(final SessionStore sessionStore, final Context context, final String id) {
+        return create(sessionStore, context, id, Instant.now(), new ConcurrentHashMap<>()); 
     }
     
+    static Session create(final SessionStore sessionStore, final Context context, final String id, final Instant createdTime, final Map<String, String> attributes) {
+        return new Session() {
+            
+            private Instant lastAccessed = Instant.now();
+
+            @Override
+            public String id() {
+                return id;
+            }
+
+            @Override
+            public Value get(String name) {
+                return Value.of(attributes.get(name));
+            }
+
+            @Override
+            public Session put(String name, String value) {
+                attributes.put(name, value);
+                updateState();
+                return this;
+            }
+            
+            @Override
+            public boolean has(String key) {
+                return attributes.containsKey(key);
+            }
+
+            @Override
+            public Value remove(String name) {
+                String attr = attributes.remove(name);
+                updateState();
+                return Value.of(attr);
+            }
+
+            @Override
+            public Map<String, String> data() {
+                return attributes; //TODO read-only
+            }
+
+            @Override
+            public Session clear() {
+                attributes.clear();
+                updateState();
+                return this;
+            }
+            
+            @Override
+            public void invalidate() { // destroy
+                context.removeAttribute(NAME);
+                attributes.clear();
+                sessionStore.deleteSession(context, this);
+            }
+
+            @Override
+            public Instant created() {
+                return createdTime;
+            }
+
+            @Override
+            public Instant lastAccessed() {
+                return lastAccessed;
+            }
+            
+            @Override
+            public void updateAccess() {
+                lastAccessed = Instant.now();
+            }
+            
+            private void updateState() {
+                updateAccess();
+                sessionStore.touchSession(context, this);
+            }
+        };
+    }
+    
+    
     static interface SessionConfig {
+        
+        void memory();
+        void memory(Duration timeout);
+        
+        void signed(String secret);
+        
+        void store(SessionStore store);
         
     }
 }

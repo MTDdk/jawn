@@ -1,6 +1,7 @@
 package net.javapla.jawn.core;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -33,7 +34,7 @@ public class Jawn {
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
     private final LinkedList<MvcRouteBuilder> mvcControllers = new LinkedList<>();
     private final ServerConfig serverConfig = new ServerConfig();
-    
+    private SessionStore sessionStore = null;
     
     
     public Jawn() {
@@ -164,6 +165,31 @@ public class Jawn {
      */
     protected void controllers() {
         controllers(this.getClass().getPackageName() + ".controllers");
+    }
+    
+    
+    protected Session.SessionConfig session() {
+        return new Session.SessionConfig() {
+            
+            @Override
+            public void memory() {
+                Jawn.this.sessionStore = SessionStore.memory();
+            }
+            @Override
+            public void memory(Duration timeout) {
+                Jawn.this.sessionStore = SessionStore.memory(timeout);
+            }
+            
+            @Override
+            public void signed(String secret) {
+                Jawn.this.sessionStore = SessionStore.signed(secret);
+            }
+            
+            @Override
+            public void store(SessionStore store) {
+                Jawn.this.sessionStore = store;
+            }
+        };
     }
     
     

@@ -52,7 +52,7 @@ public class Cookie {
     /*private int version = 1; rendered obsolete by RFC 6265*/
     
 
-    public Cookie(final Cookie bob) {
+    /*public Cookie(final Cookie bob) {
         this.name = bob.name;
         this.value = bob.value;
         this.domain = bob.domain;
@@ -60,7 +60,8 @@ public class Cookie {
         this.secure = bob.secure;
         this.httpOnly = bob.httpOnly;
         this.maxAge = bob.maxAge;
-    }
+        this.sameSite = bob.sameSite;
+    }*/
     
     public Cookie(String name, /*Nullable*/ String value) {
         if (name == null) throw new IllegalArgumentException(Cookie.class.getSimpleName() + " name = null");
@@ -76,7 +77,7 @@ public class Cookie {
     public String value() {
         return value;
     }
-
+    
     public /*Nullable*/ String domain() {
         return domain;
     }
@@ -159,7 +160,21 @@ public class Cookie {
 
     @Override
     public Cookie clone() {
-        return new Cookie(this);
+        return clone(this.value);
+    }
+    
+    /**
+     * @return A copy of this Cookie with the value changed
+     */
+    public Cookie clone(String value) {
+        return new Cookie(this.name, value)
+            .domain(this.domain)
+            .path(this.path)
+            .secure(this.secure)
+            .httpOnly(this.httpOnly)
+            .maxAge(this.maxAge)
+            .sameSite(this.sameSite)
+            ;
     }
 
     @Override

@@ -144,7 +144,7 @@ public abstract class AbstractContext implements Context {
         /* Cookies */
         @Override
         public Value cookie(String name) {
-            return null;
+            return Value.of(cookies().get(name));
         }
     }
     
