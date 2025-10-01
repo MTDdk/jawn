@@ -56,6 +56,32 @@ public abstract class AbstractContext implements Context {
     /* Session  */
     protected final SessionStore sessionStore;
     
+    @Override
+    public Session session() {
+        Session sesh = sessionOrNull();
+        if (sesh == null) {
+            sesh = sessionStore.newSession(this);
+            attribute(Session.NAME, sesh);
+        }
+        return sesh;
+    }
+
+    @Override
+    public Optional<Session> sessionOptionally() {
+        return Optional.ofNullable(sessionOrNull());
+    }
+
+    private Session sessionOrNull() {
+        Session sesh = (Session) attributeOrNull(Session.NAME);
+        if (sesh == null) {
+            sesh = sessionStore.findSession(this);
+            if (sesh != null) {
+                attribute(Session.NAME, sesh);
+            }
+        }
+        return sesh;
+    }
+    
     
     // ** Route **
     //Route route;

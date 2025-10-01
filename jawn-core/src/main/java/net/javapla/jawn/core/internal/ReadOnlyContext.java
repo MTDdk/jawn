@@ -10,6 +10,7 @@ import java.util.Optional;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.MediaType;
+import net.javapla.jawn.core.Session;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Value;
 
@@ -138,6 +139,16 @@ public class ReadOnlyContext implements Context {
     public Context removeAttribute(String name) {
         c.removeAttribute(name);
         return this;
+    }
+    
+    @Override
+    public Session session() {
+        return c.session();
+    }
+    
+    @Override
+    public Optional<Session> sessionOptionally() {
+        return c.sessionOptionally();
     }
 
     /*@Override

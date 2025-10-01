@@ -189,6 +189,11 @@ public interface Context {
     
     
     // ** Session ** //
+    Session session();
+    Optional<Session> sessionOptionally();
+    default Value session(String name) {
+        return sessionOptionally().map(sesh -> sesh.get(name)).orElse(Value.empty());
+    }
     
     
     // ** Route ** //
