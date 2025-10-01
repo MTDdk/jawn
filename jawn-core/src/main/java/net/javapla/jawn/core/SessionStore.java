@@ -87,6 +87,26 @@ public interface SessionStore {
     void renewSessionToken(Context ctx, Session session);
     
     
+    static final SessionStore EMPTY = new SessionStore() {
+        @Override
+        public Session newSession(Context ctx) { throw Up.sessionMissing(); }
+
+        @Override
+        public Session findSession(Context ctx) { throw Up.sessionMissing(); }
+
+        @Override
+        public void deleteSession(Context ctx, Session session) { throw Up.sessionMissing(); }
+
+        @Override
+        public void touchSession(Context ctx, Session session) { throw Up.sessionMissing(); }
+
+        @Override
+        public void saveSession(Context ctx, Session session) { throw Up.sessionMissing(); }
+
+        @Override
+        public void renewSessionToken(Context ctx, Session session) { throw Up.sessionMissing(); }
+    };
+    
     
     static SessionStore memory() {
         return memory(SessionToken.SESSION_COOKIE);

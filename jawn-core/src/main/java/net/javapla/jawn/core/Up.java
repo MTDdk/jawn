@@ -98,6 +98,10 @@ public abstract class Up extends RuntimeException {
         return Status.SERVER_ERROR;
     }
     
+    public static Up.SessionException sessionMissing() {
+        return new SessionException("No session available");
+    }
+    
     
     public static class IO extends Up {
         public IO(Throwable cause) {
@@ -112,6 +116,12 @@ public abstract class Up extends RuntimeException {
         
         public RegistryException(String msg, Throwable cause) {
             super(Status.SERVER_ERROR, msg, cause);
+        }
+    }
+    
+    public static class SessionException extends Up {
+        public SessionException(String msg) {
+            super(Status.SERVER_ERROR, msg);
         }
     }
     

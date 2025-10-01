@@ -34,7 +34,7 @@ public class Jawn {
     private final LinkedList<Route.Builder> routes = new LinkedList<>();
     private final LinkedList<MvcRouteBuilder> mvcControllers = new LinkedList<>();
     private final ServerConfig serverConfig = new ServerConfig();
-    private SessionStore sessionStore = null;
+    private SessionStore sessionStore = SessionStore.EMPTY;
     
     
     public Jawn() {
@@ -255,7 +255,7 @@ public class Jawn {
         
         // bootstrap
         //bootstrap.boot(mode, serverConfig, sessionConfig.sessionStore, this::buildRoutes);
-        Application moduleConfig = booter.boot(this::buildRoutes);
+        Application moduleConfig = booter.boot(this::buildRoutes, sessionStore);
         
         // TODO ServiceLoader.load Registries after everything else is loaded 
         

@@ -20,6 +20,7 @@ import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Renderer;
 import net.javapla.jawn.core.Route;
 import net.javapla.jawn.core.Router;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.internal.injection.Injector;
 import net.javapla.jawn.core.internal.reflection.ClassSource;
 import net.javapla.jawn.core.internal.reflection.RouteClassAnalyser;
@@ -51,7 +52,7 @@ public class Bootstrapper {
         this(ClassLoader.getSystemClassLoader());
     }
     
-    public synchronized Application boot(Function<Registry, Stream<Route.Builder>> routes) {
+    public synchronized Application boot(Function<Registry, Stream<Route.Builder>> routes, SessionStore sessionStore) {
         
         RouterImpl router = new RouterImpl();
         
@@ -71,6 +72,11 @@ public class Bootstrapper {
             @Override
             public Config config() {
                 return config;
+            }
+            
+            @Override
+            public SessionStore sessionStore() {
+                return sessionStore;
             }
 
             @Override
@@ -97,7 +103,7 @@ public class Bootstrapper {
             
         };
         
-        registerCoreClasses();
+        registerCoreClasses(sessionStore);
         
         installPlugins(moduleConfig);
         //engine.add(MediaType.HTML, new LoxTemplateRenderer());
@@ -169,9 +175,10 @@ public class Bootstrapper {
         });
     }
     
-    private void registerCoreClasses() {
+    private void registerCoreClasses(SessionStore sessionStore) {
         registry.register(Config.class, config);
         registry.register(ClassSource.class, source);
+        registry.register(SessionStore.class, sessionStore);
     }
     
     private void installPlugins(Plugin.Application moduleConfig) {

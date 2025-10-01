@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.TemplateRenderer;
 import net.javapla.jawn.core.internal.Bootstrapper;
 
@@ -15,7 +16,7 @@ class InstallModuleTest {
     @Test
     void test() {
         Bootstrapper bootstrapper = new Bootstrapper();
-        bootstrapper.boot(reg -> Stream.empty());
+        bootstrapper.boot(reg -> Stream.empty(), SessionStore.EMPTY);
         
         TemplateRenderer renderer = bootstrapper.registry().require(TemplateRenderer.class);
         

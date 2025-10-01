@@ -11,6 +11,7 @@ import net.javapla.jawn.core.AbstractContext;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.Router.RoutePath;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.TestableContext;
 import net.javapla.jawn.core.annotation.GET;
 import net.javapla.jawn.core.annotation.Path;
@@ -25,7 +26,7 @@ class E2eMvcTest {
     static void beforeAll() {
         Bootstrapper booter = new Bootstrapper();
         
-        application = booter.boot(reg -> MvcCompiler.compile(ParamsController.class, reg).stream());
+        application = booter.boot(reg -> MvcCompiler.compile(ParamsController.class, reg).stream(), SessionStore.EMPTY);
     }
     
     

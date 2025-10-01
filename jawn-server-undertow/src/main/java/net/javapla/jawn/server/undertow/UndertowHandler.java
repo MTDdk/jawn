@@ -25,12 +25,14 @@ import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Router;
 import net.javapla.jawn.core.Server.ServerConfig;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 
 class UndertowHandler implements HttpHandler {
     
     private final Router router;
+    private final SessionStore sessionStore;
     private final ServerConfig config;
     
     private final int bufferSize;
@@ -41,8 +43,9 @@ class UndertowHandler implements HttpHandler {
     
     //Executor worker;
 
-    public UndertowHandler(Router router, ServerConfig serverConfig) {
+    public UndertowHandler(Router router, SessionStore sessionStore, ServerConfig serverConfig) {
         this.router = router;
+        this.sessionStore = sessionStore;
         this.config = serverConfig;
         
         this.bufferSize = serverConfig.bufferSize();
@@ -71,7 +74,7 @@ class UndertowHandler implements HttpHandler {
             return;
         }*/
         
-        UndertowContext context = new UndertowContext(exchange, config);
+        UndertowContext context = new UndertowContext(exchange, config, sessionStore);
         if (exchange.isInIoThread()) {
             exchange.dispatch(null, () -> {
                 try {

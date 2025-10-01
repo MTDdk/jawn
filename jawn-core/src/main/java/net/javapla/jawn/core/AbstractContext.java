@@ -13,6 +13,10 @@ import net.javapla.jawn.core.util.StringUtil;
 import net.javapla.jawn.core.util.URLCodec;
 
 public abstract class AbstractContext implements Context {
+    
+    public AbstractContext(SessionStore sessionStore) {
+        this.sessionStore = sessionStore;
+    }
 
     // session
     // flash
@@ -50,6 +54,7 @@ public abstract class AbstractContext implements Context {
     
     
     /* Session  */
+    protected final SessionStore sessionStore;
     
     
     // ** Route **

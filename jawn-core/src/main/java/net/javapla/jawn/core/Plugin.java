@@ -17,6 +17,8 @@ public interface Plugin {
         
         Config config();
         
+        SessionStore sessionStore();
+        
         void renderer(MediaType type, Renderer renderer);
         
         void parser(MediaType type, Parser parser);

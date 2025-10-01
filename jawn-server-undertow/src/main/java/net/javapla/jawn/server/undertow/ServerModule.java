@@ -23,7 +23,7 @@ public class ServerModule implements Server {
     @Override
     public Server start(ServerConfig config, Plugin.Application application) {
         
-        HttpHandler handler = new UndertowHandler(application.router(), config);
+        HttpHandler handler = new UndertowHandler(application.router(), application.sessionStore(), config);
         
         Undertow.Builder bob = Undertow.builder()
             .setBufferSize(config.bufferSize())

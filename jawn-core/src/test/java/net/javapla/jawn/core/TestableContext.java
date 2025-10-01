@@ -11,6 +11,14 @@ import net.javapla.jawn.core.WebSocket.Initialiser;
 import net.javapla.jawn.core.util.MultiList;
 
 public class TestableContext extends AbstractContext {
+    
+    public TestableContext() {
+        super(SessionStore.EMPTY);
+    }
+
+    public TestableContext(SessionStore sessionStore) {
+        super(sessionStore);
+    }
 
     @Override
     public Request req() {

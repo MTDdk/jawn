@@ -32,6 +32,7 @@ import net.javapla.jawn.core.Form;
 import net.javapla.jawn.core.HttpMethod;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Server.ServerConfig;
+import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.Status;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Value;
@@ -49,11 +50,13 @@ final class UndertowContext extends AbstractContext implements IoCallback {
           HttpMethod method;
     final String     path;
 
-    private Request        req;
+    private       Request  req;
     private final Response resp;
-    Body                   body = null;
+                  Body     body = null;
 
-    UndertowContext(final HttpServerExchange exchange, final ServerConfig config) {
+    UndertowContext(final HttpServerExchange exchange, final ServerConfig config, final SessionStore sessionStore) {
+        super(sessionStore);
+        
         this.exchange = exchange;
         this.config = config;
         this.path = exchange.getRequestPath();
