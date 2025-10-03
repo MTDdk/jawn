@@ -10,11 +10,14 @@ import java.util.function.Function;
 
 import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
+import net.javapla.jawn.core.Cookie;
 import net.javapla.jawn.core.Value;
 import net.javapla.jawn.core.Form;
+import net.javapla.jawn.core.Session;
 import net.javapla.jawn.core.annotation.HeaderParam;
 import net.javapla.jawn.core.annotation.PathParam;
 import net.javapla.jawn.core.annotation.QueryParam;
+import net.javapla.jawn.core.annotation.SessionParam;
 import net.javapla.jawn.core.internal.ValueParser;
 
 public class ActionParameter {
@@ -39,7 +42,8 @@ public class ActionParameter {
         valued_strategies.put(PathParam.class, (c, p) -> c.req().pathParam(p.name));
         valued_strategies.put(QueryParam.class, (c, p) -> c.req().queryParam(p.name));
         valued_strategies.put(HeaderParam.class, (c, p) -> c.req().header(p.name));
-        //strategies.put(SessionParam.class, (c, p) -> c.session);
+        valued_strategies.put(SessionParam.class, (c, p) -> c.session(p.name));
+        valued_strategies.put(Cookie.class, (c, p) -> c.req().cookie(p.name));
         
         strategies.put(Context.class, (c, p) -> c);
         strategies.put(Context.Request.class, (c, p) -> c.req());
@@ -48,7 +52,7 @@ public class ActionParameter {
         
         strategies.put(Form.class, (c, p) -> c.req().form());
         
-        //strategies.put(Cookie.class, (c, p) -> c.);
+        strategies.put(Session.class, (c, p) -> c.session());
     }
     
     
@@ -105,8 +109,7 @@ public class ActionParameter {
             }
         }
         
-        if (strategy instanceof ValuedStrategy) {
-            final ValuedStrategy s = (ValuedStrategy) strategy;
+        if (strategy instanceof ValuedStrategy s) {
             final Function<Value, ?> converter = ValueParser.converter(type);
             strategy = (c, p) -> converter.apply( s.apply(c, p) );
         }
