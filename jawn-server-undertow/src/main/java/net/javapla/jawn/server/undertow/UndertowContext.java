@@ -22,6 +22,8 @@ import io.undertow.io.IoCallback;
 import io.undertow.io.Sender;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.form.FormData;
+import io.undertow.util.ByteRange;
+import io.undertow.util.DateUtils;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
@@ -221,6 +223,18 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             public Charset charset() {
                 return cs;
             }
+            
+            @Override
+            public long contentLength() {
+                return exchange.getResponseContentLength();
+            }
+            
+            @Override
+            public Response contentLength(long length) {
+                // TODO cache the length if often referenced
+                exchange.setResponseContentLength(length);
+                return this;
+            }
 
             @Override
             public OutputStream stream() {
@@ -252,6 +266,12 @@ final class UndertowContext extends AbstractContext implements IoCallback {
 
             @Override
             public Response respond(ByteBuffer data) {
+                // TODO ought to be from some default calculation or ServerConfig
+                int bufferSize = 1024 * 16 - 20;
+                if (data.remaining() > bufferSize && exchange.isDispatched()) {
+                    exchange.unDispatch();
+                }
+                exchange.setResponseContentLength(data.remaining());
                 exchange.getResponseHeaders().put(Headers.CONTENT_LENGTH, Long.toString(data.remaining()));
                 exchange.getResponseSender().send(data, UndertowContext.this);
                 return this;
@@ -327,30 +347,50 @@ final class UndertowContext extends AbstractContext implements IoCallback {
             @Override
             public Response respond(FileChannel channel) {
                 // TODO handle byte-range
-                /*setChunked();
-                long len;
-                try {
-                    len = channel.size();
-                    final ByteRange range = ByteRange.parse(exchange.getRequestHeaders().getFirst(Headers.RANGE));
+                //setChunked();
+                dispatch(() -> {
+                    try {
+                    long len = channel.size();
+                    net.javapla.jawn.core.ByteRange range = net.javapla.jawn.core.ByteRange.parse(exchange.getRequestHeaders().getFirst(Headers.RANGE), len).apply(UndertowContext.this);
+                    System.out.println(range);
+                    channel.position(range.start());
+                    channel.transferTo(range.start(), range.contentLength(), exchange.getResponseChannel());
+                    exchange.endExchange();
+                    
+                    
+                    /*final ByteRange range = ByteRange.parse(exchange.getRequestHeaders().getFirst(Headers.RANGE));
                     if (range != null && range.getRanges() == 1) {
                         channel.position(range.getStart(0));
                         
                         String lastModified = exchange.getResponseHeaders().getFirst(Headers.LAST_MODIFIED);
                         ByteRange.RangeResponseResult rangeResponse = range.getResponseResult(len, exchange.getRequestHeaders().getFirst(Headers.IF_RANGE), lastModified == null ? null : DateUtils.parseDate(lastModified), exchange.getResponseHeaders().getFirst(Headers.ETAG));
-                        //long start = rangeResponse.getStart();
-                        //long end = rangeResponse.getEnd();
+                        long start = rangeResponse.getStart();
+                        long end = rangeResponse.getEnd();
                         exchange.getResponseHeaders().put(Headers.CONTENT_RANGE, rangeResponse.getContentRange());
                         exchange.setStatusCode(rangeResponse.getStatusCode());
                         exchange.setResponseContentLength(rangeResponse.getContentLength());
                         
                         
-                        channel.transferTo(range.getStart(0), range.getEnd(0), exchange.getResponseChannel());
+                        channel.transferTo(start, end+1, exchange.getResponseChannel());
+                        exchange.endExchange();
+                    }*/
+                    } catch (IOException e) {
+                        throw Up.IO(e);
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
+                });
+                
+                /*try {
+                    long len = channel.size();
+                    exchange.setResponseContentLength(len);
+                    ByteRange range = ByteRange.parse(exchange.getRequestHeaders().getFirst(Headers.RANGE), len).apply(UndertowContext.this);
+                    channel.position(range.start());
+                    new UndertowChunckedHandler(range.end()).send(file, exchange, this);
+                    return this;
+                  } catch (IOException x) {
+                    throw Up.IO(x);
+                  }*/
 
-                dispatch(() -> exchange.getResponseSender().transferFrom(channel, UndertowContext.this));
+                //dispatch(() -> exchange.getResponseSender().transferFrom(channel, UndertowContext.this));
 
                 return this;
             }

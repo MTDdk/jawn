@@ -83,6 +83,8 @@ public interface Context {
         Response charset(Charset encoding);
         Charset charset();
         
+        Response contentLength(long length);
+        long contentLength();
         
         
         Response status(int statusCode);
@@ -90,6 +92,7 @@ public interface Context {
         default Response status(Status status) {
             return status(status.value());
         }
+        
         
         /**
          * 301 Moved Permanently

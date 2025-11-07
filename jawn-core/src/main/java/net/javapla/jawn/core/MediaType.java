@@ -334,6 +334,8 @@ public class MediaType implements Comparable<MediaType> {
             case "webm": return valueOf("video/webm");
             case "mpeg": return valueOf("video/mpeg");
             
+            case "mp3": return valueOf("audio/mpeg");
+            
             case "json": return JSON;
             case "xml": return XML;
             case "zip": return valueOf("application/zip");

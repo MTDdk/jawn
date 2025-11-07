@@ -26,9 +26,9 @@ public abstract class Up extends RuntimeException {
         return status;
     }
     
-    /*public static Up because(Throwable cause) {
-        return new Up();
-    }*/
+    public static Up because(Status status, String msg) {
+        return new Up(status, msg) {};
+    }
 
     public static Up.IO IO(Throwable cause) {
         return new Up.IO(cause);

@@ -100,32 +100,32 @@ public class TestableContext extends AbstractContext {
             
             @Override
             public Response status(int statusCode) {
-                return null;
+                return this;
             }
             
             @Override
             public Response respond(FileChannel channel) {
-                return null;
+                return this;
             }
             
             @Override
             public Response respond(InputStream stream) {
-                return null;
+                return this;
             }
             
             @Override
             public Response respond(ByteBuffer data) {
-                return null;
+                return this;
             }
             
             @Override
             public Response respond(Status status) {
-                return null;
+                return this;
             }
             
             @Override
             public Response removeHeader(String name) {
-                return null;
+                return this;
             }
             
             @Override
@@ -135,7 +135,7 @@ public class TestableContext extends AbstractContext {
             
             @Override
             public Response header(String name, String value) {
-                return null;
+                return this;
             }
             
             @Override
@@ -145,7 +145,17 @@ public class TestableContext extends AbstractContext {
             
             @Override
             public Response contentType(MediaType type) {
-                return null;
+                return this;
+            }
+            
+            @Override
+            public long contentLength() {
+                return 0;
+            }
+            
+            @Override
+            public Response contentLength(long length) {
+                return this;
             }
             
             @Override
@@ -160,12 +170,12 @@ public class TestableContext extends AbstractContext {
             
             @Override
             public Response charset(Charset encoding) {
-                return null;
+                return this;
             }
 
             @Override
             public Response cookie(Cookie cookie) {
-                return null;
+                return this;
             }
         };
     }
