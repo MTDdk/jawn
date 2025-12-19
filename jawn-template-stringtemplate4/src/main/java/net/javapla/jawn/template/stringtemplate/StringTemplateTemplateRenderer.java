@@ -23,6 +23,8 @@ public class StringTemplateTemplateRenderer implements TemplateRenderer {
         
         this.templateLoader = templateLoader;
         this.group = createTemplateGroup(templateLoader, new StringTemplateConfiguration());
+        //this.group.registerModelAdaptor(null, null);
+        
         
     }
 
@@ -33,6 +35,7 @@ public class StringTemplateTemplateRenderer implements TemplateRenderer {
         clearCache();// TODO ought to take some MODE into consideration
         
         ST view = group.getInstanceOf(template.view(), templateLoader.loadTemplate(template.view() + FastSTGroup.TEMPLATE_FILE_EXTENSION));
+        //view.add("style", new Object());
         
         inject(view, template);
         
