@@ -123,8 +123,8 @@ public final class Route {
 
                 try {
                     if (ctx.resp().isResponseStarted()) {
-                        next.after(new ReadOnlyContext(ctx), result, cause);
-                        result = ctx;
+                        result = new ReadOnlyContext(ctx);
+                        next.after((Context)result, result, cause);
                     } else {
                         next.after(ctx, result, cause);
                     }
