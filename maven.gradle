@@ -35,7 +35,7 @@ publishing {
       
       
       pom {
-        name = "${project.group}:${rootProject.name}"
+        name = "${project.group}:${project.name}"
         description = 'jawn - A simple web framework in Java'
         url = 'https://github.com/MTDdk/jawn'
         
