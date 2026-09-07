@@ -2,6 +2,7 @@ package net.javapla.jawn.core.internal.injection;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 
 public interface ConstructorProxy<T> {
     
@@ -26,6 +27,11 @@ public interface ConstructorProxy<T> {
         
         public ReflectionProxy(Constructor<T> constructor) {
             this.constructor = constructor;
+            
+            if (!Modifier.isPublic(constructor.getDeclaringClass().getModifiers()) 
+                || !Modifier.isPublic(constructor.getModifiers())) {
+                constructor.setAccessible(true);
+            }
         }
         
         public T newInstance(Object... arguments) throws InvocationTargetException {
