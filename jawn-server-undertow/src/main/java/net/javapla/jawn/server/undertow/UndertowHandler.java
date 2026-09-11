@@ -24,6 +24,7 @@ import io.undertow.util.Headers;
 import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.Router;
+import net.javapla.jawn.core.Router.RoutePath;
 import net.javapla.jawn.core.Server.ServerConfig;
 import net.javapla.jawn.core.SessionStore;
 import net.javapla.jawn.core.Status;
@@ -41,8 +42,6 @@ class UndertowHandler implements HttpHandler {
     
     private final FormParserFactory parserFactory;
     
-    //Executor worker;
-
     public UndertowHandler(Router router, SessionStore sessionStore, ServerConfig serverConfig) {
         this.router = router;
         this.sessionStore = sessionStore;
@@ -63,40 +62,7 @@ class UndertowHandler implements HttpHandler {
     
     @Override
     public void handleRequest(HttpServerExchange exchange) throws Exception {
-        // If the handlers are doing IO like writing directly to the response outputstream,
-        // the request have to be dispatched in to a worker thread.
-        // This, of course it not always the case, but it is far better to just always have the request delegated
-        // to a worker thread.
-        // Ideally, this worker thread could be configured by the developer if they do not want to use
-        // the worker pool of the server.
-        /*if (exchange.isInIoThread()) {
-            exchange.dispatch(this);
-            return;
-        }*/
-        
         UndertowContext context = new UndertowContext(exchange, config, sessionStore);
-        if (exchange.isInIoThread()) {
-            exchange.dispatch(null, () -> {
-                try {
-                    handle(context, exchange);
-                } catch (Exception e) {
-                    context.error(e);
-                }
-            });
-        } else {
-            handle(context, exchange);
-        }
-        /*worker.execute(() -> {
-            try {
-                run(context, exchange);
-            } catch (Exception e) {
-                context.error(e);
-            }
-        });*/
-        
-    }
-    
-    private void handle(final UndertowContext context, final HttpServerExchange exchange) throws Exception {
         
         HeaderMap headers = exchange.getResponseHeaders();
         headers.put(Headers.CONTENT_TYPE, Context.Response.STANDARD_HEADER_CONTENT_TYPE);
@@ -104,17 +70,25 @@ class UndertowHandler implements HttpHandler {
             headers.add(Headers.SERVER, "Jawn/U");
         }
         
-        if (!context.method.mightContainBody) {
-            
+        if (!context.method.mightContainBody) { // usually GET
             router.retrieve(context.method.ordinal(), context.path).execute(context);
+        } else { // might contain HTTP body
             
-        } else {
-            // Might include a body
-
             long len = exchange.getRequestContentLength();
-            if (len > 0) {
+            String chunked = exchange.getRequestHeaders().getFirst(Headers.TRANSFER_ENCODING);
+            
+            if (len > 0 || chunked != null) {
                 // With the existence of Content-Length, we assume body present
                 
+                if (len > maxRequestSize) {
+                    RoutePath path = router.retrieve(context.method.ordinal(), context.path);
+                    
+                    context.resp().status(Status.REQUEST_ENTITY_TOO_LARGE);
+                    context.error(Up.because(Status.REQUEST_ENTITY_TOO_LARGE));
+                    path.execute(context); // might or might not handle 404 correctly
+                    
+                    return;
+                }
                 
                 // If the request is either "multipart/form-data" or "application/x-www-form-urlencoded"
                 // the parserFactory will provide us with a form data parser
@@ -125,9 +99,9 @@ class UndertowHandler implements HttpHandler {
                         // @see io.undertow.server.handlers.form.EagerFormParsingHandler
                         parser.parse(execute(router, context));
                     } catch (Exception e) {
-                        context.resp().respond(Status.BAD_REQUEST);
-                        // TODO log the error
+                        context.resp().status(Status.BAD_REQUEST);
                         context.error(e);
+                        router.retrieve(context.method.ordinal(), context.path).execute(context);
                     }
                     
                 } else {
@@ -143,7 +117,6 @@ class UndertowHandler implements HttpHandler {
                     } else {
                         receiver.receivePartialBytes(new PartialBodyReceiver(context));
                     }
-                    
                 }
                 
             } else {
@@ -155,6 +128,101 @@ class UndertowHandler implements HttpHandler {
             }
         }
     }
+    
+//    //@Override
+//    public void _handleRequest(HttpServerExchange exchange) throws Exception {
+//        // If the handlers are doing IO like writing directly to the response outputstream,
+//        // the request have to be dispatched in to a worker thread.
+//        // This, of course it not always the case, but it is far better to just always have the request delegated
+//        // to a worker thread.
+//        // Ideally, this worker thread could be configured by the developer if they do not want to use
+//        // the worker pool of the server.
+//        /*if (exchange.isInIoThread()) {
+//            exchange.dispatch(this);
+//            return;
+//        }*/
+//        
+//        UndertowContext context = new UndertowContext(exchange, config, sessionStore);
+//        if (exchange.isInIoThread()) {
+//            exchange.dispatch(null, () -> {
+//                try {
+//                    handle(context, exchange);
+//                } catch (Exception e) {
+//                    context.error(e);
+//                }
+//            });
+//        } else {
+//            handle(context, exchange);
+//        }
+//        /*worker.execute(() -> {
+//            try {
+//                run(context, exchange);
+//            } catch (Exception e) {
+//                context.error(e);
+//            }
+//        });*/
+//        
+//    }
+//    
+//    private void handle(final UndertowContext context, final HttpServerExchange exchange) throws Exception {
+//        
+//        HeaderMap headers = exchange.getResponseHeaders();
+//        headers.put(Headers.CONTENT_TYPE, Context.Response.STANDARD_HEADER_CONTENT_TYPE);
+//        if (addDefaultHeaders) {
+//            headers.add(Headers.SERVER, "Jawn/U");
+//        }
+//        
+//        if (!context.method.mightContainBody) {
+//            
+//            router.retrieve(context.method.ordinal(), context.path).execute(context);
+//            
+//        } else {
+//            // Might include a body
+//
+//            long len = exchange.getRequestContentLength();
+//            if (len > 0) {
+//                // With the existence of Content-Length, we assume body present
+//                
+//                
+//                // If the request is either "multipart/form-data" or "application/x-www-form-urlencoded"
+//                // the parserFactory will provide us with a form data parser
+//                FormDataParser parser = parserFactory.createParser(exchange);
+//                if (parser != null) {
+//                    try (parser) {
+//                        // Eagerly parsing Form data
+//                        // @see io.undertow.server.handlers.form.EagerFormParsingHandler
+//                        parser.parse(execute(router, context));
+//                    } catch (Exception e) {
+//                        context.resp().respond(Status.BAD_REQUEST);
+//                        // TODO log the error
+//                        context.error(e);
+//                    }
+//                    
+//                } else {
+//                    
+//                    // Apparently the body was not form data
+//                    // Read the entire thing, and we will deal with it later
+//                    
+//                    Receiver receiver = exchange.getRequestReceiver();
+//                    
+//                    if (len > 0 && len <= bufferSize) {
+//                        receiver.receiveFullBytes(UndertowHandler.receiveFullBytes(context));
+//                        router.retrieve(context.method.ordinal(), context.path).execute(context);
+//                    } else {
+//                        receiver.receivePartialBytes(new PartialBodyReceiver(context));
+//                    }
+//                    
+//                }
+//                
+//            } else {
+//                
+//                // Apparently no body
+//                // Just execute route
+//                router.retrieve(context.method.ordinal(), context.path).execute(context);
+//                
+//            }
+//        }
+//    }
     
     private static final Path TMP_DIR = Paths.get(System.getProperty("java.io.tmpdir"));
 

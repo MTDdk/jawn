@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import net.javapla.jawn.core.internal.ReadOnlyContext;
 import net.javapla.jawn.core.util.MultiList;
 import net.javapla.jawn.core.util.PrintJournalist;
 
@@ -29,6 +30,8 @@ public interface Context {
         HttpMethod httpMethod();
         String path();
         String address();
+        String protocol();
+        String scheme();
         String queryString();
         Value queryParam(String name); // URLDecoded
         
@@ -217,6 +220,9 @@ public interface Context {
             resp().respond(Status.SERVER_ERROR);
         }
     }
+    default void debug(String message, Throwable t) {
+        Jawn.SYS_ERROR_LOG.debug(message, t);
+    }
 
 
     interface FormItem extends Closeable {
@@ -290,4 +296,8 @@ public interface Context {
         String contentType();
     }
     
+    
+    static Context readOnly(Context c) {
+        return new ReadOnlyContext(c);
+    }
 }

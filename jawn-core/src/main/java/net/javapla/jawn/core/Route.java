@@ -232,6 +232,7 @@ public final class Route {
      */
     public static interface Execution {
         void execute(Context ctx);
+        //void execute(Context c, Route.Handler handler);
     }
 
     // TODO

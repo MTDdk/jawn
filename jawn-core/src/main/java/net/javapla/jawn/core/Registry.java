@@ -135,20 +135,18 @@ public interface Registry {
             this.type = type;
             this.name = name;
             this.annotation = annotation;
-            this.hashCode = Arrays.hashCode(new Object[]{type, name, annotation}); // automatically checks for null
+            
+            this.hashCode = Arrays.hashCode(new Object[]{type, name}); // automatically checks for null
         }
         
         @Override
         public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null || getClass() != obj.getClass()) return false;
-            
-            if (!(obj instanceof Key)) return false;
-            
-            Key<?> that = (Key<?>) obj;
-            return this.type.equals(that.type) && Objects.equals(this.name, that.name) && Objects.equals(this.annotation, that.annotation);
+          if (obj instanceof Key<?> key) {
+            return this.type.equals(key.type) && Objects.equals(this.name, key.name);
+          }
+          return false;
         }
-        
+
         @Override
         public int hashCode() {
             return hashCode;

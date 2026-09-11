@@ -24,6 +24,7 @@ import net.javapla.jawn.core.Server;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.WebSocket;
 
+@Deprecated
 class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, WebSocket.Listener, WebSocketCallback<Void> {
     
     // The specification for websockets states that we have to keep track of all clients
@@ -290,6 +291,7 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
         return bytes;
     }
     
+    
     private void handleClose(WebSocket.WebSocketCloseStatus status) {
         if (isOpen()) {
             open.set(false);
@@ -372,6 +374,36 @@ class UndertowWebSocket extends AbstractReceiveListener implements WebSocket, We
     // already refers to this single Route
     //final static ConcurrentHashMap<WebSocket.Initialiser, WebSocketProtocolHandshakeHandler> SOCKET_HANDLERS = new ConcurrentHashMap<>(2);
     //final static AttachmentKey<UndertowContext> CONTEXT_KEY = AttachmentKey.create(UndertowContext.class);
+
+    @Override
+    public WebSocket send(String message, WriteCallback callback) {
+        return null;
+    }
+
+    @Override
+    public WebSocket send(ByteBuffer message, WriteCallback callback) {
+        return null;
+    }
+
+    @Override
+    public WebSocket binary(String message, WriteCallback callback) {
+        return null;
+    }
+
+    @Override
+    public WebSocket binary(ByteBuffer message, WriteCallback callback) {
+        return null;
+    }
+
+    @Override
+    public WebSocket ping(String message, WriteCallback callback) {
+        return null;
+    }
+
+    @Override
+    public WebSocket ping(ByteBuffer message, WriteCallback callback) {
+        return null;
+    }
     
     // Whenever a channel is closed, have a look at how many other channels for the same handler/route are currently
     // available and remove the WebSocketProtocolHandshakeHandler if it is no longer needed.

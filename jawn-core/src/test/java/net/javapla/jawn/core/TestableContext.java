@@ -81,6 +81,16 @@ public class TestableContext extends AbstractContext {
             public Map<String, String> cookies() {
                 return null;
             }
+
+            @Override
+            public String protocol() {
+                return null;
+            }
+
+            @Override
+            public String scheme() {
+                return null;
+            }
         };
     }
 

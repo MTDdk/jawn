@@ -44,13 +44,13 @@ public class Injector implements Registry {
     
     @Override
     public <T> Injector register(Key<T> key, T instance) {
-        bindings.put(key, singleton(instance));
+        register(key, singleton(instance));
         return this;
     }
 
     @Override
     public <T> Injector register(Key<T> key, Provider<? extends T> provider) {
-        bindings.put(key, provider);
+        bindings.putIfAbsent(key, provider);
         return this;
     }
 
@@ -95,7 +95,8 @@ public class Injector implements Registry {
         
         if (key.type.isAnnotationPresent(Singleton.class)) {
             // instantiate and save as singleton
-            provider = singleton(provider.get());
+            return check(bindings.computeIfAbsent(key, k -> singleton(provider.get())));
+            //provider = singleton(provider.get());
         }
         
         register(key, provider);
