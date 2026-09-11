@@ -1,13 +1,8 @@
-package net.javapla.jawn.template.stringtemplate.rewrite;
+package org.stringtemplate.v4;
 
 import java.nio.file.NoSuchFileException;
+import java.util.Arrays;
 
-import org.stringtemplate.v4.InstanceScope;
-import org.stringtemplate.v4.Interpreter;
-import org.stringtemplate.v4.ModelAdaptor;
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STGroupDir;
 import org.stringtemplate.v4.compiler.CompiledST;
 import org.stringtemplate.v4.compiler.Compiler;
 import org.stringtemplate.v4.compiler.FormalArgument;
@@ -15,6 +10,7 @@ import org.stringtemplate.v4.misc.ErrorType;
 import org.stringtemplate.v4.misc.STNoSuchPropertyException;
 
 import net.javapla.jawn.template.stringtemplate.ViewTemplateLoader;
+import net.javapla.jawn.template.stringtemplate.rewrite.ObjectWithAttributeNamedGettersModelAdaptor;
 
 
 public class FastSTGroup extends STGroup {
@@ -45,10 +41,12 @@ public class FastSTGroup extends STGroup {
             }
         });
         
-        FormalArgument argument = new FormalArgument("link");
-        argument.index = 0;
-        loadTemplate("/style", "smaddermanden $link$").addArg(argument);
-        System.out.println(templates);
+        CompiledST css = loadTemplate("/css", "<link rel=\"stylesheet\" type=\"text/css\" href=\"$link$\"$if(integrity)$ integrity=\"$integrity$\"$endif$$if(defer)$ defer=\"defer\"$endif$>");
+        int argIndex = 0;
+        FormalArgument link = new FormalArgument("link"), defer = new FormalArgument("defer"), integrity = new FormalArgument("integrity");
+        link.index = argIndex++; css.addArg(link);
+        integrity.index = argIndex++;integrity.defaultValue = null; css.addArg(integrity);
+        defer.index = argIndex++; defer.defaultValue = false; css.addArg(defer);
     }
     
     public ST getInstanceOf(String name, String template ) {
@@ -135,4 +133,20 @@ public class FastSTGroup extends STGroup {
         return createStringTemplate(code); //tryClone() ?
     }
 
+    @Override
+    public ST createStringTemplate(CompiledST impl) {
+        ST st = new CustomST();
+        st.impl = impl;
+        st.groupThatCreatedThisInstance = this;
+        if ( impl.formalArguments!=null ) {
+            st.locals = new Object[impl.formalArguments.size()];
+            Arrays.fill(st.locals, ST.EMPTY_ATTR);
+        }
+        return st;
+    }
+    
+    @Override
+    public ST createStringTemplateInternally(ST proto) {
+        return new CustomST(proto); // no need to wack debugState; not set in ST(proto).
+    }
 }

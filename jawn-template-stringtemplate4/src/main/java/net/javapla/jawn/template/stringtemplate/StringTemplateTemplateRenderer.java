@@ -2,6 +2,7 @@ package net.javapla.jawn.template.stringtemplate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.stringtemplate.v4.FastSTGroup;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STErrorListener;
 import org.stringtemplate.v4.misc.ErrorManager;
@@ -11,7 +12,6 @@ import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.TemplateRenderer;
 import net.javapla.jawn.core.View;
 import net.javapla.jawn.template.stringtemplate.rewrite.FastAutoIndentWriter;
-import net.javapla.jawn.template.stringtemplate.rewrite.FastSTGroup;
 
 public class StringTemplateTemplateRenderer implements TemplateRenderer {
     private final Logger log = LoggerFactory.getLogger(getClass().getSimpleName());

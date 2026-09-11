@@ -11,7 +11,7 @@ import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.misc.ObjectModelAdaptor;
 import org.stringtemplate.v4.misc.STNoSuchPropertyException;
 
-class ObjectWithAttributeNamedGettersModelAdaptor extends ObjectModelAdaptor<Object> {
+public class ObjectWithAttributeNamedGettersModelAdaptor extends ObjectModelAdaptor<Object> {
 
     @Override
     public synchronized Object getProperty(Interpreter interp, ST self, Object model, Object property, String propertyName) throws STNoSuchPropertyException {
