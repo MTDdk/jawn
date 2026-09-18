@@ -23,7 +23,7 @@ public class FastSTGroup extends STGroup {
         this.templateLoader = loader;
         
         STGroupDir.verbose = false;
-        Interpreter.trace = false;
+        Interpreter.trace = true;
         
         STGroupDir.trackCreationEvents = true;
         
@@ -41,12 +41,15 @@ public class FastSTGroup extends STGroup {
             }
         });
         
-        CompiledST css = loadTemplate("/css", "<link rel=\"stylesheet\" type=\"text/css\" href=\"$link$\"$if(integrity)$ integrity=\"$integrity$\"$endif$$if(defer)$ defer=\"defer\"$endif$>");
+        /*CompiledST css = loadTemplate("/css", "<link rel=\"stylesheet\" type=\"text/css\" href=\"$link$\"$if(integrity)$ integrity=\"$integrity$\"$endif$$if(defer)$ defer=\"defer\"$endif$>");
         int argIndex = 0;
         FormalArgument link = new FormalArgument("link"), defer = new FormalArgument("defer"), integrity = new FormalArgument("integrity");
         link.index = argIndex++; css.addArg(link);
         integrity.index = argIndex++;integrity.defaultValue = null; css.addArg(integrity);
-        defer.index = argIndex++; defer.defaultValue = false; css.addArg(defer);
+        defer.index = argIndex++; defer.defaultValue = false; css.addArg(defer);*/
+        CompiledST ss = loadTemplate("/stylesheets", "$j_css$");
+        FormalArgument link = new FormalArgument("j_css");
+        link.index = 0; ss.addArg(link);
     }
     
     public ST getInstanceOf(String name, String template ) {
@@ -106,14 +109,6 @@ public class FastSTGroup extends STGroup {
             fullyQualifiedName = scope.st.impl.prefix + name;
         }
         CompiledST code = rawGetTemplate(fullyQualifiedName);
-        System.out.println("getEmbeddedInstanceOf " + fullyQualifiedName + " " + code + " " + templates);
-        if ( code == null) {
-            FormalArgument argument = new FormalArgument("link");
-            argument.index = 0;
-            code = loadTemplate("/style", "smaddermanden $link$");
-            code.addArg(argument);
-        }
-        
         
         // TODO not fully tested and does clearly not handle if templateLoader returns an invalid response
         if (code == null) { // we might need to look at the filesystem
@@ -142,6 +137,7 @@ public class FastSTGroup extends STGroup {
             st.locals = new Object[impl.formalArguments.size()];
             Arrays.fill(st.locals, ST.EMPTY_ATTR);
         }
+        System.out.println("createstringtemplate " + impl.name);
         return st;
     }
     

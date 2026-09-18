@@ -2,16 +2,13 @@ package org.stringtemplate.v4;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.stringtemplate.v4.Interpreter.ArgumentsMap;
-import org.stringtemplate.v4.Interpreter.ObjectList;
 import org.stringtemplate.v4.compiler.Bytecode;
 import org.stringtemplate.v4.compiler.Compiler;
+import org.stringtemplate.v4.compiler.FormalArgument;
 import org.stringtemplate.v4.debug.EvalTemplateEvent;
 import org.stringtemplate.v4.misc.ErrorManager;
 import org.stringtemplate.v4.misc.ErrorType;
@@ -22,14 +19,17 @@ public class ExtendedInterpreter extends Interpreter {
     
     public ExtendedInterpreter(STGroup group, Locale locale, boolean debug) {
         super(group, locale, debug);
+        //System.out.println("ExtendedInterpreter(STGroup group, Locale locale, boolean debug)");
     }
     
     public ExtendedInterpreter(STGroup group, ErrorManager errMgr, boolean debug) {
         super(group, errMgr, debug);
+        //System.out.println("ExtendedInterpreter(STGroup group, ErrorManager errMgr, boolean debug)");
     }
 
     public ExtendedInterpreter(STGroup group, Locale locale, ErrorManager errMgr, boolean debug) {
         super(group, locale, errMgr, debug);
+        //System.out.println("ExtendedInterpreter(STGroup group, Locale locale, ErrorManager errMgr, boolean debug)");
     }
 
     @Override
@@ -338,8 +338,19 @@ public class ExtendedInterpreter extends Interpreter {
 //                  nwline += n1;
 //                  break;
                 case 49: 
-                    
                     operands[sp] = stylesheet(scope, operands[sp]);
+                    break;
+                case 50:
+                    //operands[sp] = null;
+                    stylesStackPointer = sp;
+                    //st = self.groupThatCreatedThisInstance.getEmbeddedInstanceOf(this, scope, "/stylesheets");
+                    //st.rawSetAttribute("j_css", CSS);
+                    // get n args and store into st's attr list
+                    //storeArgs(scope, attrs, st);
+                    //operands[++sp] = st;
+                    scope.st.impl.addArg(new FormalArgument("j_css"));
+                    scope.st.add("j_css", CSS);
+                    System.out.println("stylesStackPointer = sp  " + sp);
                     break;
                 default :
                     errMgr.internalError(self, "invalid bytecode @ "+(ip-1)+": "+opcode, null);
@@ -352,9 +363,22 @@ public class ExtendedInterpreter extends Interpreter {
             EvalTemplateEvent e = new EvalTemplateEvent(scope, start, stop);
             trackDebugEvent(scope, e);
         }
+        
+        System.out.println(java.util.Arrays.toString(operands));
+        
+        System.out.println("stylesStackPointer  " + stylesStackPointer);
+        System.out.println(CSS);
+        if (!CSS.isEmpty() && stylesStackPointer > 0) {
+            StringBuilder bob = new StringBuilder();
+            CSS.stream().forEach(css -> bob.append("<import href=\"").append(css).append("\">").append('\n'));
+            operands[stylesStackPointer] = bob.toString();
+        }
+        
         return n;
     }
     
+    static int stylesStackPointer = -1;
+    public static final List<String> CSS = new ArrayList<>();
     public Object stylesheet(InstanceScope scope, Object v) {
         /*if ( v==null ) return null;
         v = convertAnythingIteratableToIterator(scope, v);
@@ -365,6 +389,8 @@ public class ExtendedInterpreter extends Interpreter {
             return a;
         }
         return v;*/
-        return "<import stylesheet="+v+" />";
+        //return "<import stylesheet="+v+" />";
+        CSS.add("<import stylesheet="+v+" />");
+        return "";
     }
 }
