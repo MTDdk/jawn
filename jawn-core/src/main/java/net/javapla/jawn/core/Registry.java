@@ -141,10 +141,10 @@ public interface Registry {
         
         @Override
         public boolean equals(Object obj) {
-          if (obj instanceof Key<?> key) {
-            return this.type.equals(key.type) && Objects.equals(this.name, key.name);
-          }
-          return false;
+            if (obj instanceof Key<?> key) {
+                return this.type.equals(key.type) && Objects.equals(this.name, key.name);
+            }
+            return false;
         }
 
         @Override

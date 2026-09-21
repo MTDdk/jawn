@@ -1,7 +1,6 @@
 package net.javapla.jawn.core.internal.injection;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.javapla.jawn.core.Registry;
@@ -15,7 +14,7 @@ import net.javapla.jawn.core.annotation.Singleton;
  */
 public class Injector implements Registry {
     
-    private final Map<Key<?>, Provider<?>> bindings = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Key<?>, Provider<?>> bindings = new ConcurrentHashMap<>();
     
     public Injector() {
         // reference yourself

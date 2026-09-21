@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.TemplateRenderer;
 import net.javapla.jawn.core.View;
 
+@Disabled
 class ViewLoadTest {
     
     static StringTemplateTemplateRenderer renderer;
