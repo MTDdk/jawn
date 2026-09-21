@@ -26,5 +26,13 @@ class RouteTest {
         object = new Route.Builder(HttpMethod.GET, "/", handler).build().handler().handle(context);
         assertEquals(19, object);
     }
+    
+    @Test
+    void returnType() throws Exception {
+        Context context = new TestableContext();
+        Object wantedResult = "all good";
+        Object object = new Route.Builder(HttpMethod.GET, "/testing", (ctx) -> wantedResult).returnType(wantedResult.getClass()).build().handler().handle(context);
+        assertEquals(wantedResult, object);
+    }
 
 }

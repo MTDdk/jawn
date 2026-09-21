@@ -10,6 +10,7 @@ import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupDir;
 import org.stringtemplate.v4.compiler.CompiledST;
 import org.stringtemplate.v4.compiler.Compiler;
+import org.stringtemplate.v4.compiler.FormalArgument;
 import org.stringtemplate.v4.misc.ErrorType;
 import org.stringtemplate.v4.misc.STNoSuchPropertyException;
 
@@ -28,6 +29,8 @@ public class FastSTGroup extends STGroup {
         STGroupDir.verbose = false;
         Interpreter.trace = false;
         
+        STGroupDir.trackCreationEvents = true;
+        
         // overwrite the ObjectModelAdaptor
         adaptors.put(Object.class, new ObjectWithAttributeNamedGettersModelAdaptor());
         adaptors.put(Object[].class, new ModelAdaptor<Object>() {
@@ -41,6 +44,11 @@ public class FastSTGroup extends STGroup {
                 return ((Object[])model)[Integer.valueOf(propertyName)];
             }
         });
+        
+        FormalArgument argument = new FormalArgument("link");
+        argument.index = 0;
+        loadTemplate("/style", "smaddermanden $link$").addArg(argument);
+        System.out.println(templates);
     }
     
     public ST getInstanceOf(String name, String template ) {
@@ -53,6 +61,7 @@ public class FastSTGroup extends STGroup {
     
     // TODO might need some revision
     public CompiledST lookupTemplate(String name, String template) {
+        System.out.println("lookupTemplate("+name+","+template+")");
         CompiledST code = rawGetTemplate(name);
         if ( code == NOT_FOUND_ST ) {
             return null; //  previously seen as not found
@@ -77,7 +86,7 @@ public class FastSTGroup extends STGroup {
         //impl.nativeGroup = this;
         //impl.templateDefStartToken = nameT;
         //impl.prefix = getPrefix(fullyQualifiedTemplateName);
-        //templates.put(fullyQualifiedTemplateName, impl);
+        //templates.put(fullyQualifiedTemplateName, impl); // already done in #rawDefineTemplate
         return impl;
     }
 
@@ -99,6 +108,14 @@ public class FastSTGroup extends STGroup {
             fullyQualifiedName = scope.st.impl.prefix + name;
         }
         CompiledST code = rawGetTemplate(fullyQualifiedName);
+        System.out.println("getEmbeddedInstanceOf " + fullyQualifiedName + " " + code + " " + templates);
+        if ( code == null) {
+            FormalArgument argument = new FormalArgument("link");
+            argument.index = 0;
+            code = loadTemplate("/style", "smaddermanden $link$");
+            code.addArg(argument);
+        }
+        
         
         // TODO not fully tested and does clearly not handle if templateLoader returns an invalid response
         if (code == null) { // we might need to look at the filesystem

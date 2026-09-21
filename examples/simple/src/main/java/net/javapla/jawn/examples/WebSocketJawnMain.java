@@ -47,7 +47,7 @@ public class WebSocketJawnMain extends Jawn {
                 p.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        ws.ping();
+                        ws.ping("ping");
                         //if (count++ == 20) ws.close();
                     }
                 }, TimeUnit.SECONDS.toMillis(1));//, TimeUnit.SECONDS.toMillis(5));

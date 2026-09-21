@@ -1,12 +1,12 @@
 package net.javapla.jawn.core.internal.injection;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.javapla.jawn.core.Registry;
 import net.javapla.jawn.core.Up;
 import net.javapla.jawn.core.Up.RegistryException;
+import net.javapla.jawn.core.annotation.ImplementedBy;
 import net.javapla.jawn.core.annotation.Singleton;
 
 /**
@@ -14,7 +14,7 @@ import net.javapla.jawn.core.annotation.Singleton;
  */
 public class Injector implements Registry {
     
-    private final Map<Key<?>, Provider<?>> bindings = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Key<?>, Provider<?>> bindings = new ConcurrentHashMap<>();
     
     public Injector() {
         // reference yourself
@@ -43,13 +43,13 @@ public class Injector implements Registry {
     
     @Override
     public <T> Injector register(Key<T> key, T instance) {
-        bindings.put(key, singleton(instance));
+        register(key, singleton(instance));
         return this;
     }
 
     @Override
-    public <T> Injector register(Key<T> key, Provider<T> provider) {
-        bindings.put(key, provider);
+    public <T> Injector register(Key<T> key, Provider<? extends T> provider) {
+        bindings.putIfAbsent(key, provider);
         return this;
     }
 
@@ -61,22 +61,41 @@ public class Injector implements Registry {
         Provider<?> existing = bindings.get(key);
         
         if (existing != null) {
-            @SuppressWarnings("unchecked") // we only put in bindings that match their key types
-            Provider<T> provider = (Provider<T>) existing;
-            return provider;
+            return check(existing);
         }
         
         // nothing already exists
         
+        if (key.type.isAnnotationPresent(ImplementedBy.class)) {
+            Class<?> implementor = key.type.getAnnotation(ImplementedBy.class).value();
+            
+            if (!key.type.isAssignableFrom(implementor)) throw new Registry.ProvisionException("Class " + implementor + " is not an implementor of " + key.type);
+            
+            @SuppressWarnings("unchecked")
+            Provider<? extends T> provider = (Provider<? extends T>) provider(implementor);
+            
+            register(key, provider);
+            
+            return check(provider);
+        }
+        
         return justInTimeBinding(key);
     }
     
+    private <T> Provider<T> check(Provider<?> existing) {
+        @SuppressWarnings("unchecked") // we only put in bindings that match their key types
+        Provider<T> provider = (Provider<T>) existing;
+        return provider;
+    }
+    
     private <T> Provider<T> justInTimeBinding(Key<T> key) {
+        
         Provider<T> provider = createProvider(key);
         
         if (key.type.isAnnotationPresent(Singleton.class)) {
             // instantiate and save as singleton
-            provider = singleton(provider.get());
+            return check(bindings.computeIfAbsent(key, k -> singleton(provider.get())));
+            //provider = singleton(provider.get());
         }
         
         register(key, provider);

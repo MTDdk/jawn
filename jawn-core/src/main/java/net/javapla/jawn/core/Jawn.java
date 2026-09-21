@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -243,6 +244,7 @@ public class Jawn {
         
         // shutdown hook
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+        running.set(true);
         
         
         // find server
@@ -263,7 +265,9 @@ public class Jawn {
         Config config = booter.config().hasPath("server") ? booter.config().getConfig("server") : null;
         serverConfig.config(config);
         try {
-            server.get().start(serverConfig, moduleConfig);
+            Server serverImpl = server.get();
+            serverImpl.start(serverConfig, moduleConfig);
+            booter.registry().register(Server.class, serverImpl);
         } catch (Exception e) {
             e.printStackTrace();
             stop();
@@ -279,8 +283,19 @@ public class Jawn {
         log.info("Jawn: Running on port:             " + serverConfig.port());
     }
     
+    private final transient AtomicBoolean running = new AtomicBoolean(false);
     public void stop() {
-        booter.shutdown();
+        if (running.compareAndSet(true, false)) {
+        //CompletableFuture.runAsync(() -> {
+            try {
+                booter.registry().require(Server.class).stop();
+            } catch (Exception ignore) {
+                // Ignore NPE. Either the server REALLY should be possible to find, OR we are calling
+                // #stop because no server were to be found at all in #start
+            }
+            booter.shutdown();
+        //});
+        }
     }
 
     

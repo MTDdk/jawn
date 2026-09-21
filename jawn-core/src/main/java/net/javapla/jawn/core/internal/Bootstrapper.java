@@ -35,7 +35,7 @@ public class Bootstrapper {
     private final Config config;
     private final /*InjectionRegistry*/ Injector registry;
     
-    private final LinkedList<Plugin> userPlugins       = new LinkedList<>();
+    private final LinkedList<Plugin>   userPlugins     = new LinkedList<>();
     private final LinkedList<Runnable> onStartup       = new LinkedList<>();
     private final LinkedList<Runnable> onShutdown      = new LinkedList<>();
     private final LinkedList<Runnable> onServerStarted = new LinkedList<>();

@@ -1,6 +1,8 @@
 package net.javapla.jawn.core;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 public interface WebSocket {
@@ -21,16 +23,16 @@ public interface WebSocket {
     }
     
     @FunctionalInterface
-    interface OnClose {
-        void onClose(WebSocket ws, WebSocketCloseStatus status);
-    }
-    
-    @FunctionalInterface
     interface OnError {
         void onError(WebSocket ws, Throwable cause);
     }
     
     @FunctionalInterface
+    interface OnClose {
+        void onClose(WebSocket ws, WebSocketCloseStatus status);
+    }
+    
+    /*@FunctionalInterface
     interface OnPing {
         void onPing(WebSocket ws, WebSocketMessage message);
     }
@@ -38,15 +40,17 @@ public interface WebSocket {
     @FunctionalInterface
     interface OnPong {
         void onPong(WebSocket ws, WebSocketMessage message);
+    }*/
+    
+    interface WriteCallback {
+        WriteCallback NOOP = (ws, cause) -> {};
+        void operationComplete(WebSocket ws, Throwable cause);
     }
     
     interface Listener {
         Listener onConnect(WebSocket.OnConnect callback);
         
         Listener onMessage(WebSocket.OnMessage callback);
-        
-        /*Listener onPing(WebSocket.OnPing callback);
-        Listener onPong(WebSocket.OnPong callback);*/
         
         Listener onError(WebSocket.OnError callback);
         
@@ -60,13 +64,73 @@ public interface WebSocket {
     
     boolean isOpen();
     
-    WebSocket send(String message/*, boolean broadcast*/);
+    WebSocket send(String message, WriteCallback callback);
     
-    /*default WebSocket send(String message) {
-        return send(message, false);
-    }*/
+    default WebSocket send(String message) {
+        return send(message, WriteCallback.NOOP);
+    }
     
-    WebSocket send(byte[] message/*, boolean broadcast*/);
+    WebSocket send(ByteBuffer message, WriteCallback callback);
+    
+    default WebSocket send(ByteBuffer message) {
+        return send(message, WriteCallback.NOOP);
+    }
+    
+    default WebSocket send(byte[] message, WriteCallback callback) {
+        return send(ByteBuffer.wrap(message), callback);
+    }
+    
+    default WebSocket send(byte[] message) {
+        return send(message, WriteCallback.NOOP);
+    }
+    
+    WebSocket binary(String message, WriteCallback callback);
+    
+    default WebSocket binary(String message) {
+        return binary(message, WriteCallback.NOOP);
+    }
+    
+    WebSocket binary(ByteBuffer message, WriteCallback callback);
+    
+    default WebSocket binary(ByteBuffer message) {
+        return binary(message, WriteCallback.NOOP);
+    }
+    
+    default WebSocket binary(byte[] message) {
+        return binary(message, WriteCallback.NOOP);
+    }
+    
+    default WebSocket binary(byte[] message, WriteCallback callback) {
+        return binary(ByteBuffer.wrap(message), callback);
+    }
+    
+    WebSocket ping(String message, WriteCallback callback);
+    
+    default WebSocket ping(String message) {
+        return ping(message, WriteCallback.NOOP);
+    }
+    
+    WebSocket ping(ByteBuffer message, WriteCallback callback);
+    
+    default WebSocket ping(ByteBuffer message) {
+        return ping(message, WriteCallback.NOOP);
+    }
+    
+    default WebSocket ping(byte[] message) {
+        return ping(message, WriteCallback.NOOP);
+    }
+    
+    default WebSocket ping(byte[] message, WriteCallback callback) {
+        return ping(ByteBuffer.wrap(message), callback);
+    }
+    
+    WebSocket close(WebSocketCloseStatus status);
+    
+    default WebSocket close() {
+        return close(WebSocketCloseStatus.NORMAL);
+    }
+    
+    
     
     /*Context context();
     
@@ -83,18 +147,7 @@ public interface WebSocket {
         return this;
     }*/
     
-    WebSocket close(WebSocketCloseStatus status);
-    
-    default WebSocket close() {
-        return close(WebSocketCloseStatus.NORMAL);
-    }
-    
-    WebSocket ping(String message);
-    
-    default WebSocket ping() {
-        return ping("ping");
-    }
-    
+   
     
     
     class WebSocketHandler implements Route.Handler {
@@ -139,6 +192,9 @@ public interface WebSocket {
             return new WebSocketMessage(msg.getBytes(charset));
         }
         
+        public static WebSocketMessage create(String msg) {
+            return new WebSocketMessage(msg.getBytes(StandardCharsets.UTF_8));
+        }
     }
     
     class WebSocketCloseStatus {

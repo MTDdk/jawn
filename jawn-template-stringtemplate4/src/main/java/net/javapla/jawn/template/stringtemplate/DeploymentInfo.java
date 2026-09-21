@@ -62,7 +62,8 @@ public class DeploymentInfo {
         // try reading from resources
         try {
             var stream = getClass().getClassLoader().getResourceAsStream(p.toString()); // gets chain closed by BufferedReader -> InputStreamReader -> InputStream
-            return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+            if (stream != null)
+                return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

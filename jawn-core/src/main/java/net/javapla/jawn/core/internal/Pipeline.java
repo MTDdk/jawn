@@ -131,8 +131,8 @@ abstract class Pipeline {
                 Object result = handler.handle(ctx);
                 
                 if (!ctx.resp().isResponseStarted()) {
-                    if (result instanceof Context) {
-                        ctx.resp().respond(Status.OK);
+                    if (result instanceof Context c) {
+                        ctx.resp().respond(Status.valueOf(c.resp().status()));
                     } else {
                         //byte[] rendered = engine.render(ctx.resp().contentType()).render(ctx, result);
                         byte[] rendered = engine.render(ctx, result);

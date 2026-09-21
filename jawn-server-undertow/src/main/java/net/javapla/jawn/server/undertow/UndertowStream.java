@@ -81,16 +81,22 @@ class UndertowStream implements IoCallback, Runnable {
 
     @Override
     public void onException(HttpServerExchange exchange, Sender sender, IOException exception) {
-        close();
-        callback.onException(exchange, sender, exception);
+        try {
+            callback.onException(exchange, sender, exception);
+        } finally {
+            close();
+        }
     }
     
     private void close() {
         if (pooled != null) {
-            pooled.close();
-            pooled = null;
+            try {
+                pooled.close();
+                IoUtils.safeClose(source);
+            } finally {
+                pooled = null;
+            }
         }
-        IoUtils.safeClose(source);
     }
 
 }

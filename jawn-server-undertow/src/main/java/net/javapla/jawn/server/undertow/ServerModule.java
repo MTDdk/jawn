@@ -5,6 +5,7 @@ import org.xnio.Options;
 import io.undertow.Undertow;
 import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
+import io.undertow.server.handlers.HttpContinueReadHandler;
 import net.javapla.jawn.core.Plugin;
 import net.javapla.jawn.core.Server;
 import net.javapla.jawn.core.util.LoggerManipulation;
@@ -25,21 +26,28 @@ public class ServerModule implements Server {
         
         HttpHandler handler = new UndertowHandler(application.router(), application.sessionStore(), config);
         
+        if (config.expectContinue()) {
+            handler = new HttpContinueReadHandler(handler);
+        }
+        
+        //var xnio = Xnio.getInstance(Undertow.class.getClassLoader());
+        
         Undertow.Builder bob = Undertow.builder()
-            .setBufferSize(config.bufferSize())
+            //.setBufferSize(config.bufferSize())
             /** Socket */
             .setSocketOption(Options.BACKLOG, config.backlog())
             /** Server */
             .setServerOption(UndertowOptions.ALWAYS_SET_DATE, config.serverDefaultHeaders())
+            .setServerOption(UndertowOptions.MAX_HEADER_SIZE, config.maxHeaderSize())
             .setServerOption(UndertowOptions.ALWAYS_SET_KEEP_ALIVE, false)
             .setServerOption(UndertowOptions.ALLOW_EQUALS_IN_COOKIE_VALUE, true)
             .setServerOption(UndertowOptions.DECODE_URL, false)
             .setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, false)
-            .setServerOption(UndertowOptions.NO_REQUEST_TIMEOUT, 59 * 1000)
+            //.setServerOption(UndertowOptions.NO_REQUEST_TIMEOUT, 59 * 1000)
             //.setServerOption(UndertowOptions.ENABLE_HTTP2, true)
             /** Workers */
-            .setIoThreads(config.ioThreads())
-            .setWorkerThreads(config.workerThreads())
+            //.setIoThreads(config.ioThreads())
+            //.setWorkerThreads(config.workerThreads())
             /** Handler */
             .setHandler(handler)
             ;
@@ -47,9 +55,10 @@ public class ServerModule implements Server {
         bob.addHttpListener(config.port(), config.host());
         
         server = bob.build();
-        server.start();
         
-        //handler.worker = server.getWorker();
+        application.registry().register(Undertow.class, server);
+        
+        server.start();
         
         return this;
     }
@@ -66,5 +75,4 @@ public class ServerModule implements Server {
         
         return this;
     }
-
 }

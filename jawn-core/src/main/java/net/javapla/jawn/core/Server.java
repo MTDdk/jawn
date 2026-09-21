@@ -25,7 +25,7 @@ public interface Server {
             .map(x -> x.getMessage())
             .filter(Objects::nonNull)
             .map(String::toLowerCase)
-            .map(message -> message.contains("reset by peer") || message.contains("broken pipe"))
+            .map(message -> message.contains("reset by peer") || message.contains("broken pipe") || message.contains("forcibly closed") || message.contains("connection reset"))
             .orElse(cause instanceof ClosedChannelException || cause instanceof EOFException);
     }
     
@@ -56,7 +56,9 @@ public interface Server {
         private int workerThreads = -1;
         private boolean serveDefaultHeaders = true;
         private int bufferSize = StreamUtil._16KB;
+        private int maxHeaderSize = StreamUtil._8KB;
         private long maxRequestSize = 10_485_760; // 10MB
+        private boolean expectContinue = false;
         
         public final Config config;
         
@@ -117,8 +119,16 @@ public interface Server {
             return bufferSize;
         }
         
+        public int maxHeaderSize() {
+            return maxHeaderSize;
+        }
+        
         public long maxRequestSize() {
             return maxRequestSize;
+        }
+        
+        public boolean expectContinue() {
+            return expectContinue;
         }
         
         public ServerConfig config(Config config) {
