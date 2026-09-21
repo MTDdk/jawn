@@ -13,7 +13,8 @@ allprojects {
   repositories { mavenCentral() }
   
   // gradle publish | publishToMavenLocal
-  // remember to 'stage' the project after
+  // remember to 'stage' the project after (stage.sh)
+  // log in to central.sonatype.com
   apply from: "$rootProject.projectDir/maven.gradle"
 
   
