@@ -5,9 +5,9 @@ plugins {
 dependencies {
 
   // framework
-  implementation project(':jawn-core')
+  api project(':jawn-core')
   
   // jackson
-  implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.4.2'
+  implementation 'tools.jackson.core:jackson-databind:3.2.3'
    
 }
