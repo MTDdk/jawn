@@ -3,18 +3,17 @@ package net.javapla.jawn.template.jackson;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-
 import net.javapla.jawn.core.Body;
 import net.javapla.jawn.core.Context;
 import net.javapla.jawn.core.MediaType;
 import net.javapla.jawn.core.Parser;
 import net.javapla.jawn.core.Plugin;
 import net.javapla.jawn.core.Renderer;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.type.TypeFactory;
 
 public class JacksonModule implements Plugin, Renderer, Parser {
     

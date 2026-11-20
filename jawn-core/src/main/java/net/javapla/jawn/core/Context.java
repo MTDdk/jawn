@@ -205,17 +205,12 @@ public interface Context {
     // ** Route ** //
     //Route route();
     default void error(Throwable t) {
-        Jawn.SYS_ERROR_LOG.error(t.getMessage(), t);
-        if (t instanceof Up) {
-            resp().status(((Up) t).status());
-        } else {
-            resp().respond(Status.SERVER_ERROR);
-        }
+        error(t.getMessage(), t);
     }
     default void error(String message, Throwable t) {
         Jawn.SYS_ERROR_LOG.error(message, t);
-        if (t instanceof Up) {
-            resp().status(((Up) t).status());
+        if (t instanceof Up u) {
+            resp().status(u.status());
         } else {
             resp().respond(Status.SERVER_ERROR);
         }
